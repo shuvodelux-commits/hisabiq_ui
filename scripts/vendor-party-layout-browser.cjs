@@ -30,7 +30,7 @@ async function main(){
   assert.ok(await directory.getByRole('option',{name:/Shapla Transport/}).count()>0,
    'Vendor remains in the always-visible left directory');
 
-  // Match the shared Parties 380px/remaining desktop split and stacked mobile flow.
+  // Preserve the current Vendor directory's compact 350px desktop split and stacked mobile flow.
   for(const width of [1440,1024,768,390]){
    await page.setViewportSize({width,height:900});
    // Resolve the responsive grid before checking its geometry.
@@ -90,7 +90,7 @@ async function main(){
     assert.ok(left&&right,'Tablet and desktop retain the directory and selected detail');
     if(width>=1024){
      assert.ok(right.x>=left.x+left.width-2,'Desktop Vendor detail must sit right of directory');
-     if(width>=1280)assert.ok(Math.abs(left.width-380)<3,'Desktop directory must match Parties width');
+     if(width>=1280)assert.ok(Math.abs(left.width-350)<3,'Desktop directory follows the approved compact Vendor width');
     }else{
      assert.ok(right.y>=left.y+left.height-2,'Tablet Vendor detail must stack after directory');
     }
