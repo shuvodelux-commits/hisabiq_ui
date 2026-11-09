@@ -79,7 +79,7 @@ type SettingsContextValue = {
   restore: (
     value: TenantSettings,
     expectedRevision: number,
-  ) => { ok: boolean; error?: string };
+  ) => { ok: boolean; error?: string; persisted?: boolean };
 };
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 export function TenantSettingsProvider({ children }: { children: ReactNode }) {
@@ -177,8 +177,8 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
       section: "Backup restore",
       changes: Object.keys(next.sections),
     });
-    persist(next);
-    return { ok: true };
+    const persisted = persist(next);
+    return { ok: true, persisted };
   }
   return (
     <SettingsContext.Provider
