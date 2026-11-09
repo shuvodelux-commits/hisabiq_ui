@@ -5182,6 +5182,7 @@
       "src/components/products/PhotoUploader.tsx",
       "src/components/reports/ReportToolbar.tsx",
       "src/components/transactions/TransactionCartEditor.tsx",
+      "src/components/vendor/VendorDirectory.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
