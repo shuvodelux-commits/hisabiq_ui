@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useSaas } from '../../contexts/SaasContext';
+import { Input } from '../../../components/Input';
 
 type Hit = { id: string; kind: string; title: string; detail: string; to: string };
 
@@ -61,9 +62,10 @@ export function GlobalSearch() {
 
   return (
     <div ref={box} className="relative w-full max-w-[420px]">
-      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-      <input
+      <Search className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+      <Input
         ref={input}
+        onClear={() => { setQ(''); setActive(0); setOpen(false); }}
         value={q}
         onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(0); }}
         onFocus={() => setOpen(true)}
@@ -80,7 +82,7 @@ export function GlobalSearch() {
         placeholder="Search business, invoice, TRX ID…"
         className="ref-control w-full rounded-lg border border-ink-200 bg-ink-50/60 pl-9 pr-12 text-[13px] focus-visible:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600/40"
       />
-      <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-ink-200 bg-white px-1.5 text-[10px] text-ink-500 md:block">⌘K</kbd>
+      {!q && <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-ink-200 bg-white px-1.5 text-[10px] text-ink-500 md:block">⌘K</kbd>}
       {open && q.trim().length >= 2 && (
         <ul id="cc-search-results" role="listbox" className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-ink-100 bg-white py-1 shadow-pop">
           {hits.length === 0 && <li className="px-3 py-3 text-center text-xs text-ink-500">No match in your businesses.</li>}

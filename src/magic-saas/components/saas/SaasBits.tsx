@@ -2,7 +2,8 @@ import React from 'react';
 import { Lock, Search, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { MOTION_EASE } from '../../hisabiq-library/motion/tokens';
-import { StatusBadge, type StatusTone } from '../StatusBadge';
+import { StatusBadge, type StatusTone } from '../StatusBadge'
+import { Input } from '../../../components/Input';;
 import type { AccessState, EntitlementSource, EntitlementStatus, OrderState, PromoStatus, TenantStatus } from '../../types/saas';
 
 export const tenantTone: Record<TenantStatus, StatusTone> = { Active: 'success', Trial: 'info', Grace: 'warning', Expired: 'danger', Suspended: 'ink' };
@@ -58,7 +59,8 @@ export function SearchBox({ value, onChange, placeholder }: { value: string; onC
   return (
     <div className="relative min-w-[200px] flex-1">
       <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-      <input
+      <Input
+        clearable={false}
         type="search"
         data-hisabiq-input=""
         value={value}
