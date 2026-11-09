@@ -79,7 +79,7 @@ test("main and PR 274 descriptions allow unchanged behavior", () => {
   }
 });
 
-test("browser-working requires an observed UI consumer and saved state", () => {
+test("browser-working label rejects unverified consumption or missing persistence", () => {
   for (const row of readRows().filter(row => row.readiness === "browser-working")) {
     assert.ok(["yes", "partial"].includes(row.persistent), row.id + ": working without persistence");
     assert.ok(["yes", "partial"].includes(row.consumed), row.id + ": unverified or absent consumer cannot be working");
