@@ -1,0 +1,105 @@
+{
+  "assessment": "B · isolated detector + official audit",
+  "check": "C2",
+  "head": "5bd2aa6",
+  "detectorRan": true,
+  "detectorExitCode": 2,
+  "detectorRaw": "c2-detector.json",
+  "independence": {
+    "screenshotsViewed": false,
+    "priorAssessmentsRead": false,
+    "designAssessmentRead": false,
+    "browserUsed": false,
+    "sourceEdited": false
+  },
+  "scores": {
+    "accessibility": 3,
+    "performance": 3,
+    "responsive": 2,
+    "theming": 4,
+    "integrity": 3
+  },
+  "auditTotal": 15,
+  "scoreBasis": {
+    "accessibility": "Named controls, composite ARIA and radio keyboard handlers are present. The cart scroll container lacks the documented named keyboard region; rendered contrast/focus/zoom were not assessed.",
+    "performance": "Search results capped at eight and memoized; bounded popup measurement with equality guard. No verified major performance defect; no runtime profiling performed.",
+    "responsive": "Container-based layout and internal tablet scrolling exist. The sole cart product identity still ellipsizes without a reveal path. Four-unit and large-amount states remain rendered verification questions.",
+    "theming": "POS surfaces, text, borders and states use runtime token families; no verified dark-mode failure in source. This is implementation scoring, not a rendered contrast certificate.",
+    "integrity": "Approved component families and explicit preview semantics remain coherent. Several POS strings and amount words bypass the active language preference."
+  },
+  "detectorClusters": [],
+  "falsePositives": [
+    {
+      "rule": "overused-font",
+      "locations": [
+        "src/index.css:3",
+        "src/index.css:5",
+        "src/index.css:38"
+      ],
+      "reason": "Reject all three hits. Geist/Hind Siliguri are explicitly approved by taste T1 and the design guide. A managed Geist Mono import does not demonstrate monospaced money in POS; cart/input overrides reset numeric font features."
+    }
+  ],
+  "problems": [
+    {
+      "id": "pos-phone-product-identity-truncated",
+      "severity": "P2",
+      "type": "edge-cases",
+      "location": "src/components/pos/CartTable.tsx:186",
+      "evidence": "Source verified: sole cart product name is a plain truncate paragraph, with no title, expand/details action or full-name reveal. src/index.css:324 forces nowrap/ellipsis on identity paragraphs below 760px cart width; :337 restricts identity to phone grid columns 3–7. Applies in both themes; T2/T5/T6 and design guide §18 prohibit unrevealable sole identity. Exact clipping for a particular product was not rendered in this isolated audit.",
+      "fix": "Within the existing compact phone cart, make the full product name available through natural wrapping or an accessible reveal, preserving total/remove and tablet one-row behavior. Confirm with long real English/Bangla identities."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "type": "confusing-copy",
+      "location": "src/components/pos/CheckoutPanel.tsx:258",
+      "evidence": "Source verified: AmountInWordsDisplay is called without language or label, so its default language=Bangla and label=In words · কথায় remain in Full English. Pos.tsx:764 and :899 render unconditional Bangla helpers; :899–902 hard-code Quick items and Tap to add. ProductCombobox.tsx:279–294 unconditionally renders Bangla product helper and English stock/service copy. CSS :308–310 supplies English Qty/Unit/Price regardless of preference. T9 and the brief require English/Bangla preference parity.",
+      "fix": "Pass explicit active language and localized label to the existing AmountInWordsDisplay only from POS; route POS-owned labels through existing copy helpers and gate secondary Bangla helpers with showHelper. Preserve entered product names and shared consumer defaults."
+    },
+    {
+      "id": "pos-cart-scroll-region-unlabelled",
+      "severity": "P2",
+      "type": "accessibility",
+      "location": "src/components/pos/CartTable.tsx:148",
+      "evidence": "Source verified: cart overflow-x-auto wrapper is an unlabelled div without region semantics or tabIndex. src/index.css:898 intentionally creates a 760/844/920px minimum row width at tablet sizes. Design guide §18 requires comparative horizontal scrolling inside a labelled keyboard-reachable region; T7 requires keyboard scroll access. Descendant fields can still receive focus, so this is not asserted as a proven keyboard task blocker.",
+      "fix": "Give the existing cart scroll surface a localized accessible region name and keyboard focus when overflow exists, preserving descendant Tab order and normal internal scroll. Verify keyboard scrolling/focus and touch in the real tablet cart."
+    }
+  ],
+  "sourceImprovementsObserved": [
+    {
+      "id": "product-search-active-scroll",
+      "evidence": "ProductCombobox.tsx:136–147 scrolls only its list to the active option; :162/:197 guard composition and keyCode 229. CartTable.tsx:369 opts into posKeyboardSafety; default stays false for existing consumers."
+    },
+    {
+      "id": "cart-unit-radio-keyboard",
+      "evidence": "CartTable.tsx:287–296 implements roving Tab focus plus arrows/Home/End. CheckoutPanel.tsx:219–233 applies equivalent keyboard selection to discount mode."
+    },
+    {
+      "id": "pos-cart-type-scale-drift",
+      "evidence": "index.css:784–809 imposes 13/12/11 roles and proportional digits with high-specificity inherited overrides. No remaining computed-scale defect is established from source alone."
+    },
+    {
+      "id": "pos-cart-desktop-clipped-totals",
+      "evidence": "index.css:898–899 budgets 760px routine rows and :929 preserves total as a real grid cell. Actual fit remains the independent rendered reviewer’s responsibility."
+    }
+  ],
+  "openQuestions": [
+    {
+      "id": "quantity-four-unit-width",
+      "location": "src/components/transactions/MultiUnitQuantityInput.tsx:26",
+      "question": "Render a real four-unit line at 320/390/768/1024/1440, focused and unfocused, including four-character symbols and multi-digit quantities. Equal flex slices, shrink-0 symbols, compact stepper reservation and overflow-hidden shell remain a source risk, not a verified clipping problem. No speculative change requested."
+    },
+    {
+      "id": "checkout-large-amount-fit",
+      "location": "src/components/pos/CheckoutPanel.tsx:256",
+      "question": "Render supported large BDT totals in payable, paid/due rows and the 48px terminal CTA at 320/390 and desktop checkout widths in all three language preferences. Large fixed type plus label+amount+F9 may exceed available inline space; source alone does not verify overflow. Reproduce before changing."
+    },
+    {
+      "id": "workflow-vendor-lint",
+      "question": "This isolated source audit ran the official detector only; full project lint/regression outcome belongs to the coordinator’s gate evidence. No conclusion inferred from the baseline ID."
+    }
+  ],
+  "implementationIntegrityVerdict": "Pass with bounded gaps: product-specific shared controls and financial preview boundaries are retained; no verified detector cluster remains after owner-approved font exclusions.",
+  "summary": "Official detector completed with three approved-font false positives and no retained detector cluster. Source audit scores 15/20 with three verified P2 gaps; four-unit and large-amount rendering require reproduction before any corrective edit.",
+  "limitations": "Source-only independent assessment; no screenshots, browser, pixel contrast, gesture synthesis, runtime performance or test-gate results were inspected."
+}

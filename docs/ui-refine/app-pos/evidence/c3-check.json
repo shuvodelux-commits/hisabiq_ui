@@ -1,0 +1,96 @@
+{
+  "assessment": "Checker · merged",
+  "check": "C3",
+  "head": "33911b252005dbb3c0a0045d6cd077bb95da6f1c",
+  "method": "Fresh original UI Refine Loop checker. Read binding taste and brief, own Checker section, C3 isolated A/B and short ledger; inspected all four round0|round2 comparison sheets and representative actual large, open-search, unit and scrolled-header PNGs. No browser or application edits; no prior raw assessments.",
+  "designTotal": 15,
+  "auditTotal": 13,
+  "visualTotal": 28,
+  "visualMax": 40,
+  "detectorRan": true,
+  "vsBefore": "better",
+  "vsBeforeNote": "Desktop totals/remove now fit routine rows; phone product identity, joined multi-unit values, large checkout amount and completion CTA improve; light/dark hierarchy and top-position logo remain consistent in inspected actual viewport captures.",
+  "scoreInterpretation": "The 28/40 is the independent C3 design15+audit13 result, equal numerically to C2 but with stronger visual composition and newly expanded audit coverage of hidden POS dialogs. Existing source gaps discovered in that expanded scope are not demonstrated regressions.",
+  "problems": [
+    {
+      "id": "pos-dialog-field-accessibility",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/pos/SerialPickerDialog.tsx:115",
+      "evidence": "Audit source verified by checker: :115 renders a bare size-3 X removal button with no accessible name or compensated hit area; scan :85 and paste :99 lack associated visible labels, and error :118 has no announcement/association. StockShortageDialog.tsx:142–149 uses a disconnected cost label and missing invalid/error association. T7/T9/T12. These hidden-dialog source defects predate this round; no pixel failure or business defect inferred.",
+      "fix": "Give serial removals translated names and usable shared-control hit areas, connect visible scan/paste/vendor-cost labels, and associate/announce invalid states. Preserve serial eligibility/count, shortage mode, stock unit conversion, vendor-cost conversion and callbacks exactly; report any business concern separately."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/pos/CheckoutPanel.tsx:120",
+      "evidence": "Merged A+B, stable ledger language/date issue: round-2-large-1440-bn-light.png and dark equivalent show English New sale/Quick items/Tap to add alongside Bangla controls, unconditional In words, and fixed 06 Oct 2026 · Counter 1. Phone field labels come from English CSS strings. CheckoutPanel.tsx:258 omits AmountInWordsDisplay language/label; Pos.tsx shortcuts/context banners, serial/shortage operational labels/errors and installment status/adjustment placeholders bypass preference. T9/design-guide §24. This established copy gap has persisted through C1–C3, not a new regression.",
+      "fix": "Respect English, Bangla and Bilingual via existing copy paths for POS-owned headings, hints, operational labels, errors, status presentation, tooltips/ARIA and phone field labels. Amount words must obey all three preferences through the existing shared opt-in from POS while preserving other consumers and original test assertions. Correct date DISPLAY only: historical edit uses its source date; new/duplicate uses current Dhaka day; a draft has no date field so do not invent history. Source or honestly identify counter context; never alter stored dates, identifiers, formulas or persistence."
+    },
+    {
+      "id": "pos-installment-native-select-drift",
+      "severity": "P2",
+      "type": "drift",
+      "location": "src/components/pos/InstallmentTermsPanel.tsx:72",
+      "evidence": "Audit source verified: advanced adjustment uses a local native select for fixed amount/percent options while neighboring POS fixed choices use FormSelect/AppSelect. T1/T12 and transaction control contract; no rendered dark-popup defect claimed. Existing source drift surfaced by expanded subsection audit.",
+      "fix": "Reuse the approved fixed-option select with identical amount/percent values, callbacks and permissible states; preserve the adjustment calculation and 36px control contract."
+    },
+    {
+      "id": "pos-cart-reduced-motion-bypassed",
+      "severity": "P2",
+      "type": "accessibility",
+      "location": "src/components/pos/CartTable.tsx:74",
+      "evidence": "Audit source verified: SortableCartRow unconditionally exits with height:0 and 0.16s transition at :74–75; no reduced-motion hook or parent MotionConfig in this render path. T7. Source finding, not temporal browser validation.",
+      "fix": "Apply existing reduced-motion preference to cart entry/exit/layout feedback while preserving normal motion, immediate state feedback, keyboard reorder and pointer reorder behavior."
+    }
+  ],
+  "openQuestions": [
+    {
+      "id": "pos-large-price-input-clipped",
+      "location": "src/index.css:899",
+      "status": "pending-reproduction",
+      "evidence": "A flags focused nine-digit 100000000 price text clipped beside stepper in round-2-large-1440-bn-light/dark.png; checker sees tight/cut text in those PNGs. Existing coordinator price geometry covered 100000.00 and passed, so this distinct value needs actual focus/blur inner text-width geometry at 1440 light/dark. Coordinator timestamp correction: large PNG is 18:50, final price regression passed 18:55, stable 33911b2 committed 19:06; this PNG predates the final price-width fix and cannot establish a current defect.",
+      "action": "Coordinator live probe decides whether this becomes a verified P1 edge-cases blocker for round3. If reproduced, reserve POS-only intrinsic price width using existing cart scroll, keep routine rows fitting and do not change price behavior. No speculative width change based only on the screenshot."
+    },
+    {
+      "id": "pos-open-search-blank-evidence",
+      "status": "pending-reproduction",
+      "evidence": "round-2-320-light-search.png and round-2-390-dark-search.png show empty option text and thumbnail boxes; ProductCombobox source retains result content. Earlier and current source equivalence does not establish runtime visibility.",
+      "action": "Obtain settled live open-search captures, visible text geometry/computed styles and actual selection before certifying. Treat as evidence gap until live reproduction; fix a verified UI blocker before copy/polish if reproduced."
+    },
+    {
+      "id": "pos-workflow-evidence-matrix",
+      "status": "coordinator-validation",
+      "evidence": "Supplied static shots do not certify every POS subsection or dropdown, supported product creation, serial/shortage semantics, installment lifecycle, receipt/print or focus/keyboard behavior.",
+      "action": "Retain named real-interaction matrix and limitations, with opened states in both themes and relevant narrow widths. Cover multiple real additions and supported genuine three-unit creation/addition; topbar/logo must stay at viewport top for every capture. Existing installment/payment/lifecycle and vendor tests reported passing belong to coordinator evidence, not independent checker execution."
+    },
+    {
+      "id": "pos-supplemental-final-head-evidence",
+      "status": "coordinator-validation",
+      "evidence": "Coordinator confirms some supplemental large/open/unit captures predate the final source fix; original round2 main required shots are postcommit. Hardcoded keyboard/layout round labels also risk ambiguous attribution.",
+      "action": "Regenerate all final supplemental evidence from stable final head with configurable round labels, retain source/head/timestamps, assert topbar/logo at viewport top, and distinguish app failures from browser-launch adapter issues. Bundle/motion suite launch failures pending established system-Chromium preload adapter are not application regressions."
+    }
+  ],
+  "round3Guidance": "Last bounded fix round: resolve reproduced UI blockers first; then source accessibility and preference/date presentation, fixed select and reduced motion within existing components. Run polish once and last. No layout redesign, inventory/accounting/data-model changes or shell restyle for capture artifacts; preserve original test assertions while adding relevant regressions.",
+  "reviewedEvidence": {
+    "comparisonSheets": [
+      "cmp-round-2-main-desktop-light.png",
+      "cmp-round-2-main-desktop-dark.png",
+      "cmp-round-2-main-mobile-light.png",
+      "cmp-round-2-main-mobile-dark.png"
+    ],
+    "representativePNGs": [
+      "round-2-large-1440-bn-light.png",
+      "round-2-large-1440-bn-dark.png",
+      "round-2-320-light-search.png",
+      "round-2-390-dark-search.png",
+      "round-2-3units-320-light.png",
+      "round-2-4units-768-dark.png",
+      "round-2-large-390-bn-dark-viewport.png",
+      "round-2-header-scrolled-320-light.png"
+    ],
+    "source": "SerialPickerDialog, StockShortageDialog, InstallmentTermsPanel, CartTable, CheckoutPanel relevant reported lines"
+  },
+  "summary": "The original compact POS is visibly better than round0, with routine totals/remove actions, phone identities, multi-unit entry and large checkout values improved in both themes. The language/date issue has survived C1–C3 and the final bounded round must close verified presentation/accessibility gaps while independently resolving price/search evidence gaps and retaining honest workflow limitations."
+}

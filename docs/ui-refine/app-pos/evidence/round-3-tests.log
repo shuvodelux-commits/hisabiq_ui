@@ -1,0 +1,1575 @@
+
+> magic-patterns-vite-template@0.0.1 test
+> node --experimental-strip-types --test tests/*.test.ts
+
+(node:44841) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ stable transfer IDs keep duplicate-name endpoints distinct (0.942714ms)
+✔ legacy name-only transfers resolve only while the endpoint is unique (0.216338ms)
+✔ stored IDs follow account rename without rewriting the historical transfer (0.252548ms)
+(node:44848) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/accountingProjection.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cash sale creates a balanced sale and COGS posting (2.421001ms)
+✔ credit sale splits paid money from customer due (0.350479ms)
+✔ customer payment reduces customer due without adding revenue (0.305871ms)
+✔ internal transfer stays balanced without income or expense (1.84673ms)
+✔ reports use transaction date while ledger may display created date (0.794619ms)
+✔ Accounts tabs have seven English-only labels, with Money Accounts second and Bank Entry contextual (1.870489ms)
+✔ only the navigation helper labels are removed, while the existing underline and selection remain (0.270868ms)
+✔ Bangla helper copy remains in the voucher content and financial cards (0.185567ms)
+✔ account, date range, search, Export and Print share a compact desktop toolbar row (1.051635ms)
+✔ closing balance and date mode are right-aligned in the ledger card header, not beside Export (0.408623ms)
+✔ smaller screens reflow filters and the header without clipping (0.169157ms)
+✔ compact layout preserves selection, search, date filters, balance calculation, export and print (0.129384ms)
+✔ Add Product retains required field markers and help behind compact tooltip controls (1.562409ms)
+✔ one minimal additional settings list contains all seven direct options and no nested disclosures (0.948702ms)
+✔ warranty, serial and expiry keep existing conditional controls and live validation (0.382258ms)
+✔ field tooltip remains keyboard interactive and outside the field label (0.468032ms)
+✔ seven settings are independently reachable; editing values is persistent (1.304947ms)
+✔ multi-unit retains editable 1 larger unit = quantity of smaller unit (0.510294ms)
+✔ screenshot layout: thin lines between settings only, no top divider, three equal brand/category/unit fields (1.532212ms)
+✔ amounts in words reuse prominent display across POS, purchase, Counter, Finance, parties and receipt (3.421249ms)
+✔ shared amount-in-words component has full-width readable wrapped Bangla in all variants (0.358387ms)
+✔ Fast Counter POS and Purchase use readable light words without changing Counter or receipt (0.858769ms)
+✔ all displayed money words across src go through the shared readable renderer (18.09541ms)
+(node:44890) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/review/auditBook.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ source-faithful ranked products, customers, suppliers, ordered items and expense categories (2.639328ms)
+✔ no invented profit for absent cost; cross-unit quantities stay uncombined (0.370537ms)
+✔ current dues list does not leak into historical month and transfer is separately classified (8.196096ms)
+✔ five A4 portrait print pages each include vector chart; escape source labels and disclose readiness (8.186604ms)
+✔ yearly sales trend is chronological and not a top-five-month ranking (0.746851ms)
+✔ walk-in invoices are not incorrectly ranked as a single named best customer (0.536845ms)
+(node:44897) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/auditDisplay.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ non-money quantities never display as taka (12.62265ms)
+✔ money fields retain the taka symbol and Bangladeshi grouping (0.404942ms)
+✔ payment change history shows account and amount for each split (0.424661ms)
+✔ missing values and unknown object values remain readable (0.27443ms)
+✔ field labels use plain English instead of internal names (0.127558ms)
+(node:44904) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/auditEngine.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ transaction date can change without changing immutable created date (2.093021ms)
+✔ changing customer moves due balance from old party to new party (0.360869ms)
+✔ changing payment account moves money effect between accounts (0.377059ms)
+✔ changing amount recalculates due and balanced accounting posting atomically (0.238821ms)
+✔ dependency validation blocks only invalid quantity while leaving other fields valid (0.337443ms)
+✔ financial changes require a reason but note-only edit does not (0.239443ms)
+✔ impact preview lists before-after changes and only relevant effects (0.263114ms)
+✔ delete blocks a source with dependent return and explains the blocker (0.210365ms)
+✔ delete undoes the complete source posting and retains immutable audit history (0.400159ms)
+✔ every Audit Ledger posting references a known accounting account (2.717854ms)
+(node:44911) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/quotationCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ quotation labels change for display only; original statuses remain persisted (1.644228ms)
+✔ quotation preview numbers and status remain unchanged under Bangla display labels (0.458126ms)
+✔ Phase 10 reuses original quotation domain and in-page print rather than new posting functions (0.475737ms)
+(node:44918) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorLedger.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 10 display labels do not change Vendor statement data or CSV export (0.971712ms)
+(node:44925) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/warrantyCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ warranty translation is display-only and retains every source status identifier (2.25169ms)
+✔ source-linked intake, case transitions and CSV remain unchanged (1.674519ms)
+(node:44932) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/onlineSalesCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all order and lead labels preserve source option values (2.71314ms)
+✔ the existing money, courier clearing, CRM and order snapshot do not mutate while translating (1.028366ms)
+✔ Phase 12 preserves shared POS cart, quotes and manual COD posting APIs (0.892221ms)
+(node:44939) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/fulfillmentCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ three fulfillment document identities and stored values remain stable in every language (1.484657ms)
+✔ all three customer-facing disclaimers explain these are preview documents, not posting (0.234405ms)
+✔ printing and translating do not mutate order/line quantities, price, amounts or courier clearing (1.606002ms)
+✔ the existing print scope, A4 CSS and fulfillment type conditions remain unchanged (0.621617ms)
+(node:44946) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/productsCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 14 catalog uses existing three language modes without translating stored values (0.857604ms)
+✔ Phase 14 only localizes Products catalogue presentation, never product source IDs or export columns (0.834102ms)
+✔ Products stock-value contract excludes virtual packages without changing ordinary stock valuation (0.157005ms)
+(node:44953) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/productFormsCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 15 Product Settings and Add/Edit locale labels retain machine values (2.673344ms)
+✔ enumeration dropdown keeps persisted IDs across English and Bangla (0.83425ms)
+✔ the full product editor uses the app language and source-safe reusable handlers (0.505266ms)
+(node:44960) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/productInventoryCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 16 inventory copy uses current language mode without translating stock source data (0.746128ms)
+✔ stock adjustments, reasons and offers keep stable source enums (0.929716ms)
+✔ inventory display localization does not touch stock allocation, totals, validation, serial or offer business rules (1.968043ms)
+(node:44967) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/salesCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 17 Sales uses existing English, English + Bangla and Bangla display modes (0.771104ms)
+✔ return reasons, settlements and filters preserve stored English domain IDs in Bangla (0.892188ms)
+✔ Sales localized presentation does not alter sales, payments, returns, cart or CSV source contract (1.175891ms)
+(node:44974) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/purchaseCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 18 Purchases presents correct labels in three existing language modes (0.840025ms)
+✔ Refund and supplier-credit rendering preserves raw method and source amount (1.11301ms)
+✔ Purchase UI localization does not mutate domain filters, source guards or CSV export values (1.881972ms)
+(node:44981) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Expenses labels obey existing English, mixed and Bangla modes (0.852336ms)
+✔ Expense records, payment methods, filters and CSV machine headers retain original IDs and values (0.703488ms)
+(node:44988) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Party feedback uses current three language modes with preview limitation (0.778052ms)
+✔ Party presentation changes do not change relationship isolation, ledger dates, payments or financial source logic (0.466494ms)
+(node:44995) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Party Editor and Detail display copy respects English, bilingual and Bangla without altering stored data (0.853605ms)
+✔ Role label translation is presentation only; source enum and balance direction remain unchanged (0.520517ms)
+✔ Opening and Party Detail retain preview-only posting and source-linked correction boundaries (0.463367ms)
+✔ Party edit stays inside More actions and Add party uses primary styling on all devices (1.524571ms)
+(node:45002) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Financial validation errors use presentation-only Bangla mapping (1.188804ms)
+✔ Financial dialogs preserve fields, source-linked correction, separate party roles and preview-only payment (0.666346ms)
+✔ Party statement print translates source labels but retains CSV serializer and money/date values (0.399613ms)
+(node:45009) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Party relationship labels use the established display-only seven-role mapping (1.098054ms)
+✔ Import errors display native Bangla only in Bangla mode; CSV source validation is unchanged (0.410058ms)
+✔ Directory filters preserve keys; labels and badges follow three language modes (0.476009ms)
+✔ Party Excel chooser retains source relationship and bank safety constraints (1.302028ms)
+✔ Shared import stages use localized visual labels and stable import state identifiers (1.161006ms)
+✔ Upload and mapping preserve file reader, formats, field keys and column index values (0.328752ms)
+✔ Shared row review retains conversion, source references, skip/edit decisions and verified opening warnings (0.434118ms)
+✔ Finish remains in-memory only and error report stays machine-readable (0.187519ms)
+✔ Known importer validation messages have Bangla display equivalents (0.939621ms)
+✔ Only Bangla mode localizes source errors; unknown messages and data remain untouched (0.373424ms)
+✔ Import adapters, source verification and machine-readable error report remain unchanged (0.408808ms)
+✔ Party ledger translations preserve source names, row identity and accounting directions (1.424405ms)
+✔ Party ledger action menu translates labels without altering permissions or callbacks (0.217505ms)
+✔ Ledger dates, money, search/filter, source actions and printing remain delegated to existing components (0.375375ms)
+✔ Party ledger source badges and attachment controls retain real source actions (0.374213ms)
+✔ Party tabs and ledger controls follow compact reference styling while preserving handlers (1.318541ms)
+✔ Calendar languages do not modify source date preset keys or ISO storage (1.596626ms)
+✔ Calendar retains existing controls, keyboard navigation and commit rules (0.328924ms)
+✔ ERP HTML language follows existing personal preference and resets on unmount (1.070763ms)
+✔ Phase 28 runs all language modes, orientations and themes, collects actionable axe evidence (0.435742ms)
+✔ Counter localizes financial validation without renaming posting types (1.362684ms)
+✔ Purchase and Sales keep machine-stable payment methods and allocation IDs (0.541899ms)
+✔ Expense copy still discloses preview and requires correction reasons (0.290426ms)
+✔ print path uses an explicit language instead of a React context that is absent in static markup (1.320478ms)
+✔ CSV export retains its original English columns and data contracts (0.655982ms)
+✔ printed source records retain preview warning and properly escaped values (0.261532ms)
+✔ audit print localizes presentation while audit CSV keeps its existing columns and records (1.013246ms)
+✔ accounting CSV sources, calculations, and posting identifiers are untouched (0.636867ms)
+✔ Party statement CSV still serializes unchanged financial values and ledger direction (0.419993ms)
+✔ Bangla strings never replace persisted filter or correction identifiers (1.203174ms)
+✔ Finance keeps money direction, account IDs and split arithmetic unchanged (1.270966ms)
+✔ Bank reconciliation keeps persisted match states and CSV schema (0.542511ms)
+✔ Party settlement and refund safeguards remain intact (0.486339ms)
+✔ New glossary is for presentation; all original model values are preserved (0.712793ms)
+✔ Cheque stored lifecycle enum and money clearance rules remain untouched (0.868137ms)
+✔ Cash variance remains counted minus expected, not an automatic entry (0.351294ms)
+✔ Finance transaction and account mutations preserve IDs, direction, and reversals (0.295122ms)
+✔ Isolated prints use existing preference; CSV/report infrastructure remains unchanged (1.583351ms)
+✔ Phase 7 translates only cash drawer presentation and not cash session records (0.928848ms)
+✔ An empty count is not shown as a counted or reconciled amount (0.239898ms)
+✔ Shared shell uses existing language preference and preserves global search and navigation actions (1.753742ms)
+✔ Language changes display only, never theme values or sample notification identifiers (0.696746ms)
+✔ Shared shell has Bangla-accessible labels without altering calculator math (0.478543ms)
+(node:45100) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/notificationCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ SMS notification UI translations leave choice IDs and option values untouched (2.06047ms)
+✔ Changing UI language does not change persisted SMS language, template, safety or phone eligibility (1.3451ms)
+✔ Phase 9 workbench renders translated UI, never translates stored identifiers or SMS tokens (0.574245ms)
+(node:45107) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/productUnits.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Unit settings persist editable Bangla names without changing stable keys or English symbols (1.687047ms)
+✔ English, Bangla, bilingual and legacy quantities preserve quantities and safe fallback (1.29178ms)
+✔ captured unit names survive later edits without altering frozen invoice lines (0.535337ms)
+✔ actual invoice HTML renders Bangla unit quantities in A4 and thermal formats (657.720068ms)
+(node:45126) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/bankEntry.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all seven bank entry categories are present with exact backend keys (1.998942ms)
+✔ fees and interest change bank balance with the correct sign (0.527544ms)
+✔ cash deposits and withdrawals have equal opposite cash movements (0.282148ms)
+✔ other adjustments honor explicit direction (0.129763ms)
+✔ manual cheque bounce is rejected to protect original party accounting (2.129919ms)
+✔ reject invalid amounts, future dates, backdates without reason and missing cash sessions (0.510205ms)
+✔ adjustment requires a reason and payload trims input (1.067028ms)
+✔ bank entry stays contextual to Money Accounts without changing the voucher overview (0.397068ms)
+(node:45133) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/bodyScrollLock.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ nested overlays keep body locked until the final modal, sheet or nav closes (1.309591ms)
+✔ scrollbar stability applies to all pages and all three overlay owners (1.096397ms)
+(node:45140) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleCart.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ demand adds together two packages and a normal pipe line rather than evaluating independently (8.864189ms)
+✔ two Sets multiply every recipe component without creating parent stock requests (0.4371ms)
+✔ stale or missing recipe, decimal Sets, missing stock component, nested bundles are blocked (0.80889ms)
+✔ expired lots and stock debt never overstate sellable component stock (0.346141ms)
+✔ preview allocation uses physical lots in stable order, never mutates lots, never invents missing serials (0.865208ms)
+✔ shortage allocation is all-or-nothing: no partial fake stock when a component is missing (0.525606ms)
+✔ legacy products with omitted kind behave as Stock, matching existing POS inventory (0.32264ms)
+(node:45147) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleDocuments.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ snapshot freezes chosen recipe and doubles component quantities for 2 Set (1.530758ms)
+✔ historical invoice snapshot contents do not drift when current products are renamed (0.464561ms)
+✔ invalid Set counts, foreign recipes, missing products and unknown costs do not fabricate history (0.517324ms)
+(node:45154) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleCart.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ component shortage is per parent+component and cannot be covered twice across mixed lines (9.327558ms)
+✔ Vendor pending price is preserved as null, not zero COGS or fabricated physical lots (0.61659ms)
+✔ Own Stock clamp uses whole Sets and reserves stock for all other cart lines (0.8436ms)
+✔ serial-required component uses selected physical serials and original lots, never guesses (1.061614ms)
+✔ the same serial cannot be reserved by two bundle lines or a normal POS line (0.338585ms)
+✔ expired serial lot, invalid source and serial shortage are never silently accepted (0.711643ms)
+✔ Own Stock clamp honors cart reservation order when two bundles share components (0.185416ms)
+(node:45161) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/productImportPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ quote → accepted order keeps whole Sets, parent agreed price, revision and recipe signature (4.126058ms)
+✔ editing an unsold recipe in place triggers mismatch even if revision remains 1 (1.215627ms)
+✔ stale accepted quote cannot silently create online order with changed components (0.342942ms)
+✔ fractional Sets and missing revision cannot be reviewed into accepted order (0.504848ms)
+(node:45168) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unsold recipe edits replace revision 1 in place instead of generating history (2.37391ms)
+✔ after a posted sale, the next edit creates a revision and protects the sold one (0.866813ms)
+✔ unsold package is deletable together with its unsold recipe, then SKU is reusable (0.506227ms)
+✔ ever sold package cannot be deleted even if sale is old or version is returned (0.944482ms)
+✔ a preview/draft never counts as a posted sale and invalid sale registration is atomic (0.641991ms)
+✔ replayed invoice cannot duplicate sale usage or silently change its historical version (0.531521ms)
+✔ saving with no changes makes no new version or catalog revision, even after a sale (1.068788ms)
+✔ stale open unsold editor is rejected instead of overwriting an in-place edit (0.275456ms)
+✔ unrelated stock catalog edits never erase the posted-sale lock (0.710531ms)
+(node:45175) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ saving a bundle publishes product and immutable revision in a single change with no inventory (2.386114ms)
+✔ editing an unsold recipe replaces revision 1 without creating historical versions (0.319946ms)
+✔ stale edit, duplicate SKU, kind conversion, and invalid draft are all-or-nothing (0.930168ms)
+✔ unrelated imports and stock corrections preserve historical bundle revisions (2.023401ms)
+✔ generic product upsert and inventory correction cannot overwrite bundle revisions or fake direct stock (0.324605ms)
+(node:45182) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ bundle pricing shows current lot purchase cost, POS retail sum, package profit, and margins (8.38493ms)
+✔ negative package profit shows a loss and missing lots remain an estimate not recorded actual cost (0.296363ms)
+✔ zero and invalid preview package price are explicitly invalid, not a fake profit (0.224781ms)
+✔ missing components are blocking and do not disappear from calculated totals (0.225487ms)
+(node:45189) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleProjection.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ availability is constrained by the scarcest stock component, not by package stock (1.38934ms)
+✔ expired FEFO lots are not sellable and missing components block bundle (0.457443ms)
+✔ serial-required component limits sellable sets to actual unsold available serials (0.296476ms)
+✔ inactive stock or invalid recipe is blocking rather than silently omitted (0.15883ms)
+(node:45196) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleReturn.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one returned Set derives component quantities from original sold recipe, not current catalog (1.918938ms)
+✔ reject decimal, zero, over-return and previously returned whole Sets (0.837163ms)
+✔ full-Set return with multiple original lots uses exact historical allocations, partial does not guess (1.352115ms)
+✔ unknown historical lots or vendor sourcing never fabricates restock movements (0.314151ms)
+✔ historical discount requires posted net parent allocation, never current price or component retail sum (0.238838ms)
+✔ duplicate historical serials, foreign serials and changed source identity block return (0.271529ms)
+✔ a series of partial returns allocates historical net pennies exactly once (0.276099ms)
+✔ duplicate historical child IDs cannot accidentally produce duplicate restoration candidates (0.125303ms)
+(node:45203) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ compound package quantity is exact in the original component base unit (1.524678ms)
+✔ a bundle requires at least two distinct active Stock components (0.478635ms)
+✔ strict quantities reject invalid notation, decimals beyond precision, and wrong units (0.614301ms)
+✔ serial-required component uses whole base-unit counts and rejects corrupted saved quantity (0.291706ms)
+✔ changing an alternate-unit factor requires fresh recipe validation, never silently changes old quantity (0.190789ms)
+✔ bundle parent keeps an independent price with no physical stock or alternate unit (1.399936ms)
+(node:45210) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/review/businessReview.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ monthly, yearly and 24 completed months honor calendar boundaries and source as-of (4.598503ms)
+✔ blank history is unknown, never fabricated zero or certified profit (0.753366ms)
+✔ recorded sales, returns, purchase, expenses and cash remain separate, not double counted (0.80437ms)
+✔ historical issue costs remain missing; no fallback to current product prices (0.383248ms)
+✔ as-of current stock and dues stay point-in-time and never sum across months (1.251657ms)
+✔ priorities identify a source-linked actionable due, stock warning, and expense (0.569429ms)
+✔ partial current month and completed-month distinct, no future fictional rows (0.623528ms)
+✔ unknown stock valuation invalidates total instead of suppressing incomplete products (0.286721ms)
+(node:45217) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/calculatorScratchpad.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Mohim expression precedence, grouping and unary operators (1.946661ms)
+✔ smart percent supports markup, discount and literal multiplication (0.29901ms)
+✔ invalid, unfinished or dangerous expressions never produce numeric totals (0.233319ms)
+✔ scratchpad adds only valid line results and formats Bangladesh grouping (11.68581ms)
+✔ stored line data tolerates corruption and enforces bounded inputs (1.171856ms)
+(node:45224) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cheque clearance requires one existing active bank identity (1.017046ms)
+(node:45231) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/chequeAccount.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cheque references follow account identity when a duplicate display name is renamed (1.072176ms)
+✔ legacy cheque name resolution rejects duplicate accounts until an ID is selected (0.26401ms)
+✔ deactivating one duplicate bank does not resolve an ambiguous legacy cheque (0.251002ms)
+✔ unique legacy names are upgraded on rename and inactive banks cannot clear (0.38589ms)
+✔ Cloudflare Tailwind content keeps the complete scan without concurrent source globs (81.005082ms)
+✔ Local development retains its file-scanning glob for HMR (40.254513ms)
+✔ Production NODE_ENV uses bounded scanning without CF_PAGES (73.382412ms)
+✔ npm build lifecycle uses bounded scanning without CF_PAGES (71.394212ms)
+(node:45273) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new regional tax and numbering settings migrate old saved snapshots without losing records (5.245529ms)
+✔ regional money formatting changes display only (12.084678ms)
+✔ VAT calculation is accurate for inclusive and exclusive examples without altering invoice records (0.521372ms)
+✔ document sequences are configurable per family, unique, and never allocated by preview (0.51041ms)
+✔ editing numbering remains an audited business settings save; issued labels are untouched (3.27052ms)
+✔ new policies are not writable by a cashier and old backups still parse (1.848094ms)
+✔ approved unit rows reuse searchable master-data and joined numeric primitives (0.879304ms)
+✔ joined inputs retain compact cart behavior and use shared search for product unit lists (0.164698ms)
+✔ universal control sizing keeps 36px form controls on every pointer device (1.236863ms)
+✔ Sales table ledger link explicitly keeps compact inline sizing and navigation (0.55215ms)
+✔ clear input remains a compact native button, not a primary action (0.250891ms)
+✔ Counter uses the Accounts BankEntryTab with a Counter-only presentation variant (0.764256ms)
+✔ Counter entry matches the native form and right-side Transaction summary architecture (0.200126ms)
+✔ Existing Counter actions, defaults, and payment transaction flows are preserved (0.138079ms)
+✔ Shared bank validation and read-only fallback remain active in both entry points (0.142671ms)
+(node:45301) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/dateRange.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer discount-only settlement closes due without moving cash or creating refundable credit (4.273236ms)
+✔ supplier cash and settlement independently reduce payable (0.836628ms)
+✔ discount must have a reason; over-settlement rejected atomically (1.273589ms)
+(node:45308) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/counterExpensePayment.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Counter expenses retain exact source IDs and do not guess MFS providers from display names (1.894161ms)
+✔ duplicate bank names and numbers keep distinct identities in expense sources (1.494371ms)
+✔ expense source save and metadata correction retain a generic MFS account and method (14.097582ms)
+(node:45315) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/financePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Counter opens the existing Finance transaction dialog rather than a second form (2.099927ms)
+✔ Counter and Finance navigation share a single subscribed finance preview state (0.575107ms)
+✔ Finance person uses the joined select-and-settings action; transaction payment sources cannot create accounts inline (0.819216ms)
+✔ new Finance transaction derives Amount and words from payment rows; opening balance remains editable (0.529321ms)
+(node:45322) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/amountInWords.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Bangladesh amount wording handles lakh, crore, decimal paisa and negative (3.818962ms)
+✔ oldest due allocation honors existing receipts, targeted invoice and opening balance (7.973174ms)
+✔ replayed credits do not double allocate and future invoice consumes advance (0.191718ms)
+(node:45329) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/currency.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ default taka formatting preserves paisa in positive and negative amounts (12.110784ms)
+✔ default taka formatting keeps whole taka compact with Bangladeshi grouping (0.293532ms)
+✔ explicit precision remains authoritative (0.181306ms)
+✔ bare money keeps paisa while generic counts retain their existing precision (0.224834ms)
+(node:45336) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/dateRange.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Bangladesh today uses Asia/Dhaka date rather than UTC date (13.112785ms)
+✔ date presets work for any date and month/year boundary (1.113523ms)
+✔ statement month, quarter and year presets are dynamic and calendar-aligned (0.310816ms)
+✔ expense report comparisons use ISO dates and reject invalid legacy labels (0.856551ms)
+(node:45343) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/daybook.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ filters a selected transaction date (2.105841ms)
+✔ filters an inclusive selected date range (6.784434ms)
+✔ cashflow summary uses actual movement and excludes internal transfers (0.228903ms)
+✔ fuzzy party discovery keeps Daybook date, type and account restrictions (2.115054ms)
+(node:45350) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/designGuide.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ visual guide retains the entire canonical document in copy/download (3.751978ms)
+✔ guide formatting preserves mixed-language text and structured table cells (0.97331ms)
+(node:45357) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ document consumers use canonical in-memory settings even when browser storage is unavailable (2.980929ms)
+(node:45364) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/reportOutput.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ report profile changes actual page orientation, safe branding and language without changing rows (2.587062ms)
+(node:45371) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/salesPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ draft recovery preserves identity, is retry-safe and never posts invoices (1.75837ms)
+✔ all ERP regular control sizes use canonical 36px token without touch inflation (1.325605ms)
+✔ Party responsive buttons use the same 36px height as ledger filters (0.428549ms)
+✔ Sales row filters, receipt actions and return editors use 36px (0.810561ms)
+✔ POS checkout and party selector use 36px without changing payment handlers (1.715959ms)
+✔ Product Add/Discard and cash-session form use 36px, retaining actions (0.270874ms)
+✔ Audit, vouchers, reconciliation and topbar use 36px for ordinary controls (0.524326ms)
+✔ Vendor workspace retains money work handlers but removes 44px buttons (0.200866ms)
+(node:45385) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/navigation/erpNavigation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ sidebar destinations match the complete module tab sequence (1.677574ms)
+✔ approved KISS hierarchy has only two levels, POS single click and Settings last (0.320946ms)
+✔ contextual destinations retain existing real routes and only canonical path templates (5.224205ms)
+✔ feature readiness and owner settings access gate links but not authorization (0.671422ms)
+(node:45392) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/notifications/erpNotificationRules.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all ERP-wide transaction SMS events default to OFF and consent on (0.968073ms)
+✔ rules do not pretend to send SMS when no gateway is connected (1.839807ms)
+✔ disabled due reminder, missing consent and invalid phone are blocked (0.57951ms)
+✔ Bangla notification switch uses Bangla default without discarding a custom template (0.521541ms)
+(node:45399) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/notifications/erpNotificationRules.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ERP-wide registry covers customer, service tailoring, supplier, borrower, lender, owner, warranty and courier (0.796113ms)
+✔ tailor Panjabi ready message interpolates item with Bangla translation (0.688652ms)
+✔ reminder timing, recipient and quiet hours configurable and validated (1.939953ms)
+✔ all native search-like ERP fields use the shared clear input or an intentional keyboard-safe clear action (18.414563ms)
+✔ shared Input keeps clear button and numeric input modes separate (0.26366ms)
+(node:45413) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/expensePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ expense source correction retains identity, records before/after and requires a reason (14.3244ms)
+✔ invalid money/date/split rejects atomically without changing preview state (1.075366ms)
+✔ receipt changes and cancellation preserve source history; cancelled expense cannot change again (0.797565ms)
+✔ joined amount/unit field has one shared height and opt-in outer-shell marker (1.083036ms)
+✔ joined inputs preserve internal sizing without pushing inner controls outside (0.397916ms)
+✔ ERP inline controls preserve text alignment while aligning with neighboring fields (0.259183ms)
+(node:45427) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ finance account option labels identify duplicate names by masked account number or source ID (1.040777ms)
+(node:45434) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ only a single blank payment source uses the transaction fallback (0.933211ms)
+✔ malformed and nonfinite payment sources cannot be truncated or ignored (2.270333ms)
+✔ valid split sources retain exact amounts and must sum to the transaction (1.000218ms)
+✔ the existing inclusive 0.001 split tolerance remains unchanged (0.129538ms)
+✔ Finance total follows a single payment source without a second amount entry (0.394472ms)
+✔ Finance source total updates with split payments, edits and removal in exact paisa (0.268286ms)
+✔ malformed, nonfinite or sub-paisa payment drafts never create a calculated amount (0.334983ms)
+(node:45441) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ finance person option labels retain phone details and disambiguate duplicate identities (0.968222ms)
+(node:45448) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/financeTransactions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ uncleared received cheque does not move bank balance (1.556547ms)
+✔ cleared received cheque moves money in once (0.142035ms)
+✔ cleared issued cheque moves money out (0.14206ms)
+(node:45455) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/financial-display/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cash presets never apply to revenue, liabilities or noncash assets (0.817462ms)
+(node:45462) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/financial-display/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ shared financial copy changes only whole semantic labels in the selected context (2.032793ms)
+✔ cash movement preset preserves cash debit as money in and credit as money out (0.76495ms)
+✔ context previews distinguish cash, customer receivable and supplier payable (0.888008ms)
+✔ receivable/payable labels reach exact relationship captions without replacing user descriptions (0.21493ms)
+(node:45469) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/quotations/quotePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ accepted quote locks quoted prices, units and discount in linked online order (6.2646ms)
+✔ unaccepted quotations cannot be converted; POS requires confirmed order and original products (1.391135ms)
+(node:45476) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/fuzzySearch.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ typos, adjacent swaps and token order work across searchable fields (3.118475ms)
+✔ numeric codes and mixed identifiers tolerate no digit edits (0.285179ms)
+✔ ranking favors exact names and keeps original record identities and tie order (0.872725ms)
+✔ an exact SKU or reference outranks a name prefix, including longer queries (0.243826ms)
+(node:45483) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/globalSearch.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ global search matches Bangla names and digits, English case and all words (6.042871ms)
+✔ empty search offers modules and preserves exact source destinations (0.308563ms)
+✔ Default supports word-prefix typos; Advanced also includes partial words (1.689283ms)
+✔ fuzzy defaults correct word typos while Advanced still requires exact numeric tokens (0.235552ms)
+✔ global exact SKU has priority even when its display helper also contains Bangla text (0.192873ms)
+(node:45490) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/import/fileReader.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CSV retains Bangla and leading zeros in SKU and phone (1.618257ms)
+✔ quoted CSV embedded newlines preserve original physical row numbers (0.217783ms)
+✔ malformed CSV and row overflows fail instead of truncating data (8.238084ms)
+✔ CSV file reader rejects old Excel, macros and non-CSV extensions (0.869163ms)
+✔ XLSX preflight rejects malformed ZIP before any cell is read (0.559714ms)
+(node:45497) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/import/fieldSchemas.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ product headers recognize Bangla name and English SKU / selling price (2.506783ms)
+✔ customer and supplier schemas have independently dated opening balances (0.369906ms)
+✔ duplicate alias headings are ambiguous and not silently picked (0.392476ms)
+✔ column mapper rejects one source column mapped to multiple target fields (0.476896ms)
+✔ original row numbers and raw source values survive mapped staging (1.021073ms)
+✔ unmapped required headings fail instead of inventing a product name (0.470765ms)
+✔ blank required values become review errors and can be corrected without changing originals (0.493882ms)
+(node:45504) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/import/importTemplates.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ product template includes unit factor, price entry unit and opening lot data (1.104727ms)
+✔ Customer/Supplier templates keep full phone and opposite opening directions (0.221749ms)
+✔ CSV error report neutralizes spreadsheet formula fields (0.237595ms)
+✔ XLSX template returns a real ZIP workbook Blob (42.220999ms)
+(node:45511) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/import/safeXlsx.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ known minimal XLSX ZIP passes structure preflight without executing cells (3.263304ms)
+✔ formula with a cached numeric value is rejected (0.947898ms)
+✔ XML formula using a namespace prefix is rejected (0.592817ms)
+✔ remote links, macros and decompression-bomb workbooks are rejected (38.061392ms)
+✔ HisabIQ generated Excel template passes XLSX safety check (30.837959ms)
+(node:45518) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two historical partial returns reconcile exactly to original parent net value (18.95124ms)
+✔ bundle return uses original parent Set value and requires frozen source recipe (1.011299ms)
+✔ paid receipts and larger return leave explicit surplus, not negative due or cash movement (2.13219ms)
+✔ settlement cannot create an unsupported negative due or unreasoned credit (1.201676ms)
+✔ unknown historical source, stale revision and missing actor create no events (1.604994ms)
+✔ agreement preview uses existing HisabIQ data layout and truthful posting disclaimer (1.242535ms)
+✔ agreement details display source-derived paid, due, overdue and receipt history (0.945254ms)
+✔ closed history must not redirect a new sale receipt to a previously opened agreement (0.149304ms)
+(node:45539) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial collection keeps down payment separate and allocates oldest unpaid first (4.609121ms)
+✔ overdue due today upcoming and paid are distinct on business calendar dates (0.530508ms)
+✔ early payment may reach future installments but never another agreement (1.855214ms)
+✔ repeated over-allocation and duplicate receipt ids cannot hide negative outstanding (0.474502ms)
+✔ invalid allocation sums and invalid business dates reject without mutation (0.466276ms)
+✔ installment breakdown reuses HisabIQ dialog, calendar, numeric inputs (0.94841ms)
+✔ draft breakdown edits are local and balanced on apply (0.270085ms)
+(node:45553) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ valid six-installment sale passes draft validation (1.96142ms)
+✔ requires durable customer reference for installment due (0.429278ms)
+✔ rejects invalid price, full payment, or too large down payment (0.273063ms)
+✔ does not silently rewrite a manually edited installment schedule (0.245838ms)
+✔ rejects schedule with duplicate due date or negative amounts (1.593969ms)
+(node:45560) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/historicalLines.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ sold base quantities for whole Pcs, compound Box+Pcs and service are frozen (1.901442ms)
+✔ whole Set parent stores immutable sale-time component recipe not current product recipe (0.345382ms)
+✔ old agreements with no historical evidence block returns, never consult product master (1.283745ms)
+✔ reject missing bundle recipe, impossible positive quantities and mismatched source identity (1.914566ms)
+(node:45567) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ reduction larger than remaining shows surplus separately, not negative customer due (12.151116ms)
+✔ a paid installment and partial payment remain anchored through rescheduling (1.845661ms)
+✔ as-of replay excludes receipts and lifecycle events not yet effective (0.446907ms)
+✔ foreign or duplicate lifecycle sources rejected without mutating original invoice (0.864296ms)
+(node:45574) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ collect after authorized settlement using current reduced agreement only (25.372664ms)
+✔ after partial payment and reschedule, allocation targets linked successor row, not obsolete row (2.86727ms)
+✔ overpayment and unknown successor ID are rejected without mutating receipts (1.569653ms)
+(node:45581) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ stores one immutable-preview snapshot with six scheduled future payments (2.505946ms)
+✔ same operation and snapshot is idempotent, but changed source is rejected (0.865957ms)
+✔ rejects mismatched totals, missing customer and duplicate price line identity (0.592518ms)
+✔ advanced price adjustment is opt-in and edits the original cart price via parent callback (0.876853ms)
+(node:45595) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/pricing.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ convert taka text to integer paisa without allowing rounding or unsafe amounts (1.557911ms)
+✔ no duration preset uses regular price, while matching preset is only a suggestion (0.30511ms)
+✔ direct total or fixed/percentage negotiation reaches same price without compounding (0.60112ms)
+✔ one product receives exact price with no allocation UI; zero lines remain zero (0.969473ms)
+✔ multiple product lines allocate proportionally, deterministically and without fractional paisa (0.370436ms)
+✔ reject impossible allocations and duplicate keys (0.252882ms)
+(node:45602) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/printLifecycle.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ printable audit includes source invoice, schedule, totals, reason and conspicuous PREVIEW notice (24.215307ms)
+✔ unsafe customer text is escaped in printed markup (0.992526ms)
+(node:45609) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ reversal retains original source receipt and restores exact scheduled outstanding (17.652306ms)
+✔ duplicate reversal cannot create another event, identical operation is idempotent (1.86828ms)
+✔ foreign receipt, actor/reason and stale revision rejected with zero event mutation (2.227854ms)
+✔ reversing receipt after subsequent settlement requires review, not a silent edit (2.442047ms)
+(node:45616) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial receipt is idempotent and receipt details are immutable snapshots (15.649552ms)
+✔ receipt cannot exceed agreement or use nonexisting installment, wrong split amount (1.555978ms)
+✔ inactive/wrong cash or MFS account and future date are rejected before record mutation (1.863591ms)
+✔ sequential receipts allocate only unpaid agreement rows without double posting (1.776954ms)
+✔ Cash, Bank and MFS split receipt is source-validated without changing finance or Party ledgers (1.076739ms)
+(node:45623) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ single product six monthly installments start next month and sum precisely (2.761586ms)
+✔ paisa remainder is deterministic on final installment (0.338302ms)
+✔ monthly anchor clamped without permanent drift after February (0.251603ms)
+✔ weekly recurrence uses calendar days without timezone midnight drift (0.201368ms)
+✔ manual amount/date edits preserved when other rows rebalanced (0.418615ms)
+✔ edited amounts exceeding target or fully locked imbalance cause clear error (0.698466ms)
+✔ reject zero count, duplicate/invalid dates and nonpositive payment amounts (1.449357ms)
+(node:45630) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial paid row remains anchored while its unpaid 300000 paisa goes into successor (20.173165ms)
+✔ stale versions, duplicate row id and edited locked paid row reject atomically (2.845116ms)
+✔ date, actor, reason and exact unpaid amount are mandatory (1.249316ms)
+✔ a revised operation id cannot silently overwrite original audit evidence (1.388365ms)
+✔ terms panel reuses shared controls and derives numbers from checkout totals (0.790172ms)
+(node:45644) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/auditEngine.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial sale, later payment, corrections and safe delete stay consistent end to end (1.773371ms)
+(node:45651) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/documents/profile.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ full English amount words retain taka, paisa, signs and Bangladesh grouping (0.848596ms)
+✔ all invoice templates render single-language output or actual secondary Bangla helpers (584.117994ms)
+(node:45669) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/documents/profile.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Business Pad offset is applied to document once, never to both wrapper and document (0.646026ms)
+(node:45676) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/sales.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ invoice display revision preserves financial source, original snapshot and audit (4.884253ms)
+(node:45683) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/documents/profile.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ designed invoice preserves payment accounts, change, warranty terms and price-free package contents (608.954742ms)
+(node:45703) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/lotSellingPrice.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ opening stock always inherits product default, regardless of a stale lot price (4.614952ms)
+✔ purchase lot price is optional, and does not mutate the master selling price (0.242211ms)
+✔ product-level override wins without deleting existing lot prices (0.290406ms)
+✔ POS chooses allocated lot price; a mixed-price line is explicitly flagged (9.814407ms)
+✔ multi-unit prices stay custom when a purchase lot inherits product default (0.252048ms)
+(node:45710) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/multiUnitTransactions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mixed POS quantities compute true base stock and independent unit prices (2.401083ms)
+✔ mixed purchase quantities use individual purchase prices and blended stock lot cost (0.551062ms)
+✔ posted unit snapshot retains accounting despite later catalog price changes (0.291325ms)
+✔ reject invalid quantities and non-configured units before checkout (0.823366ms)
+✔ mobile decimal typing remains calculable while money payments stay in paisa (0.356009ms)
+✔ temporary invalid POS price cannot crash the live cart and is rejected at checkout (0.24043ms)
+✔ module Settings is provided through the shared toolbar rather than a standalone header row (1.107901ms)
+✔ regular module headers default to Settings before existing actions (3.23559ms)
+✔ Daybook places existing module Settings after Print in the compact action row (0.320941ms)
+✔ POS keeps its original custom header and displays the same Settings control inline (0.430568ms)
+(node:45724) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/moduleUiActions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ received cheque lifecycle exposes deposit and settlement states (1.92499ms)
+✔ issued cheque lifecycle exposes presented, cleared and stop states (0.223522ms)
+✔ daybook duplicate is limited to source-owned reusable transactions (0.270272ms)
+✔ manual accounting sources are owned by Accounts (0.164418ms)
+✔ opening balance lines stay balanced against opening equity (0.282905ms)
+✔ audit delete preview is contextual rather than a generic checklist (0.133356ms)
+(node:45731) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/moduleViews.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ personal module choices override business defaults while essential identity/totals remain (1.139738ms)
+✔ incomplete imported module preferences cannot crash a consuming table (0.336294ms)
+✔ existing browser preference keys retain their source identities (0.136973ms)
+✔ every existing ERP tab strip uses the shared moving underline (4.485203ms)
+✔ tab indicator scopes layout identity and supports reduced motion (0.300459ms)
+✔ Online Sales uses the shared underline rather than a selected filled pill (0.463705ms)
+(node:45745) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/unitChain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ POS selected intermediary units calculate quantities and selling prices (15.441337ms)
+✔ purchase switching to an intermediary unit preserves lot quantity and base cost (1.279113ms)
+✔ legacy one-large-unit product keeps its configured selling-price override (0.28761ms)
+✔ a fixed-price offer in an intermediary unit is converted correctly (0.183219ms)
+(node:45752) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/numericStep.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ whole-unit steps preserve decimal precision without floating point drift (1.372743ms)
+✔ empty inputs, boundaries and invalid numbers remain safe (0.174327ms)
+✔ only complete zero values clear on focus; wheel gestures use one whole step (0.47256ms)
+(node:45759) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/onlineSales/onlineStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ COD, delivery-charge paid, partial advance, fully prepaid are calculated separately (3.573026ms)
+✔ fractional small-unit quantities round per line to paisa (0.357056ms)
+✔ reject underflow, overpayment, invalid phone and wrong payment mode without mutation (1.307714ms)
+✔ no cash or stock movement on order create, handover, tracking, delivery or payout preview (2.180486ms)
+✔ customer CRM can record follow-up without auto-creating order or Party (0.487318ms)
+(node:45766) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/partyActions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ sale edit is source-owned and permission gated, with verified POS route (1.196528ms)
+✔ purchase without verified deep-link never offers a fake source navigation (0.201833ms)
+✔ reversed, missing source id, opening and note are mutation constrained (0.149053ms)
+✔ customer refund permission follows customer payments, finance has its own permissions (0.117508ms)
+✔ supplier refund actions are purchase-owned and credit application is read-only (0.926252ms)
+(node:45773) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ owner investment and withdrawal change capital without affecting other roles (16.815251ms)
+✔ lender credit/debit are liability and borrower debit/credit are loan receivable (1.357385ms)
+✔ opening capital and loans change relation only, not cash/bank (1.177981ms)
+✔ role mismatch and unsupported account splits do not change preview state (1.299179ms)
+✔ preview finance transactions reverse with audit, but original Finance source remains protected (1.575424ms)
+✔ explicit owner finance identity mapping never auto-matches lender or borrower by name (0.449048ms)
+(node:45780) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/parties.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ party drafts require a name and at least one distinct role (1.5412ms)
+✔ selected party and relationship are resolved together (0.296699ms)
+✔ directory search includes Bangla names, phone and area (3.418847ms)
+✔ legacy fixture dates normalize and financial references are not double counted (1.506462ms)
+✔ seeded invoices and purchases include their original paid amounts exactly once (0.782816ms)
+(node:45787) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/partyImport.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CSV import supports Bangla, quoted commas and multiple roles (4.142802ms)
+✔ invalid role, blank name and malicious formulas are rejected independently (0.483949ms)
+✔ malformed quotes or absent name header never import arbitrary rows (0.502423ms)
+(node:45794) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one revision and notification per batch with audited, unverified opening sources (18.113057ms)
+✔ same person can gain Customer and Supplier roles with independent opening directions (1.973289ms)
+✔ invalid late source rolls back parties, openings, audit and revisions (1.777554ms)
+✔ stale snapshot, preexisting opening, and unconfirmed phone collision are blocked (0.723019ms)
+✔ unverified Customer credit cannot fund a refund; Supplier Dr remains a separate advance (1.621023ms)
+(node:45801) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Customer Dr and Supplier Cr are independently planned, with no payment splits (17.11259ms)
+✔ numeric Excel phone is not reconstructed from a missing leading zero (0.499555ms)
+✔ strong Party ID and suggestive phone need explicit Add Role or Create separately (1.169671ms)
+✔ duplicate identity, unknown ID and existing relationship are not auto-imported (0.535623ms)
+✔ impossible dates, negative opening and missing direction are invalid (0.680844ms)
+(node:45808) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/partyLedger.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ date range statement includes opening, debit/credit and running balances (12.088042ms)
+✔ empty date period preserves opening and closing (0.293313ms)
+✔ all time resets opening; pagination does not recalculate row balance (0.267162ms)
+✔ correction and reversed rows are excluded and same date keeps source sequence (0.296531ms)
+✔ role selection cannot cross-net customer and supplier accounts (0.276494ms)
+✔ amounts use integer paisa and reject invalid/future dates (0.66394ms)
+✔ balance summary does not assume a negative net due is cash-backed refundable credit (12.4182ms)
+(node:45842) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/partyLedgerImpact.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ classifies cash flows by source, never by debit/credit column (1.004271ms)
+✔ opening, returns and notes are never mislabeled as cash transfer (0.274488ms)
+✔ finance role cash movement follows finance type not account-side debit sign (0.133149ms)
+✔ legacy unknown-source expenses are not asserted as cash payments (0.084978ms)
+(node:45849) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new party has one opening per relationship with independent debit and credit signs (15.332265ms)
+✔ updating opening preserves reversed source and auditable correction without bank splits (7.57001ms)
+✔ credit opening is unverified, not eligible for customer refund (1.016475ms)
+✔ zero amount clears opening while retaining an audit record (0.965145ms)
+✔ invalid parties, role, amount, date and chronology fail atomically (0.897819ms)
+(node:45856) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer multi-payment is one audited source and total splits match cash (16.382358ms)
+✔ invalid bank, wrong type, missing split, negative splits reject atomically (1.467354ms)
+✔ discount requires explanation, stays out of cash and does not increase refundable credit (1.444403ms)
+✔ purchase payments have supplier-side debit sign and strict party relation (1.662699ms)
+✔ counter preview accepts selected active finance accounts created in the current account list (0.829867ms)
+✔ payment targeting invoice must belong to party and not predate it (0.866629ms)
+(node:45863) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ create, update and multi-role selection are one atomic preview source (3.89685ms)
+✔ duplicate id and invalid edit leave revision and state unchanged (1.182ms)
+✔ adding, editing and removing notes never changes monetary movements (15.637752ms)
+✔ subscribers get one notification per valid state change (0.657589ms)
+✔ financially linked parties cannot be deactivated (0.672807ms)
+✔ notes belong to the selected relationship, never the first role by accident (0.597601ms)
+(node:45870) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Quick Add merges all selected relationships without changing profile or historical sources (5.093769ms)
+✔ Quick Add retains existing opening balances and can open only a new relationship (18.002251ms)
+✔ Quick Add refuses inactive and ambiguous exact identities without changing state (0.846107ms)
+✔ same names with different phones stay separate and new profiles retain their entered fields (0.411686ms)
+(node:45877) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer cash-backed credit can be refunded only once and only as of funding date (23.212383ms)
+✔ supplier advance refund records incoming cash/credit, not customer debit (1.192323ms)
+(node:45884) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/partySettlement.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer 100 invoice, cash receipt 130 creates 30 refundable verified advance (9.076252ms)
+✔ future invoice automatically consumes prior valid credit oldest-first (0.264563ms)
+✔ return credit becomes eligible only when the return exists at requested date (0.516612ms)
+✔ discount never turns into cash-backed advance and requires due (0.473116ms)
+✔ unproven legacy payment still settles due but cannot authorize refund (0.18451ms)
+✔ source ids are deduplicated and deterministic same-day sequence wins (0.138437ms)
+✔ supplier liabilities have reversed signs; paid advance is refundable on supplier role only (0.172439ms)
+✔ refunded credit cannot be refunded twice or move back in time (0.446385ms)
+✔ Party summary uses real cash-backed credit, not negative Party.balance (7.959635ms)
+✔ ERP-wide button polish retains existing component events and variants (1.06612ms)
+✔ Ledger closing balances provide contextual meanings without modifying ledger numbers (0.563939ms)
+✔ Invoice/source quick previews use real store records with safe missing-source fallback (1.390895ms)
+✔ Attachment quick preview offers image/PDF rendering and safe file URLs (0.286424ms)
+✔ Ledger amount colors are neutral while semantic movement icons are colored on every viewport (0.18968ms)
+✔ Magic Patterns role action buttons preserve correct finance debit and credit transaction types (0.590246ms)
+✔ Vendor quick settlement embeds existing source-linked form and validates memo allocation (0.203368ms)
+✔ Shared ERP Dialog adopts precise Sabab 180ms entrance without changing existing form logic (0.213777ms)
+(node:45898) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/partyStatement.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CSV includes full statement dates, opening, period and closing (1.931748ms)
+✔ CSV escapes spreadsheet formulas and embedded quotes (0.299035ms)
+✔ print rows preserve running balances and never create synthetic changes (0.807738ms)
+✔ supplier credit balances remain numeric negative amounts in exported CSV (0.43748ms)
+(node:45905) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/erpDemoStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ supplier quick-add is visible to both Purchase and Party directory through one identity (1.758858ms)
+(node:45912) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ payment source edit updates its original record once and writes an audit event (15.735356ms)
+✔ reversing preview payment preserves an audit record and blocks double reversal (1.521635ms)
+✔ credit refund dependency prevents erasing or reducing its funding payment (2.826283ms)
+✔ ledger preview never directly reverses original Sales invoice or legacy opening record (0.685165ms)
+(node:45919) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/permissions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Daybook edit and delete inherit source-module permissions (4.825786ms)
+✔ Audit correction and delete require both Audit Ledger and source permissions (0.438382ms)
+✔ opening-balance audit actions require Accounts permission and cannot borrow Finance permission (0.209659ms)
+✔ source groups map finance and accounting records to their owning modules (0.142549ms)
+✔ shared action availability keeps menus and detail dialogs on the same permission result (1.020597ms)
+✔ Party directory preserves selected ID and button keyboard activation while exposing option itself (1.176568ms)
+✔ Date display contributes to accessibility name without changing ISO values, commit or range calculations (0.344714ms)
+✔ Header includes visible user initials in the same accessible menu name (0.307928ms)
+✔ Only the Dashboard Recent Sales table gains a tab stop when horizontal scrolling is required (0.217584ms)
+(node:45933) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/posCheckoutValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ money rejects malformed prefixes and preserves valid paisa (0.840553ms)
+✔ checkout rejects invalid price, discount, payment and zero-quantity lines (0.483074ms)
+✔ customer credit needs an active Customer identity, available credit and remaining invoice value (1.159791ms)
+(node:45940) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/posQuantity.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ converts compound quantity to base units (1.071583ms)
+✔ calculates line total from the selected larger-unit price (0.156239ms)
+✔ formats a human-readable compound quantity (0.159148ms)
+✔ normalizes an overflowing smaller-unit quantity (1.759966ms)
+✔ parses compound historical sale quantities (0.715739ms)
+(node:45947) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/posStock.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ uses normal product stock for ordinary shortage checks (0.961219ms)
+✔ uses sellable lots for expiry-tracked stock (0.854475ms)
+✔ converts clamped stock back into the existing compound cart fields (0.965204ms)
+✔ blends own-stock and vendor cost (0.211608ms)
+(node:45954) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/productEntry.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ converts a selling price entered in the larger unit to the base unit price (1.059731ms)
+✔ converts opening and minimum stock entered in a larger unit to base quantity (0.203233ms)
+✔ opening stock joined unit switch preserves the base inventory quantity (0.182067ms)
+✔ minimum stock quantity switch handles fractional large units without changing thresholds (0.148854ms)
+✔ empty stock fields remain empty when switching display units (0.122701ms)
+(node:45961) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/productFeatures.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normalizes pasted serials and finds duplicates case-insensitively (3.251872ms)
+✔ required serial tracking uses base-unit item count only (0.247964ms)
+✔ creates immutable warranty snapshot fields (0.248611ms)
+✔ validates offer overlap and effective price (0.666543ms)
+✔ expiry breakdown excludes expired stock and FEFO sorts earliest expiry first (9.015497ms)
+✔ offers may be free but may not make the selected price unit negative (0.190586ms)
+(node:45968) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new products use tenant defaults with optional multi-unit setup off (2.315096ms)
+✔ four-level form saves the existing cart model with normalized stock, prices and explicit overrides (3.739186ms)
+✔ switching units and removing a selected middle level retains physical value (1.050962ms)
+✔ invalid ratios, duplicates, custom prices and measurement serials reveal the correct section (0.979847ms)
+✔ edit/reopen preserves all legacy and chain prices, active state and stock; unit migration is blocked (1.917113ms)
+✔ edit product toggles normal price override without changing units or historical lots (0.514596ms)
+✔ opening serial and expiry checks retain metadata; services never create stock (0.39978ms)
+✔ contextual creation retains opening-lot serial/expiry evidence and does not duplicate it on retry (53.616044ms)
+✔ save and reopen keeps the whole photo gallery and supports legacy cover-only products (0.443713ms)
+✔ stock needs unit, category and explicitly entered cost, but zero-cost freebies and blank service cost are allowed (0.333174ms)
+(node:45975) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/import/productImport.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two Box opening stock becomes 20 Pcs and creates one matching dated lot/movement (2.786851ms)
+✔ Gauge/Gira conversion retains explicit Gauge price and required serial tracking (0.594176ms)
+✔ bad conversion, invalid date, missing serials and service stock are rejected (0.372434ms)
+✔ existing and intra-file duplicate SKUs default to skip; explicit update does not add stock (0.583015ms)
+✔ bad second row produces errors and cannot make the batch ready (0.550935ms)
+(node:45982) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/import/productImport.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one revision/notification for two products, lots, and movements; session replay no duplicates (3.094703ms)
+✔ late invalid lot and duplicate SKU fail without partial changes (0.787441ms)
+✔ stale revision and planner validation errors reject without state change (0.558847ms)
+(node:45989) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/productMasterEdit.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ renaming a category trims whitespace and rejects duplicate or empty labels (1.207061ms)
+✔ editing unit symbols preserves stable stock and invoice unit keys (1.262362ms)
+(node:45996) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/erpDemoStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ classification edits update selectors and current products, retaining metadata and inventory (2.592938ms)
+✔ unit display edits retain historical keys and conversion chains (1.48478ms)
+✔ invalid and duplicate edits leave preview state unchanged (0.500733ms)
+✔ inline master edits and Settings share metadata and stable unit keys (0.964854ms)
+(node:46003) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/purchaseCart.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ purchase quantity uses large + small units, like POS (0.99628ms)
+✔ lot selling price is independently editable and converts between units (0.377638ms)
+✔ new purchase lots inherit the product default unless the buyer enters a price (0.175346ms)
+✔ POS-style unit switch keeps the same compound stock quantity and purchase total (0.452094ms)
+✔ single-unit product ignores unsupported unit switch (0.456043ms)
+✔ switching units does not turn an inherited default into a stored lot price (0.12377ms)
+✔ switching units retains independently entered lot selling price (0.168662ms)
+(node:46010) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/purchaseCheckout.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ purchase discounts match POS amount and percentage controls (1.071531ms)
+✔ purchase discount clamps to bill and percent is capped at 100 (0.252113ms)
+✔ rounding matches POS sales rounding setting and is applied after discount (0.192047ms)
+✔ split supplier payments and Remaining never create customer-style change (0.187323ms)
+(node:46017) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/purchaseDraftsPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Purchase drafts save without requiring posting validation and update the same ID (5.622619ms)
+✔ Purchase draft snapshots are copied and tenant updates cannot cross businesses (0.430889ms)
+(node:46024) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/purchaseSource.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ returns allocate original discount and reduce unpaid supplier due before credit/refund (15.814111ms)
+✔ remaining quantity, duplicate lines and invalid numeric input are guarded (0.964518ms)
+✔ cumulative paisa allocation returns the exact original bill total across repeated partial returns (1.32811ms)
+✔ summary-only bills and tracked stock cannot fabricate return allocations (0.256021ms)
+✔ preview source mutations update stock, supplier balance, payment dates and history together; stale retries cannot post twice (45.254574ms)
+✔ largest-remainder line budgets never go negative and zero-money goods remain returnable (0.540094ms)
+(node:46031) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/purchaseSupplierGuard.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ embedded Vendor purchase cannot be assigned to another Party (1.109309ms)
+(node:46038) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/quotations/quotePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ quantities, discount and unit price are never interpreted as stock movement (1.509276ms)
+✔ reject invalid dates, negative unit price, zero qty and oversize discount (0.307819ms)
+✔ create edit duplicate and status changes are atomic observable preview changes (1.413964ms)
+✔ expired sent quotes cannot be accepted until revised (0.259994ms)
+(node:46045) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/reconciliation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ matches require same account, direction, finite positive amount and exact paisa (0.955343ms)
+✔ one ERP entry cannot be reused and empty or ignored statements cannot finish (0.206406ms)
+✔ export preserves direction and escapes CSV formulas (0.472056ms)
+(node:46052) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/reorderCartLines.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ POS reorder changes actual cart array in invoice/print order (1.30387ms)
+✔ keyboard arrows move only the selected cart item (0.245802ms)
+✔ invalid drag order cannot silently discard or duplicate invoice rows (0.132ms)
+(node:46059) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/analysis.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ forecast is explicitly modeled, balances reconcile and saving cannot mutate source records (1.135644ms)
+✔ empty evidence yields no fabricated recommendations or costs (5.154011ms)
+✔ known historical cost is required for a margin recommendation (3.736346ms)
+✔ internal finance transfers never inflate operating cash totals (0.245182ms)
+✔ cash modeling rejects values too large for exact paisa arithmetic (0.268293ms)
+✔ dismissed insight identity changes when its source quantities materially change (0.269654ms)
+(node:46066) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/preferences.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all eleven Reports destinations have stable URL state (1.317481ms)
+✔ legacy report links preserve every catalog destination (0.64834ms)
+✔ saved views keep the analysis screen and required label column, capped at twenty (1.23487ms)
+(node:46073) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/reportOutput.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ isolated print document includes exact selected rows, money direction and escaped names (1.181891ms)
+✔ CSV preserves Bangla, quoted commas and amounts; prevents formula execution (0.408692ms)
+(node:46080) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ date, category and search filters change actual source totals and exclude draft/deleted sales (3.339669ms)
+✔ unknown historical cost stays unknown even when the product master has a purchase price (0.479639ms)
+✔ historical cost and integer discount allocation reconcile to invoice net revenue (0.548806ms)
+✔ account filtering totals only the matching split, not the whole invoice receipt (0.203185ms)
+✔ current outstanding is not fabricated as an historical balance or a due-date overdue amount (0.604618ms)
+✔ previous comparison period has exactly the same number of calendar days across months (0.760389ms)
+✔ reorder excludes expired stock and rounds purchasing packs without subtracting commitments twice (0.624317ms)
+✔ unknown mixed-unit quantities are not guessed from human-readable compound text (0.55435ms)
+✔ malformed date ranges fail safely instead of treating them as all dates (0.318804ms)
+✔ an intentionally cleared date range survives the URL round trip (0.342777ms)
+✔ corrupt saved views recover without crashing or creating unknown reports (0.346705ms)
+✔ supplier returns reduce current payable through the existing source position (0.540035ms)
+✔ finance splits preserve per-account amounts instead of joining account names (0.379511ms)
+✔ fractional base quantities retain their precision in grouped demand (0.340112ms)
+✔ stock velocity exposes unsold stock without inventing demand or adding unlike units (7.034814ms)
+(node:46087) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/magicpatterns/advisorEvidence.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Advisor source actions target product contributor, customer account and forecast (0.899528ms)
+(node:46094) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/magicpatterns/adapter.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an unconvertible historical quantity cannot silently erase the recorded sale total (1.572553ms)
+✔ a supplier bill without an agreed due date is not contractually overdue (0.535859ms)
+✔ drilldown resolves exact product records, nested invoices and current historical cost status (2.182912ms)
+✔ no matching evidence is explicit and cannot substitute unrelated rows (0.390447ms)
+(node:46101) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/screens.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an analysis destination owns its report definition even when an incompatible report is supplied (0.683253ms)
+✔ expense evidence is explicitly scoped to all accounts when a cash account is selected (0.338921ms)
+✔ frozen purchase stock unit must be the terminal unit of its conversion chain (14.314347ms)
+✔ expiry evidence labels signed days until expiry rather than stock age (2.011528ms)
+✔ invalid and unavailable report overrides cannot replace an analysis screen, including saved views (3.292573ms)
+(node:46108) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/erpDemoStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ full frozen purchase chain accepts intermediate cost unit and fractional stock quantity (15.101309ms)
+✔ purchase publication is observable once, idempotent and includes stock evidence (1.083143ms)
+(node:46115) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ announcement cancellation prevents simulated delivery and keeps audit reason (2.859509ms)
+✔ settings updates validate bounds and prohibit support-only changes (0.901706ms)
+✔ scoped audit views hide other tenants and private module snapshots (1.441011ms)
+✔ local datetime input retains the same UTC schedule when saved unchanged (1.28405ms)
+(node:46122) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ verification allocates once and activates only full settlement (2.72349ms)
+✔ excess receipt remains unapplied and full invoice activates subscription (0.767695ms)
+✔ self approval, duplicate reference and invalid submissions are rejected (2.300566ms)
+✔ refund retains receipt and reduces allocations without double refund (1.105522ms)
+✔ repayment after refund restores access without extending renewal twice (0.907839ms)
+✔ claimed payment decisions belong to the claimed reviewer (0.620694ms)
+(node:46129) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ package order creates invoice and settlement credits exactly once (3.836684ms)
+✔ SMS reservation and retry never duplicate charges; insufficient credits reject (1.721328ms)
+✔ service completion requires progress and deliverable, independent of invoice (0.783117ms)
+✔ expired credit usage does not reduce a newer package balance (8.253447ms)
+✔ package invoice retains the purchased validity after catalog edits (0.785003ms)
+✔ SMS templates are configured by staff and reusable without sending (0.419656ms)
+(node:46136) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/saas/permissions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ combined roles preserve each grant scope (13.515879ms)
+✔ removing one role does not remove another grant and tenant cannot cross scope (2.493604ms)
+✔ global administration modules reject tenant-scoped view grants (0.654082ms)
+(node:46143) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/saas/state.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ owner and assigned-role protections reject atomically (39.878832ms)
+✔ storage validation rejects corrupt structures and supports blocked storage (1.527708ms)
+✔ malformed role records are rejected before rendering and owner role cannot be stripped (1.416718ms)
+✔ malformed persisted domain records recover safely (2.695245ms)
+✔ last owner cannot be deactivated through a generic staff edit (0.893533ms)
+✔ valid saved roles with mixed all-tenant and selected-tenant scopes reload without data loss (2.00667ms)
+(node:46150) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tenant conversation hides internal notes and rejects internal-note creation (3.022013ms)
+✔ support access requires consent, expires and can be revoked (1.176443ms)
+✔ ticket resolution and reopening preserve conversation history (1.013263ms)
+✔ support attachments follow public and private message audiences (0.812647ms)
+(node:46157) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tenant creation creates a trial and preserves subscription on suspension (2.866714ms)
+✔ archive blockers, missing reason, bad tenant and stale version reject atomically (1.077153ms)
+(node:46164) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/products.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ templates share a source across create, edit, duplicate, POS load and delete (9.298466ms)
+✔ template validation rejects malformed quantities, prices, missing products and empty carts (0.577381ms)
+✔ template round trip preserves compound units and recipe identity without reserving serials or sources (0.272439ms)
+✔ planned bundles preserve pinned recipes without persisting fulfillment reservations (0.557613ms)
+(node:46171) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/salesDocuments.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ receipt preserves source line order, compound quantities and customer/totals without recalculating (1.407963ms)
+✔ receipt retains serial/warranty data, exact discounts/rounding and multiple payment label (0.41737ms)
+✔ return document uses the original references, settlement and amount; no synthetic refund (0.287056ms)
+(node:46178) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/reports/catalog.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ experiment is an additional screen, never a replacement for original screens and 34-report library (2.011591ms)
+✔ deep links and saved views retain screen, selected report and existing filters (0.677133ms)
+✔ switching detailed reports preserves period and comparison but drops invalid dimension filters and old search/sort (0.289701ms)
+✔ experiment uses the canonical historical-cost calculation without inventing gross profit (1.874565ms)
+(node:46185) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/salesPaymentAmounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Sales must reject malformed complete money strings, not parse prefixes (1.073253ms)
+✔ valid split amounts use integer paisa and preserve exact totals (0.309422ms)
+✔ Remaining fills only its own split and respects exact paisa (0.264587ms)
+(node:46192) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/parties.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ordinary returns reduce remaining quantity and reject cumulative over-return (1.899286ms)
+✔ refund uses historical net line amount, not editable or current product price (0.378436ms)
+✔ reject malformed quantities and missing discounted source allocation (0.437617ms)
+✔ serials must be exact, unique and not previously returned (0.344136ms)
+✔ opening source balance is consumed, and missing historical allocations fail closed (0.291046ms)
+✔ return ledger targets the original Customer identity and rejects ambiguous legacy names (0.414422ms)
+(node:46199) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ employee joined date rejects invalid calendars while old records stay readable (6.427296ms)
+(node:46206) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/settingsHub.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tenant settings follows the Settings directory, then related standalone pages (2.894494ms)
+✔ Settings removes unready destinations instead of showing broken tiles (0.628473ms)
+✔ cashier sees ordinary personal settings, not owner subscription or provider configuration (0.439923ms)
+(node:46213) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ delegated user edit cannot change role permissions through a team batch (3.290136ms)
+✔ role management alone cannot disable an employee through a team batch (0.712153ms)
+✔ explicit setting edit capability reaches ordinary settings but not role administration (2.005694ms)
+(node:46220) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ NestSherERP catalogue ports every implemented authority as separate capability (3.499256ms)
+✔ role mutation protects owner, built-in identity and current assigned members (1.415263ms)
+✔ legacy settings migrate document fields without losing old grants, values or assignments (6.833691ms)
+✔ all NestSherERP invoice design controls validate and page mode affects real print CSS (0.439481ms)
+✔ cosmetic invoice revision cannot edit accounting and never mutates source (1.156349ms)
+✔ financial order moves actual asymmetric values and naming never changes canonical meaning (0.655984ms)
+✔ new shared settings are owner-only, revision checked, no-op does not add audit (3.855211ms)
+✔ actual legacy owner arrays gain only new owner authority without resetting saved business data (2.343109ms)
+(node:46227) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ encrypted SQL snapshot is authenticated, tenant checked and never accepts arbitrary SQL (285.807337ms)
+(node:46238) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/subsections.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ business fields stay in a reachable sub-page, including Advanced and branding (0.894452ms)
+✔ invoice design and output profiles stay separate within one saved section (0.672489ms)
+(node:46245) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/counterAllocation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ supplier bills expose exact remaining dues and targeted payments consume only their source (5.665378ms)
+✔ supplier targeted overpayment, unrelated identity and over-discount fail atomically (1.359717ms)
+✔ supplier payment edits validate the selected bill after excluding their original payment (1.625315ms)
+(node:46252) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ settings backups belong to one business and cannot replace another business (9.058296ms)
+✔ cashier and accountant roles combine without granting sales policy access (0.622611ms)
+✔ disabled employees have no settings authority (0.375284ms)
+✔ restore authority remains owner-only even with a delegated import permission (0.366311ms)
+✔ posting lock dates reject nonexistent calendar days (1.347882ms)
+✔ unauthorized changes fail atomically and preserve saved policy (4.257839ms)
+✔ stale forms cannot overwrite a newer business settings revision (1.387086ms)
+✔ saving a section records attribution and preserves all other sections (1.03293ms)
+✔ the last owner cannot be disabled or reassigned out of ownership (0.59456ms)
+✔ delegated team management cannot assign owner authority (0.6178ms)
+✔ used role IDs must still exist and owner role remains protected (0.585904ms)
+✔ invalid imported field types and enum values recover safely (2.733394ms)
+✔ invalid values cannot be saved through direct commands (0.739606ms)
+✔ personal display mode is independently validated (0.638466ms)
+✔ rounding preferences preserve compound quantity arithmetic (0.503471ms)
+✔ theme initializes before rendering and resolves preferences safely (4.90788ms)
+✔ theme still follows the OS when browser storage is unavailable (1.159493ms)
+✔ both palettes meet AA for text, button states, statuses and input boundaries (2.850966ms)
+(node:46266) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/transactionLines.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 2 Box 5 Pcs and 1 Gauge 12 Gira share the same amount semantics (0.929415ms)
+✔ quotation totals retain small units and validate leftover quantity (2.962195ms)
+✔ COD and POS handoff preserve both quantities without fake payment (1.316694ms)
+(node:46273) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/transactionDates.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ date view defaults can use transaction date independently of created date (0.71769ms)
+✔ selected date and inclusive date ranges use the selected date view (0.195597ms)
+✔ sorting follows transaction or created date without mutating source rows (7.332925ms)
+(node:46280) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/transactionProjection.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ credit sale has no money movement (0.901514ms)
+✔ partial multi-payment sale is one row with actual money in and account summary (0.729379ms)
+✔ internal transfer shows both directions but does not count toward business cashflow (0.664486ms)
+(node:46287) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Bangla uses shopkeeper words, with no মাল label (1.027662ms)
+✔ English and bilingual primary labels retain their current English copy (0.137263ms)
+✔ Bangla helper shows only in mixed mode (0.199354ms)
+(node:46294) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/unitChain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ three-level chain flattens into the smallest stock unit (1.815179ms)
+✔ rejects cycles, repeated units, disconnected chains and invalid ratios (1.558562ms)
+✔ existing products continue to support one alternate unit (0.229068ms)
+(node:46301) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/productUnits.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ short labels resolve full names and legacy keys without changing conversions (2.260911ms)
+✔ new units require explicit short symbols and reject ambiguous names/symbols (1.370215ms)
+(node:46308) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/units.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ formats positive compound stock (1.064139ms)
+✔ formats negative compound stock without awkward floor division (0.192503ms)
+✔ respects base-unit stock view preference (11.459222ms)
+✔ keeps compound stock when larger unit is the preferred view (0.200368ms)
+✔ multi-level Stock View displays Bag / Box / Pcs without mutating base stock (0.603443ms)
+(node:46315) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unpriced Vendor sourcing remains visible in All Activity with no fabricated zero amount (9.733097ms)
+✔ same Vendor Party shows ordinary Purchase as separate bucket without netting Vendor sourced debt (0.593625ms)
+✔ date filters apply to purchase and sources without hiding previous-date audit history (0.857134ms)
+✔ ordinary Purchase payable is a separate summary and not netted against Vendor sourcing (0.300234ms)
+✔ source recorded with unknown price stays labelled pending in audit after a later quote (0.440663ms)
+(node:46322) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mixed cash plus returned product is a single atomic Vendor clearance (2.372201ms)
+✔ no half post on insufficient stock, split mismatch, wrong Vendor, or overpayment (0.655083ms)
+✔ reversal restores returned owned stock and full unpaid amount (0.521535ms)
+✔ unpriced items can be fully returned without imaginary money (0.262869ms)
+(node:46329) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ source correction replaces an unsettled source exactly once and preserves audit history (2.506609ms)
+✔ settled source cannot be deleted or corrected, so restore settlement first (1.725031ms)
+✔ reversing a payment restores payable and records compensating audit entry (0.518539ms)
+✔ reversing an in-kind replacement restores owned stock, not money without quote (0.449673ms)
+✔ priced source quote cannot reverse while settlement is linked; reversal restores unpriced state (0.485817ms)
+✔ reversed physical issue restores stock and receivable without removing history (0.207004ms)
+✔ inactive Vendor historical sources remain visible and reversals require reason and actor (0.328346ms)
+✔ wrong Vendor, malformed date and invalid correction do not mutate state (0.315027ms)
+✔ same operation ID with a changed payload is rejected, exact retry is idempotent (0.464601ms)
+✔ customer return from sourced sale needs physical receipt decision; no automatic stock restore (0.268433ms)
+✔ source linked to a customer sale cannot silently switch to another product (0.237938ms)
+(node:46336) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two-product memo issues owned stock once and adds receivable, not payable (4.647552ms)
+✔ one invalid memo line rolls back all lines and inventory (0.93701ms)
+✔ duplicate product source ID and wrong Party reject before writing (0.375479ms)
+(node:46343) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ opening from before selected range remains in payable closing total (10.005834ms)
+✔ unpriced obligations show in pending quantity queue, not invented money (0.796704ms)
+✔ date range validation protects print and running balances (0.68754ms)
+✔ CSV escapes spreadsheet injection and preserves BOM (0.354936ms)
+(node:46350) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ multi-product Taken memo creates one source per line without claiming owned stock (2.166527ms)
+✔ bad second line, wrong Vendor and changed retry are atomic failures (0.963193ms)
+(node:46357) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unpriced POS sourcing records quantity but no fabricated payable (2.224722ms)
+✔ known sourcing creates payable and leaves other Vendor roles separate (0.352142ms)
+✔ goods issued to Vendor creates receivable only (0.195141ms)
+✔ opening Vendor payable and receivable never net (0.185474ms)
+✔ operation retry is idempotent without revision or notifications (0.238512ms)
+✔ invalid Vendor, duplicate source or bad cost reject atomically (0.787783ms)
+✔ Vendor money settlement accepts genuine bank splits and replays an exact retry once (0.689209ms)
+✔ Vendor settlement rejects unknown account, wrong method, invalid splits without mutation (0.976512ms)
+✔ Clear Vendor due validates real cash account identity and payment method (0.808068ms)
+✔ Product-only Vendor return cannot carry hidden money account splits (0.713481ms)
+(node:46364) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one multi-role Party keeps Taken, Given and ordinary Purchases independent (16.770501ms)
+✔ unpriced source never becomes a fabricated cash amount (1.023257ms)
+✔ separate date filter and source events prevent mixed running balance (0.689795ms)
+✔ Party Vendor ledger uses Supplier-style debit and credit but never nets its two balances (0.648974ms)
+(node:46371) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ seed Vendor preview has linked real Party IDs and an unpriced source (1.115327ms)
+✔ one simulation dispatch emits one notification; invalid, retry and unsubscribed do not emit (1.519505ms)
+✔ reset restores demo source and clears test writes (0.229978ms)
+(node:46378) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unpriced quantity is an obligation, evening quote creates known payable only once (2.167529ms)
+✔ return one matching piece before quote prices only remaining two (0.473306ms)
+✔ fully returned before quote closes quantity without ever valuing it at zero (0.587512ms)
+✔ bad quote or cross-Vendor source rejects atomically (0.364693ms)
+(node:46385) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ordinary Vendor purchase adds owned stock but NOT sourcing payable/receivable (1.45938ms)
+✔ reject invalid purchase stock atomically (0.437956ms)
+✔ ordinary replacement purchase and matching return change stock once each (0.959417ms)
+✔ same Purchase invoice cannot be added twice with different operation IDs (0.231012ms)
+(node:46392) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorRoute.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ open Vendor module with preselected canonical Party and operational tab (3.412753ms)
+✔ invalid Party or tab cannot access another role or unknown Vendor (0.393112ms)
+✔ canonical deep link preserves selected Vendor and tab (0.206782ms)
+✔ fuzzy Vendor discovery keeps exact role and source identity (0.41098ms)
+(node:46399) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorSalePreview.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ simulated sale creates linked unpriced source but no monetary payable (14.171189ms)
+✔ multi Vendor sources atomically create only linked records or none (1.134986ms)
+✔ negative stock source does not make a Vendor demo obligation (0.814378ms)
+(node:46406) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ pay 200 then return one at 110 leaves known payable 20, inventory -1 (2.550999ms)
+✔ unpriced goods can be returned then remaining priced and paid without double counting (0.496079ms)
+✔ receivable issued 3 then receive money and return one source piece (0.356586ms)
+✔ bad links, too little stock, overpayment, split mismatch, future date fail atomically (1.041257ms)
+✔ multi-source split is atomic and duplicate source allocation rejected (0.55933ms)
+(node:46413) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/utils/posQuantity.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ own, negative and Vendor modes have distinct cart-wide quantities (2.385036ms)
+✔ two lines of same product reserve own stock only once (0.350558ms)
+✔ unresolved shortage remains unresolved not silently clamped (0.201172ms)
+✔ net stock 1 beats positive-lot sum 3 when OVERSOLD lot -2 remains (0.526313ms)
+✔ compound units reach exact base units, service never needs sourcing (1.410067ms)
+✔ no negative/NaN quantities and no expired lot own stock (1.010184ms)
+ℹ tests 851
+ℹ suites 0
+ℹ pass 851
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31543.171137

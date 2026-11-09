@@ -161,6 +161,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
               <p className="flex items-center gap-2 text-xs text-ink-600">
                 <CheckCircle2 className="size-4 text-teal-600"/> This memo is settled. Use Correct to review earlier changes.</p>}
           </div>:<div className="space-y-3">
+            {pending&&pending.unpricedBaseQty>0&&<VendorPriceForm key={selected.id} source={selected}/>}
             {canSettle&&selected.unitCostBasePaisa!==null?<div>
               <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Vendor receiving method">
                 <Button type="button" size="sm" variant={givenAction==='receive-money'?undefined:'outline'}

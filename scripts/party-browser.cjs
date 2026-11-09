@@ -342,8 +342,14 @@ async function main() {
     await receiveDialog.waitFor();
     assert.match(page.url(),/\/app\/parties/,'Receive Money remains in Party module');
     assert.ok(await receiveDialog.getByRole('combobox',{name:'Vendor settlement memo'}).isVisible(),
-      'In-modal Vendor memo selector is available');
-    assert.equal(await receiveDialog.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'128',
+       'In-modal Vendor memo selector is available');
+     // React seeds split amount in an effect after the dialog becomes visible.
+     // Wait for the value as with the second receipt below, rather than racing hydration.
+     await page.waitForFunction(() => {
+       const dialog=document.querySelector('[role="dialog"][aria-label="Receive Money"]');
+       return dialog?.querySelector('input[aria-label="Split amount 1"]')?.value==='128';
+     },undefined,{timeout:5000});
+     assert.equal(await receiveDialog.getByRole('textbox',{name:'Split amount 1'}).inputValue(),'128',
       'Receive defaults to full outstanding memo balance');
     await receiveDialog.getByRole('textbox',{name:'Split amount 1'}).fill('20');
     await receiveDialog.getByRole('button',{name:'Save Receipt'}).click();

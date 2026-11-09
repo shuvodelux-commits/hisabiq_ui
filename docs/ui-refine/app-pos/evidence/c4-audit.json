@@ -1,0 +1,96 @@
+{
+  "assessment": "B · isolated",
+  "check": "C4 closing",
+  "sourceCommit": "a510661b84f638e281a12ad73989c59bde08eb0b",
+  "baselineCommit": "de33350ea48d7d0c1040b0895b227310cbd484a6",
+  "method": "Official Impeccable 4.8.0 source detector plus official audit.md; current source and baseline diff, no browser, images, previous assessments, fixer reports or design transcript.",
+  "detectorRan": true,
+  "detectorExitCode": 2,
+  "detectorRaw": "c4-detector.json",
+  "detectorFindings": {
+    "raw": 3,
+    "verified": 0,
+    "falsePositives": 3,
+    "reason": "All three overused-font warnings are Geist font/import hits in src/index.css; Geist/Hind Siliguri are explicitly approved by taste T1 and the brief. No font substitution is authorized."
+  },
+  "scores": {
+    "accessibility": 3,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 4,
+    "integrity": 3
+  },
+  "auditTotal": 16,
+  "auditMax": 20,
+  "rating": "Good",
+  "scoreNotes": {
+    "accessibility": "Labels, serial/vendor connected errors, named close controls, keyboard radios, scroll-region focus, IME protection and reduced-motion handling are present. Source-only audit does not certify every WCAG contrast/zoom/focus state.",
+    "performance": "Bounded eight-result picker, popup-only scroll adjustment, measured position equality guard and cleaned-up observers/listeners. No new asset/library or expensive animation was introduced; no runtime profiling was performed.",
+    "responsive": "Phone stacked rows and full product names, tablet one-line rows, desktop grid budget, opt-in joined quantity scrolling and complete-sale wrapping are explicit. Source alone does not certify all rendered zoom/gesture cases.",
+    "theming": "Changed surfaces retain semantic HisabIQ ink/teal/border/card/warning/danger tokens and shared field/button primitives; no verified new dark-theme drift.",
+    "integrity": "Business paths and shared defaults are preserved; remaining incomplete POS presentation translation is isolated and nonfinancial."
+  },
+  "problems": [
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "type": "edge-cases",
+      "location": "src/components/pos/presentationCopy.ts:47",
+      "classification": "pre-existing in-scope gap; partially improved, not introduced regression",
+      "evidence": "T9/T10. InstallmentReceivePaymentDialog.tsx:63-71 forwards validateInstallmentCollection messages and :161 renders them through posPresentationError. In Bangla, entering a valid positive receipt/split, expanding manual allocation and leaving all allocations blank reaches \"Choose an installment allocation.\" (validateCollection.ts:23), absent from errorBangla and returned unchanged at presentationCopy.ts:47. \"Choose a valid payment date, not in the future.\" is also unmapped. An in-memory TypeScript transpilation/pure-function probe verified both remain English even when the translation callback selects Bangla. This is source/pure-function evidence, not a new browser claim.",
+      "impact": "A Bangla operator receives English-only correction guidance in the installment collection dialog, although surrounding controls follow the chosen language.",
+      "fix": "Record as remaining closing-check limitation. A separately authorized follow-up can complete the presentation-only mapping for reachable collection errors without editing domain validation or stored values."
+    }
+  ],
+  "regressions": [],
+  "resolvedSourceChecks": [
+    {
+      "id": "pos-dialog-field-accessibility",
+      "result": "Serial scan/paste use connected labels, aria-invalid/description and alert; serial remove has translated name and shared 36px Button. Vendor cost connects its label, hint and invalid alert."
+    },
+    {
+      "id": "pos-installment-native-select-drift",
+      "result": "InstallmentTermsPanel adjustment mode uses shared FormSelect (it renders AppSelect), not an ad-hoc native select."
+    },
+    {
+      "id": "pos-cart-reduced-motion-bypassed",
+      "result": "SortableCartRow uses useReducedMotion, initial false, noncollapsing exit and zero duration/layout duration; pointer reorder and keyboard order remain."
+    },
+    {
+      "id": "pos-search-keyboard-safety",
+      "result": "POS CartTable opts into composition guards and popup-only active-option scrolling; CustomerPicker checkout opts into IME safety."
+    },
+    {
+      "id": "pos-shared-defaults",
+      "result": "ProductCombobox localizeMetadata=false and posKeyboardSafety=false; CustomerPicker guardComposition=false; MultiUnitQuantityInput readableValues=false. Dialog closeLabel and TransactionReviewDialog amountLanguage/closeLabel are optional. Existing non-opt-in consumers retain their defaults."
+    },
+    {
+      "id": "pos-display-only-dates",
+      "result": "Pos supplies source invoice date when editing and businessToday for a new sale to CheckoutPanel.dateLabel. InstallmentAgreementPreview formats displayed schedule/receipt dates. No source/record date writes changed."
+    },
+    {
+      "id": "pos-compact-grid-and-typography",
+      "result": "Desktop grid and sale total cell rules preserve compact container-local scrolling; phone names and total cells have dedicated rules. Shared index.css:784-809 enforces 13/12/11 roles, so superseded legacy text classes are not reported as drift."
+    }
+  ],
+  "businessPreservation": {
+    "result": "No verified business-behavior regression in the baseline diff.",
+    "evidence": [
+      "No changes under src/hooks, src/installments, src/data, src/utils or src/settings.",
+      "Stock choice/save callbacks, serial eligibility/required counts, installment values and source codes, review confirmation callbacks and receipt/invoice navigation remain. Changed strings are rendered presentation only.",
+      "Shared options translate labels while retaining original payment account values. DateLabel is read-only presentation.",
+      "Existing preview-only disclosures are retained; no new posting claims or fake mutations were introduced."
+    ]
+  },
+  "openQuestions": [],
+  "outOfScopeNotes": [
+    "Legacy preview posting, installment domain rules and print document language are not financial or backend changes authorized by this UI refinement. No new business defect is asserted.",
+    "SaleTemplateDialog retains its pre-existing shared default close-button copy; this is not a changed shared default or new regression."
+  ],
+  "evidenceLimits": [
+    "No screenshots, browser or physical touch review was performed in this isolated detector assessment. Rendered responsive/contrast/header-capture conclusions belong to the independent visual/browser reviewers.",
+    "Coordinator reports all five gates and fourteen browser suites green at this commit; this agent did not rerun or independently certify those suites.",
+    "Only supplied stable ledger totals used: C1=26, C2=28, C3=28."
+  ],
+  "summary": "Official detector produced only three approved-font false positives. The closing source audit found no new business/shared-default regression and one verified remaining Bangla error-copy gap in an expanded POS subsection; no further fix round was performed."
+}

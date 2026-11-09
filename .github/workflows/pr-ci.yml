@@ -68,6 +68,7 @@ jobs:
           flag purchases '^(src/(pages/(Purchases|PurchaseEditor)\.tsx|components/purchases/|utils/purchaseSource\.ts)|scripts/(purchase-|product-quick-add).*browser\.cjs$)'
           flag parties '^(src/(pages/(Parties|Party|Vendor|Vendors)\.tsx|components/(parties|vendor)/)|scripts/(party-|vendor-).*browser\.cjs$)'
           flag finance '^(src/(pages/Finance\.tsx|components/finance/|utils/financePaymentDrafts\.ts)|scripts/(counter-|finance-).*browser\.cjs$)'
+          flag accounts '^(src/pages/Accounts\.tsx$|scripts/accounts-refine-browser\.cjs$)'
           flag shared '^(src/(App\.tsx|index\.css|components/(Dialog|FormSelect|Input|NumericInput|MoneyUnitInput|Table\.tsx|layout/|transactions/)|motion/)|scripts/(dialog-accessibility|responsive-audit|mobile-carts|field-alignment|table-typography).*browser\.cjs$)'
           flag mobile '^(src/index\.css$|src/components/(pos/CartTable|purchases/PurchaseCart|transactions/TransactionCartEditor)\.tsx$|scripts/mobile-carts-browser\.cjs$)'
           flag reports '^(src/(pages/Reports\.tsx|reports/|components/reports/)|scripts/(report-workspace|report-guidance|reports-print)-browser\.cjs$)'
@@ -206,6 +207,13 @@ jobs:
         if: steps.scope.outputs.parties == 'true'
         run: npm run test:parties
 
+      - name: Vendor directory, responsive workspace and mobile picker
+        if: steps.scope.outputs.parties == 'true'
+        run: |
+          node scripts/vendor-module-browser.cjs
+          node scripts/vendor-party-layout-browser.cjs
+          node scripts/vendor-refine-browser.cjs
+
       - name: Finance counter smoke
         if: steps.scope.outputs.finance == 'true'
         run: npm run test:counter-ux
@@ -220,6 +228,32 @@ jobs:
         with:
           name: counter-refine-${{ github.sha }}
           path: test-results/counter-refine/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Accounts voucher responsive and reachable actions
+        if: steps.scope.outputs.accounts == 'true'
+        run: node scripts/accounts-refine-browser.cjs
+
+      - name: Upload Accounts voucher interaction screenshots
+        if: always() && steps.scope.outputs.accounts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: accounts-refine-${{ github.sha }}
+          path: test-results/accounts-refine/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Finance Loans responsive filters, actions and detail states
+        if: steps.scope.outputs.finance == 'true'
+        run: node scripts/finance-loans-refine-browser.cjs
+
+      - name: Upload Finance Loans interaction screenshots
+        if: always() && steps.scope.outputs.finance == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-loans-refine-${{ github.sha }}
+          path: test-results/finance-loans-refine/
           if-no-files-found: warn
           retention-days: 14
 
