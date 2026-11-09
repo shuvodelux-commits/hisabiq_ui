@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, Eye, Lock } from 'lucide-react';
 import { SettingsToggle } from './SettingsToggle';
 import { AppSelect } from '../../components/AppSelect';
@@ -46,6 +46,8 @@ export function GeneralSettingsSection({
   const [draft, setDraft] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
   const [baseline] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const form = useRef<HTMLDivElement>(null);
+  const [focusError, setFocusError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState('');
   const [reviewWarnings, setReviewWarnings] = useState<string[] | null>(null);
   const fields = all.filter(f => advanced || !f.advanced);
@@ -55,6 +57,12 @@ export function GeneralSettingsSection({
 
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
+
+  useEffect(() => {
+    if (!focusError) return;
+    form.current?.querySelector<HTMLElement>(`[data-settings-field="${focusError}"] [aria-invalid="true"]`)?.focus();
+    setFocusError(null);
+  }, [focusError, advanced]);
 
   const set = (key: string, value: Value) => {
     setReviewWarnings(null);
@@ -92,7 +100,12 @@ export function GeneralSettingsSection({
         next[f.key] = 'Write the date as YYYY-MM-DD, e.g. 2026-10-31.';
     }
     setErrors(next);
-    if (Object.keys(next).length) return;
+    const firstInvalid = all.find(field => next[field.key]);
+    if (firstInvalid) {
+      if (firstInvalid.advanced) setAdvanced(true);
+      setFocusError(firstInvalid.key);
+      return;
+    }
     const warnings = changed
       .map(f => riskyPreviewChanges[f.key]?.(draft))
       .filter((warning): warning is string => Boolean(warning));
@@ -106,9 +119,9 @@ export function GeneralSettingsSection({
   };
 
   const helper = (field: SettingField, error?: string) => (
-    <span className="mt-1 block text-xs leading-relaxed">
+    <span id={`magic-setting-${section.id}-${field.key}-helper`} className="mt-1 block text-xs leading-relaxed">
       {field.bn && <span className="font-bn text-[11px] text-ink-400">{field.bn} · </span>}
-      <span className={error ? 'text-danger' : 'text-ink-500'} role={error ? 'alert' : undefined}>
+      <span id={error ? `magic-setting-${section.id}-${field.key}-error` : undefined} className={error ? 'text-danger' : 'text-ink-500'} role={error ? 'alert' : undefined}>
         {error || field.helper}
       </span>
       {field.seenIn && draft[field.key] !== baseline[field.key] && (
@@ -140,24 +153,25 @@ export function GeneralSettingsSection({
             onCheckedChange={value => set(field.key, value)}
             disabled={disabled}
             aria-label={field.label}
+            aria-describedby={`${id}-helper`}
           />
         </div>
       );
     }
     return (
-      <div key={field.key} className={field.wide ? 'sm:col-span-2' : ''}>
+      <div key={field.key} data-settings-field={field.key} className={field.wide ? 'sm:col-span-2' : ''}>
         <SettingsField label={field.label} bn={field.bn ?? field.label} language="English">
-          {(generatedId, descriptionId) => field.kind === 'select' ? (
-            <AppSelect id={generatedId} describedBy={descriptionId} label={field.label}
+          {(generatedId) => field.kind === 'select' ? (
+            <AppSelect id={generatedId} describedBy={`${id}-helper`} label={field.label}
               value={String(draft[field.key] ?? '')}
               onChange={v => set(field.key, v)} options={field.options ?? []} disabled={disabled} />
           ) : field.kind === 'textarea' ? (
-            <textarea id={generatedId} aria-label={field.label} aria-describedby={descriptionId}
+            <textarea id={generatedId} aria-label={field.label} aria-describedby={`${id}-helper`} aria-invalid={error ? true : undefined} aria-errormessage={error ? `${id}-error` : undefined}
               rows={3} className="block w-full rounded-md border border-input bg-card px-3 py-2 text-[13px] text-ink disabled:opacity-70"
               value={String(draft[field.key] ?? '')} onChange={e => set(field.key, e.target.value)}
               disabled={disabled} />
           ) : (
-            <Input id={generatedId} aria-label={field.label} aria-describedby={descriptionId}
+            <Input id={generatedId} aria-label={field.label} aria-describedby={`${id}-helper`} aria-invalid={error ? true : undefined} aria-errormessage={error ? `${id}-error` : undefined}
               type={field.kind === 'number' ? 'number' : 'text'}
               min={field.min} max={field.max}
               value={String(draft[field.key] ?? '')}
@@ -174,7 +188,7 @@ export function GeneralSettingsSection({
   const hasAdvanced = all.some(f => f.advanced);
 
   return (
-    <div className="min-w-0 space-y-3" data-settings-magic-general={section.id}>
+    <div ref={form} className="min-w-0 space-y-3" data-settings-magic-general={section.id}>
       <div className={renderPreview ? 'grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]' : ''}>
         <SettingCard
           title={section.label}

@@ -2,11 +2,13 @@ import type { KeyboardEvent } from 'react';
 import { motion, LayoutGroup, useReducedMotion } from 'framer-motion';
 
 /** Source Magic's Party Ledger-style underline tabs, scoped to this UI preview. */
-export function Tabs({ items, value, onChange, label = 'Section tabs' }: {
+export function Tabs({ items, value, onChange, label = 'Section tabs', panelIds, tabIds }: {
   items: { id: string; label: string; count?: number }[];
   value: string;
   onChange: (id: string) => void;
   label?: string;
+  panelIds?: Record<string, string>;
+  tabIds?: Record<string, string>;
 }) {
   const reduced = useReducedMotion();
   const onKey = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -25,7 +27,7 @@ export function Tabs({ items, value, onChange, label = 'Section tabs' }: {
         {items.map((t, index) => {
           const active = value === t.id;
           return (
-            <button key={t.id} type="button" role="tab" aria-selected={active}
+            <button key={t.id} type="button" role="tab" id={tabIds?.[t.id]} aria-controls={panelIds?.[t.id]} aria-selected={active}
               tabIndex={active ? 0 : -1} onClick={() => onChange(t.id)}
               onKeyDown={event => onKey(event, index)}
               className={'relative flex h-11 shrink-0 items-center gap-1.5 px-2.5 text-[13px] font-medium transition-colors duration-150 focus-visible:rounded-t-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500/30 ' +
