@@ -340,15 +340,15 @@ async function main() {
     // A preview reviewed before a newer tab save must not overwrite new state.
     await uploadSettings(changedBackup);
     await restoreReview.waitFor();
-    const concurrentTab = await page.context().newPage();
-    await concurrentTab.goto('http://127.0.0.1:4292/#/app/settings/data', {waitUntil:'domcontentloaded'});
-    await concurrentTab.evaluate(() => {
+    await page.evaluate(() => {
+      // Simulate the exact StorageEvent another tab would deliver to the provider.
       const key = 'hisabiq-erp-settings-v1:t1';
       const stored = JSON.parse(localStorage.getItem(key));
       stored.revision += 1;
-      localStorage.setItem(key, JSON.stringify(stored));
+      const nextValue = JSON.stringify(stored);
+      localStorage.setItem(key, nextValue);
+      window.dispatchEvent(new StorageEvent('storage', {key, newValue:nextValue, storageArea:localStorage}));
     });
-    await concurrentTab.close();
     await restoreReview.getByRole('button', {name:'Restore settings'}).click();
     await dataUI.getByRole('alert').getByText(/Settings changed.*Review the backup again/i).waitFor();
     await restoreReview.getByRole('button', {name:'Cancel'}).click();
