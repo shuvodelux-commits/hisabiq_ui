@@ -86,21 +86,21 @@ export function Vendors(){
    filter==='receive'?dueSource?.id:needPrice?.id??dueSource?.id);
   if(changed)setVendorPickerOpen(false);
  };
- return <div className="mx-auto max-w-[1440px] min-w-0 space-y-4" role="region" aria-label="Vendor module">
+ return <div className="mx-auto max-w-[1440px] min-w-0 space-y-3 sm:space-y-4" role="region" aria-label="Vendor module">
   <div className="hidden sm:block">
    <PageHeader title="Vendor" titleBn="ভেন্ডর লেনদেন"
     description="Goods taken and given, purchases, settlement and ledger · UI preview only"
     descriptionBn="পণ্য নেওয়া-দেওয়া, দাম, পাওনা-দেনা ও হিসাব · শুধু প্রিভিউ"
     actions={<><Button type="button" size="sm" variant="outline" onClick={()=>navigate("/app/vendors-v2"+(party?"?partyId="+encodeURIComponent(party.id):""))}>Try Vendor V2</Button><Button type="button" size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button></>}/>
   </div>
-  <div className="flex items-center justify-between gap-3 sm:hidden">
+  <div className="flex items-center justify-between gap-2 sm:hidden">
    <h1 className="text-lg font-semibold text-ink">Vendor <span className="font-bn text-sm font-normal text-ink-500">· ভেন্ডর লেনদেন</span></h1>
    <div className="flex gap-2"><Button type="button" size="sm" variant="outline" onClick={()=>navigate("/app/vendors-v2"+(party?"?partyId="+encodeURIComponent(party.id):""))}>V2</Button><Button type="button" size="sm" variant="outline" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button></div>
   </div>
   {party&&<button type="button" aria-label="Choose Vendor" aria-haspopup="dialog" aria-expanded={vendorPickerOpen}
    onClick={()=>setVendorPickerOpen(true)}
-   className="flex w-full min-w-0 items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 sm:hidden">
-   <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={40}/>
+   className="flex min-h-14 w-full min-w-0 items-center gap-2.5 rounded-md border border-border bg-card px-3 py-2 text-left shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 sm:hidden">
+   <PartyAvatar name={party.name} color={party.avatarColor} image={party.image} size={36}/>
    <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-ink">{party.name}</strong>
     <span className="block truncate text-xs text-ink-500">{party.phone} · {party.area}</span></span>
    <ChevronDown className="size-5 shrink-0 text-ink-500"/>
@@ -121,7 +121,7 @@ export function Vendors(){
     </div>
    </DialogContent>
   </Dialog>
-  <div className="grid min-w-0 gap-4 lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+  <div className="grid min-w-0 gap-3 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[350px_minmax(0,1fr)]">
    <div className="hidden min-w-0 sm:block">
     <VendorDirectory rows={rows} shown={shown}
      selectedId={party?.id??''} query={query} onQuery={setQuery}
