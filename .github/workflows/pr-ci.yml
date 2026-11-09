@@ -199,6 +199,16 @@ jobs:
         if: steps.scope.outputs.pos == 'true'
         run: npm run test:pos-fast-counter
 
+      - name: POS V2 responsive full-screen regression
+        if: steps.scope.outputs.pos == 'true'
+        run: node scripts/pos-v2-refine-browser.cjs
+
+      - name: POS cart container and price-field visibility regression
+        if: steps.scope.outputs.pos == 'true'
+        run: |
+          node scripts/pos-responsive-cart-browser.cjs
+          node scripts/pos-price-visibility-browser.cjs
+
       - name: Purchases workflow smoke
         if: steps.scope.outputs.purchases == 'true'
         run: npm run test:purchases

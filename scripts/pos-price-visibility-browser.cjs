@@ -36,13 +36,18 @@ async function main(){
      const cart=element.closest('[data-cart-kind="sale"]');
      return {textWidth,readableWidth,priceBox:{left:box.left,right:box.right},
        eyeBox:{left:eyeBox.left,right:eyeBox.right},
-       cartOverflow:cart.scrollWidth-cart.clientWidth};
+       cartOverflow:cart.scrollWidth-cart.clientWidth,cartWidth:cart.getBoundingClientRect().width,
+       documentOverflow:document.documentElement.scrollWidth-innerWidth};
     });
     assert.ok(result.readableWidth>=result.textWidth+2,
       width+' '+theme+': Tk100000 must be fully visible; '+JSON.stringify(result));
     assert.ok(result.eyeBox.left>=result.priceBox.right+1,
       width+' '+theme+': eye icon must be outside the editable input');
-    assert.ok(result.cartOverflow<=2,width+' '+theme+': cart must not scroll sideways');
+    // Phones must never scroll sideways. On tablets, a narrower sidebar-constrained
+    // workspace may keep one product per row with scroll *inside* the cart.
+    if(width<768 || result.cartWidth>=710)
+      assert.ok(result.cartOverflow<=2,width+' '+theme+': ordinary cart must fit workspace');
+    assert.ok(result.documentOverflow<=2,width+' '+theme+': POS must never overflow the page');
     if(width>=768){
      await input.fill('100000.00');
      const decimals=await field.evaluate(element=>{

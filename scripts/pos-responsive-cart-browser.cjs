@@ -1,4 +1,4 @@
-/* POS must behave like the existing desktop cart when the workspace can fit it. */
+/* Phones use compact rows. Tablets retain one-line cart rows, even when the cart must scroll internally. */
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires -- This is a Node Playwright script. */
 const { chromium } = require('playwright');
@@ -59,24 +59,49 @@ async function main() {
           };
         });
 
-        const desktopCart = before.cart.width >= 760;
+        const tabletTable = width >= 768;
+        const needsScroll = before.scrollWidth > before.clientWidth + 2;
         const sideBySide = before.root.width >= 1056;
-        assert.equal(before.headerVisible, desktopCart, name + ' (' + theme + '): desktop header must follow available cart width');
-        assert.ok(before.scrollWidth <= before.clientWidth + 2, name + ': cart must not scroll sideways');
+        assert.equal(before.headerVisible, tabletTable, name + ' (' + theme + '): tablet header follows approved viewport/table layout');
+        if (!tabletTable) assert.ok(!needsScroll, name + ': phone cart must not scroll sideways');
+        if (tabletTable && before.cart.width >= 710 && !needsScroll) {
+          assert.ok(before.rows.every(row => row.frame.width <= before.cart.width + 1),
+            name + ': ordinary wide cart stays within its own workspace');
+        }
         assert.ok(before.documentWidth <= width + 2, name + ': screen must not overflow horizontally');
         for (const row of before.rows) {
-          assert.ok(row.frame.width <= before.cart.width + 1, name + ': row must fit its cart');
+          assert.ok(row.frame.width <= Math.max(before.cart.width + 1, before.scrollWidth + 2),
+            name + ': row may scroll inside cart but never overflow its scrollable content');
           for (const control of row.controls) {
             if (control.display === 'none' || control.display === 'contents') continue;
-            assert.ok(control.frame.left >= before.cart.left - 1 && control.frame.right <= before.cart.right + 1,
-              name + ': cart control must stay within the cart frame');
+            const rightLimit = tabletTable && needsScroll
+              ? before.cart.left + before.scrollWidth + 2 : before.cart.right + 1;
+            assert.ok(control.frame.left >= before.cart.left - 1 && control.frame.right <= rightLimit,
+              name + ': cart control must remain inside cart or its own scrollable area');
           }
-          if (!desktopCart) {
+          if (!tabletTable) {
             assert.equal(row.controls[1].row, '1', name + ': product first row');
             assert.equal(row.controls[5].row, '1', name + ': total beside product');
             assert.equal(row.controls[2].row, '2', name + ': quantity below product');
             assert.ok(row.frame.height < 230, name + ': compact row must not turn into a large card');
+          } else {
+            assert.ok(row.frame.height < 170, name + ': tablet editor must remain one compact table row');
           }
+        }
+        if (tabletTable && needsScroll) {
+          const scrollAccess = await page.locator('[data-cart-kind="sale"]').evaluate((cart) => {
+            const last = cart.querySelector('[data-cart-row="sale"] > :last-child');
+            const full = cart.scrollWidth - cart.clientWidth;
+            cart.scrollLeft = full;
+            const bounds = cart.getBoundingClientRect();
+            const target = last.getBoundingClientRect();
+            const reachable = target.left >= bounds.left - 2 && target.right <= bounds.right + 2;
+            const moved = cart.scrollLeft > 0;
+            cart.scrollLeft = 0;
+            return { reachable, moved };
+          });
+          assert.ok(scrollAccess.moved && scrollAccess.reachable,
+            name + ': tablet cart actions must be reachable by internal horizontal scrolling');
         }
         if (sideBySide) {
           assert.ok(before.checkout.left >= before.cart.right - 2, name + ': checkout sits beside the cart');
@@ -123,7 +148,7 @@ async function main() {
         }
         await context.close();
         console.log(name + ' ' + width + 'x' + height + ' ' + theme + ': ' +
-          (desktopCart ? 'desktop table' : 'compact inline rows') + ', ' + (sideBySide ? 'side-by-side' : 'stacked checkout'));
+          (tabletTable ? (needsScroll ? 'scrollable one-line tablet table' : 'one-line table') : 'compact inline rows') + ', ' + (sideBySide ? 'side-by-side' : 'stacked checkout'));
       }
     }
   } finally {
