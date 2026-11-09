@@ -1,0 +1,109 @@
+{
+  "sourceCommit": "a510661b84f638e281a12ad73989c59bde08eb0b",
+  "baselineCommit": "de33350ea48d7d0c1040b0895b227310cbd484a6",
+  "reviewedAt": "2026-11-07T00:56:14.381952+00:00",
+  "method": "Fresh independent source regression review of baseline..a510661, recorded gates and browser result provenance. Current system Chromium keyboard/workflow reruns listed separately. No visual score assigned and no app source edited.",
+  "protectedPathChanges": [],
+  "changedFiles": [
+    ".eslintrc.cjs",
+    "docs/ui-refine/app-pos/brief.md",
+    "docs/ui/design-system.json",
+    "scripts/pos-browser-capture.cjs",
+    "scripts/pos-fast-counter-browser.cjs",
+    "scripts/pos-price-visibility-browser.cjs",
+    "scripts/pos-refine-captures-browser.cjs",
+    "scripts/pos-refine-keyboard-browser.cjs",
+    "scripts/pos-refine-layout-browser.cjs",
+    "scripts/pos-refine-workflows-browser.cjs",
+    "scripts/pos-reorder-browser.cjs",
+    "scripts/pos-responsive-cart-browser.cjs",
+    "src/components/Dialog.tsx",
+    "src/components/TransactionReviewDialog.tsx",
+    "src/components/pos/CartTable.tsx",
+    "src/components/pos/CheckoutPanel.tsx",
+    "src/components/pos/CustomerPicker.tsx",
+    "src/components/pos/DraftsMenu.tsx",
+    "src/components/pos/InstallmentAdjustmentDialog.tsx",
+    "src/components/pos/InstallmentAgreementPreview.tsx",
+    "src/components/pos/InstallmentBreakdownDialog.tsx",
+    "src/components/pos/InstallmentCustomerQuickAddDialog.tsx",
+    "src/components/pos/InstallmentReceiptReversalDialog.tsx",
+    "src/components/pos/InstallmentReceivePaymentDialog.tsx",
+    "src/components/pos/InstallmentRescheduleDialog.tsx",
+    "src/components/pos/InstallmentTermsPanel.tsx",
+    "src/components/pos/ProductCombobox.tsx",
+    "src/components/pos/SerialPickerDialog.tsx",
+    "src/components/pos/StockShortageDialog.tsx",
+    "src/components/pos/presentationCopy.ts",
+    "src/components/transactions/MultiUnitQuantityInput.tsx",
+    "src/index.css",
+    "src/pages/Pos.tsx",
+    "tests/amountInWordsDisplayContract.test.ts",
+    "tests/installmentAgreementPreviewContract.test.ts"
+  ],
+  "findings": [],
+  "sharedDefaults": {
+    "ProductCombobox": "posKeyboardSafety=false, localizeMetadata=false; POS opts in only",
+    "CustomerPicker": "guardComposition=false; POS checkout opts in",
+    "MultiUnitQuantityInput": "readableValues=false; POS cart opts in",
+    "Dialog": "closeLabel optional; original close button retained without opt-in",
+    "TransactionReviewDialog": "amountLanguage/closeLabel optional; original amount default retained"
+  },
+  "businessReview": [
+    "No calculator, ledger/stock store, installment domain or settings/navigation source changed.",
+    "Stock/serial eligibility and onSave/onResolve logic preserved; changes bind labels/errors and translate displayed text.",
+    "Payment method/account values, source invoice identity, quantity factors, selected-unit prices, completion/receipt callbacks preserved.",
+    "DateLabel is read-only display using original invoice date for edit and Dhaka businessToday for new/duplicate; no stored date changed.",
+    "POS CSS remains scoped to sale cart/POS screen; no shell restyle. Vendor lint exclusion is pinned upstream runtime only, not authored source."
+  ],
+  "recordedEvidence": {
+    "fiveGates": "round-3-{types,lint,contract,tests,build}.log",
+    "unitTests": 851,
+    "browserSuites": 14,
+    "allRecordedBrowserExitCodesZero": true,
+    "captureSource": "a510661b84f638e281a12ad73989c59bde08eb0b"
+  },
+  "freshReruns": {
+    "keyboard": {
+      "exit": 0,
+      "log": "regression-keyboard-retry.log"
+    },
+    "workflows": {
+      "exit": 0,
+      "passedJourneys": 96,
+      "log": "regression-workflows-retry.log"
+    },
+    "sandboxNote": "Initial attempts failed before launch with setsockopt denied; successful reruns use approved execution outside the restricted sandbox."
+  },
+  "remainingIssues": [
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "classification": "pre-existing partially improved presentation gap",
+      "detail": "Manual installment collection allocation/date validation messages remain English in Bangla. c4-audit.json verifies exact paths; not a changed business rule."
+    },
+    {
+      "id": "pos-missing-product-quickadd",
+      "classification": "pre-existing contract migration debt",
+      "detail": "POS does not wire an on-picker missing-product creation path; no new workflow invented."
+    },
+    {
+      "id": "pos-cart-desktop-clipped-totals",
+      "severity": "P1",
+      "classification": "existing brief partially met",
+      "detail": "Fresh final design review confirms supported dense three/four-unit 1440px states need local horizontal scrolling to reach totals/remove; routine desktop fit is fixed."
+    },
+    {
+      "id": "pos-multiunit-selected-unit-truncated",
+      "severity": "P2",
+      "classification": "remaining visual issue",
+      "detail": "Dense desktop selected unit shows P… instead of full short symbol; see independent c4-design."
+    }
+  ],
+  "limitations": [
+    "Browser preview outcomes only; no real backend, bank, stock or ledger posting verified.",
+    "No physical print/browser print dialog, physical device/IME or exhaustive WCAG/zoom/on-screen-keyboard certification.",
+    "This regression reviewer did not independently rerun all five gates or all fourteen browser suites; stored logs/results are attributed evidence."
+  ],
+  "result": "No verified new business/shared-default regression in reviewed diff; fresh keyboard and 96 workflow journeys passed. Independent visual remaining issues are disclosed separately."
+}

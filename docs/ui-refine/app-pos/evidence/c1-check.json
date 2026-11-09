@@ -1,0 +1,192 @@
+{
+  "check": "C1",
+  "method": "impeccable",
+  "designScores": {
+    "specificity": 3,
+    "hierarchy": 2,
+    "typography": 3,
+    "color": 3,
+    "composition": 2
+  },
+  "designTotal": 13,
+  "auditScores": {
+    "accessibility": 2,
+    "performance": 3,
+    "responsive": 2,
+    "theming": 4,
+    "integrity": 2
+  },
+  "auditTotal": 13,
+  "visualScore": 26,
+  "visualScoreMaximum": 40,
+  "detectorRan": true,
+  "problems": [
+    {
+      "id": "pos-cart-desktop-clipped-totals",
+      "severity": "P0",
+      "type": "responsive",
+      "location": "src/index.css:896",
+      "evidence": "round-0-main-desktop-light.png, round-0-main-desktop-dark.png and round-0-main-desktop-light-s1.png: at 1440px, the cart's right edge cuts through line totals; Total heading and remove controls are outside the initial visible region. The late viewport rule forces at least 888px of row width into the visibly narrower cart. Horizontal scrolling is an available workaround, so this is clipping rather than proven inability to complete a sale. T2, T6 and the brief's complete-price/total priority apply. Checker corroboration: baseline-geometry.json measures 763px cart client width vs 888px scroll width at 1440 in both themes; 703/888 at 1024. Internal scrolling at narrow tablets is approved, but clipped routine totals at desktop fails the named brief.",
+      "fix": "Reconcile the POS-only column budget with the actual desktop cart width so default two-unit rows show complete prices, line totals and remove actions together. Preserve one-row tablet composition, 36px controls and internal horizontal scrolling where genuinely necessary for three/four units or large values. Keep header, rows and add row aligned.",
+      "suggestedRound": 1,
+      "route": "adapt"
+    },
+    {
+      "id": "product-search-active-scroll",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/pos/ProductCombobox.tsx:179",
+      "evidence": "Arrow keys change active and input aria-activedescendant (line 299), but no effect or handler scrolls the corresponding option into view. The list is overflow-y-auto with measured maxHeight (lines 215-220), so keyboard selection can move to an invisible lower result whenever the popup is short. T7 and search readability priority. Checker corroboration: baseline-geometry.json records activeVisible=false in both themes at 320x700 and 1024x768; corresponding baseline-320-light-search.png and baseline-1024-light-search.png were inspected. Related composition defect at ProductCombobox.tsx:179 and CustomerPicker.tsx:89: Enter selects without checking composition; a Bangla IME confirmation may add the highlighted product or choose a customer. T7/T9.",
+      "fix": "On open/active change, reveal the active option inside the list scroll container with nearest/block geometry, preserving page scroll and reduced-motion behavior; verify at short viewport/open-up states. Guard IME composition before selection/navigation, including supported browser composition-Enter behavior, in the touched product/customer pickers. Prove no query clearing or add during composition, ordinary Enter product→quantity→search, visible active result in short/upward popup, Escape/focus return and touch selection.",
+      "suggestedRound": 1,
+      "route": "harden",
+      "relatedIds": [
+        "product-search-ime-submit"
+      ]
+    },
+    {
+      "id": "workflow-vendor-lint",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": ".eslintrc.cjs:11",
+      "evidence": "Actual `npm run lint` exited 1; c1-detector-lint.log reports 314 problems (58 errors, 256 warnings). Errors are no-undef in newly initialized vendor/super-board workflow JS. Existing ignore boundary includes vendor/impeccable/** but not the other pinned external workflow engine. Pre-existing at task base after recursive submodule initialization; blocks required gate, not a POS runtime defect. T10/T14. Coordinator authorizes this exact tooling boundary exception; this is not an application visual defect.",
+      "fix": "Add a narrowly documented vendor/super-board/** exclusion matching the existing third-party engine boundary, preserving lint coverage of authored application code and all business behavior; rerun the unfiltered required npm run lint gate.",
+      "suggestedRound": 1,
+      "route": "harden"
+    },
+    {
+      "id": "cart-unit-radio-keyboard",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/pos/CartTable.tsx:280",
+      "evidence": "Two-unit selector declares radiogroup/radio with aria-checked but every radio remains a normal Tab stop and no Arrow key or roving tabindex behavior is implemented. Checkout discount group repeats this at CheckoutPanel.tsx:216-225. Users can Tab+Space through it, but the declared radio keyboard model is incomplete. T7; shared keyboard/accessibility contract. Checker ranks P1 because the brief/checker contract treats a verified accessibility failure as P1; existing Tab+Space remains usable.",
+      "fix": "Implement standard Arrow selection and roving tab focus on these existing compact groups (or use the existing compliant shared radio primitive if geometry remains unchanged). Do not change unit conversion, selected-unit prices or discount calculation.",
+      "suggestedRound": 1,
+      "route": "harden"
+    },
+    {
+      "id": "checkout-large-amount-fit",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/pos/CheckoutPanel.tsx:357",
+      "evidence": "Primary completion Button concatenates action label, unbounded formatted total and F9 at lines 363-364. Bundled Button has whitespace-nowrap, while this use has w-full and no wrapping override or separate constrained amount layout. At large BDT values and long Bangla action text it has no way to fit a phone/340px checkout. Main payable at line 247 also uses a 29px unbreakable numeric run without a maximum width. Source establishes missing fallback; exact clipping must be corroborated by independent rendered evidence. T5/T6 and explicit complete-large-values brief.",
+      "fix": "Keep the same 48px terminal CTA and calculator/state paths, but provide an amount-safe responsive arrangement using existing tokens and readable proportional digits. Permit deliberate wrapping/separate action and amount regions where necessary and validate full large total at 320/390px and in Bangla.",
+      "suggestedRound": 2,
+      "route": "harden",
+      "verificationStatus": "source-confirmed missing fallback; rendered large-value case must be reproduced before patch acceptance"
+    },
+    {
+      "id": "quantity-four-unit-width",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/transactions/MultiUnitQuantityInput.tsx:28",
+      "evidence": "Joined control divides width equally among up to four units, has overflow-hidden, and each segment contains a shrink-0 symbol plus numeric input. At <=639px index.css:199 permanently reserves 26px for each compact stepper; label additionally requires 8px padding + border + up to four symbol characters. At a 320px viewport, the cart's available joined width is below 300px, leaving very little number width per segment; configured Gira/Coil/Pair and custom 4-character symbols are supported. No min readable number width or POS opt-in adaptation exists. Exact rendered digits should be confirmed independently. T5/T6 and brief's readable joined 2–4 unit field.",
+      "fix": "Add a POS-specific opt-in quantity presentation that guarantees readable numeric space for all four segments while retaining one horizontal joined shell, short symbols, 36px height and original conversions. Preserve default shared consumers and existing input/stepper behavior; verify focused/coarse-pointer values and multi-digit entries at 320px.",
+      "suggestedRound": 2,
+      "route": "harden",
+      "verificationStatus": "source-confirmed compression risk; supported real-preview 3/4-unit case must be reproduced before patch acceptance"
+    },
+    {
+      "id": "pos-phone-product-identity-truncated",
+      "severity": "P2",
+      "type": "responsive",
+      "location": "src/index.css:337",
+      "evidence": "round-0-main-mobile-light.png, round-0-main-mobile-dark.png and round-0-main-mobile-light-s1.png: at 390px, PVC Pipe 1\" (20 ft) becomes PVC Pipe 1\" (2..., while Wire Mesh Net 3 ft becomes Wire Mesh Ne.... The Bengali/category/stock helper also truncates before stock information. Five grid columns contain both thumbnail and identity, while four are reserved for short totals. CartTable.tsx:186-189 applies unconditional truncation without a full-name title. T2 and T5 apply. Checker independently inspected both 390px themes; baseline-geometry.json leaves identity only ~134px at 390 and ~104px at 320 despite short totals.",
+      "fix": "Recover identity width within the existing phone row by sizing the total/removal area to its content and allowing the product group the remaining space. Make the complete product name and relevant stock recoverable through an accessible existing pattern; retain compact rows and a safe fallback for large totals.",
+      "suggestedRound": 2,
+      "route": "adapt"
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "type": "confusing-copy",
+      "location": "src/index.css:308",
+      "evidence": "round-0-main-mobile-light-s1.png shows Qty, Unit and Price; these labels are hard-coded CSS strings at index.css:308-310, so their language cannot follow useUiCopy. The supplied screenshots show the helper-language state, not a verified Bangla-only state. Source also hard-codes both languages in the page heading at Pos.tsx:762-763 and Quick items heading at Pos.tsx:899-902. T9 and the brief's three-language parity apply.",
+      "fix": "Supply compact cart labels from the existing language-aware copy layer and render them from markup or localized attributes. Respect English, Bangla and English-with-helper preferences in the touched POS heading, quick-items copy and field labels without removing useful bilingual guidance.",
+      "suggestedRound": 3,
+      "route": "clarify"
+    }
+  ],
+  "vsBefore": "baseline",
+  "vsBeforeNote": "Baseline: desktop routine totals/remove are clipped; phone product identity is truncated; both themes otherwise preserve the approved compact POS hierarchy.",
+  "summary": "Baseline visual score is 26/40 (design 13/20 + official-detector-backed audit 13/20), with one P0 and five P1 issues retained in eight merged entries. Resolve desktop cart clipping and keyboard/search accessibility first, then amount/multi-unit and phone-fit gaps, and finish localized copy/typography polish in the third bounded round; no issue has yet survived three checks.",
+  "suggestedRouteChain": [
+    "adapt",
+    "harden",
+    "polish"
+  ],
+  "roundPlan": [
+    {
+      "round": 1,
+      "goal": "Repair desktop visibility and keyboard search/selection, then establish the scoped lint gate.",
+      "problemIds": [
+        "pos-cart-desktop-clipped-totals",
+        "product-search-active-scroll",
+        "workflow-vendor-lint",
+        "cart-unit-radio-keyboard"
+      ],
+      "routeChain": [
+        "adapt",
+        "harden",
+        "polish"
+      ],
+      "boundaries": "POS desktop column budget and opt-in POS CSS only; product/customer keyboard mechanics and existing radio groups; exact vendor/super-board/** lint ignore only. Preserve purchase/default shared consumers, conversions, postings, 36px controls and tablet one-row contract.",
+      "acceptance": "At 1440 default two-unit cart shows full price,total,remove at scrollLeft=0; no whole-page overflow at 768/820/1024; active option stays inside short/upward popup; IME Enter does not select; Enter/Escape/focus/touch and radio arrows work; required baseline gates rerun. Repair the stale pos-reorder printed-line selector against actual document markup and keep its order assertion; rerun the focused test."
+    },
+    {
+      "round": 2,
+      "goal": "Finish all remaining P1 readable-value/responsive gaps, then improve phone identity within existing layout.",
+      "problemIds": [
+        "checkout-large-amount-fit",
+        "quantity-four-unit-width",
+        "pos-phone-product-identity-truncated"
+      ],
+      "routeChain": [
+        "harden",
+        "adapt",
+        "polish"
+      ],
+      "boundaries": "Reproduce genuine supported large BDT/3–4-unit preview states first; POS-only opt-in shared quantity presentation if needed, single horizontal joined 36px shell, original ratios and numeric semantics; preserve terminal 48px CTA.",
+      "acceptance": "Full large prices/line totals/payable/previous balance/paid/due/CTA at 320/390/768/1024/1440 and Bangla; readable multi-digit entries with 2–4 short-symbol units; identity/stock recoverable; keyboard, coarse-pointer steppers, theme parity and focused regression pass."
+    },
+    {
+      "round": 3,
+      "goal": "Respect all three language preferences and settle the remaining compact typography details.",
+      "problemIds": [
+        "pos-copy-language-preference-bypassed"
+      ],
+      "routeChain": [
+        "clarify",
+        "typeset",
+        "polish"
+      ],
+      "supportingFinding": {
+        "id": "pos-cart-type-scale-drift",
+        "severity": "P3",
+        "type": "typography",
+        "location": "src/components/pos/CartTable.tsx:149",
+        "evidence": "round-0-main-desktop-light-s1.png: small uppercase column headings use 11px with extra tracking; source sets product names to 13.5px at CartTable.tsx:186. Phone field labels use 10px at index.css:304 and phone totals 11.5px at index.css:338. These diverge from T5's 13px data, 12px headings and 11px helpers.",
+        "fix": "Apply the existing table typography roles consistently within POS: 13px primary data, 12px headings and 11px helpers. Preserve proportional numerals, current weights, compact spacing and 36px controls."
+      },
+      "boundaries": "Existing language-aware copy and 13/12/11 roles in touched POS presentation only; no new content hierarchy, decorative features, unrelated routes or language-system rewrite.",
+      "acceptance": "English, Bangla and English-with-helper show correct heading/Quick items/Qty/Unit/Price labels; no clipped vowel marks, money or focus rings in both themes; all original gates and protected workflow tests pass. Any P0/P1 surviving earlier rounds takes precedence over this polish."
+    }
+  ],
+  "mergeNotes": [
+    "Merged IME composition and invisible active-result findings into one product-search keyboard entry; relatedIds preserves product-search-ime-submit for subsequent checks.",
+    "Cart-unit-radio-keyboard is P1 under the explicit checker accessibility ranking, despite its Tab+Space workaround.",
+    "The lower-priority pos-cart-type-scale-drift is carried as bounded round-3 supporting polish instead of exceeding the eight-problem cap.",
+    "Approved Geist detector hits are false positives; no font redesign is requested. Approved tablet internal horizontal scrolling is not itself a defect.",
+    "Visual/motion behavior is not certified by source evidence alone; amount and 4-unit findings require rendered reproduction and acceptance checks."
+  ],
+  "baselineGates": {
+    "status": "Five provided core gates pass except vendor lint; separate existing test:pos-reorder has a stale printed-receipt selector.",
+    "lint": "58 errors in newly initialized vendor/super-board external engine; precise ignore boundary authorized, no app rule weakening",
+    "posReorder": "Coordinator reports scripts/pos-reorder-browser.cjs:44 expects ol > li but current printed document uses table lines, yielding [] after successful reorder/review; adapt only the browser selector to actual printed line markup and retain the full order assertion. No production receipt logic changes."
+  },
+  "openQuestions": [
+    "POS missing-product Quick Add is documented pre-existing migration debt: keep outside this polish slice unless the coordinator identifies an already authorized shared workflow; do not fabricate create/post behavior.",
+    "Complete supported real-preview 3/4-unit and large-amount states, three language preferences, landscape, reduced-motion and coarse-pointer evidence before acceptance; no dense fixture or fabricated sign-in/data.",
+    "If source-confirmed large-value/four-unit risks do not reproduce with supported states, record actual geometry and close with that evidence instead of introducing speculative layout changes."
+  ]
+}

@@ -97,3 +97,21 @@ Use the upstream design /20 + audit /20 score and problem ledger when the execut
 See `docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md` for the module-by-module implementation checklist, including Playwright evidence at each breakpoint.
 
 - **Final filter-row polish (approved 2026-11-05):** Align the phone/tablet square Filter button's right edge with the table's always-visible rightmost `⋮` action. Put a small outlined `RotateCcw` Reset icon **beside All status**, not on its own row; keep its existing full reset behavior, bilingual tooltip/ARIA label and keyboard/touch accessibility. Validate with Playwright at all responsive widths. Apply to other modules in individually reviewed PRs, not a mass rewrite.
+
+### #/app/accounts — compact overview and reachable voucher actions (2026-11-06)
+
+- **Goal:** Make the existing Accounts overview and voucher history easier to scan and operate on 320px phones through desktops.
+- **Direction:** Same approved HisabIQ UI, compact but information-rich. Use approved Daybook/Audit row-action and Party Ledger underline conventions.
+- **Scope:** `src/pages/Accounts.tsx` only, focused browser tests and generated design inventory when source imports change. Do not redesign or modify reused Finance/Money Accounts, Ledger, Trial Balance, Statements or Chart of Accounts.
+- **Keep:** All accounting totals and source postings, URL-synced tabs, English-only navigation tab labels, simple/accounting terminology mode, date preference, opening balances, voucher create/correct/delete/duplicate, export, full reference, status, Bangla helpers, amount in words where already provided and all modal confirmation paths.
+- **Accessibility:** 36px row action always visible at scrollLeft=0 on phones, full voucher reference, touch targets, keyboard focus/Escape return, light/dark and 320/390/768/1024/1440 widths. Never introduce fake posting or silent state changes.
+- **Proof:** GitHub-only C0-C4 ledger and authentic screenshot + Playwright check; mechanical Impeccable source detector is not an independent AI visual review. Owner must approve draft PR before merge.
+
+### #/app/finance — Finance Loans & Owners compact refinement (2026-11-06)
+
+- **Goal:** Make the existing Finance money overview and Loans & Owners transaction list easier to scan and operate on phones, tablets and keyboards. No redesign.
+- **Direction:** Same HisabIQ blue/teal/Ink theme, dense financial summaries, bilingual helper text, proportional money digits, calm focus cues. Copy the approved Daybook funnel/filter/reset and row-action pattern only for the Finance Transactions tab.
+- **Scope:** `src/pages/Finance.tsx` Finance Overview and Loans & Owners; focused Playwright script, CI registration and generated icon inventory only. All shared Counter and Accounts Money Accounts interfaces keep their current UI and posting behavior.
+- **Keep:** All seven KPIs, Loan/Owner/Bank/Cash/Mobile money meanings, Cheques and Cash Sessions tabs, original source IDs, account/transfer/finance dialogs and edits, reversal review, URL tab state, Finance People, payment splits, source-ledger relationships, permission handlers, theme, Bangla and keyboard/touch.
+- **Responsive acceptance:** 320–767 Search+36px funnel Filter; 768–1023 Search+Filter on one row; desktop Search+type filter+Reset inline. Hide only the secondary type selector below 1024 until expanded; do not hide applied filter state. No new date filter. Full FIN transaction ID, amount, status and sticky action visible without horizontal scroll below 1024; preserve the rich desktop table.
+- **Review:** Three bounded GitHub-only passes, C0/C4 screenshot and official mechanical detector evidence. Real menu/detail screenshots at 320/390/768/1024/1440, light/dark; no invented /40 score or claim of separate agent visual review. Draft PR only; owner approves merge.

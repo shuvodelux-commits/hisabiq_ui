@@ -7,7 +7,7 @@ import {unitSymbol} from '../../data/productUnits';
 import {useUiCopy} from '../../i18n/useUiCopy';
 
 /** One joined quantity field, in the configured largest-to-smallest unit order. */
-export function MultiUnitQuantityInput({product,quantities,onChange,disabled=false,primaryRef,onLastEnter,unitOrder,label,invalid}:{
+export function MultiUnitQuantityInput({product,quantities,onChange,disabled=false,primaryRef,onLastEnter,unitOrder,label,invalid,readableValues=false}:{
   product:Pick<Product,'unit'|'altUnit'|'unitRelations'>;
   quantities:UnitQuantityMap;
   onChange:(next:UnitQuantityMap)=>void;
@@ -18,11 +18,13 @@ export function MultiUnitQuantityInput({product,quantities,onChange,disabled=fal
   unitOrder?:readonly string[];
   label?:string;
   invalid?:boolean;
+  /** POS keeps multi-digit values readable in its narrow phone cart. */
+  readableValues?:boolean;
 }) {
   const {text}=useUiCopy();
   const inputs=useRef<(HTMLInputElement|null)[]>([]);
   const units=unitOrder??productUnits(product);
-  return <div data-multi-quantity data-unit-count={units.length} data-numeric-joined data-invalid={invalid?'true':undefined} role="group" aria-label={label??text('Quantity by unit','একক অনুযায়ী পরিমাণ')}
+  return <div data-multi-quantity data-readable-values={readableValues || undefined} data-unit-count={units.length} data-numeric-joined data-invalid={invalid?'true':undefined} role="group" aria-label={label??text('Quantity by unit','একক অনুযায়ী পরিমাণ')}
     className="flex h-9 w-full min-w-0 max-w-full items-stretch overflow-hidden rounded-md border border-input bg-ink-50/50 focus-within:border-teal-500 focus-within:bg-card focus-within:ring-2 focus-within:ring-teal-500/20">
     {units.map((unit,index)=>
       <div key={unit} className="flex min-w-0 flex-1 items-stretch border-l border-border first:border-l-0">
@@ -37,6 +39,7 @@ export function MultiUnitQuantityInput({product,quantities,onChange,disabled=fal
             if(index+1<units.length){const next=inputs.current[index+1];next?.focus();next?.select();}
             else onLastEnter?.();
           }}}
+          style={readableValues ? {minWidth: `calc(${Math.max(2, String(quantities[unit] ?? '').length)}ch + 24px)`} : undefined}
           stepperCompact aria-label={text('Quantity in '+unit,unit+' এককে পরিমাণ')}
           value={quantities[unit]??''} disabled={disabled} aria-invalid={invalid||undefined}
           type="text" inputMode="decimal" autoComplete="off" placeholder="0"

@@ -3274,6 +3274,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/vendor/VendorV2Cart.tsx",
+      "kind": "component",
+      "exports": [
+        "VendorV2Cart"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/contexts/CashSessionContext.tsx",
       "kind": "provider-or-context",
       "exports": [
@@ -3506,6 +3514,14 @@
       "kind": "page-or-feature",
       "exports": [
         "Sales"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/pages/VendorV2.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "VendorV2"
       ],
       "reexports": []
     },
@@ -4295,9 +4311,11 @@
       "src/components/parties/VendorCorrectionDialog.tsx",
       "src/components/products/BundleEditor.tsx",
       "src/components/reports/ReportDetails.tsx",
+      "src/components/vendor/VendorV2Cart.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/pages/Pos.tsx",
       "src/pages/PurchaseEditor.tsx",
+      "src/pages/VendorV2.tsx",
       "src/settings/ModuleSettingsEntry.tsx"
     ],
     "ArrowLeftIcon": [
@@ -4515,6 +4533,7 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
+      "src/pages/VendorV2.tsx",
       "src/pages/Vendors.tsx",
       "src/settings/magic/GeneralSettingsSection.tsx",
       "src/settings/magic/interface/InterfaceSettings.tsx",
@@ -4635,7 +4654,8 @@
       "src/settings/magic/security/ActivityPage.tsx"
     ],
     "Ellipsis": [
-      "src/components/vendor/VendorTabs.tsx"
+      "src/components/vendor/VendorTabs.tsx",
+      "src/pages/VendorV2.tsx"
     ],
     "ExternalLink": [
       "src/components/accounts/VoucherActionDialog.tsx",
@@ -4734,6 +4754,7 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/components/sales/SalesWideToolbar.tsx",
       "src/pages/Expenses.tsx",
+      "src/pages/Finance.tsx",
       "src/pages/Purchases.tsx"
     ],
     "FlaskConical": [
@@ -4908,7 +4929,6 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/products/ProductSettings.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
-      "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
       "src/pages/Warranty.tsx",
@@ -5032,6 +5052,7 @@
       "src/components/purchases/PurchasePaymentPanel.tsx",
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorTabs.tsx",
+      "src/components/vendor/VendorV2Cart.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
@@ -5043,6 +5064,7 @@
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
       "src/pages/Sales.tsx",
+      "src/pages/VendorV2.tsx",
       "src/pages/Vendors.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/CommerceSettingsPanels.tsx",
@@ -5344,6 +5366,7 @@
       "src/components/purchases/PurchasePaymentPanel.tsx",
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
+      "src/components/vendor/VendorV2Cart.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
       "src/pages/Quotations.tsx",
@@ -5441,6 +5464,7 @@
     ],
     "X": [
       "src/components/AppDateRangePicker.tsx",
+      "src/components/Dialog.tsx",
       "src/components/Input.tsx",
       "src/components/brand/VoiceSection.tsx",
       "src/components/layout/Calculator.tsx",
@@ -5454,6 +5478,7 @@
       "src/components/products/PhotoUploader.tsx",
       "src/components/reports/ReportToolbar.tsx",
       "src/components/transactions/TransactionCartEditor.tsx",
+      "src/components/vendor/VendorDirectory.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",

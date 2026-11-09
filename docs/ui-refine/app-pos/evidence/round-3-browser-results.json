@@ -1,0 +1,72 @@
+[
+  {
+    "script": "pos-refine-keyboard-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-refine-keyboard-browser.log"
+  },
+  {
+    "script": "pos-price-visibility-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-price-visibility-browser.log"
+  },
+  {
+    "script": "pos-responsive-cart-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-responsive-cart-browser.log"
+  },
+  {
+    "script": "pos-refine-layout-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-refine-layout-browser.log"
+  },
+  {
+    "script": "pos-fast-counter-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-fast-counter-browser.log"
+  },
+  {
+    "script": "pos-customer-templates-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-customer-templates-browser.log"
+  },
+  {
+    "script": "pos-reorder-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-reorder-browser.log"
+  },
+  {
+    "script": "pos-refine-workflows-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-refine-workflows-browser.log"
+  },
+  {
+    "script": "installment-pos-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-installment-pos-browser.log"
+  },
+  {
+    "script": "installment-payment-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-installment-payment-browser.log"
+  },
+  {
+    "script": "installment-lifecycle-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-installment-lifecycle-browser.log"
+  },
+  {
+    "script": "vendor-pos-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-vendor-pos-browser.log"
+  },
+  {
+    "script": "bundle-pos-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-bundle-pos-browser.log"
+  },
+  {
+    "script": "pos-product-combobox-motion-browser.cjs",
+    "exit": 0,
+    "log": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/round-3-pos-product-combobox-motion-browser.log"
+  }
+]

@@ -1,0 +1,173 @@
+{
+  "copyMethod": "Original PNG bytes copied unchanged, no crop/edit/reencoding",
+  "screenshots": [
+    {
+      "file": "round-0-main-desktop-light.png",
+      "sha256": "cc27ff3e5fdc25af482e434fe63adb494bc2de0a931b0ead6c5a9bd8e6f9b9ec",
+      "bytes": 222811,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-0-main-desktop-light.png"
+    },
+    {
+      "file": "round-0-main-desktop-dark.png",
+      "sha256": "161c2d5b8e82d8ae3cbfced1bca019cd686eedd0125750fd528dd3ac8e47c354",
+      "bytes": 226862,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-0-main-desktop-dark.png"
+    },
+    {
+      "file": "round-0-main-mobile-light.png",
+      "sha256": "49e2cb194e5fcc1ece664e0f7fd71dc626ddfd21e37259dfb91b1bcec4f1f1de",
+      "bytes": 398479,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-0-main-mobile-light.png"
+    },
+    {
+      "file": "round-0-main-mobile-dark.png",
+      "sha256": "1b4c4dafb20e49d7361927981ba34896d78e1e511bf8efdbf053b6721c7946a5",
+      "bytes": 409575,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-0-main-mobile-dark.png"
+    },
+    {
+      "file": "round-3-main-desktop-light.png",
+      "sha256": "3835883c77727fdcca7dc5fe4073ee152b706cc71ee078262df58d04bbcf0b99",
+      "bytes": 224595,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-main-desktop-light.png"
+    },
+    {
+      "file": "round-3-main-desktop-dark.png",
+      "sha256": "8ff64cb071b96aee266b3f51db21c181d175c4ea38af7b2259794d777673820f",
+      "bytes": 228585,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-main-desktop-dark.png"
+    },
+    {
+      "file": "round-3-main-mobile-light.png",
+      "sha256": "d3dc010588fba79ef7c694a3b377e5a0eb22a4d4832d18d7693bb6bddebf2bf9",
+      "bytes": 397992,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-main-mobile-light.png"
+    },
+    {
+      "file": "round-3-main-mobile-dark.png",
+      "sha256": "a5930e2654e2824f3fc179ad982f423f495e87118cf9623918640e0f0be07647",
+      "bytes": 409442,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-main-mobile-dark.png"
+    },
+    {
+      "file": "round-3-responsive-320x700-light-search.png",
+      "sha256": "be8a06b0dbf490ebc843fa17123b6ce6c3ea313f6ef8394be45001cb77fcb783",
+      "bytes": 69272,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-light-search.png"
+    },
+    {
+      "file": "round-3-responsive-320x700-dark-checkout-viewport.png",
+      "sha256": "cfdfa9e093ccda2578cab0a78b1bdc1b895be16692c78afb8a7cf4aac4982bf0",
+      "bytes": 43033,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-dark-checkout-viewport.png"
+    },
+    {
+      "file": "round-3-responsive-768x1024-dark-search.png",
+      "sha256": "bc8f3d480814168de1a8532fdbad7e07d564af2271acc01d1eb38761bad93db6",
+      "bytes": 156375,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-768x1024-dark-search.png"
+    },
+    {
+      "file": "round-3-responsive-1024x768-light-search.png",
+      "sha256": "0055f1fb2922f6cb981d69ced4f14ec55ce19f37078c41d52c934f593ba74e47",
+      "bytes": 154573,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x768-light-search.png"
+    },
+    {
+      "file": "round-3-responsive-844x390-dark-search.png",
+      "sha256": "61822b4407f0429097e3bf0688615a53ab3a19c0b792d0320a3fef4574e1a0b8",
+      "bytes": 74860,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-844x390-dark-search.png"
+    },
+    {
+      "file": "round-3-3units-390-light.png",
+      "sha256": "ad8b4bb372108851b82e5b90eee3ac067d21cde56d07169a438b115594031d5e",
+      "bytes": 54290,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-3units-390-light.png"
+    },
+    {
+      "file": "round-3-3units-768-dark.png",
+      "sha256": "9515f0aab904c5c0fa837f7d9741331932c8fa380f988384579738c4a04aa02a",
+      "bytes": 125378,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-3units-768-dark.png"
+    },
+    {
+      "file": "round-3-4units-320-dark.png",
+      "sha256": "8d47d03d62f2ce70a46f518c53c732d7c9ad8bd82698fb59910e85e734d2ca18",
+      "bytes": 53591,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-4units-320-dark.png"
+    },
+    {
+      "file": "round-3-4units-1440-light.png",
+      "sha256": "4d952199ea163f2843670a57fb885d427e785d65b3dd8ef36301d94eac245020",
+      "bytes": 228854,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-4units-1440-light.png"
+    },
+    {
+      "file": "round-3-large-390-bn-dark-viewport.png",
+      "sha256": "8ce129bd79cff74f79e4f597c51661ddad8c6381e8c53e0b4018d46cd96ac7f4",
+      "bytes": 62324,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-large-390-bn-dark-viewport.png"
+    },
+    {
+      "file": "round-3-large-1440-bn-light-viewport.png",
+      "sha256": "b3b08b50637feca9f10e867fc87327a94061d56d4486b3b7430f35a70bcb3320",
+      "bytes": 158108,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-large-1440-bn-light-viewport.png"
+    },
+    {
+      "file": "round-3-header-scrolled-320-light.png",
+      "sha256": "2724ce2a2ec5c1d18f0d4e04feee26281ed298f833d9484a753776b65d4a6898",
+      "bytes": 42729,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-header-scrolled-320-light.png"
+    },
+    {
+      "file": "round-3-header-fullpage-1024-dark.png",
+      "sha256": "4ec290755418a750db724cf606710003f57be66be2385ee3888bd3de0b66a2f8",
+      "bytes": 214838,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-header-fullpage-1024-dark.png"
+    },
+    {
+      "file": "round-3-workflow-light-bn-serial-error.png",
+      "sha256": "2e3950c1a42802801a2ed2b000014fcf149290e51ba522d023d820ddf95fe5d4",
+      "bytes": 66620,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-serial-error.png"
+    },
+    {
+      "file": "round-3-workflow-dark-en-shortage-vendor-error.png",
+      "sha256": "0695f5f9c86728f726debfbf9090dfc11d0a36e77fd2e2d23fe4ca9cda6394cf",
+      "bytes": 66644,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-shortage-vendor-error.png"
+    },
+    {
+      "file": "round-3-workflow-light-bn-payment-method.png",
+      "sha256": "63f598d5292135da0f3666476c8db99d1862574c8991e522e626443925c84b94",
+      "bytes": 55366,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-payment-method.png"
+    },
+    {
+      "file": "round-3-workflow-dark-en-installment-adjustment-select.png",
+      "sha256": "ba9f90a6eee995c5a0387b5dbe36fc4875b12c157364cb3ea56f55d127f11ee4",
+      "bytes": 53393,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-installment-adjustment-select.png"
+    },
+    {
+      "file": "round-3-3units-1440-light.png",
+      "sha256": "2ed81a888a82aa6e3c1c57a2a3f16608d99a0fdec3344101f8d514eb1635f2b5",
+      "bytes": 228002,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-3units-1440-light.png"
+    },
+    {
+      "file": "round-3-3units-1440-dark.png",
+      "sha256": "aec02597ebcc49b602c5fccaad51faa65f1d3a1e155e239987f720ec3476d436",
+      "bytes": 232188,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-3units-1440-dark.png"
+    },
+    {
+      "file": "round-3-4units-1440-dark.png",
+      "sha256": "7012441ddadbcec82ff62f773804fc8c365e40ba45f95f46c2b94f1c31b7ce71",
+      "bytes": 233177,
+      "originalSource": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-4units-1440-dark.png"
+    }
+  ]
+}

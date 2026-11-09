@@ -1,0 +1,1410 @@
+{
+  "head": "a510661b84f638e281a12ad73989c59bde08eb0b",
+  "capturedAt": "2026-11-07T00:10:36.018Z",
+  "evidence": [
+    {
+      "width": 320,
+      "height": 700,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 142,
+        "logo": {
+          "top": 12,
+          "bottom": 40,
+          "left": 56,
+          "right": 84
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 320,
+      "height": 700,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 142,
+        "logo": {
+          "top": 12,
+          "bottom": 40,
+          "left": 56,
+          "right": 84
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-320x700-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 700,
+      "height": 320,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 64,
+          "right": 92
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-700x320-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-700x320-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-700x320-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 700,
+      "height": 320,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 64,
+          "right": 92
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-700x320-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-700x320-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-700x320-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 56,
+          "right": 84
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-390x844-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-390x844-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-390x844-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 56,
+          "right": 84
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-390x844-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-390x844-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-390x844-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 64,
+          "right": 92
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-844x390-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-844x390-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-844x390-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 64,
+          "right": 92
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-844x390-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-844x390-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-844x390-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 64,
+          "right": 92
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-768x1024-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-768x1024-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-768x1024-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 102,
+        "logo": {
+          "top": 14,
+          "bottom": 42,
+          "left": 64,
+          "right": 92
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-768x1024-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-768x1024-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-768x1024-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x768-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x768-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x768-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x768-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x768-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x768-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1024,
+      "height": 1366,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x1366-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x1366-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x1366-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1024,
+      "height": 1366,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x1366-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x1366-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1024x1366-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1366,
+      "height": 1024,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1366x1024-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1366x1024-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1366x1024-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1366,
+      "height": 1024,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1366x1024-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1366x1024-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1366x1024-dark-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(11, 26, 44)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1440x900-light.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1440x900-light-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1440x900-light-checkout-viewport.png"
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "header": {
+        "headerTop": 0,
+        "headerBottom": 57,
+        "logo": {
+          "top": 15,
+          "bottom": 41,
+          "left": 12,
+          "right": 38
+        }
+      },
+      "options": [
+        {
+          "text": "PVC Pipe 1\" (20 ft)",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 108.40625,
+          "textHeight": 18
+        },
+        {
+          "text": "LED Bulb 12W",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 85.09375,
+          "textHeight": 18
+        },
+        {
+          "text": "MS Angle 1.5\" × 1.5\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 122.234375,
+          "textHeight": 18
+        },
+        {
+          "text": "Electric Wire 1.5 rm",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 117.71875,
+          "textHeight": 18
+        },
+        {
+          "text": "Wire Mesh Net 3 ft",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 113.296875,
+          "textHeight": 18
+        },
+        {
+          "text": "GI Wire 14 SWG",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 95.34375,
+          "textHeight": 18
+        },
+        {
+          "text": "Gate Valve ¾\"",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 83.125,
+          "textHeight": 18
+        },
+        {
+          "text": "Cement — Shah Special",
+          "opacity": "1",
+          "color": "rgb(237, 243, 250)",
+          "textWidth": 144.109375,
+          "textHeight": 18
+        }
+      ],
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1440x900-dark.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1440x900-dark-search.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-responsive-1440x900-dark-checkout-viewport.png"
+      ]
+    }
+  ]
+}

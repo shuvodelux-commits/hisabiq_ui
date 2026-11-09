@@ -3,6 +3,7 @@ import {Button} from './Button';
 import {Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle} from './Dialog';
 import {taka} from '../utils/currency';
 import {AmountInWordsDisplay} from './AmountInWordsDisplay';
+import type {UiLanguage} from '../i18n/uiCopy';
 import {useUiCopy} from '../i18n/useUiCopy';
 
 /** UI-only translations; callers keep their source values unchanged. */
@@ -16,21 +17,22 @@ const REVIEW_WORDS:Record<string,string>={
  'Paid':'জমা','Due':'বাকি','Total':'মোট','Payment':'পেমেন্ট',
 };
 
-export function TransactionReviewDialog({open,onClose,onConfirm,title,amount,details,confirmLabel='Confirm transaction',note}:{
+export function TransactionReviewDialog({open,onClose,onConfirm,title,amount,details,confirmLabel='Confirm transaction',note,amountLanguage,closeLabel}:{
  open:boolean;onClose:()=>void;onConfirm:()=>void;title:string;amount:number;
+ amountLanguage?:UiLanguage;closeLabel?:string;
  details:ReadonlyArray<{label:string;value:string}>;confirmLabel?:string;note?:string;
 }){
  const {text}=useUiCopy();
  const copy=(label:string)=>text(label,REVIEW_WORDS[label]??label);
  return <Dialog open={open} onOpenChange={next=>{if(!next)onClose();}}>
-  <DialogContent role="dialog" aria-label={copy(title)} className="max-h-[92vh] overflow-y-auto sm:max-w-md">
+  <DialogContent closeLabel={closeLabel} role="dialog" aria-label={copy(title)} className="max-h-[92vh] overflow-y-auto sm:max-w-md">
    <DialogHeader><DialogTitle>{copy(title)}</DialogTitle>
     <DialogDescription>{text('Verify the details below. Choose Edit to correct a mistake before confirming.','নিশ্চিত করার আগে নাম, টাকা ও হিসাব মিলিয়ে নিন। ভুল থাকলে সংশোধন করুন।')}</DialogDescription></DialogHeader>
    <div className="space-y-3">
     <div className="rounded-xl border border-border bg-ink-50 p-4">
      <p className="text-xs text-ink-500">{text('Transaction amount','লেনদেনের টাকা')}</p>
      <p className="mt-1 text-2xl font-semibold text-ink">{taka(amount)}</p>
-     <AmountInWordsDisplay amount={amount} />
+     <AmountInWordsDisplay amount={amount} language={amountLanguage} label={amountLanguage?text('In words','কথায়'):undefined} />
     </div>
     <dl className="divide-y divide-border rounded-xl border border-border px-3">
      {details.map(item=><div className="flex justify-between gap-4 py-2 text-sm" key={item.label}>

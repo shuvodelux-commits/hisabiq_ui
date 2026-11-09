@@ -1,0 +1,9 @@
+768 light decimal price: {"available":88,"text":62.9720458984375}
+1024 light decimal price: {"available":88,"text":62.9720458984375}
+1366 light decimal price: {"available":88,"text":62.9720458984375}
+1440 light decimal price: {"available":88,"text":62.9720458984375}
+768 dark decimal price: {"available":88,"text":62.9720458984375}
+1024 dark decimal price: {"available":88,"text":62.9720458984375}
+1366 dark decimal price: {"available":88,"text":62.9720458984375}
+1440 dark decimal price: {"available":88,"text":62.9720458984375}
+PASS: Tk100000 POS price, decimal desktop price, eye icon, keyboard cart access, and no page overflow across 6 sizes x 2 themes

@@ -51,6 +51,7 @@ const Products = lazy(() => import('./pages/Products').then(module => ({ default
 const Parties = lazy(() => import('./pages/Parties').then(module => ({ default: module.Parties })));
 const Purchases = lazy(() => import('./pages/Purchases').then(module => ({ default: module.Purchases })));
 const Vendors = lazy(() => import('./pages/Vendors').then(module => ({ default: module.Vendors })));
+const VendorV2 = lazy(() => import('./pages/VendorV2').then(module => ({ default: module.VendorV2 })));
 const PurchaseEditor = lazy(() => import('./pages/PurchaseEditor').then(module => ({ default: module.PurchaseEditor })));
 const Expenses = lazy(() => import('./pages/Expenses').then(module => ({ default: module.Expenses })));
 const Reports = lazy(() => import('./pages/Reports').then(module => ({ default: module.Reports })));
@@ -123,6 +124,7 @@ export function App() {
           <Route path="parties" element={<Parties />} />
           <Route path="purchases" element={<Purchases />} />
           <Route path="vendors" element={<Vendors />} />
+          <Route path="vendors-v2" element={<VendorV2 />} />
           <Route path="purchases/new" element={<PurchaseEditor />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="reports" element={<Reports />} />

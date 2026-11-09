@@ -1,3 +1,4 @@
+import {posPresentationError} from './presentationCopy';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {RotateCcw,Scale} from 'lucide-react';
 import {AppSelect} from '../AppSelect';
@@ -24,7 +25,7 @@ type Props={open:boolean;mode:'Return'|'Settlement';agreement:PreviewInstallment
  onClose:()=>void;onRecorded:(event:ReturnAdjustmentPreview|AgreementReductionPreview)=>void};
 /** An adjustment never creates a real stock, cash, bank, customer credit or invoice event. */
 export function InstallmentAdjustmentDialog({open,mode,agreement,receipts,events,onClose,onRecorded}:Props){
- const {text}=useUiCopy();
+ const {text,language}=useUiCopy();
  const [lineKey,setLineKey]=useState('');
  const [quantity,setQuantity]=useState('');
  const [amount,setAmount]=useState('');
@@ -83,7 +84,7 @@ export function InstallmentAdjustmentDialog({open,mode,agreement,receipts,events
  const title=mode==='Return'?text('Installment return preview','কিস্তি বিক্রির ফেরত প্রিভিউ'):
   text('Installment settlement','কিস্তির সমন্বয়');
  return <Dialog open={open} onOpenChange={next=>!next&&onClose()}>
-  <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-lg" aria-label={title}>
+  <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-lg" aria-label={title}>
    <DialogHeader>
     <DialogTitle className="flex items-center gap-2">
      {mode==='Return'?<RotateCcw className="size-4 text-teal-700"/>:<Scale className="size-4 text-teal-700"/>}{title}
@@ -99,7 +100,7 @@ export function InstallmentAdjustmentDialog({open,mode,agreement,receipts,events
     </div>
     {mode==='Return'?<>
       {!eligibility.eligible?<p role="alert" className="rounded-lg bg-ink-50 p-3 text-xs text-danger">
-        {eligibility.reason}</p>:<>
+        {posPresentationError(eligibility.reason,text)}</p>:<>
        <AppSelect label={text('Return line','ফেরতের পণ্য')} value={lineKey} onChange={v=>{setLineKey(v);change();}}
         options={available.map(row=>({value:row.lineKey,label:row.productId+' · '+row.originalBaseQuantity+' '+row.selectedUnit}))}/>
        <label className="block space-y-1 text-xs font-medium text-ink">
@@ -130,13 +131,13 @@ export function InstallmentAdjustmentDialog({open,mode,agreement,receipts,events
       {text('Pending refund or customer credit decision · ','ফেরত টাকা বা ক্রেতার অগ্রিম সিদ্ধান্ত বাকি · ')}
       {taka(excess/100)}
      </p>}
-     <AmountInWordsDisplay amount={valuePaisa/100}/>
+     <AmountInWordsDisplay language={language} label={text('In words','কথায়')} amount={valuePaisa/100}/>
     </div>
     {review&&<div role="status" className="rounded-lg border border-teal-200 bg-teal-50 p-3 text-xs text-teal-800">
      {text('Confirm an audited preview only. No refund, stock return, settlement cash or ledger entry is posted.',
       'শুধু নিরীক্ষাযোগ্য প্রিভিউ সংরক্ষণ হবে। আসল টাকা/স্টক/খাতায় জমা বা ফেরত নয়।')}
     </div>}
-    {error&&<p role="alert" className="text-xs text-danger">{error}</p>}
+    {error&&<p role="alert" className="text-xs text-danger">{posPresentationError(error,text)}</p>}
    </div>
    <DialogFooter>
     <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>

@@ -1,3 +1,4 @@
+import {posPresentationError} from './presentationCopy';
 import {useEffect,useState,type FormEvent} from 'react';
 import {Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle} from '../Dialog';
 import {Button} from '../Button';
@@ -36,7 +37,7 @@ export function InstallmentCustomerQuickAddDialog({open,onClose,onSaved,initialN
     }
   };
   return <Dialog open={open} onOpenChange={value=>{if(!value)onClose();}}>
-    <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-md"
+    <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-md"
       aria-label={text('Quick add customer','নতুন ক্রেতা যোগ করুন')}>
       <DialogHeader>
         <DialogTitle>{text('Quick add customer','নতুন ক্রেতা যোগ করুন')}</DialogTitle>
@@ -58,7 +59,7 @@ export function InstallmentCustomerQuickAddDialog({open,onClose,onSaved,initialN
           <Input aria-label={text('Address','ঠিকানা')} value={area}
             onChange={event=>setArea(event.target.value)} className="h-9"/>
         </label>
-        {error&&<p className="text-xs text-danger" role="alert">{error}</p>}
+        {error&&<p className="text-xs text-danger" role="alert">{posPresentationError(error,text)}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
           <Button type="submit">{text('Save customer','ক্রেতা সংরক্ষণ')}</Button>
