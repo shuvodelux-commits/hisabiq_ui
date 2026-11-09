@@ -26,7 +26,7 @@ async function main() {
     await page.getByLabel('Owner mobile').fill('01899123456');
     await page.getByLabel('District').fill('Dhaka');
     await page.getByRole('button', { name: 'Create & send invite' }).click();
-    await page.getByText('Migration Smoke Shop', { exact: true }).first().waitFor({ timeout: 15000 });
+    await page.getByRole('heading', { name: /Migration Smoke Shop/ }).waitFor({ timeout: 15000 });
     await page.screenshot({ path: '.superpowers/saas-magic/new-business.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('http://127.0.0.1:4179/#/saas/home');
