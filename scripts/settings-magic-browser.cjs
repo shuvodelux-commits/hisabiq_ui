@@ -143,6 +143,7 @@ async function main() {
     const liveInvoice = page.locator('[data-settings-live-section="invoices"]');
     await liveInvoice.waitFor();
     await liveInvoice.getByRole('switch', {name:'Show business logo'}).waitFor();
+    await go('interface');
     const interfaceUI = page.locator('[data-settings-magic-interface]');
     await interfaceUI.waitFor();
     await interfaceUI.getByRole('heading', { name: /Interface & workflows/ }).waitFor();
