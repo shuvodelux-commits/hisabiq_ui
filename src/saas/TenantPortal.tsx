@@ -18,7 +18,7 @@ import { due } from "./billing/selectors";
 import { smsBalance } from "./messaging/transitions";
 import { TicketsPage, TicketPage } from "./support/TicketsPage";
 import { KnowledgePage } from "./support/KnowledgePage";
-export function TenantSession({ children }: { children: React.ReactNode }) {
+export function TenantSession({ children, embedded = false }: { children: React.ReactNode; embedded?: boolean }) {
   const { state: s, actor, setActor, persistenceError } = useSaas();
   useEffect(() => {
     if (actor.kind !== "tenant")
@@ -35,7 +35,7 @@ export function TenantSession({ children }: { children: React.ReactNode }) {
           {persistenceError}
         </div>
       )}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">
+      {!embedded && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">
         <span className="text-xs text-ink-500">
           Tenant portal · Demo owner account
         </span>
@@ -66,24 +66,26 @@ export function TenantSession({ children }: { children: React.ReactNode }) {
               ))}
           </Select>
         </label>
-      </div>
+      </div>}
       {children}
     </div>
   );
 }
-export function TenantSupport({ detail = false }: { detail?: boolean }) {
+export function TenantSupport({ detail = false, embedded = false }: { detail?: boolean; embedded?: boolean }) {
   return (
-    <TenantSession>{detail ? <TicketPage /> : <TicketsPage />}</TenantSession>
-  );
-}
-export function TenantSubscription() {
-  return (
-    <TenantSession>
-      <SubscriptionContent />
+    <TenantSession embedded={embedded}>
+      {detail ? <TicketPage /> : <TicketsPage basePath={embedded ? "/app/settings/support" : undefined} />}
     </TenantSession>
   );
 }
-function SubscriptionContent() {
+export function TenantSubscription({ embedded = false }: { embedded?: boolean }) {
+  return (
+    <TenantSession embedded={embedded}>
+      <SubscriptionContent embedded={embedded} />
+    </TenantSession>
+  );
+}
+function SubscriptionContent({ embedded = false }: { embedded?: boolean }) {
   const { state: s, actor, dispatch } = useSaas();
   const [tab, setTab] = useState("Invoices");
   const [proof, setProof] = useState<{
@@ -102,7 +104,7 @@ function SubscriptionContent() {
         title="My subscription"
         bn="আমার সাবস্ক্রিপশন · Billing, usage and support"
       >
-        <Link className="text-sm text-primary underline" to="/app/support">
+        <Link className="text-sm text-primary underline" to={embedded ? "/app/settings/support" : "/app/support"}>
           Contact support
         </Link>
       </Heading>

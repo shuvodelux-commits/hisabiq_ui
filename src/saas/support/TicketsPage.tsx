@@ -22,13 +22,13 @@ import {
   when,
 } from "../components";
 import { ticketReplies } from "./transitions";
-export function TicketsPage() {
+export function TicketsPage({ basePath }: { basePath?: string } = {}) {
   const { state: s, actor, dispatch } = useSaas();
   const rows = useScoped(s.tickets, "support.view");
   const [view, setView] = useState("All tickets");
   const [open, setOpen] = useState(false);
   const portal = actor.kind === "tenant";
-  const base = portal ? "/app/support" : "/saas/support";
+  const base = basePath ?? (portal ? "/app/support" : "/saas/support");
   return (
     <>
       <Heading

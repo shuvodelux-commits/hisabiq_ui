@@ -1,10 +1,11 @@
 import { AppDatePicker } from "../components/AppDateRangePicker";
 import { businessToday } from "../utils/dateRange";
 import { EmployeeDirectory } from "./EmployeeDirectory";
-import { useState, useId } from "react";
+import { useState } from "react";
 import { Plus, ShieldCheck, LockKeyhole } from "lucide-react";
 import { Button, Input, SettingsDialog, SettingsField } from "./ui";
-import { SettingsTabs } from "./SettingsTabs";
+import { StatusBadge } from "../components/StatusBadge";
+import { SettingCard } from "./ui";
 import {
   permissions,
   canManage,
@@ -47,12 +48,14 @@ export function TeamSettings({
   language?: string;
 }) {
   const [tab, setTab] = useState("employees"),
+    [showDirectory, setShowDirectory] = useState(false),
     [role, setRole] = useState<BusinessRole | null>(null),
     [employee, setEmployee] = useState<BusinessEmployee | null>(null),
     [access, setAccess] = useState<BusinessEmployee | null>(null),
     [error, setError] = useState(""),
     [ack, setAck] = useState(false);
-  const tabsId = "team-" + useId().replace(/:/g, "");
+  const actor = state.sections.team.employees.find((person) => person.id === actorId);
+  const actorRoleLabel = actor?.roleIds.map((id) => value.roles.find((entry) => entry.id === id)?.name ?? id).join(" · ") || "Team member";
   const authority = effectivePermissions(state.sections.team, actorId);
   const canSeeUsers = authority.includes("user.account.view");
   const canSeeRoles = authority.includes("user.role.view");
@@ -97,57 +100,146 @@ export function TeamSettings({
   };
   const preview = { ...state, sections: { ...state.sections, team: value } };
   const groups = [...new Set(permissionCatalogue.map((p) => p.group))];
-  const tabs = ["employees", "roles"].filter((t) =>
-    t === "employees" ? canSeeUsers : canSeeRoles,
-  );
   const impact = role ? roleImpact(value, role) : null;
   return (
-    <div className="space-y-4">
-      <div className="min-w-0 space-y-4">
-        <SettingsTabs
-          id={tabsId}
-          panelId={`${tabsId}-panel`}
-          label="Employee settings views"
-          libraryTitle={language === "Bangla" ? "কর্মীর সেটিংস" : "Employee settings"}
-          libraryGroup={language === "Bangla" ? "প্রবেশাধিকার" : "Access management"}
-          secondary={false}
-          language={language}
-          items={tabs.map((id) => ({
-            id,
-            label: id === "employees" ? "Employees" : "Roles & permissions",
-            bn: id === "employees" ? "কর্মী" : "ভূমিকা",
-          }))}
-          value={activeTab ?? ""}
-          onChange={setTab}
-        />
-        <div className="min-w-0 space-y-4">
-          {activeTab === "roles" && (<div className="flex justify-end">
-            {activeTab && (activeTab === "roles" ? canRoles : canCreate) && (
-              <Button
-                onClick={() =>
-                  activeTab === "roles" ? openRole() : openEmployee()
-                }
-              >
-                <Plus className="size-4" />
-                {activeTab === "roles" ? "Create role" : "Add demo employee"}
-              </Button>
-            )}
-          </div>)}
-          <div
-            role="tabpanel"
-            id={`${tabsId}-panel`}
-            aria-labelledby={activeTab ? `${tabsId}-${activeTab}` : undefined}
-          >
-            {!activeTab ? (
-              <p role="status" className="text-xs text-helper">
-                User and role lists require their separate view permissions.
+    <div className="min-w-0 space-y-3">
+      {!activeTab ? (
+        <SettingCard title="Users & roles" titleBn="ব্যবহারকারী ও ভূমিকা">
+          <p role="status" className="text-xs text-ink-500">
+            User and role lists require their separate view permissions.
+          </p>
+        </SettingCard>
+      ) : activeTab === "employees" ? (
+        <SettingCard
+          title="Users & roles"
+          titleBn="ব্যবহারকারী ও ভূমিকা"
+          description={`Signed in as ${actor?.name ?? "User"} · ${actorRoleLabel}. UI preview; no invitation is sent.`}
+          bodyClassName=""
+          actions={canCreate ? (
+            <Button onClick={() => openEmployee()}>
+              <Plus className="size-4" aria-hidden="true" />
+              Add team member
+            </Button>
+          ) : undefined}
+        >
+          {disabled && (
+            <p className="mx-4 mt-4 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
+              You have read-only access to this team's settings.
+            </p>
+          )}
+          {showDirectory ? (
+            <div className="p-4">
+              <EmployeeDirectory
+                value={value}
+                canEdit={!disabled && authority.includes("user.account.edit")}
+                onAccess={setAccess}
+                onEdit={openEmployee}
+                language={language}
+                actions={null}
+              />
+            </div>
+          ) : (
+            <div className="overflow-x-auto" role="region" aria-label="Team members" tabIndex={0}>
+              <table data-erp-table data-settings-team-table className="w-full min-w-[520px] text-[13px]">
+                <thead>
+                  <tr className="border-b border-ink-100">
+                    <th className="h-9 px-4 text-left text-xs font-medium text-ink-500">Team member</th>
+                    <th className="h-9 px-4 text-left text-xs font-medium text-ink-500">Role</th>
+                    <th className="h-9 px-4 text-left text-xs font-medium text-ink-500">Status</th>
+                    <th className="h-9 px-4 text-right text-xs font-medium text-ink-500">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {value.employees.map((member) => (
+                    <tr key={member.id} className="border-b border-ink-100 last:border-0">
+                      <td className="px-4 py-2 font-medium text-ink">
+                        <button
+                          type="button"
+                          className="text-left hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
+                          aria-label={`View access for ${member.name}`}
+                          onClick={() => setAccess(member)}
+                        >
+                          {member.name}
+                        </button>
+                      </td>
+                      <td className="px-4 py-2 text-ink-600">
+                        {member.roleIds.map((id) => value.roles.find((r) => r.id === id)?.name ?? id).join(" · ") || "No role"}
+                      </td>
+                      <td className="px-4 py-2">
+                        <StatusBadge tone={member.active ? "success" : "neutral"}>
+                          {member.active ? "Active" : "Disabled"}
+                        </StatusBadge>
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {!disabled && authority.includes("user.account.edit") && (
+                          <Button variant="ghost" aria-label={`Edit employee ${member.name}`} onClick={() => openEmployee(member)}>
+                            Edit
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {!value.employees.length && (
+                    <tr><td colSpan={4} className="p-6 text-center text-xs text-ink-500">No team members yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {canSeeRoles && (
+            <div className="border-t border-ink-100 px-4 py-3">
+              <h3 className="text-xs font-medium text-ink-500">What each role can do</h3>
+              <dl className="mt-2 grid gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-2">
+                {value.roles.map((entry) => (
+                  <div key={entry.id}>
+                    <dt className="font-medium text-ink">{entry.name}</dt>
+                    <dd className="text-xs text-ink-500">
+                      {entry.id === "owner"
+                        ? "Full business access"
+                        : entry.permissions.length
+                          ? `${entry.permissions.slice(0, 2).map(permissionLabel).join(", ")}${entry.permissions.length > 2 ? ` · +${entry.permissions.length - 2} more` : ""}`
+                          : "No permissions assigned"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-3 text-[11px] text-ink-500">
+                These permissions describe this business's local UI settings. Changes require Save changes.
               </p>
-            ) : activeTab === "employees" ? (
-              <EmployeeDirectory value={value} canEdit={!disabled && authority.includes("user.account.edit")} onAccess={setAccess} onEdit={openEmployee} language={language}
-                actions={canCreate ? <Button onClick={() => openEmployee()}><Plus className="size-4" />Add demo employee</Button> : null} />
-            ) : (
-              <>
-                <p className="text-xs text-helper">
+            </div>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 px-4 py-3">
+            <p className="text-[11px] text-ink-500">
+              {value.employees.length} team members · Changes stay in your draft until saved
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="ghost" onClick={() => setShowDirectory((previous) => !previous)}>
+                {showDirectory ? "Compact list" : "Filters & columns"}
+              </Button>
+              {canSeeRoles && <Button variant="outline" onClick={() => setTab("roles")}>Manage roles</Button>}
+            </div>
+          </div>
+        </SettingCard>
+      ) : (
+        <SettingCard
+          title="Roles & permissions"
+          titleBn="ভূমিকা ও অনুমতি"
+          description="Review roles and control their permissions. Protected owners retain full access."
+          actions={
+            <div className="flex flex-wrap gap-2">
+              {canSeeUsers && <Button variant="outline" onClick={() => setTab("employees")}>Back to team</Button>}
+              {canRoles && (
+                <Button onClick={() => openRole()}>
+                  <Plus className="size-4" aria-hidden="true" />
+                  Create role
+                </Button>
+              )}
+            </div>
+          }
+        >
+          <p className="text-xs text-helper">
                   {value.roles.length} roles ·{" "}
                   {value.employees.filter((e) => e.active).length} active people
                   ·{" "}
@@ -236,17 +328,16 @@ export function TeamSettings({
                     </section>
                   ))}
                 </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-      <p className="text-xs text-helper">{language === "Bangla" ? "সংরক্ষণ করুন চাপার আগে পরিবর্তন খসড়ায় থাকে। ভূমিকার অনুমতি এই ব্যবসার জন্য প্রযোজ্য।" : "Changes stay in your draft until you choose Save changes. Role permissions apply to this business."}</p>
-      {error && !role && !employee && (
-        <p role="alert" className="text-sm text-danger">
-          {error}
-        </p>
+        </SettingCard>
       )}
+      {error && !role && !employee && (
+        <p role="alert" className="text-sm text-danger">{error}</p>
+      )}
+      <p className="text-xs text-ink-500">
+        {language === "Bangla"
+          ? "সংরক্ষণ করুন চাপার আগে পরিবর্তন খসড়ায় থাকে। ভূমিকার অনুমতি এই ব্যবসার জন্য প্রযোজ্য।"
+          : "Changes stay in your draft until you choose Save changes. Role permissions apply to this business."}
+      </p>
       <SettingsDialog
         title={
           role

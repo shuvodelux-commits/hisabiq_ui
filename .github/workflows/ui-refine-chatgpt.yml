@@ -9,6 +9,8 @@ on:
       - 'docs/ui-refine/**'
       - '.claude/skills/ui-refine-loop/**'
       - 'scripts/ui-refine-chatgpt-shots.cjs'
+      - 'scripts/settings-magic-browser.cjs'
+      - 'scripts/settings-magic-original-parity.cjs'
       - '.github/workflows/ui-refine-chatgpt.yml'
 
 permissions:
@@ -53,7 +55,9 @@ jobs:
 
       - name: Validate requested route against actual React routing
         working-directory: candidate
-        run: node scripts/ui-refine-chatgpt-shots.cjs --self-test
+        run: |
+          node scripts/ui-refine-chatgpt-shots.cjs --self-test
+          node scripts/settings-magic-original-parity.cjs --self-test
 
       - name: Install baseline and PR dependencies (lockfile exact)
         run: |
@@ -95,6 +99,30 @@ jobs:
           UI_REFINE_BASELINE: "${{ github.workspace }}/baseline"
           UI_REFINE_OUT: "${{ runner.temp }}/ui-refine-shots"
         run: node scripts/ui-refine-chatgpt-shots.cjs
+
+      # Capture implementation evidence for Settings home, nine general routes,
+      # Invoice Studio and five specialized routes. GitHub base-vs-PR images
+      # are NOT the original Magic Patterns rendered reference.
+      - name: Capture Magic Settings route matrix in five viewports and themes
+        working-directory: candidate
+        env:
+          SETTINGS_SCREENSHOT_DIR: "${{ runner.temp }}/ui-refine-shots/settings-specialized"
+        run: |
+          mkdir -p "$SETTINGS_SCREENSHOT_DIR"
+          npm run test:settings-library
+
+      # Only when the owner supplies a published preview URL in the PR body.
+      # Source uses BrowserRouter; candidate uses HashRouter. Neither app is
+      # mutated. Unpublished /c/<editorId> links cannot be screenshotted here.
+      - name: Compare published original Magic Settings with the PR (read-only; optional)
+        if: >-
+          contains(github.event.pull_request.body, 'MAGIC-SOURCE-PREVIEW-URL: https://')
+        working-directory: candidate
+        env:
+          UI_REFINE_PR_BODY: "${{ github.event.pull_request.body }}"
+          SETTINGS_IMPLEMENTATION_URL: "http://127.0.0.1:4311"
+          SETTINGS_PARITY_OUT: "${{ runner.temp }}/ui-refine-shots/original-magic-reference"
+        run: node scripts/settings-magic-original-parity.cjs
 
       - name: Independent official Impeccable source detector (no AI API)
         working-directory: candidate

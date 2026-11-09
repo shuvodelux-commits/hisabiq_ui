@@ -2,7 +2,7 @@ import { SettingsSqlBackup } from "./SettingsSqlBackup";
 import { SettingsActivity } from "./SettingsActivity";
 import {DraftRecovery} from './DraftRecovery';
 import { AppSelect } from '../components/AppSelect';
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { Download, Upload } from "lucide-react";
 import { canManage, parseSettings, type TenantSettings } from "./model";
@@ -14,6 +14,7 @@ import {
   download,
 } from "./ui";
 import { sectionNames } from "./fields";
+import { SettingsTabs } from "./SettingsTabs";
 
 async function readFile(file: File, reportError: (message: string) => void) {
   try {
@@ -26,6 +27,8 @@ async function readFile(file: File, reportError: (message: string) => void) {
 
 export function DataSettings() {
   const { state, actorId, restore } = useTenantSettings();
+  const [dataTab, setDataTab] = useState('backup');
+  const tabsId = 'settings-data-' + useId().replace(/:/g, '');
   const [backup, setBackup] = useState<TenantSettings | null>(null),
     [revision, setRevision] = useState(0),
     [error, setError] = useState(""),
@@ -44,170 +47,198 @@ export function DataSettings() {
     : [];
   return (
     <div className="space-y-5">
-      <DraftRecovery/>
-      <SettingsSqlBackup state={state} exportAllowed={exportAllowed} importAllowed={importAllowed} onReview={backup => { setBackup(backup); setRevision(state.revision); }} />
-      <div className="grid gap-4 xl:grid-cols-2">
-        <SettingCard title="Settings backup">
-          <p className="text-sm text-ink-600">
-            Backup for {state.sections.business.name}. Includes business
-            preferences and employee role configuration; personal appearance
-            stays on this device.
-          </p>
-          <Button
-            disabled={!exportAllowed}
-            variant="outline"
-            onClick={() =>
-              download(
-                `hisabiq-settings-${state.tenantId}.json`,
-                JSON.stringify(state, null, 2),
-              )
-            }
-          >
-            <Download className="size-4" />
-            Download settings backup
-          </Button>
-          <label className="block space-y-2 text-sm font-medium">
-            Restore settings backup
-            <input
-              aria-label="Restore settings backup"
-              disabled={!importAllowed}
-              type="file"
-              accept="application/json,.json"
-              className="block w-full text-xs text-ink-600 file:mr-3 file:rounded-md file:border file:border-input file:bg-card file:px-3 file:py-2 file:text-ink"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                e.target.value = "";
-                if (!file) return;
-                setError("");
-                if (file.size > 1000000)
-                  return setError(
-                    "Choose a settings backup smaller than 1 MB.",
-                  );
-                const content = await readFile(file, setError);
-                if (content === null) return;
-                const loaded = parseSettings(content, state.tenantId);
-                if (loaded.recovered)
-                  return setError(
-                    "Invalid backup or a backup from another business.",
-                  );
-                setBackup(loaded.state);
-                setRevision(state.revision);
-              }}
-            />
-          </label>
-          <p className="text-xs text-ink-500">
-            Restore updates settings only. It does not delete invoices, stock or
-            ledger records.
-          </p>
-        </SettingCard>
-        <SettingCard title="Record exports & import preview">
-          <div className="flex flex-wrap gap-2">
-            <Link
-              className="rounded-md border border-input px-3 py-2 text-sm text-ink"
-              to="/app/products"
-            >
-              Product exports
-            </Link>
-            <Link
-              className="rounded-md border border-input px-3 py-2 text-sm text-ink"
-              to="/app/sales"
-            >
-              Sales records
-            </Link>
-            <Link
-              className="rounded-md border border-input px-3 py-2 text-sm text-ink"
-              to="/app/daybook"
-            >
-              Daybook exports
-            </Link>
-          </div>
-          <p className="text-xs text-ink-500">
-            Record exports stay in their owning modules. Preview a simple
-            product CSV mapping below; this demo does not create products.
-          </p>
-          <label className="block space-y-2 text-sm font-medium">
-            Product CSV preview
-            <input
-              aria-label="Product CSV preview"
-              disabled={!importAllowed}
-              type="file"
-              accept="text/csv,.csv"
-              className="block w-full text-xs text-ink-600 file:mr-3 file:rounded-md file:border file:border-input file:bg-card file:px-3 file:py-2 file:text-ink"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                e.target.value = "";
-                if (!file) return;
-                if (file.size > 100000)
-                  return setError("Choose a CSV smaller than 100 KB.");
-                const content = await readFile(file, setError);
-                if (content === null) return;
-                if (content.includes('"'))
-                  return setError(
-                    "This preview accepts plain comma-separated rows without quoted fields.",
-                  );
-                const rows = content
-                  .trim()
-                  .split(/\r?\n/)
-                  .map((row) => row.split(",").map((v) => v.trim()));
-                if (
-                  rows.length < 2 ||
-                  !rows[0].length ||
-                  rows.some((row) => row.length !== rows[0].length)
-                )
-                  return setError(
-                    "CSV must have a header and consistent columns.",
-                  );
-                setCsv(rows);
-                setMapping({});
-                setPreview(false);
-                setError("");
-              }}
-            />
-          </label>
-          {csv.length > 0 && (
-            <div className="space-y-3">
-              {["Product name", "Category", "Base unit"].map((field) => (
-                <label
-                  key={field}
-                  className="block space-y-1 text-xs font-medium"
-                >
-                  {field}
-                  <AppSelect label={`Map ${field}`}
-                    value={mapping[field] || ''}
-                    onChange={(next) => setMapping({ ...mapping, [field]: next })}
-                    options={[{ value: '', label: 'Choose CSV column' }, ...csv[0].map((header, i) => ({
-                      value: String(i), label: header
-                    }))]} />
-
-                </label>
-              ))}
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (!mapping["Product name"])
-                    return setError(
-                      "Map a product name column before previewing.",
-                    );
-                  setPreview(true);
-                  setError("");
-                }}
-              >
-                Preview import
-              </Button>
-              {preview && (
-                <div
-                  role="status"
-                  className="rounded-lg bg-accent p-3 text-sm text-accent-foreground"
-                >
-                  {csv.length - 1} rows ready for review. First product:{" "}
-                  {csv[1][Number(mapping["Product name"])] || "(empty name)"}.
-                  No records imported.
-                </div>
-              )}
-            </div>
+      <SettingCard
+        title="Data & backup"
+        titleBn="ডেটা ও ব্যাকআপ"
+        description="Download and restore this business's settings. Existing sales, stock and ledger records are preserved."
+        bodyClassName=""
+      >
+        <div className="border-b border-ink-100 px-4 pt-1">
+          <SettingsTabs
+            id={tabsId}
+            panelId={`${tabsId}-panel`}
+            label="Data sections"
+            items={[
+              { id: "backup", label: "Backup & restore", bn: "ব্যাকআপ" },
+              { id: "import", label: "Record exports & import preview", bn: "ডেটা ইমপোর্ট" },
+            ]}
+            value={dataTab}
+            onChange={setDataTab}
+          />
+        </div>
+        <div
+          role="tabpanel"
+          id={`${tabsId}-panel`}
+          aria-labelledby={`${tabsId}-${dataTab}`}
+          className="space-y-4 p-4"
+        >
+          {dataTab === "backup" ? (
+            <>
+              <p className="text-sm text-ink-600">
+                          Backup for {state.sections.business.name}. Includes business
+                          preferences and employee role configuration; personal appearance
+                          stays on this device.
+                        </p>
+                        <Button
+                          disabled={!exportAllowed}
+                          variant="outline"
+                          onClick={() =>
+                            download(
+                              `hisabiq-settings-${state.tenantId}.json`,
+                              JSON.stringify(state, null, 2),
+                            )
+                          }
+                        >
+                          <Download className="size-4" />
+                          Download settings backup
+                        </Button>
+                        <label className="block space-y-2 text-sm font-medium">
+                          Restore settings backup
+                          <input
+                            aria-label="Restore settings backup"
+                            disabled={!importAllowed}
+                            type="file"
+                            accept="application/json,.json"
+                            className="block w-full text-xs text-ink-600 file:mr-3 file:rounded-md file:border file:border-input file:bg-card file:px-3 file:py-2 file:text-ink"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = "";
+                              if (!file) return;
+                              setError("");
+                              if (file.size > 1000000)
+                                return setError(
+                                  "Choose a settings backup smaller than 1 MB.",
+                                );
+                              const content = await readFile(file, setError);
+                              if (content === null) return;
+                              const loaded = parseSettings(content, state.tenantId);
+                              if (loaded.recovered)
+                                return setError(
+                                  "Invalid backup or a backup from another business.",
+                                );
+                              setBackup(loaded.state);
+                              setRevision(state.revision);
+                            }}
+                          />
+                        </label>
+                        <p className="text-xs text-ink-500">
+                          Restore updates settings only. It does not delete invoices, stock or
+                          ledger records.
+                        </p>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2">
+                          <Link
+                            className="rounded-md border border-input px-3 py-2 text-sm text-ink"
+                            to="/app/products"
+                          >
+                            Product exports
+                          </Link>
+                          <Link
+                            className="rounded-md border border-input px-3 py-2 text-sm text-ink"
+                            to="/app/sales"
+                          >
+                            Sales records
+                          </Link>
+                          <Link
+                            className="rounded-md border border-input px-3 py-2 text-sm text-ink"
+                            to="/app/daybook"
+                          >
+                            Daybook exports
+                          </Link>
+                        </div>
+                        <p className="text-xs text-ink-500">
+                          Record exports stay in their owning modules. Preview a simple
+                          product CSV mapping below; this demo does not create products.
+                        </p>
+                        <label className="block space-y-2 text-sm font-medium">
+                          Product CSV preview
+                          <input
+                            aria-label="Product CSV preview"
+                            disabled={!importAllowed}
+                            type="file"
+                            accept="text/csv,.csv"
+                            className="block w-full text-xs text-ink-600 file:mr-3 file:rounded-md file:border file:border-input file:bg-card file:px-3 file:py-2 file:text-ink"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              e.target.value = "";
+                              if (!file) return;
+                              if (file.size > 100000)
+                                return setError("Choose a CSV smaller than 100 KB.");
+                              const content = await readFile(file, setError);
+                              if (content === null) return;
+                              if (content.includes('"'))
+                                return setError(
+                                  "This preview accepts plain comma-separated rows without quoted fields.",
+                                );
+                              const rows = content
+                                .trim()
+                                .split(/\r?\n/)
+                                .map((row) => row.split(",").map((v) => v.trim()));
+                              if (
+                                rows.length < 2 ||
+                                !rows[0].length ||
+                                rows.some((row) => row.length !== rows[0].length)
+                              )
+                                return setError(
+                                  "CSV must have a header and consistent columns.",
+                                );
+                              setCsv(rows);
+                              setMapping({});
+                              setPreview(false);
+                              setError("");
+                            }}
+                          />
+                        </label>
+                        {csv.length > 0 && (
+                          <div className="space-y-3">
+                            {["Product name", "Category", "Base unit"].map((field) => (
+                              <label
+                                key={field}
+                                className="block space-y-1 text-xs font-medium"
+                              >
+                                {field}
+                                <AppSelect label={`Map ${field}`}
+                                  value={mapping[field] || ''}
+                                  onChange={(next) => setMapping({ ...mapping, [field]: next })}
+                                  options={[{ value: '', label: 'Choose CSV column' }, ...csv[0].map((header, i) => ({
+                                    value: String(i), label: header
+                                  }))]} />
+              
+                              </label>
+                            ))}
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                if (!mapping["Product name"])
+                                  return setError(
+                                    "Map a product name column before previewing.",
+                                  );
+                                setPreview(true);
+                                setError("");
+                              }}
+                            >
+                              Preview import
+                            </Button>
+                            {preview && (
+                              <div
+                                role="status"
+                                className="rounded-lg bg-accent p-3 text-sm text-accent-foreground"
+                              >
+                                {csv.length - 1} rows ready for review. First product:{" "}
+                                {csv[1][Number(mapping["Product name"])] || "(empty name)"}.
+                                No records imported.
+                              </div>
+                            )}
+                          </div>
+                        )}
+            </>
           )}
-        </SettingCard>
-      </div>
+        </div>
+      </SettingCard>
+      <DraftRecovery />
+      <SettingsSqlBackup state={state} exportAllowed={exportAllowed} importAllowed={importAllowed} onReview={backup => { setBackup(backup); setRevision(state.revision); }} />
       {error && (
         <p
           role="alert"

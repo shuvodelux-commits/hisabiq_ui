@@ -38,12 +38,22 @@ function routeFromBody(body, appFile) {
   return route;
 }
 function scopeFromBody(body,root,route){
-  const m=(body||'').match(/^[ \t]*UI-REFINE-SCOPE:[ \t]*(src\/[A-Za-z0-9_/-]+\.(?:tsx|jsx|css))[ \t]*$/m);
+  // A Settings page lives under src/settings, not src/pages. Explicit scopes
+  // may be a real source directory or a single supported source file.
+  const m=(body||'').match(/^[ \t]*UI-REFINE-SCOPE:[ \t]*(\S+)[ \t]*$/m);
   if(m){
-    if(m[1].includes('..')||!fs.existsSync(path.resolve(root,m[1])))
-      throw Error('Invalid UI-REFINE-SCOPE: '+m[1]);
-    return m[1];
+    const scope=m[1];
+    if(!/^src\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]+(?:\.(?:tsx|jsx|css))?$/.test(scope))
+      throw Error('Invalid UI-REFINE-SCOPE: '+scope);
+    const target=path.resolve(root,scope);
+    if(!fs.existsSync(target))throw Error('Invalid UI-REFINE-SCOPE: '+scope);
+    const type=fs.statSync(target);
+    if(!type.isDirectory()&&!type.isFile())throw Error('Invalid UI-REFINE-SCOPE: '+scope);
+    if(type.isFile()&&!/\.(tsx|jsx|css)$/.test(scope))
+      throw Error('Invalid UI-REFINE-SCOPE: '+scope);
+    return scope;
   }
+  if(route.startsWith('#/app/settings'))return 'src/settings';
   if(route.startsWith('#/app/'))return 'src/pages';
   if(route.startsWith('#/saas/'))return 'src/saas';
   return 'src/features/auth';
@@ -66,6 +76,13 @@ function test(){
   assert.equal(scopeFromBody('',root,'#/app/pos'),'src/pages');
   assert.equal(scopeFromBody('',root,'#/saas/plans'),'src/saas');
   assert.equal(scopeFromBody('UI-REFINE-SCOPE: src/pages/Pos.tsx',root,'#/app/pos'),'src/pages/Pos.tsx');
+  assert.equal(scopeFromBody('UI-REFINE-SCOPE: src/settings',root,'#/app/settings/interface'),'src/settings');
+  assert.equal(scopeFromBody('',root,'#/app/settings/team'),'src/settings');
+  assert.equal(scopeFromBody('UI-REFINE-SCOPE: src/settings/magic',root,'#/app/settings/interface'),'src/settings/magic');
+  for(const unsafe of ['src/settings/../pages','src/settings/missing','src/settings.ts','src/settings;true',
+    'src/settings/magic/unknown.tsx','src/../../etc','README.md']) {
+    assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: '+unsafe,root,'#/app/settings/interface'),unsafe);
+  }
   assert.throws(()=>scopeFromBody('UI-REFINE-SCOPE: src/pages/not-real.tsx',root,'#/app/pos'));
   console.log('All-module route and Impeccable scope parser OK: '+good.length+' routes');
 }

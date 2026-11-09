@@ -4033,6 +4033,209 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/DataSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "DataSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/GeneralSettingsSection.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "GeneralSettingsSection"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/KhataPreview.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "KhataPreview"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/SaveBar.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SaveBar"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/SettingsHome.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsHome"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/SettingsNav.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsNav"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/SettingsToggle.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SettingsToggle"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/SetupWizard.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SetupWizard"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/TeamSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "TeamSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/CapabilityRow.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "CapabilityRow"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/InterfacePreview.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InterfacePreview"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/InterfaceSettings.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InterfaceSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/InterfaceTabs.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "Tabs"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/interface/ModuleSelector.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ModuleSelector"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/invoice/DesignGallery.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "DesignGallery"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/invoice/InvoiceDocument.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InvoiceDocument"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/invoice/InvoiceStudio.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "InvoiceStudio"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/invoice/Ui.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "Button",
+        "Modal",
+        "Segmented"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/ActivityPage.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ActivityPage"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/OfflinePage.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "OfflinePage"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/PinConfirmDialog.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "PinConfirmDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/RowActions.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "RowActions"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/SessionsPage.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SessionsPage"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/SessionsUi.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "Select",
+        "Tag"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/settings/magic/security/StatTile.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "StatTile"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/ui.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4048,6 +4251,9 @@
     }
   ],
   "icons": {
+    "Activity": [
+      "src/settings/magic/settingsSections.ts"
+    ],
     "AlertCircle": [
       "src/components/reports/ReportOverview.tsx"
     ],
@@ -4064,7 +4270,8 @@
       "src/components/pos/CheckoutPanel.tsx",
       "src/components/pos/StockShortageDialog.tsx",
       "src/components/purchases/PurchasePaymentPanel.tsx",
-      "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx"
+      "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "ArrowDown": [
       "src/components/reports/ReportResults.tsx",
@@ -4077,7 +4284,8 @@
       "src/components/parties/LedgerImpactAmount.tsx",
       "src/components/parties/partyRoleActions.ts",
       "src/pages/Daybook.tsx",
-      "src/pages/Finance.tsx"
+      "src/pages/Finance.tsx",
+      "src/settings/magic/interface/InterfacePreview.tsx"
     ],
     "ArrowDownRight": [
       "src/components/reports/ReportOverview.tsx",
@@ -4137,7 +4345,9 @@
       "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/OverviewPage.tsx",
-      "src/settings/AccountSecuritySettings.tsx"
+      "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/magic/SettingsHome.tsx",
+      "src/settings/magic/SetupWizard.tsx"
     ],
     "ArrowUp": [
       "src/components/reports/ReportResults.tsx",
@@ -4168,7 +4378,8 @@
       "src/settings/CommerceSettingsPanels.tsx"
     ],
     "Ban": [
-      "src/pages/Expenses.tsx"
+      "src/pages/Expenses.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Banknote": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -4193,7 +4404,8 @@
       "src/components/layout/TopBar.tsx",
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Bookmark": [
       "src/components/brand/VisualComponentLibrary.tsx",
@@ -4217,7 +4429,8 @@
       "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
       "src/saas/SaasShell.tsx",
-      "src/settings/SettingsDirectory.tsx"
+      "src/settings/SettingsDirectory.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Boxes": [
       "src/pages/Products.tsx"
@@ -4232,7 +4445,8 @@
       "src/saas/SaasShell.tsx",
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Calculator": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -4271,7 +4485,10 @@
       "src/pages/Quotations.tsx",
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
-      "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx"
+      "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
+      "src/settings/magic/interface/CapabilityRow.tsx",
+      "src/settings/magic/interface/ModuleSelector.tsx",
+      "src/settings/magic/invoice/DesignGallery.tsx"
     ],
     "CheckCircle2": [
       "src/components/TransactionReviewDialog.tsx",
@@ -4293,7 +4510,9 @@
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/OverviewPage.tsx",
       "src/settings/AccountSecuritySettings.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/SettingsHome.tsx",
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "CheckIcon": [
       "src/components/SearchSelect.tsx",
@@ -4315,7 +4534,11 @@
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
       "src/pages/VendorV2.tsx",
-      "src/pages/Vendors.tsx"
+      "src/pages/Vendors.tsx",
+      "src/settings/magic/GeneralSettingsSection.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx",
+      "src/settings/magic/interface/ModuleSelector.tsx",
+      "src/settings/magic/security/ActivityPage.tsx"
     ],
     "ChevronDownIcon": [
       "src/components/SearchSelect.tsx",
@@ -4362,12 +4585,16 @@
       "src/pages/Finance.tsx"
     ],
     "Clock": [
-      "src/components/parties/PartyDetailResponsive.tsx"
+      "src/components/parties/PartyDetailResponsive.tsx",
+      "src/settings/magic/SettingsHome.tsx"
     ],
     "Clock3": [
       "src/components/audit/AuditTimeline.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/AccountSecuritySettings.tsx"
+    ],
+    "CloudOff": [
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "Columns3": [
       "src/components/reports/ReportToolbar.tsx",
@@ -4394,12 +4621,17 @@
     ],
     "CreditCard": [
       "src/saas/SaasShell.tsx",
-      "src/settings/TenantSettingsHub.tsx"
+      "src/settings/TenantSettingsHub.tsx",
+      "src/settings/magic/settingsSections.ts"
+    ],
+    "Crown": [
+      "src/settings/magic/invoice/InvoiceStudio.tsx"
     ],
     "Database": [
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Delete": [
       "src/components/layout/Calculator.tsx"
@@ -4417,7 +4649,9 @@
       "src/reports/magicpatterns/components/reports/basic/StockReport.tsx",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/DataSettings.tsx",
-      "src/settings/SettingsSqlBackup.tsx"
+      "src/settings/SettingsSqlBackup.tsx",
+      "src/settings/magic/DataSettings.tsx",
+      "src/settings/magic/security/ActivityPage.tsx"
     ],
     "Ellipsis": [
       "src/components/vendor/VendorTabs.tsx",
@@ -4452,13 +4686,16 @@
       "src/pages/Products.tsx",
       "src/pages/Purchases.tsx",
       "src/settings/AccountSecuritySettings.tsx",
-      "src/settings/EmployeeDirectory.tsx"
+      "src/settings/EmployeeDirectory.tsx",
+      "src/settings/magic/GeneralSettingsSection.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx"
     ],
     "EyeOff": [
       "src/components/dashboard/WidgetFrame.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
-      "src/settings/AccountSecuritySettings.tsx"
+      "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx"
     ],
     "FileClock": [
       "src/components/pos/DraftsMenu.tsx",
@@ -4564,7 +4801,8 @@
       "src/components/Tooltip.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
       "src/pages/Reports.tsx",
-      "src/reports/magicpatterns/components/reports/ReportBits.tsx"
+      "src/reports/magicpatterns/components/reports/ReportBits.tsx",
+      "src/settings/magic/interface/CapabilityRow.tsx"
     ],
     "Keyboard": [
       "src/pages/Pos.tsx",
@@ -4604,7 +4842,8 @@
     ],
     "LifeBuoy": [
       "src/components/layout/Sidebar.tsx",
-      "src/saas/SaasShell.tsx"
+      "src/saas/SaasShell.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Link2": [
       "src/pages/Reconciliation.tsx"
@@ -4613,13 +4852,22 @@
       "src/components/vendor/VendorPaymentsWorkspace.tsx",
       "src/components/vendor/VendorSourceWorkspace.tsx"
     ],
+    "Loader2": [
+      "src/settings/magic/SaveBar.tsx",
+      "src/settings/magic/interface/CapabilityRow.tsx"
+    ],
     "LoaderCircle": [
       "src/components/FeedbackState.tsx",
       "src/components/brand/VisualComponentLibrary.tsx"
     ],
     "Lock": [
       "src/components/brand/ApplicationsSection.tsx",
-      "src/components/layout/CashSessionDialog.tsx"
+      "src/components/layout/CashSessionDialog.tsx",
+      "src/settings/magic/DataSettings.tsx",
+      "src/settings/magic/GeneralSettingsSection.tsx",
+      "src/settings/magic/TeamSettings.tsx",
+      "src/settings/magic/invoice/DesignGallery.tsx",
+      "src/settings/magic/invoice/InvoiceStudio.tsx"
     ],
     "LockIcon": [
       "src/components/products/fields/KindToggle.tsx"
@@ -4635,7 +4883,8 @@
       "src/components/products/form/AdvancedStockPanel.tsx"
     ],
     "LogOut": [
-      "src/components/layout/TopBar.tsx"
+      "src/components/layout/TopBar.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Mail": [
       "src/features/auth/AuthFlowPage.tsx",
@@ -4659,10 +4908,13 @@
       "src/saas/SaasShell.tsx"
     ],
     "Monitor": [
-      "src/components/layout/ThemePicker.tsx"
+      "src/components/layout/ThemePicker.tsx",
+      "src/settings/magic/security/OfflinePage.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "MonitorSmartphone": [
-      "src/settings/AccountSecuritySettings.tsx"
+      "src/settings/AccountSecuritySettings.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Moon": [
       "src/components/layout/ThemePicker.tsx"
@@ -4679,7 +4931,8 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
-      "src/pages/Warranty.tsx"
+      "src/pages/Warranty.tsx",
+      "src/settings/magic/security/RowActions.tsx"
     ],
     "Package": [
       "src/components/ProductThumb.tsx",
@@ -4687,7 +4940,8 @@
       "src/components/brand/PrimitivesSection.tsx",
       "src/navigation/erpNavigation.ts",
       "src/settings/SettingsDirectory.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "PackageCheck": [
       "src/components/pos/StockShortageDialog.tsx",
@@ -4709,7 +4963,8 @@
     "Palette": [
       "src/components/layout/Sidebar.tsx",
       "src/components/layout/TopBar.tsx",
-      "src/settings/TenantSettingsHub.tsx"
+      "src/settings/TenantSettingsHub.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "PanelLeft": [
       "src/components/layout/SidebarTrigger.tsx"
@@ -4813,7 +5068,8 @@
       "src/pages/Vendors.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/CommerceSettingsPanels.tsx",
-      "src/settings/TeamSettings.tsx"
+      "src/settings/TeamSettings.tsx",
+      "src/settings/magic/TeamSettings.tsx"
     ],
     "PlusCircle": [
       "src/components/accounts/OpeningBalanceDialog.tsx"
@@ -4862,7 +5118,10 @@
       "src/pages/Warranty.tsx",
       "src/settings/DocumentDesignSettings.tsx",
       "src/settings/SettingsDirectory.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/invoice/InvoiceStudio.tsx",
+      "src/settings/magic/security/ActivityPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Receipt": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -4874,7 +5133,8 @@
       "src/components/brand/BrandHero.tsx",
       "src/components/parties/PartySourceQuickPreview.tsx",
       "src/navigation/erpNavigation.ts",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "RefreshCcw": [
       "src/components/parties/LedgerImpactAmount.tsx",
@@ -4885,7 +5145,8 @@
       "src/components/finance/CashSessionDetailsDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/pages/Finance.tsx",
-      "src/pages/Reports.tsx"
+      "src/pages/Reports.tsx",
+      "src/settings/magic/security/OfflinePage.tsx"
     ],
     "RotateCcw": [
       "src/components/audit/AuditFilters.tsx",
@@ -4906,7 +5167,9 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/magic/SaveBar.tsx",
+      "src/settings/magic/interface/InterfaceSettings.tsx",
+      "src/settings/magic/security/ActivityPage.tsx"
     ],
     "Ruler": [
       "src/components/products/ProductSettings.tsx"
@@ -4917,7 +5180,8 @@
       "src/components/pos/DraftsMenu.tsx",
       "src/components/reports/BusinessReview.tsx",
       "src/pages/PurchaseEditor.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/SaveBar.tsx"
     ],
     "Scale": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -4966,7 +5230,12 @@
       "src/pages/Sales.tsx",
       "src/pages/Warranty.tsx",
       "src/saas/components.tsx",
-      "src/settings/SettingsDirectory.tsx"
+      "src/settings/SettingsDirectory.tsx",
+      "src/settings/magic/SettingsHome.tsx",
+      "src/settings/magic/SettingsNav.tsx",
+      "src/settings/magic/interface/ModuleSelector.tsx",
+      "src/settings/magic/security/ActivityPage.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "SearchCheck": [
       "src/components/reports/BusinessReview.tsx"
@@ -4996,6 +5265,9 @@
       "src/settings/ModuleSettingsEntry.tsx",
       "src/settings/TenantSettingsPage.tsx"
     ],
+    "ShieldAlert": [
+      "src/settings/magic/security/SessionsPage.tsx"
+    ],
     "ShieldCheck": [
       "src/features/auth/AuthFlowPage.tsx",
       "src/navigation/erpNavigation.ts",
@@ -5006,7 +5278,9 @@
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TeamSettings.tsx",
       "src/settings/TenantSettingsHub.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/security/PinConfirmDialog.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "ShieldCheckIcon": [
       "src/components/products/form/OtherOptionsPanel.tsx"
@@ -5018,7 +5292,8 @@
       "src/navigation/erpNavigation.ts",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/SettingsDirectory.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "SlidersHorizontal": [
       "src/components/reports/ReportToolbar.tsx",
@@ -5029,10 +5304,13 @@
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsActivity.tsx",
       "src/settings/SettingsDirectory.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Smartphone": [
-      "src/features/auth/AuthFlowPage.tsx"
+      "src/features/auth/AuthFlowPage.tsx",
+      "src/settings/magic/security/OfflinePage.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Sparkles": [
       "src/components/brand/VoiceSection.tsx",
@@ -5053,6 +5331,10 @@
     ],
     "Sun": [
       "src/components/layout/ThemePicker.tsx"
+    ],
+    "Tablet": [
+      "src/settings/magic/security/OfflinePage.tsx",
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Tag": [
       "src/components/products/ProductInventoryDialogs.tsx"
@@ -5117,13 +5399,17 @@
       "src/pages/Parties.tsx",
       "src/pages/Products.tsx",
       "src/settings/DataSettings.tsx",
-      "src/settings/SettingsSqlBackup.tsx"
+      "src/settings/SettingsSqlBackup.tsx",
+      "src/settings/magic/DataSettings.tsx"
     ],
     "UploadCloud": [
       "src/components/import/ImportUploadStep.tsx"
     ],
     "User": [
       "src/components/layout/TopBar.tsx"
+    ],
+    "UserCheck": [
+      "src/settings/magic/security/SessionsPage.tsx"
     ],
     "UserRound": [
       "src/components/pos/CustomerPicker.tsx",
@@ -5143,7 +5429,9 @@
       "src/settings/AccountSecuritySettings.tsx",
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/security/SessionsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Wallet": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -5153,12 +5441,20 @@
       "src/components/parties/partyRoleActions.ts",
       "src/navigation/erpNavigation.ts",
       "src/settings/SettingsDirectory.tsx",
-      "src/settings/TenantSettingsPage.tsx"
+      "src/settings/TenantSettingsPage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "WalletCards": [
       "src/pages/Accounts.tsx",
       "src/pages/Daybook.tsx",
       "src/pages/Finance.tsx"
+    ],
+    "Wand2": [
+      "src/settings/magic/SettingsHome.tsx"
+    ],
+    "WifiOff": [
+      "src/settings/magic/security/OfflinePage.tsx",
+      "src/settings/magic/settingsSections.ts"
     ],
     "Wrench": [
       "src/pages/Warranty.tsx"
@@ -5187,6 +5483,7 @@
       "src/pages/Reconciliation.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
       "src/saas/components.tsx",
+      "src/settings/magic/invoice/Ui.tsx",
       "src/settings/ui.tsx"
     ],
     "XIcon": [
