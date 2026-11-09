@@ -143,6 +143,43 @@ async function main() {
     const liveInvoice = page.locator('[data-settings-live-section="invoices"]');
     await liveInvoice.waitFor();
     await liveInvoice.getByRole('switch', {name:'Show business logo'}).waitFor();
+
+    // Regression: restoring *visible* invoice preferences must preserve the
+    // separately saved document-numbering prefix and still permit saving.
+    await page.getByRole('button', {name:/Document numbering, ledger & report designs/}).click();
+    const legacyDocuments = page.locator('[data-settings-live-document-controls]');
+    await legacyDocuments.getByRole('tab', {name:/^Document numbering/}).click();
+    const prefixInput = legacyDocuments.getByRole('textbox', {name:/^Prefix/});
+    const previousPrefix = await prefixInput.inputValue();
+    const customPrefix = previousPrefix === 'TST' ? 'TST2' : 'TST';
+    await prefixInput.fill(customPrefix);
+    await legacyDocuments.getByRole('button', {name:'Save changes'}).click();
+    const documentReview = page.getByRole('dialog', {name:'Review settings changes'});
+    await documentReview.getByRole('button', {name:'Confirm save'}).click();
+    await documentReview.waitFor({state:'hidden'});
+
+    const invoiceFooter = liveInvoice.getByRole('textbox', {name:/^Invoice footer/});
+    const originalFooter = await invoiceFooter.inputValue();
+    await invoiceFooter.fill(originalFooter === 'Temporary receipt footer' ? 'Other receipt footer' : 'Temporary receipt footer');
+    await liveInvoice.getByRole('button', {name:'Save changes'}).click();
+    await liveInvoice.getByText(/Saved for this business on this device/).waitFor();
+    await liveInvoice.getByRole('button', {name:'Restore defaults'}).click();
+    await liveInvoice.getByRole('button', {name:'Save changes'}).click();
+    await liveInvoice.getByText(/Saved for this business on this device/).waitFor();
+    await page.reload();
+    await liveInvoice.waitFor();
+    assert.equal(await invoiceFooter.inputValue(), 'Thank you for your business.',
+      'Visible invoice footer returns to defaults and saves');
+    await page.getByRole('button', {name:/Document numbering, ledger & report designs/}).click();
+    await legacyDocuments.getByRole('tab', {name:/^Document numbering/}).click();
+    assert.equal(await prefixInput.inputValue(), customPrefix,
+      'Restoring visible invoice preferences must not reset saved numbering prefix');
+
+    // Leave the original numbering unchanged for the rest of the browser suite.
+    await prefixInput.fill(previousPrefix);
+    await legacyDocuments.getByRole('button', {name:'Save changes'}).click();
+    await documentReview.getByRole('button', {name:'Confirm save'}).click();
+    await documentReview.waitFor({state:'hidden'});
     await go('interface');
     const interfaceUI = page.locator('[data-settings-magic-interface]');
     await interfaceUI.waitFor();
