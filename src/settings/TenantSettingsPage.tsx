@@ -1622,10 +1622,20 @@ export function TenantSettingsPage() {
                 : undefined}
             />
           ) : activeId === 'interface' ? (
-            <MagicInterfaceSettings
-              onDirtyChange={setInterfaceMagicDirty}
-              canBusiness={canManage(state, actorId, 'interface')}
-            />
+            <div className="space-y-4" data-settings-live-interface>
+              <MagicInterfaceSettings
+                onDirtyChange={setInterfaceMagicDirty}
+                canBusiness={canManage(state, actorId, 'interface')}
+              />
+              <section className="space-y-2 border-t border-border pt-4">
+                <h2 className="text-[13px] font-semibold text-ink">
+                  Working Sales & Products column visibility
+                  <span lang="bn" className="ml-2 font-bn text-[11px] font-normal text-ink-500">কলাম দেখান বা লুকান</span>
+                </h2>
+                <p className="text-xs text-ink-500">Unlike the feature demonstration above, these inherited column preferences are connected to HisabIQ's current tables. Personal changes save on this browser; business defaults require Save changes. Required columns cannot be hidden.</p>
+                <SettingsPageContent key="interface-live" sectionOverride="interface" embedded hideHeader />
+              </section>
+            </div>
           ) : activeId === 'invoices' ? (
             <div className="space-y-6" data-settings-magic-invoices-page>
               <MagicInvoiceStudio
