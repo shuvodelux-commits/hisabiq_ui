@@ -13,7 +13,7 @@ async function main() {
     page.on('pageerror', e => errors.push(e.message));
     await page.goto('http://127.0.0.1:4179/#/saas/home');
     await page.getByRole('navigation', { name: 'Control Center' }).waitFor({ timeout: 15000 });
-    await page.getByText('My work', { exact: true }).first().waitFor();
+    await page.getByRole('heading', { name: /My work/ }).waitFor();
     assert.equal(await page.locator('iframe').count(),0,'SaaS must be native React, not iframe');
     await page.goto('http://127.0.0.1:4179/#/saas/tenants');
     await page.getByRole('navigation', { name: 'Control Center' }).waitFor();

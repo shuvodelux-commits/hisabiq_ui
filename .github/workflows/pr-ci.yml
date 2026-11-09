@@ -109,6 +109,7 @@ jobs:
           name: saas-magic-${{ github.sha }}
           path: .superpowers/saas-magic/
           if-no-files-found: ignore
+          include-hidden-files: true
           retention-days: 14
 
       - name: Audit Ledger correction dialog mobile regression
