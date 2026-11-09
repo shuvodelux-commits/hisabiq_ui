@@ -181,7 +181,7 @@ export function PackageBuilder({ initial, onClose }: { initial: SaasPackage; onC
             <div className="space-y-3">
               {p.kind === 'PLAN' && (
                 <ReviewBlock title="Compared with standard plans">
-                  <table className="w-full text-[13px]">
+                  <table data-erp-table className="w-full text-[13px]">
                     <thead><tr className="text-left"><th className="pb-1 text-xs font-medium text-ink-500">Plan</th><th className="pb-1 text-right text-xs font-medium text-ink-500">Price</th><th className="pb-1 text-right text-xs font-medium text-ink-500">Users</th><th className="pb-1 text-right text-xs font-medium text-ink-500">Features</th></tr></thead>
                     <tbody>
                       {[...saas.state.packages.filter((x) => x.kind === 'PLAN' && x.billing === 'MONTHLY' && x.status === 'ACTIVE'), p].map((x) => (

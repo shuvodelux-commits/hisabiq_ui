@@ -27,7 +27,7 @@ export function AccessRequestCard({ a, showBusiness }: { a: SupportAccess; showB
         </div>
         <Badge tone={meta.tone} dot>{meta.label}</Badge>
       </div>
-      <table className="mt-2 w-full max-w-xl text-[13px]">
+      <table data-erp-table className="mt-2 w-full max-w-xl text-[13px]">
         <thead>
           <tr className="text-left"><th className="py-1 pr-3 text-xs font-medium text-ink-500">Setting</th><th className="py-1 pr-3 text-xs font-medium text-ink-500">Before</th><th className="py-1 text-xs font-medium text-ink-500">After</th></tr>
         </thead>
