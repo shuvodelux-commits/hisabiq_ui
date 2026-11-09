@@ -58,6 +58,7 @@ All commands below exited 0 on the final code state on November 9, 2026:
 - `PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium npm run test:saas-magic`
 - `PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium node scripts/saas-refine-interactions.cjs` — 320, 390, 1440; light and dark; real search, staff popover, Add Business dialog and Escape checks
 - `PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium VIEWPORTS=320,390,768,1024,1440 SHOT_LABEL=final node scripts/saas-refine-browser.cjs` — 20 page/theme/width combinations; zero document overflow or page errors
+- `PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium node scripts/page-loading-browser.cjs` — PASS: 45 production deep links per theme, 5 delayed-chunk responsive cases per theme, and failed-chunk recovery. SaaS route list now uses real seeded IDs and the new Control Center route tree.
 - Official Impeccable source `detect --json` against seven impacted SaaS UI files — 0 primary findings; no independent agent score claimed.
 
 The browser scripts accept `PLAYWRIGHT_EXECUTABLE_PATH` for desktop Chromium. Visual comparisons and interaction captures in this branch use only seeded preview state. Static screenshots do not validate animation timing.
