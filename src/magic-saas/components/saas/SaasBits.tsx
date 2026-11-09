@@ -2,8 +2,8 @@ import React from 'react';
 import { Lock, Search, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { MOTION_EASE } from '../../hisabiq-library/motion/tokens';
-import { StatusBadge, type StatusTone } from '../StatusBadge'
-import { Input } from '../../../components/Input';;
+import { StatusBadge, type StatusTone } from '../StatusBadge';
+import { Input } from '../../../components/Input';
 import type { AccessState, EntitlementSource, EntitlementStatus, OrderState, PromoStatus, TenantStatus } from '../../types/saas';
 
 export const tenantTone: Record<TenantStatus, StatusTone> = { Active: 'success', Trial: 'info', Grace: 'warning', Expired: 'danger', Suspended: 'ink' };
