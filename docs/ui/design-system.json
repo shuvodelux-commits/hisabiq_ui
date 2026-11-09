@@ -4659,7 +4659,6 @@
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/DataSettings.tsx",
       "src/settings/SettingsSqlBackup.tsx",
-      "src/settings/magic/DataSettings.tsx",
       "src/settings/magic/security/ActivityPage.tsx"
     ],
     "Ellipsis": [
@@ -4872,7 +4871,6 @@
     "Lock": [
       "src/components/brand/ApplicationsSection.tsx",
       "src/components/layout/CashSessionDialog.tsx",
-      "src/settings/magic/DataSettings.tsx",
       "src/settings/magic/GeneralSettingsSection.tsx",
       "src/settings/magic/LiveSettingsSection.tsx",
       "src/settings/magic/TeamSettings.tsx",
@@ -5409,8 +5407,7 @@
       "src/pages/Parties.tsx",
       "src/pages/Products.tsx",
       "src/settings/DataSettings.tsx",
-      "src/settings/SettingsSqlBackup.tsx",
-      "src/settings/magic/DataSettings.tsx"
+      "src/settings/SettingsSqlBackup.tsx"
     ],
     "UploadCloud": [
       "src/components/import/ImportUploadStep.tsx"
