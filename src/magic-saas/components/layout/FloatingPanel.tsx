@@ -19,7 +19,11 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        ref.current?.querySelector<HTMLButtonElement>('button[aria-expanded]')?.focus();
+      }
     };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
@@ -41,10 +45,10 @@ export function FloatingPanel({ trigger, children, align = 'right', width = 320,
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.14, ease: 'easeOut' }}
-            className={`absolute top-full z-50 mt-2 overflow-hidden rounded-xl border border-ink-100 bg-white shadow-pop ${
+            className={`absolute top-full z-50 mt-2 overflow-hidden rounded-xl border border-ink-100 bg-card shadow-pop ${
               align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
             }`}
-            style={{ width }}
+            style={{ width: `min(${width}px, calc(100vw - 2.5rem))` }}
           >
             {children(() => setOpen(false))}
           </motion.div>

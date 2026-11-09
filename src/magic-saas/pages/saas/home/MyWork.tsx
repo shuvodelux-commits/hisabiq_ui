@@ -100,10 +100,10 @@ export function MyWork() {
         ) : (
           <ul className="divide-y divide-ink-100">
             {list.map((w) => (
-              <li key={w.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 sm:flex-nowrap">
+              <li key={w.id} className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 sm:flex-nowrap ${w.action.length >= 17 ? 'max-[360px]:grid max-[360px]:grid-cols-[8px_minmax(0,1fr)]' : ''}`}>
                 <span className={`size-2 shrink-0 rounded-full ${w.tone === 'danger' ? 'bg-danger' : w.tone === 'warning' ? 'bg-warning' : 'bg-info'}`} aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{w.title}</p>
+                  <p className="max-sm:line-clamp-2 text-[13px] font-medium text-ink sm:truncate">{w.title}</p>
                   <p className="truncate text-[11px] text-ink-500">
                     <span className="mr-1 rounded bg-ink-50 px-1 text-ink-600">{w.area}</span>
                     {w.detail}
@@ -111,7 +111,7 @@ export function MyWork() {
                   </p>
                 </div>
                 {w.tenantId && w.kind !== 'health' && <Link to={`/saas/tenants/${w.tenantId}`} className="hidden shrink-0 text-xs text-ink-500 hover:text-teal-700 hover:underline md:inline">Business</Link>}
-                <Button kind={w.tone === 'danger' ? 'primary' : 'outline'} onClick={() => act(w)}>{w.action}</Button>
+                <Button kind={w.tone === 'danger' ? 'primary' : 'outline'} className={w.action.length >= 17 ? 'max-[360px]:col-start-2 max-[360px]:justify-self-end' : ''} onClick={() => act(w)}>{w.action}</Button>
               </li>
             ))}
           </ul>
