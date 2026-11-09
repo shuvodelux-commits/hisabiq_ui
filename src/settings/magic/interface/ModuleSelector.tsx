@@ -53,7 +53,7 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
       {open && (
         <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-card p-1.5 shadow-pop">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+            <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <Input
               autoFocus
               value={query}

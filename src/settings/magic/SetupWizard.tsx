@@ -35,7 +35,7 @@ export function SetupWizard({ onClose }: { onClose: () => void }) {
         <motion.div key={step} initial={reduced ? false : { opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={reduced ? undefined : { opacity: 0, x: -12 }} transition={{ duration: 0.16 }} className="space-y-3">
           <h3 className="text-[13px] font-semibold text-ink">{current.label} <span lang="bn" className="font-bn text-[11px] font-normal text-ink-400">{current.bn}</span></h3>
           <p className="text-[13px] text-ink-600">{current.copy}</p>
-          <Link to={current.route} onClick={onClose} className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600 px-3.5 text-[13px] font-medium text-white hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
+          <Link to={current.route} onClick={onClose} className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
             Open {current.label} <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </motion.div>

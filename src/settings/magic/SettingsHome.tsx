@@ -46,13 +46,13 @@ export function SettingsHome({ urlFor }: Props) {
   return (
     <div className="space-y-5">
       {!s.setupDone && (
-        <section className="flex flex-wrap items-center gap-3 rounded-xl border border-teal-600/20 bg-teal-50/60 p-4">
+        <section className="grid grid-cols-[20px_minmax(0,1fr)] items-start gap-3 rounded-xl border border-teal-600/20 bg-teal-50/60 p-4 sm:flex sm:flex-wrap sm:items-center">
           <Wand2 className="size-5 shrink-0 text-teal-700" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-semibold text-ink">New here? Set up your shop in 5 quick steps</p>
             <p className="text-xs text-ink-600">Shop details, business type, payments, receipt look and staff. About 3 minutes — skip any time.</p>
           </div>
-          <button type="button" onClick={() => setWizard(true)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 text-[13px] font-medium text-white hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
+          <button type="button" onClick={() => setWizard(true)} className="col-span-2 justify-self-start inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
             Start guided setup
           </button>
         </section>
@@ -77,7 +77,7 @@ export function SettingsHome({ urlFor }: Props) {
           </p>
         </div>
         {ordered[0] && !done[ordered[0].id] && (
-          <Link to={urlFor(ordered[0].section)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 text-[13px] font-medium text-white hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
+          <Link to={urlFor(ordered[0].section)} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
             Next: {ordered[0].title}
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
@@ -86,11 +86,11 @@ export function SettingsHome({ urlFor }: Props) {
 
       <section aria-label="Search settings" className="rounded-xl border border-ink-100 bg-card p-4 shadow-card">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+          <Search className="pointer-events-none absolute z-10 left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="What do you want to change? Try “logo”, “রসিদ”, “VAT”, “PIN”…"
+            placeholder="Search by task"
             aria-label="Search settings by goal"
             className="h-10 w-full rounded-lg border border-ink-200 bg-card pl-9 pr-3 text-[13px] text-ink outline-none focus-visible:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-500/20"
           />

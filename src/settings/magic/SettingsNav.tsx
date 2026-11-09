@@ -55,11 +55,11 @@ export function SettingsNav({ activeId, urlFor, onNavigate }: SettingsNavProps) 
         Settings home <span className="font-bn text-[10.5px] font-normal text-ink-400">সেটিংস হোম</span>
       </Link>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+        <Search className="pointer-events-none absolute z-10 left-3 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search settings"
+          placeholder="Find a section"
           aria-label="Search settings"
           className="ref-control w-full rounded-lg border border-ink-200 bg-card pl-9 pr-3 text-[13px] text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"
         />
