@@ -3,6 +3,7 @@ import { TenantSupport, TenantSubscription } from '../saas/TenantPortal';
 import { SettingsNav } from './magic/SettingsNav';
 import { SettingsHome } from './magic/SettingsHome';
 import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
+import { LiveSettingsSection, type LiveSection } from './magic/LiveSettingsSection';
 import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
 import { InvoiceStudio as MagicInvoiceStudio } from './magic/invoice/InvoiceStudio';
 import { InterfaceSettings as MagicInterfaceSettings } from './magic/interface/InterfaceSettings';
@@ -1605,6 +1606,11 @@ export function TenantSettingsPage() {
         <div className="min-w-0">
           {isHome ? (
             <SettingsHome urlFor={urlFor} />
+          ) : (activeId === 'business' || activeId === 'names' || activeId === 'personal' || activeId === 'security') ? (
+            <SettingsPageContent key={section} sectionOverride={activeId === 'names' ? 'financialTerminology' : activeId} embedded hideHeader />
+          ) : (activeId === 'sales' || activeId === 'products' || activeId === 'purchases' || activeId === 'finance' || activeId === 'notifications') ? (
+            <LiveSettingsSection key={activeId} section={(activeId === 'finance' ? 'money' : activeId) as LiveSection}
+              onDirtyChange={setMagicDirty} />
           ) : sourceForm ? (
             <MagicGeneralSettingsSection
               key={sourceForm.id}
@@ -1631,11 +1637,7 @@ export function TenantSettingsPage() {
                   Document numbering
                   <span className="ml-2 font-bn text-[11px] font-normal text-ink-400">নম্বর</span>
                 </h2>
-                <MagicGeneralSettingsSection
-                  section={settingsSections.find(item => item.id === 'invoices')!}
-                  canEdit={canManage(state, actorId, 'invoices')}
-                  onDirtyChange={setInvoiceNumberDirty}
-                />
+                <LiveSettingsSection section="invoices" onDirtyChange={setInvoiceNumberDirty} />
               </div>
             </div>
           ) : activeId === 'team' ? (
