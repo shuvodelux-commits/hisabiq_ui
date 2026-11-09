@@ -3348,6 +3348,559 @@
       "reexports": []
     },
     {
+      "file": "src/magic-saas/MagicSaasEntry.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "MagicSaasEntry"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/Badge.tsx",
+      "kind": "component",
+      "exports": [],
+      "reexports": [
+        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
+      ]
+    },
+    {
+      "file": "src/magic-saas/components/Checkbox.tsx",
+      "kind": "component",
+      "exports": [
+        "Checkbox"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/StatusBadge.tsx",
+      "kind": "component",
+      "exports": [
+        "StatusBadge"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/Switch.tsx",
+      "kind": "component",
+      "exports": [],
+      "reexports": [
+        "../_designSystem/ds-6551b66a-cfd3-4df9-a9b1-9ead8d7fe7e9"
+      ]
+    },
+    {
+      "file": "src/magic-saas/components/brand/Logo.tsx",
+      "kind": "component",
+      "exports": [
+        "LogoMark",
+        "Wordmark",
+        "LogoLockup"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/layout/FloatingPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "FloatingPanel"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/AccessRequestCard.tsx",
+      "kind": "component",
+      "exports": [
+        "AccessRequestCard"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/AuditTable.tsx",
+      "kind": "component",
+      "exports": [
+        "AuditTable"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/BillingLedger.tsx",
+      "kind": "component",
+      "exports": [
+        "BillingLedger"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/CheckoutDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "CheckoutDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "kind": "component",
+      "exports": [
+        "ControlCenterShell"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/GlobalSearch.tsx",
+      "kind": "component",
+      "exports": [
+        "GlobalSearch"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/GrantDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "GrantDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/IdentityChip.tsx",
+      "kind": "component",
+      "exports": [
+        "IdentityChip"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/MessageOwnerDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "fillTemplate",
+        "MessageOwnerDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/OrderDetailDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "OrderDetailDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/RequestChangeDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "RequestChangeDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/RowActions.tsx",
+      "kind": "component",
+      "exports": [
+        "RowActions"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/SaasBits.tsx",
+      "kind": "component",
+      "exports": [
+        "tenantTone",
+        "orderMeta",
+        "accountTone",
+        "PageTitle",
+        "MeterBar",
+        "SearchBox",
+        "LoadingList",
+        "Card",
+        "sourceMeta",
+        "entStatusTone",
+        "promoMeta",
+        "accessMeta",
+        "Badge",
+        "SummaryStrip",
+        "Denied",
+        "th",
+        "td",
+        "thAction",
+        "tdAction",
+        "EmptyRow",
+        "Feedback",
+        "Proposed"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/SmsCreditPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "SmsCreditPanel"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/billing/VerifyPaymentDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "VerifyPaymentDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/ops/NewTicketDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "NewTicketDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/ops/ServiceDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "serviceMeta",
+        "serviceFlow",
+        "ServiceDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/ops/TicketDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "TicketDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/ops/TicketThread.tsx",
+      "kind": "component",
+      "exports": [
+        "TicketThread"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/packages/BuilderBits.tsx",
+      "kind": "component",
+      "exports": [
+        "steps",
+        "BuilderShell",
+        "IssueList",
+        "Advanced",
+        "ReviewBlock",
+        "PublishDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/packages/OfferBuilder.tsx",
+      "kind": "component",
+      "exports": [
+        "OfferBuilder"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/packages/PackageBuilder.tsx",
+      "kind": "component",
+      "exports": [
+        "PackageBuilder"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/tenant/CreateBusinessDialog.tsx",
+      "kind": "component",
+      "exports": [
+        "CreateBusinessDialog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/tenant/HistoryTab.tsx",
+      "kind": "component",
+      "exports": [
+        "HistoryTab"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/tenant/OverviewTab.tsx",
+      "kind": "component",
+      "exports": [
+        "OverviewTab"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/tenant/PlanUsageTab.tsx",
+      "kind": "component",
+      "exports": [
+        "PlanUsageTab"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/tenant/SettingsTab.tsx",
+      "kind": "component",
+      "exports": [
+        "SettingsTab"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/tenant/SignalsPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "SignalsPanel"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/saas/tenant/SupportTab.tsx",
+      "kind": "component",
+      "exports": [
+        "SupportTab"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/components/settings/SettingCard.tsx",
+      "kind": "component",
+      "exports": [
+        "SettingCard"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/contexts/SaasContext.tsx",
+      "kind": "provider-or-context",
+      "exports": [
+        "SaasProvider",
+        "useSaas"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
+      "kind": "component",
+      "exports": [
+        "AppDateRangePicker",
+        "AppDatePicker"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/hisabiq-library/components/AppSelect.tsx",
+      "kind": "component",
+      "exports": [
+        "AppSelect"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/hisabiq-library/motion/MotionTabList.tsx",
+      "kind": "component",
+      "exports": [
+        "MotionTabList",
+        "MotionTabIndicator"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/hisabiq-library/settings/TenantSettingsProvider.tsx",
+      "kind": "provider-or-context",
+      "exports": [
+        "TenantSettingsProvider",
+        "useTenantSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/hisabiq-library/utils/libraryPortal.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "createPortal"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/AuditLog.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "AuditLog"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/PackagesOffers.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "PackagesOffers"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/Payments.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Payments"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/SmsAdmin.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "SmsAdmin"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/SupportAccessQueue.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "SupportAccessQueue"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/TenantWorkspace.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "TenantWorkspace"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/admin/Announcements.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Announcements"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/admin/PlatformReports.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "PlatformReports"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/admin/PlatformSettings.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "PlatformSettings"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/admin/Team.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Team"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/customers/Businesses.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Businesses"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/home/MyWork.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "MyWork"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/ops/DataRequests.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "DataRequests"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/ops/KnowledgeBase.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "KnowledgeBase"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/ops/Services.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Services"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/ops/Tickets.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Tickets"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/revenue/Invoices.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Invoices"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/revenue/Refunds.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Refunds"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/pages/saas/revenue/Subscriptions.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "Subscriptions"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/magic-saas/prototype/Ui.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "Button",
+        "Field",
+        "Input",
+        "Select",
+        "Textarea",
+        "Panel",
+        "Modal",
+        "Segmented",
+        "Notice",
+        "Tabs",
+        "Metric",
+        "downloadCsv",
+        "Tag",
+        "Empty",
+        "useFeedback"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/motion/MotionNavIndicator.tsx",
       "kind": "component",
       "exports": [
@@ -4255,7 +4808,8 @@
       "src/settings/magic/settingsSections.ts"
     ],
     "AlertCircle": [
-      "src/components/reports/ReportOverview.tsx"
+      "src/components/reports/ReportOverview.tsx",
+      "src/magic-saas/components/saas/packages/BuilderBits.tsx"
     ],
     "AlertCircleIcon": [
       "src/components/products/fields/FieldMessage.tsx",
@@ -4270,8 +4824,15 @@
       "src/components/pos/CheckoutPanel.tsx",
       "src/components/pos/StockShortageDialog.tsx",
       "src/components/purchases/PurchasePaymentPanel.tsx",
+      "src/magic-saas/components/saas/RequestChangeDialog.tsx",
+      "src/magic-saas/components/saas/billing/VerifyPaymentDialog.tsx",
+      "src/magic-saas/components/saas/packages/BuilderBits.tsx",
+      "src/magic-saas/components/saas/tenant/OverviewTab.tsx",
       "src/reports/magicpatterns/components/reports/basic/OverviewReport.tsx",
       "src/settings/magic/security/OfflinePage.tsx"
+    ],
+    "Archive": [
+      "src/magic-saas/pages/saas/ops/DataRequests.tsx"
     ],
     "ArrowDown": [
       "src/components/reports/ReportResults.tsx",
@@ -4296,6 +4857,7 @@
       "src/components/accounts/StatementsView.tsx",
       "src/components/accounts/TrialBalanceView.tsx",
       "src/components/reports/BusinessReview.tsx",
+      "src/magic-saas/components/saas/AuditTable.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Daybook.tsx",
@@ -4313,6 +4875,8 @@
       "src/components/reports/ReportDetails.tsx",
       "src/components/vendor/VendorV2Cart.tsx",
       "src/features/auth/AuthFlowPage.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "src/magic-saas/pages/saas/TenantWorkspace.tsx",
       "src/pages/Pos.tsx",
       "src/pages/PurchaseEditor.tsx",
       "src/pages/VendorV2.tsx",
@@ -4326,6 +4890,7 @@
       "src/components/finance/FinanceRecordDialogs.tsx",
       "src/components/parties/PartyCreditRefundDialog.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/magic-saas/pages/saas/revenue/Subscriptions.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Parties.tsx"
     ],
@@ -4371,6 +4936,9 @@
       "src/saas/SaasShell.tsx",
       "src/settings/TenantSettingsHub.tsx"
     ],
+    "BadgeCheck": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
+    ],
     "BadgeDollarSignIcon": [
       "src/components/products/form/OtherOptionsPanel.tsx"
     ],
@@ -4378,6 +4946,8 @@
       "src/settings/CommerceSettingsPanels.tsx"
     ],
     "Ban": [
+      "src/magic-saas/components/saas/tenant/PlanUsageTab.tsx",
+      "src/magic-saas/pages/saas/revenue/Invoices.tsx",
       "src/pages/Expenses.tsx",
       "src/settings/magic/security/SessionsPage.tsx"
     ],
@@ -4394,6 +4964,7 @@
     ],
     "BarChart3": [
       "src/components/reports/SalesProfitExperiment.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/pages/Expenses.tsx",
       "src/saas/SaasShell.tsx"
     ],
@@ -4425,6 +4996,7 @@
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/parties/PartyOpeningDialog.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Sales.tsx",
@@ -4442,6 +5014,7 @@
       "src/pages/Finance.tsx"
     ],
     "Building2": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/saas/SaasShell.tsx",
       "src/settings/SettingsDirectory.tsx",
       "src/settings/TenantSettingsHub.tsx",
@@ -4454,6 +5027,7 @@
     ],
     "CalendarClock": [
       "src/components/pos/InstallmentRescheduleDialog.tsx",
+      "src/magic-saas/pages/saas/admin/Announcements.tsx",
       "src/pages/Daybook.tsx"
     ],
     "CalendarClockIcon": [
@@ -4463,6 +5037,7 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/AppMonthYearPicker.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
+      "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/reports/magicpatterns/MagicReportsView.tsx"
     ],
     "CalendarRange": [
@@ -4479,6 +5054,9 @@
       "src/components/parties/PartyPaymentDialog.tsx",
       "src/components/reports/premium/CashflowReport.tsx",
       "src/components/vendor/VendorMemoPickerDialog.tsx",
+      "src/magic-saas/components/saas/IdentityChip.tsx",
+      "src/magic-saas/components/saas/OrderDetailDialog.tsx",
+      "src/magic-saas/hisabiq-library/components/AppSelect.tsx",
       "src/pages/Dashboard.tsx",
       "src/pages/OnlineSales.tsx",
       "src/pages/Products.tsx",
@@ -4501,6 +5079,12 @@
       "src/components/vendor/VendorPaymentsWorkspace.tsx",
       "src/components/vendor/VendorSourceWorkspace.tsx",
       "src/features/auth/AuthFlowPage.tsx",
+      "src/magic-saas/components/saas/billing/VerifyPaymentDialog.tsx",
+      "src/magic-saas/components/saas/packages/BuilderBits.tsx",
+      "src/magic-saas/components/saas/tenant/SignalsPanel.tsx",
+      "src/magic-saas/pages/saas/SmsAdmin.tsx",
+      "src/magic-saas/pages/saas/home/MyWork.tsx",
+      "src/magic-saas/pages/saas/ops/DataRequests.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Pos.tsx",
@@ -4531,6 +5115,10 @@
       "src/components/reports/SalesProfitExperiment.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
+      "src/magic-saas/components/saas/IdentityChip.tsx",
+      "src/magic-saas/components/saas/packages/BuilderBits.tsx",
+      "src/magic-saas/components/saas/tenant/SupportTab.tsx",
+      "src/magic-saas/hisabiq-library/components/AppSelect.tsx",
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
       "src/pages/VendorV2.tsx",
@@ -4551,6 +5139,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
+      "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
       "src/settings/SettingsTabs.tsx"
@@ -4567,6 +5156,9 @@
       "src/components/reports/ReportResults.tsx",
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
+      "src/magic-saas/components/saas/tenant/OverviewTab.tsx",
+      "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
+      "src/magic-saas/pages/saas/customers/Businesses.tsx",
       "src/pages/OnlineSales.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
@@ -4577,12 +5169,18 @@
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/SalesProfitExperiment.tsx"
     ],
+    "Circle": [
+      "src/magic-saas/components/saas/tenant/SignalsPanel.tsx"
+    ],
     "CircleAlert": [
       "src/components/FeedbackState.tsx",
       "src/settings/CommerceSettingsPanels.tsx"
     ],
     "CircleDollarSign": [
       "src/pages/Finance.tsx"
+    ],
+    "CircleStop": [
+      "src/magic-saas/pages/saas/PackagesOffers.tsx"
     ],
     "Clock": [
       "src/components/parties/PartyDetailResponsive.tsx",
@@ -4633,6 +5231,9 @@
       "src/settings/TenantSettingsPage.tsx",
       "src/settings/magic/settingsSections.ts"
     ],
+    "DatabaseBackup": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
+    ],
     "Delete": [
       "src/components/layout/Calculator.tsx"
     ],
@@ -4642,6 +5243,9 @@
       "src/components/import/ImportUploadStep.tsx",
       "src/components/parties/PartyStatementDialog.tsx",
       "src/components/parties/VendorStatementDialog.tsx",
+      "src/magic-saas/pages/saas/admin/PlatformReports.tsx",
+      "src/magic-saas/pages/saas/customers/Businesses.tsx",
+      "src/magic-saas/pages/saas/revenue/Invoices.tsx",
       "src/pages/Products.tsx",
       "src/reports/magicpatterns/components/reports/basic/DuesReport.tsx",
       "src/reports/magicpatterns/components/reports/basic/MoneyReport.tsx",
@@ -4678,6 +5282,15 @@
       "src/components/products/BundleEditor.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
+      "src/magic-saas/pages/saas/PackagesOffers.tsx",
+      "src/magic-saas/pages/saas/Payments.tsx",
+      "src/magic-saas/pages/saas/SmsAdmin.tsx",
+      "src/magic-saas/pages/saas/admin/Announcements.tsx",
+      "src/magic-saas/pages/saas/admin/Team.tsx",
+      "src/magic-saas/pages/saas/customers/Businesses.tsx",
+      "src/magic-saas/pages/saas/ops/DataRequests.tsx",
+      "src/magic-saas/pages/saas/revenue/Invoices.tsx",
+      "src/magic-saas/pages/saas/revenue/Subscriptions.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
@@ -4733,6 +5346,8 @@
       "src/components/parties/PartySourceQuickPreview.tsx",
       "src/components/pos/SaleTemplatesMenu.tsx",
       "src/components/reports/BusinessReview.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "src/magic-saas/pages/saas/revenue/Subscriptions.tsx",
       "src/navigation/erpNavigation.ts",
       "src/pages/Accounts.tsx",
       "src/pages/OnlineSales.tsx",
@@ -4760,6 +5375,12 @@
     "FlaskConical": [
       "src/components/reports/SalesProfitExperiment.tsx"
     ],
+    "Gauge": [
+      "src/magic-saas/pages/saas/customers/Businesses.tsx"
+    ],
+    "Gift": [
+      "src/magic-saas/components/saas/tenant/PlanUsageTab.tsx"
+    ],
     "Globe2": [
       "src/settings/CommerceSettingsPanels.tsx"
     ],
@@ -4786,9 +5407,14 @@
     ],
     "History": [
       "src/components/parties/VendorCorrectionDialog.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "src/magic-saas/pages/saas/customers/Businesses.tsx",
       "src/pages/Products.tsx",
       "src/pages/Purchases.tsx",
       "src/saas/SaasShell.tsx"
+    ],
+    "ImageIcon": [
+      "src/magic-saas/components/saas/billing/VerifyPaymentDialog.tsx"
     ],
     "ImagePlus": [
       "src/components/products/PhotoUploader.tsx",
@@ -4797,9 +5423,13 @@
     "ImagesIcon": [
       "src/components/products/form/OtherOptionsPanel.tsx"
     ],
+    "Inbox": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
+    ],
     "Info": [
       "src/components/Tooltip.tsx",
       "src/components/pos/InstallmentAgreementPreview.tsx",
+      "src/magic-saas/prototype/Ui.tsx",
       "src/pages/Reports.tsx",
       "src/reports/magicpatterns/components/reports/ReportBits.tsx",
       "src/settings/magic/interface/CapabilityRow.tsx"
@@ -4809,6 +5439,8 @@
       "src/pages/PurchaseEditor.tsx"
     ],
     "KeyRound": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "src/magic-saas/pages/saas/SupportAccessQueue.tsx",
       "src/settings/AccountSecuritySettings.tsx"
     ],
     "Landmark": [
@@ -4824,6 +5456,7 @@
       "src/components/layout/TopBar.tsx"
     ],
     "Layers": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/saas/SaasShell.tsx"
     ],
     "Layers3Icon": [
@@ -4842,6 +5475,8 @@
     ],
     "LifeBuoy": [
       "src/components/layout/Sidebar.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "src/magic-saas/pages/saas/customers/Businesses.tsx",
       "src/saas/SaasShell.tsx",
       "src/settings/magic/settingsSections.ts"
     ],
@@ -4863,6 +5498,10 @@
     "Lock": [
       "src/components/brand/ApplicationsSection.tsx",
       "src/components/layout/CashSessionDialog.tsx",
+      "src/magic-saas/components/saas/SaasBits.tsx",
+      "src/magic-saas/components/saas/ops/TicketThread.tsx",
+      "src/magic-saas/components/saas/tenant/SettingsTab.tsx",
+      "src/magic-saas/components/saas/tenant/SupportTab.tsx",
       "src/settings/magic/DataSettings.tsx",
       "src/settings/magic/GeneralSettingsSection.tsx",
       "src/settings/magic/TeamSettings.tsx",
@@ -4896,6 +5535,7 @@
       "src/components/parties/PartyDetailResponsive.tsx"
     ],
     "Megaphone": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/saas/SaasShell.tsx"
     ],
     "Menu": [
@@ -4905,7 +5545,12 @@
     "MessageSquare": [
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/magic-saas/pages/saas/ops/Tickets.tsx",
+      "src/magic-saas/pages/saas/revenue/Subscriptions.tsx",
       "src/saas/SaasShell.tsx"
+    ],
+    "MessageSquareText": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
     ],
     "Monitor": [
       "src/components/layout/ThemePicker.tsx",
@@ -4929,6 +5574,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/products/ProductSettings.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
+      "src/magic-saas/components/saas/RowActions.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
       "src/pages/Warranty.tsx",
@@ -4955,6 +5601,7 @@
     ],
     "PackagePlus": [
       "src/components/purchases/PurchaseCart.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/pages/Products.tsx"
     ],
     "PackageSearch": [
@@ -4980,6 +5627,9 @@
       "src/pages/Expenses.tsx",
       "src/pages/Purchases.tsx"
     ],
+    "Pause": [
+      "src/magic-saas/pages/saas/PackagesOffers.tsx"
+    ],
     "Pencil": [
       "src/components/accounts/ChartOfAccountsView.tsx",
       "src/components/accounts/VoucherActionDialog.tsx",
@@ -4994,6 +5644,11 @@
       "src/components/pos/InstallmentTermsPanel.tsx",
       "src/components/products/ProductSettings.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
+      "src/magic-saas/components/saas/tenant/SettingsTab.tsx",
+      "src/magic-saas/pages/saas/PackagesOffers.tsx",
+      "src/magic-saas/pages/saas/SmsAdmin.tsx",
+      "src/magic-saas/pages/saas/admin/Announcements.tsx",
+      "src/magic-saas/pages/saas/admin/Team.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
@@ -5028,6 +5683,10 @@
     "PiggyBank": [
       "src/components/parties/partyRoleActions.ts"
     ],
+    "Play": [
+      "src/magic-saas/pages/saas/PackagesOffers.tsx",
+      "src/magic-saas/pages/saas/ops/DataRequests.tsx"
+    ],
     "Plus": [
       "src/components/accounts/ChartOfAccountsView.tsx",
       "src/components/accounts/VoucherDialog.tsx",
@@ -5053,6 +5712,15 @@
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorTabs.tsx",
       "src/components/vendor/VendorV2Cart.tsx",
+      "src/magic-saas/components/saas/tenant/SettingsTab.tsx",
+      "src/magic-saas/components/saas/tenant/SupportTab.tsx",
+      "src/magic-saas/pages/saas/PackagesOffers.tsx",
+      "src/magic-saas/pages/saas/admin/Announcements.tsx",
+      "src/magic-saas/pages/saas/admin/Team.tsx",
+      "src/magic-saas/pages/saas/customers/Businesses.tsx",
+      "src/magic-saas/pages/saas/ops/KnowledgeBase.tsx",
+      "src/magic-saas/pages/saas/ops/Tickets.tsx",
+      "src/magic-saas/pages/saas/revenue/Invoices.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
@@ -5107,6 +5775,7 @@
       "src/components/reports/BusinessReview.tsx",
       "src/components/reports/ReportDetails.tsx",
       "src/components/vendor/VendorTabs.tsx",
+      "src/magic-saas/components/saas/AuditTable.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Daybook.tsx",
       "src/pages/Expenses.tsx",
@@ -5144,6 +5813,7 @@
       "src/components/accounts/BankEntryTab.tsx",
       "src/components/finance/CashSessionDetailsDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Reports.tsx",
       "src/settings/magic/security/OfflinePage.tsx"
@@ -5161,6 +5831,7 @@
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
+      "src/magic-saas/pages/saas/SmsAdmin.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Purchases.tsx",
@@ -5219,6 +5890,8 @@
       "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/vendor/VendorDirectory.tsx",
       "src/components/vendor/VendorMemoPickerDialog.tsx",
+      "src/magic-saas/components/saas/GlobalSearch.tsx",
+      "src/magic-saas/components/saas/SaasBits.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
       "src/pages/GlobalSearch.tsx",
@@ -5249,11 +5922,14 @@
     "Send": [
       "src/components/parties/PartyDetail.tsx",
       "src/components/parties/PartyDetailResponsive.tsx",
+      "src/magic-saas/pages/saas/admin/Announcements.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Warranty.tsx"
     ],
     "Settings": [
       "src/components/layout/TopBar.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "src/magic-saas/pages/saas/customers/Businesses.tsx",
       "src/navigation/erpNavigation.ts",
       "src/pages/Finance.tsx",
       "src/saas/SaasShell.tsx"
@@ -5270,6 +5946,9 @@
     ],
     "ShieldCheck": [
       "src/features/auth/AuthFlowPage.tsx",
+      "src/magic-saas/components/saas/CheckoutDialog.tsx",
+      "src/magic-saas/pages/saas/Payments.tsx",
+      "src/magic-saas/pages/saas/revenue/Invoices.tsx",
       "src/navigation/erpNavigation.ts",
       "src/pages/AuditLedger.tsx",
       "src/pages/Sales.tsx",
@@ -5289,6 +5968,7 @@
       "src/components/brand/BrandHero.tsx",
       "src/components/brand/PrimitivesSection.tsx",
       "src/components/dashboard/MetricCard.tsx",
+      "src/magic-saas/pages/saas/TenantWorkspace.tsx",
       "src/navigation/erpNavigation.ts",
       "src/reports/magicpatterns/components/reports/premium/BuyingReport.tsx",
       "src/settings/SettingsDirectory.tsx",
@@ -5337,11 +6017,16 @@
       "src/settings/magic/security/SessionsPage.tsx"
     ],
     "Tag": [
-      "src/components/products/ProductInventoryDialogs.tsx"
+      "src/components/products/ProductInventoryDialogs.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
     ],
     "Tags": [
       "src/components/products/ProductSettings.tsx",
       "src/pages/Products.tsx"
+    ],
+    "Timer": [
+      "src/magic-saas/components/saas/tenant/PlanUsageTab.tsx",
+      "src/magic-saas/pages/saas/revenue/Subscriptions.tsx"
     ],
     "Trash2": [
       "src/components/accounts/VoucherActionDialog.tsx",
@@ -5367,6 +6052,7 @@
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
       "src/components/vendor/VendorV2Cart.tsx",
+      "src/magic-saas/pages/saas/admin/Team.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
       "src/pages/Quotations.tsx",
@@ -5389,6 +6075,8 @@
       "src/settings/SettingsDirectory.tsx"
     ],
     "Undo2": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
+      "src/magic-saas/pages/saas/revenue/Subscriptions.tsx",
       "src/pages/Purchases.tsx",
       "src/pages/Reconciliation.tsx"
     ],
@@ -5409,6 +6097,8 @@
       "src/components/layout/TopBar.tsx"
     ],
     "UserCheck": [
+      "src/magic-saas/pages/saas/admin/Team.tsx",
+      "src/magic-saas/pages/saas/ops/DataRequests.tsx",
       "src/settings/magic/security/SessionsPage.tsx"
     ],
     "UserRound": [
@@ -5432,6 +6122,12 @@
       "src/settings/TenantSettingsPage.tsx",
       "src/settings/magic/security/SessionsPage.tsx",
       "src/settings/magic/settingsSections.ts"
+    ],
+    "UsersRound": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
+    ],
+    "UserX": [
+      "src/magic-saas/pages/saas/admin/Team.tsx"
     ],
     "Wallet": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -5457,6 +6153,7 @@
       "src/settings/magic/settingsSections.ts"
     ],
     "Wrench": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/pages/Warranty.tsx"
     ],
     "WrenchIcon": [
@@ -5479,6 +6176,9 @@
       "src/components/reports/ReportToolbar.tsx",
       "src/components/transactions/TransactionCartEditor.tsx",
       "src/components/vendor/VendorDirectory.tsx",
+      "src/magic-saas/components/saas/SaasBits.tsx",
+      "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
+      "src/magic-saas/prototype/Ui.tsx",
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
       "src/reports/magicpatterns/components/reports/premium/AdvisorReport.tsx",
@@ -5486,8 +6186,18 @@
       "src/settings/magic/invoice/Ui.tsx",
       "src/settings/ui.tsx"
     ],
+    "XCircle": [
+      "src/magic-saas/components/saas/billing/VerifyPaymentDialog.tsx",
+      "src/magic-saas/pages/saas/SmsAdmin.tsx",
+      "src/magic-saas/pages/saas/admin/Announcements.tsx",
+      "src/magic-saas/pages/saas/ops/DataRequests.tsx",
+      "src/magic-saas/pages/saas/revenue/Subscriptions.tsx"
+    ],
     "XIcon": [
       "src/components/SearchSelect.tsx"
+    ],
+    "Zap": [
+      "src/magic-saas/pages/saas/Payments.tsx"
     ]
   }
 }

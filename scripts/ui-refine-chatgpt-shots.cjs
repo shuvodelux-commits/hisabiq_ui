@@ -64,7 +64,7 @@ function test(){
     '#/app/purchases','#/app/purchases/new','#/app/expenses',
     '#/app/audit-ledger','#/app/parties','#/app/daybook','#/app/reports',
     '#/app/settings/business','#/app/support/ticket-1',
-    '#/saas/overview','#/saas/plans','#/saas/invoices/record-1',
+    '#/saas/home','#/saas/plans','#/saas/tenants/sample-business',
     '#/saas/tenants','#/login','#/signup','#/design-system'];
   for(const x of good)assert.equal(routeFromBody('UI-REFINE-ROUTE: '+x,file),x);
   for(const x of ['#/app/does-not-exist','#/saas/missing','#/app/../../etc',
