@@ -77,7 +77,7 @@ export function LiveSettingsSection({
         return;
       }
     }
-    const result = save(section, draft as SettingsSections[LiveSection], revision);
+    const result = save(section, draft as unknown as SettingsSections[LiveSection], revision);
     if (!result.ok) {
       setError(result.error ?? 'Could not save business settings.');
       return;
