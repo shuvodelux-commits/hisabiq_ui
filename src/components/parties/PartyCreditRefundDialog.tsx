@@ -1,3 +1,5 @@
+import {financeLabel} from '../../i18n/financeCopy';
+import {usePartyDialogError} from './usePartyDialogError';
 import { useEffect, useState } from 'react';
 import { ArrowLeftRight, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../Dialog';
@@ -24,9 +26,9 @@ export function PartyCreditRefundDialog({open,party,relationship,sources,onClose
   const [reason,setReason]=useState('');
   const [splits,setSplits]=useState<FinancePaymentDraft[]>([{id:'refund-1',method:'Cash',accountId:'acc-cash',amount:''}]);
   const [review,setReview]=useState(false);
-  const [error,setError]=useState('');
+  const {error,setError,inputErrorProps,errorSummaryProps}=usePartyDialogError();
   useEffect(()=>{if(open){setDate(businessToday());setValue('');setReason('');setReview(false);setError('');
-    setSplits([{id:'refund-1',method:'Cash',accountId:'acc-cash',amount:''}]);}},[open,party.id,relationship]);
+    setSplits([{id:'refund-1',method:'Cash',accountId:'acc-cash',amount:''}]);}},[open,party.id,relationship,setError]);
   let available=0,unknown=0,advance=0,returned=0;
   try{
     const state=relationship==='Customer'?customerSettlementAsOf(sources,party.id,date):supplierSettlementAsOf(sources,party.id,date);
@@ -42,11 +44,11 @@ export function PartyCreditRefundDialog({open,party,relationship,sources,onClose
       amount:row.amount.trim()===''&&splits.length===1?amount:Number(row.amount)}));
     const payload:PartyRefundPayload={partyId:party.id,relationship,date,amount,reason:reason.trim(),splits:rows};
     if(!review){
-      if(!Number.isFinite(amount)||amount<=0||amount>available){setError(text('Refund amount must be positive and cannot exceed verified available credit on this date.','ফেরতের টাকা শূন্যের বেশি এবং এই তারিখের যাচাইকৃত অগ্রিমের মধ্যে থাকতে হবে।'));return;}
-      if(!reason.trim()){setError(text('Enter a refund reason.','ফেরতের কারণ লিখুন।'));return;}
+      if(!Number.isFinite(amount)||amount<=0||amount>available){setError(text('Refund amount must be positive and cannot exceed verified available credit on this date.','ফেরতের টাকা শূন্যের বেশি এবং এই তারিখের যাচাইকৃত অগ্রিমের মধ্যে থাকতে হবে।'),'amount');return;}
+      if(!reason.trim()){setError(text('Enter a refund reason.','ফেরতের কারণ লিখুন।'),'reason');return;}
       if(rows.some(r=>!Number.isFinite(r.amount)||r.amount<=0)
         ||Math.abs(rows.reduce((sum,row)=>sum+row.amount,0)-amount)>0.001){
-        setError(text('Select active money accounts and match the refund total.','চালু টাকার হিসাব বাছুন এবং সব টাকার যোগফল মিলিয়ে নিন।'));return;
+        setError(text('Select active money accounts and match the refund total.','চালু টাকার হিসাব বাছুন এবং সব টাকার যোগফল মিলিয়ে নিন।'),'splits');return;
       }
       setReview(true);return;
     }
@@ -58,7 +60,7 @@ export function PartyCreditRefundDialog({open,party,relationship,sources,onClose
         <DialogTitle>{text(title,refundToCustomer?'ক্রেতাকে অগ্রিম ফেরত':'সরবরাহকারীর কাছ থেকে অগ্রিম ফেরত নিন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">ক্রেডিট ফেরত</span>}</DialogTitle>
         <DialogDescription>{text('Credit availability is recalculated for the selected business date. Refunds only use verified money or return credit.','বাছা তারিখের অগ্রিম আবার হিসাব হবে। শুধু যাচাই করা টাকা বা ফেরতের অগ্রিম ফেরত দেওয়া যাবে।')}</DialogDescription>
       </DialogHeader>
-      <div className="space-y-4 text-sm">
+      <div className="min-w-0 space-y-4 text-sm">
         <div className="rounded-lg bg-ink-50 p-3">
           <p className="text-sm font-semibold">{party.name} · {text(relationship,relationship==='Customer'?'ক্রেতা':'সরবরাহকারী')}</p>
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -68,13 +70,13 @@ export function PartyCreditRefundDialog({open,party,relationship,sources,onClose
             <div><p className="text-[11px] text-ink-500">{text('Unverified (blocked)','যাচাই হয়নি (বন্ধ)')}</p><strong>{taka(unknown)}</strong></div>
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 [&>*]:min-w-0">
           <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Refund date','ফেরতের তারিখ')}
             <AppDatePicker label={text("Refund date","ফেরতের তারিখ")} value={date} onChange={v=>{setDate(v);setReview(false);}}/>
           </label>
           <label className="space-y-1 text-xs font-medium text-ink-700" >{text('Amount','টাকা')}
             <div className="flex gap-1">
-              <Input aria-label={text("Credit refund amount","ফেরতের টাকা")} inputMode="decimal" value={value} onChange={e=>{
+              <Input {...inputErrorProps('amount')} aria-label={text("Credit refund amount","ফেরতের টাকা")} inputMode="decimal" value={value} onChange={e=>{
                 setValue(e.target.value);setReview(false);
                 if(splits.length===1)setSplits(current=>current.map(row=>({...row,amount:e.target.value})));
               }} placeholder="0.00"/>
@@ -84,18 +86,19 @@ export function PartyCreditRefundDialog({open,party,relationship,sources,onClose
           </label>
         </div>
         <label className="block space-y-1 text-xs font-medium text-ink-700" >{text('Reason (required)','কারণ (আবশ্যক)')}
-          <Input aria-label={text("Credit refund reason","ফেরতের কারণ")} value={reason} onChange={e=>{setReason(e.target.value);setReview(false);}}
+          <Input {...inputErrorProps('reason')} aria-label={text("Credit refund reason","ফেরতের কারণ")} value={reason} onChange={e=>{setReason(e.target.value);setReview(false);}}
             placeholder={text("e.g. Returned unspent advance","যেমন: অব্যবহৃত অগ্রিম ফেরত")}/>
         </label>
-        <FinancePaymentSplitEditor accounts={financeAccounts} rows={splits} onChange={v=>{setSplits(v);setReview(false);}} totalAmount={amount}/>
+        <FinancePaymentSplitEditor amountInputProps={(row,index)=>({...inputErrorProps('splits',index),
+          'aria-label':text(`Payment source ${index+1} amount`,`টাকার মাধ্যম ${index+1}-এর পরিমাণ`)+' · '+financeLabel(language,row.method)})} accounts={financeAccounts} rows={splits} onChange={v=>{setSplits(v);setReview(false);}} totalAmount={amount}/>
         <p className="text-xs text-ink-500">{refundToCustomer?text('Cash goes out of your business.','ব্যবসা থেকে টাকা যাবে।'):text('Cash comes into your business.','ব্যবসায় টাকা আসবে।')} {text('This is a preview record only, not a real bank posting.','শুধু নমুনা রেকর্ড; ব্যাংকে আসল লেনদেন নয়।')}</p>
         {review&&<div role="status" className="rounded-lg border border-teal-300 bg-teal-50 p-3 text-xs text-teal-800">
           <p className="font-semibold">{text('Confirm the refund','ফেরতের হিসাব নিশ্চিত করুন')}</p>
           <p>{text(title,refundToCustomer?'ক্রেতাকে অগ্রিম ফেরত':'সরবরাহকারী থেকে ফেরত')} · {date} · {taka(amount)} · {text('Credit remaining','বাকি অগ্রিম')} {taka(available-amount)}</p>
           <AmountInWordsDisplay amount={amount} />
         </div>}
-        {!!error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
-        <div className="flex justify-end gap-2">
+        {!!error&&<p {...errorSummaryProps} role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
+        <div className="flex flex-wrap justify-end gap-2 [&>button]:max-w-full [&>button]:whitespace-normal">
           <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
           <Button disabled={!review&&available<=0} onClick={submit}>
             {review?<><Check className="size-4"/> {text('Confirm credit refund','ফেরত নিশ্চিত করুন')}</>:<><ArrowLeftRight className="size-4"/> {text('Review refund','ফেরত যাচাই করুন')}</>}

@@ -1,0 +1,1575 @@
+
+> magic-patterns-vite-template@0.0.1 test
+> node --experimental-strip-types --test tests/*.test.ts
+
+(node:41333) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ stable transfer IDs keep duplicate-name endpoints distinct (2.785681ms)
+✔ legacy name-only transfers resolve only while the endpoint is unique (0.364279ms)
+✔ stored IDs follow account rename without rewriting the historical transfer (0.27457ms)
+(node:41342) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/accountingProjection.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cash sale creates a balanced sale and COGS posting (1.562867ms)
+✔ credit sale splits paid money from customer due (6.912109ms)
+✔ customer payment reduces customer due without adding revenue (0.172841ms)
+✔ internal transfer stays balanced without income or expense (4.776865ms)
+✔ reports use transaction date while ledger may display created date (0.567615ms)
+✔ Accounts tabs have seven English-only labels, with Money Accounts second and Bank Entry contextual (41.255257ms)
+✔ only the navigation helper labels are removed, while the existing underline and selection remain (1.578559ms)
+✔ Bangla helper copy remains in the voucher content and financial cards (0.353279ms)
+✔ account, date range, search, Export and Print share a compact desktop toolbar row (1.472069ms)
+✔ closing balance and date mode are right-aligned in the ledger card header, not beside Export (9.789236ms)
+✔ smaller screens reflow filters and the header without clipping (0.237118ms)
+✔ compact layout preserves selection, search, date filters, balance calculation, export and print (0.273195ms)
+✔ Add Product retains required field markers and help behind compact tooltip controls (7.451115ms)
+✔ one minimal additional settings list contains all seven direct options and no nested disclosures (1.64533ms)
+✔ warranty, serial and expiry keep existing conditional controls and live validation (0.981339ms)
+✔ field tooltip remains keyboard interactive and outside the field label (0.478792ms)
+✔ seven settings are independently reachable; editing values is persistent (2.30969ms)
+✔ multi-unit retains editable 1 larger unit = quantity of smaller unit (0.657432ms)
+✔ screenshot layout: thin lines between settings only, no top divider, three equal brand/category/unit fields (2.19799ms)
+✔ amounts in words reuse prominent display across POS, purchase, Counter, Finance, parties and receipt (5.7191ms)
+✔ shared amount-in-words component has full-width readable wrapped Bangla in all variants (2.93753ms)
+✔ Fast Counter POS and Purchase use readable light words without changing Counter or receipt (0.858816ms)
+✔ all displayed money words across src go through the shared readable renderer (79.380951ms)
+(node:41425) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/review/auditBook.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ source-faithful ranked products, customers, suppliers, ordered items and expense categories (4.324608ms)
+✔ no invented profit for absent cost; cross-unit quantities stay uncombined (0.5572ms)
+✔ current dues list does not leak into historical month and transfer is separately classified (12.091067ms)
+✔ five A4 portrait print pages each include vector chart; escape source labels and disclose readiness (20.116834ms)
+✔ yearly sales trend is chronological and not a top-five-month ranking (0.839721ms)
+✔ walk-in invoices are not incorrectly ranked as a single named best customer (0.500902ms)
+(node:41432) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/auditDisplay.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ non-money quantities never display as taka (12.152661ms)
+✔ money fields retain the taka symbol and Bangladeshi grouping (0.356955ms)
+✔ payment change history shows account and amount for each split (0.222276ms)
+✔ missing values and unknown object values remain readable (0.205948ms)
+✔ field labels use plain English instead of internal names (0.217283ms)
+(node:41439) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/auditEngine.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ transaction date can change without changing immutable created date (3.363591ms)
+✔ changing customer moves due balance from old party to new party (0.374827ms)
+✔ changing payment account moves money effect between accounts (0.383023ms)
+✔ changing amount recalculates due and balanced accounting posting atomically (0.473227ms)
+✔ dependency validation blocks only invalid quantity while leaving other fields valid (0.392319ms)
+✔ financial changes require a reason but note-only edit does not (0.306167ms)
+✔ impact preview lists before-after changes and only relevant effects (0.49689ms)
+✔ delete blocks a source with dependent return and explains the blocker (0.376894ms)
+✔ delete undoes the complete source posting and retains immutable audit history (0.523929ms)
+✔ every Audit Ledger posting references a known accounting account (2.623652ms)
+(node:41446) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/quotationCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ quotation labels change for display only; original statuses remain persisted (6.245521ms)
+✔ quotation preview numbers and status remain unchanged under Bangla display labels (2.973919ms)
+✔ Phase 10 reuses original quotation domain and in-page print rather than new posting functions (0.741976ms)
+(node:41453) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorLedger.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 10 display labels do not change Vendor statement data or CSV export (1.003623ms)
+(node:41460) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/warrantyCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ warranty translation is display-only and retains every source status identifier (2.237623ms)
+✔ source-linked intake, case transitions and CSV remain unchanged (2.379867ms)
+(node:41467) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/onlineSalesCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all order and lead labels preserve source option values (1.359572ms)
+✔ the existing money, courier clearing, CRM and order snapshot do not mutate while translating (0.509348ms)
+✔ Phase 12 preserves shared POS cart, quotes and manual COD posting APIs (0.483728ms)
+(node:41474) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/fulfillmentCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ three fulfillment document identities and stored values remain stable in every language (0.857622ms)
+✔ all three customer-facing disclaimers explain these are preview documents, not posting (0.203095ms)
+✔ printing and translating do not mutate order/line quantities, price, amounts or courier clearing (1.050936ms)
+✔ the existing print scope, A4 CSS and fulfillment type conditions remain unchanged (0.295881ms)
+(node:41481) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/productsCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 14 catalog uses existing three language modes without translating stored values (1.160167ms)
+✔ Phase 14 only localizes Products catalogue presentation, never product source IDs or export columns (0.868621ms)
+✔ Products stock-value contract excludes virtual packages without changing ordinary stock valuation (0.272793ms)
+(node:41488) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/productFormsCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 15 Product Settings and Add/Edit locale labels retain machine values (1.761806ms)
+✔ enumeration dropdown keeps persisted IDs across English and Bangla (1.178122ms)
+✔ the full product editor uses the app language and source-safe reusable handlers (37.640949ms)
+(node:41495) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/productInventoryCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 16 inventory copy uses current language mode without translating stock source data (1.279525ms)
+✔ stock adjustments, reasons and offers keep stable source enums (1.192808ms)
+✔ inventory display localization does not touch stock allocation, totals, validation, serial or offer business rules (2.452663ms)
+(node:41502) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/salesCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 17 Sales uses existing English, English + Bangla and Bangla display modes (0.806893ms)
+✔ return reasons, settlements and filters preserve stored English domain IDs in Bangla (1.399787ms)
+✔ Sales localized presentation does not alter sales, payments, returns, cart or CSV source contract (1.615672ms)
+(node:41509) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/purchaseCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Phase 18 Purchases presents correct labels in three existing language modes (5.786417ms)
+✔ Refund and supplier-credit rendering preserves raw method and source amount (7.788146ms)
+✔ Purchase UI localization does not mutate domain filters, source guards or CSV export values (38.798138ms)
+(node:41519) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Expenses labels obey existing English, mixed and Bangla modes (1.548791ms)
+✔ Expense records, payment methods, filters and CSV machine headers retain original IDs and values (17.520091ms)
+(node:41526) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Party feedback uses current three language modes with preview limitation (1.141658ms)
+✔ Party presentation changes do not change relationship isolation, ledger dates, payments or financial source logic (0.61431ms)
+(node:41533) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Party Editor and Detail display copy respects English, bilingual and Bangla without altering stored data (3.404982ms)
+✔ Role label translation is presentation only; source enum and balance direction remain unchanged (0.514482ms)
+✔ Opening and Party Detail retain preview-only posting and source-linked correction boundaries (0.48751ms)
+✔ Party edit stays inside More actions and Add party uses primary styling on all devices (1.732016ms)
+(node:41540) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Financial validation errors use presentation-only Bangla mapping (1.718496ms)
+✔ Financial dialogs preserve fields, source-linked correction, separate party roles and preview-only payment (0.7167ms)
+✔ Party statement print translates source labels but retains CSV serializer and money/date values (0.38806ms)
+(node:41547) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Party relationship labels use the established display-only seven-role mapping (4.218417ms)
+✔ Import errors display native Bangla only in Bangla mode; CSV source validation is unchanged (0.95725ms)
+✔ Directory filters preserve keys; labels and badges follow three language modes (0.339463ms)
+✔ Party Excel chooser retains source relationship and bank safety constraints (0.457642ms)
+✔ Shared import stages use localized visual labels and stable import state identifiers (1.909204ms)
+✔ Upload and mapping preserve file reader, formats, field keys and column index values (0.439087ms)
+✔ Shared row review retains conversion, source references, skip/edit decisions and verified opening warnings (2.287115ms)
+✔ Finish remains in-memory only and error report stays machine-readable (0.670749ms)
+✔ Known importer validation messages have Bangla display equivalents (1.285743ms)
+✔ Only Bangla mode localizes source errors; unknown messages and data remain untouched (0.611532ms)
+✔ Import adapters, source verification and machine-readable error report remain unchanged (0.886795ms)
+✔ Party ledger translations preserve source names, row identity and accounting directions (2.806675ms)
+✔ Party ledger action menu translates labels without altering permissions or callbacks (1.25045ms)
+✔ Ledger dates, money, search/filter, source actions and printing remain delegated to existing components (0.751405ms)
+✔ Party ledger source badges and attachment controls retain real source actions (0.456643ms)
+✔ Party tabs and ledger controls follow compact reference styling while preserving handlers (4.02592ms)
+✔ Calendar languages do not modify source date preset keys or ISO storage (0.974641ms)
+✔ Calendar retains existing controls, keyboard navigation and commit rules (0.231318ms)
+✔ ERP HTML language follows existing personal preference and resets on unmount (0.938784ms)
+✔ Phase 28 runs all language modes, orientations and themes, collects actionable axe evidence (0.270147ms)
+✔ Counter localizes financial validation without renaming posting types (1.026665ms)
+✔ Purchase and Sales keep machine-stable payment methods and allocation IDs (0.569251ms)
+✔ Expense copy still discloses preview and requires correction reasons (0.418103ms)
+✔ print path uses an explicit language instead of a React context that is absent in static markup (2.42237ms)
+✔ CSV export retains its original English columns and data contracts (2.117532ms)
+✔ printed source records retain preview warning and properly escaped values (1.151299ms)
+✔ audit print localizes presentation while audit CSV keeps its existing columns and records (1.755541ms)
+✔ accounting CSV sources, calculations, and posting identifiers are untouched (0.575074ms)
+✔ Party statement CSV still serializes unchanged financial values and ledger direction (0.400067ms)
+✔ Bangla strings never replace persisted filter or correction identifiers (0.479198ms)
+✔ Finance keeps money direction, account IDs and split arithmetic unchanged (1.111502ms)
+✔ Bank reconciliation keeps persisted match states and CSV schema (0.292093ms)
+✔ Party settlement and refund safeguards remain intact (0.314038ms)
+✔ New glossary is for presentation; all original model values are preserved (29.396485ms)
+✔ Cheque stored lifecycle enum and money clearance rules remain untouched (1.314936ms)
+✔ Cash variance remains counted minus expected, not an automatic entry (0.402711ms)
+✔ Finance transaction and account mutations preserve IDs, direction, and reversals (0.47237ms)
+✔ Isolated prints use existing preference; CSV/report infrastructure remains unchanged (0.652481ms)
+✔ Phase 7 translates only cash drawer presentation and not cash session records (1.294209ms)
+✔ An empty count is not shown as a counted or reconciled amount (0.739564ms)
+✔ Shared shell uses existing language preference and preserves global search and navigation actions (1.955543ms)
+✔ Language changes display only, never theme values or sample notification identifiers (0.554641ms)
+✔ Shared shell has Bangla-accessible labels without altering calculator math (0.749761ms)
+(node:41683) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/notificationCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ SMS notification UI translations leave choice IDs and option values untouched (2.259042ms)
+✔ Changing UI language does not change persisted SMS language, template, safety or phone eligibility (1.623469ms)
+✔ Phase 9 workbench renders translated UI, never translates stored identifiers or SMS tokens (0.497739ms)
+(node:41690) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/productUnits.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Unit settings persist editable Bangla names without changing stable keys or English symbols (2.780298ms)
+✔ English, Bangla, bilingual and legacy quantities preserve quantities and safe fallback (1.593487ms)
+✔ captured unit names survive later edits without altering frozen invoice lines (0.473258ms)
+✔ actual invoice HTML renders Bangla unit quantities in A4 and thermal formats (1707.182315ms)
+(node:41708) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/bankEntry.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all seven bank entry categories are present with exact backend keys (1.820587ms)
+✔ fees and interest change bank balance with the correct sign (0.298675ms)
+✔ cash deposits and withdrawals have equal opposite cash movements (0.259531ms)
+✔ other adjustments honor explicit direction (0.175768ms)
+✔ manual cheque bounce is rejected to protect original party accounting (0.527528ms)
+✔ reject invalid amounts, future dates, backdates without reason and missing cash sessions (0.416178ms)
+✔ adjustment requires a reason and payload trims input (0.377455ms)
+✔ bank entry stays contextual to Money Accounts without changing the voucher overview (1.689791ms)
+(node:41715) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/bodyScrollLock.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ nested overlays keep body locked until the final modal, sheet or nav closes (4.401656ms)
+✔ scrollbar stability applies to all pages and all three overlay owners (3.195605ms)
+(node:41755) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleCart.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ demand adds together two packages and a normal pipe line rather than evaluating independently (39.690474ms)
+✔ two Sets multiply every recipe component without creating parent stock requests (0.466778ms)
+✔ stale or missing recipe, decimal Sets, missing stock component, nested bundles are blocked (0.739463ms)
+✔ expired lots and stock debt never overstate sellable component stock (0.608663ms)
+✔ preview allocation uses physical lots in stable order, never mutates lots, never invents missing serials (1.083878ms)
+✔ shortage allocation is all-or-nothing: no partial fake stock when a component is missing (0.762739ms)
+✔ legacy products with omitted kind behave as Stock, matching existing POS inventory (0.555002ms)
+(node:41773) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleDocuments.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ snapshot freezes chosen recipe and doubles component quantities for 2 Set (1.539333ms)
+✔ historical invoice snapshot contents do not drift when current products are renamed (0.445213ms)
+✔ invalid Set counts, foreign recipes, missing products and unknown costs do not fabricate history (0.504427ms)
+(node:41780) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleCart.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ component shortage is per parent+component and cannot be covered twice across mixed lines (13.972648ms)
+✔ Vendor pending price is preserved as null, not zero COGS or fabricated physical lots (0.445558ms)
+✔ Own Stock clamp uses whole Sets and reserves stock for all other cart lines (2.089733ms)
+✔ serial-required component uses selected physical serials and original lots, never guesses (0.703344ms)
+✔ the same serial cannot be reserved by two bundle lines or a normal POS line (0.229097ms)
+✔ expired serial lot, invalid source and serial shortage are never silently accepted (0.418045ms)
+✔ Own Stock clamp honors cart reservation order when two bundles share components (0.163988ms)
+(node:41787) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/productImportPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ quote → accepted order keeps whole Sets, parent agreed price, revision and recipe signature (12.581864ms)
+✔ editing an unsold recipe in place triggers mismatch even if revision remains 1 (0.814252ms)
+✔ stale accepted quote cannot silently create online order with changed components (34.219153ms)
+✔ fractional Sets and missing revision cannot be reviewed into accepted order (2.516634ms)
+(node:41794) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unsold recipe edits replace revision 1 in place instead of generating history (3.117146ms)
+✔ after a posted sale, the next edit creates a revision and protects the sold one (1.107633ms)
+✔ unsold package is deletable together with its unsold recipe, then SKU is reusable (0.59629ms)
+✔ ever sold package cannot be deleted even if sale is old or version is returned (0.811951ms)
+✔ a preview/draft never counts as a posted sale and invalid sale registration is atomic (1.695255ms)
+✔ replayed invoice cannot duplicate sale usage or silently change its historical version (0.58587ms)
+✔ saving with no changes makes no new version or catalog revision, even after a sale (0.500074ms)
+✔ stale open unsold editor is rejected instead of overwriting an in-place edit (0.691104ms)
+✔ unrelated stock catalog edits never erase the posted-sale lock (1.176399ms)
+(node:41801) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ saving a bundle publishes product and immutable revision in a single change with no inventory (7.129553ms)
+✔ editing an unsold recipe replaces revision 1 without creating historical versions (0.556203ms)
+✔ stale edit, duplicate SKU, kind conversion, and invalid draft are all-or-nothing (1.131924ms)
+✔ unrelated imports and stock corrections preserve historical bundle revisions (10.118588ms)
+✔ generic product upsert and inventory correction cannot overwrite bundle revisions or fake direct stock (0.589479ms)
+(node:41808) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ bundle pricing shows current lot purchase cost, POS retail sum, package profit, and margins (14.961836ms)
+✔ negative package profit shows a loss and missing lots remain an estimate not recorded actual cost (0.352813ms)
+✔ zero and invalid preview package price are explicitly invalid, not a fake profit (0.41839ms)
+✔ missing components are blocking and do not disappear from calculated totals (0.203459ms)
+(node:41815) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleProjection.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ availability is constrained by the scarcest stock component, not by package stock (2.842354ms)
+✔ expired FEFO lots are not sellable and missing components block bundle (0.876127ms)
+✔ serial-required component limits sellable sets to actual unsold available serials (0.415437ms)
+✔ inactive stock or invalid recipe is blocking rather than silently omitted (0.265034ms)
+(node:41822) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleReturn.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one returned Set derives component quantities from original sold recipe, not current catalog (4.046957ms)
+✔ reject decimal, zero, over-return and previously returned whole Sets (1.593292ms)
+✔ full-Set return with multiple original lots uses exact historical allocations, partial does not guess (0.341737ms)
+✔ unknown historical lots or vendor sourcing never fabricates restock movements (1.541292ms)
+✔ historical discount requires posted net parent allocation, never current price or component retail sum (0.631538ms)
+✔ duplicate historical serials, foreign serials and changed source identity block return (0.281935ms)
+✔ a series of partial returns allocates historical net pennies exactly once (0.247869ms)
+✔ duplicate historical child IDs cannot accidentally produce duplicate restoration candidates (0.123214ms)
+(node:41829) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/bundles/bundleValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ compound package quantity is exact in the original component base unit (1.587946ms)
+✔ a bundle requires at least two distinct active Stock components (0.64616ms)
+✔ strict quantities reject invalid notation, decimals beyond precision, and wrong units (0.627144ms)
+✔ serial-required component uses whole base-unit counts and rejects corrupted saved quantity (0.254855ms)
+✔ changing an alternate-unit factor requires fresh recipe validation, never silently changes old quantity (0.158603ms)
+✔ bundle parent keeps an independent price with no physical stock or alternate unit (1.363672ms)
+(node:41836) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/review/businessReview.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ monthly, yearly and 24 completed months honor calendar boundaries and source as-of (3.97049ms)
+✔ blank history is unknown, never fabricated zero or certified profit (0.921753ms)
+✔ recorded sales, returns, purchase, expenses and cash remain separate, not double counted (0.586316ms)
+✔ historical issue costs remain missing; no fallback to current product prices (0.189046ms)
+✔ as-of current stock and dues stay point-in-time and never sum across months (0.440756ms)
+✔ priorities identify a source-linked actionable due, stock warning, and expense (0.26053ms)
+✔ partial current month and completed-month distinct, no future fictional rows (0.394834ms)
+✔ unknown stock valuation invalidates total instead of suppressing incomplete products (0.172982ms)
+(node:41843) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/calculatorScratchpad.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Mohim expression precedence, grouping and unary operators (3.460987ms)
+✔ smart percent supports markup, discount and literal multiplication (0.527099ms)
+✔ invalid, unfinished or dangerous expressions never produce numeric totals (0.714545ms)
+✔ scratchpad adds only valid line results and formats Bangladesh grouping (18.53069ms)
+✔ stored line data tolerates corruption and enforces bounded inputs (14.399941ms)
+(node:41850) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cheque clearance requires one existing active bank identity (1.516686ms)
+(node:41857) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/chequeAccount.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cheque references follow account identity when a duplicate display name is renamed (1.334164ms)
+✔ legacy cheque name resolution rejects duplicate accounts until an ID is selected (0.205085ms)
+✔ deactivating one duplicate bank does not resolve an ambiguous legacy cheque (0.199189ms)
+✔ unique legacy names are upgraded on rename and inactive banks cannot clear (0.28818ms)
+✔ Cloudflare Tailwind content keeps the complete scan without concurrent source globs (166.724775ms)
+✔ Local development retains its file-scanning glob for HMR (49.60131ms)
+✔ Production NODE_ENV uses bounded scanning without CF_PAGES (167.256527ms)
+✔ npm build lifecycle uses bounded scanning without CF_PAGES (198.086915ms)
+(node:41899) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new regional tax and numbering settings migrate old saved snapshots without losing records (44.433147ms)
+✔ regional money formatting changes display only (24.413688ms)
+✔ VAT calculation is accurate for inclusive and exclusive examples without altering invoice records (3.235769ms)
+✔ document sequences are configurable per family, unique, and never allocated by preview (0.409551ms)
+✔ editing numbering remains an audited business settings save; issued labels are untouched (2.225109ms)
+✔ new policies are not writable by a cashier and old backups still parse (9.270485ms)
+✔ approved unit rows reuse searchable master-data and joined numeric primitives (1.169626ms)
+✔ joined inputs retain compact cart behavior and use shared search for product unit lists (0.306012ms)
+✔ universal control sizing keeps 36px form controls on every pointer device (1.878255ms)
+✔ Sales table ledger link explicitly keeps compact inline sizing and navigation (0.921689ms)
+✔ clear input remains a compact native button, not a primary action (0.375298ms)
+✔ Counter uses the Accounts BankEntryTab with a Counter-only presentation variant (1.570098ms)
+✔ Counter entry matches the native form and right-side Transaction summary architecture (0.34686ms)
+✔ Existing Counter actions, defaults, and payment transaction flows are preserved (0.23185ms)
+✔ Shared bank validation and read-only fallback remain active in both entry points (0.208637ms)
+(node:41927) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/dateRange.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer discount-only settlement closes due without moving cash or creating refundable credit (9.457849ms)
+✔ supplier cash and settlement independently reduce payable (1.558983ms)
+✔ discount must have a reason; over-settlement rejected atomically (1.728663ms)
+(node:41934) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/counterExpensePayment.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Counter expenses retain exact source IDs and do not guess MFS providers from display names (2.042358ms)
+✔ duplicate bank names and numbers keep distinct identities in expense sources (0.349175ms)
+✔ expense source save and metadata correction retain a generic MFS account and method (45.243713ms)
+(node:41941) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/financePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Counter opens the existing Finance transaction dialog rather than a second form (8.041569ms)
+✔ Counter and Finance navigation share a single subscribed finance preview state (0.581375ms)
+✔ Finance person uses the joined select-and-settings action; transaction payment sources cannot create accounts inline (0.760548ms)
+✔ new Finance transaction derives Amount and words from payment rows; opening balance remains editable (0.424384ms)
+(node:41986) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/amountInWords.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Bangladesh amount wording handles lakh, crore, decimal paisa and negative (38.974182ms)
+✔ oldest due allocation honors existing receipts, targeted invoice and opening balance (34.269346ms)
+✔ replayed credits do not double allocate and future invoice consumes advance (0.545098ms)
+(node:42038) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/currency.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ default taka formatting preserves paisa in positive and negative amounts (92.301726ms)
+✔ default taka formatting keeps whole taka compact with Bangladeshi grouping (2.915214ms)
+✔ explicit precision remains authoritative (0.393999ms)
+✔ bare money keeps paisa while generic counts retain their existing precision (0.626047ms)
+(node:42051) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/dateRange.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Bangladesh today uses Asia/Dhaka date rather than UTC date (86.413565ms)
+✔ date presets work for any date and month/year boundary (2.028393ms)
+✔ statement month, quarter and year presets are dynamic and calendar-aligned (0.40194ms)
+✔ expense report comparisons use ISO dates and reject invalid legacy labels (0.590021ms)
+(node:42058) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/daybook.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ filters a selected transaction date (3.228057ms)
+✔ filters an inclusive selected date range (11.712775ms)
+✔ cashflow summary uses actual movement and excludes internal transfers (0.434217ms)
+✔ fuzzy party discovery keeps Daybook date, type and account restrictions (3.930283ms)
+(node:42065) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/designGuide.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ visual guide retains the entire canonical document in copy/download (6.742205ms)
+✔ guide formatting preserves mixed-language text and structured table cells (1.539932ms)
+(node:42072) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ document consumers use canonical in-memory settings even when browser storage is unavailable (3.628658ms)
+(node:42079) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/reportOutput.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ report profile changes actual page orientation, safe branding and language without changing rows (4.131073ms)
+(node:42086) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/salesPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ draft recovery preserves identity, is retry-safe and never posts invoices (39.650685ms)
+✔ all ERP regular control sizes use canonical 36px token without touch inflation (2.271239ms)
+✔ Party responsive buttons use the same 36px height as ledger filters (0.6134ms)
+✔ Sales row filters, receipt actions and return editors use 36px (1.168544ms)
+✔ POS checkout and party selector use 36px without changing payment handlers (1.654854ms)
+✔ Product Add/Discard and cash-session form use 36px, retaining actions (0.437272ms)
+✔ Audit, vouchers, reconciliation and topbar use 36px for ordinary controls (0.579705ms)
+✔ Vendor workspace retains money work handlers but removes 44px buttons (0.684695ms)
+(node:42100) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/navigation/erpNavigation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ sidebar destinations match the complete module tab sequence (1.437876ms)
+✔ approved KISS hierarchy has only two levels, POS single click and Settings last (0.330595ms)
+✔ contextual destinations retain existing real routes and only canonical path templates (4.994134ms)
+✔ feature readiness and owner settings access gate links but not authorization (0.653349ms)
+(node:42107) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/notifications/erpNotificationRules.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all ERP-wide transaction SMS events default to OFF and consent on (1.689343ms)
+✔ rules do not pretend to send SMS when no gateway is connected (1.048639ms)
+✔ disabled due reminder, missing consent and invalid phone are blocked (2.065636ms)
+✔ Bangla notification switch uses Bangla default without discarding a custom template (0.439506ms)
+(node:42114) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/notifications/erpNotificationRules.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ERP-wide registry covers customer, service tailoring, supplier, borrower, lender, owner, warranty and courier (0.754005ms)
+✔ tailor Panjabi ready message interpolates item with Bangla translation (0.764252ms)
+✔ reminder timing, recipient and quiet hours configurable and validated (1.965008ms)
+✔ all native search-like ERP fields use the shared clear input or an intentional keyboard-safe clear action (22.718663ms)
+✔ shared Input keeps clear button and numeric input modes separate (0.252459ms)
+(node:42128) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/expensePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ expense source correction retains identity, records before/after and requires a reason (23.644353ms)
+✔ invalid money/date/split rejects atomically without changing preview state (2.625619ms)
+✔ receipt changes and cancellation preserve source history; cancelled expense cannot change again (0.612957ms)
+✔ joined amount/unit field has one shared height and opt-in outer-shell marker (0.762886ms)
+✔ joined inputs preserve internal sizing without pushing inner controls outside (20.726689ms)
+✔ ERP inline controls preserve text alignment while aligning with neighboring fields (0.684584ms)
+(node:42142) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ finance account option labels identify duplicate names by masked account number or source ID (0.677257ms)
+(node:42149) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ only a single blank payment source uses the transaction fallback (1.474796ms)
+✔ malformed and nonfinite payment sources cannot be truncated or ignored (0.284655ms)
+✔ valid split sources retain exact amounts and must sum to the transaction (3.96982ms)
+✔ the existing inclusive 0.001 split tolerance remains unchanged (3.98631ms)
+✔ Finance total follows a single payment source without a second amount entry (0.861661ms)
+✔ Finance source total updates with split payments, edits and removal in exact paisa (1.488245ms)
+✔ malformed, nonfinite or sub-paisa payment drafts never create a calculated amount (0.360136ms)
+(node:42156) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/financeAccounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ finance person option labels retain phone details and disambiguate duplicate identities (1.550016ms)
+(node:42163) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/financeTransactions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ uncleared received cheque does not move bank balance (1.893196ms)
+✔ cleared received cheque moves money in once (0.197372ms)
+✔ cleared issued cheque moves money out (0.210515ms)
+(node:42171) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/financial-display/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cash presets never apply to revenue, liabilities or noncash assets (0.99283ms)
+(node:42178) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/financial-display/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ shared financial copy changes only whole semantic labels in the selected context (4.801749ms)
+✔ cash movement preset preserves cash debit as money in and credit as money out (4.216226ms)
+✔ context previews distinguish cash, customer receivable and supplier payable (0.890861ms)
+✔ receivable/payable labels reach exact relationship captions without replacing user descriptions (0.218039ms)
+(node:42185) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/quotations/quotePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ accepted quote locks quoted prices, units and discount in linked online order (8.451501ms)
+✔ unaccepted quotations cannot be converted; POS requires confirmed order and original products (5.93061ms)
+(node:42192) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/fuzzySearch.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ typos, adjacent swaps and token order work across searchable fields (3.361268ms)
+✔ numeric codes and mixed identifiers tolerate no digit edits (0.428969ms)
+✔ ranking favors exact names and keeps original record identities and tie order (1.256918ms)
+✔ an exact SKU or reference outranks a name prefix, including longer queries (0.293791ms)
+(node:42199) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/globalSearch.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ global search matches Bangla names and digits, English case and all words (4.51567ms)
+✔ empty search offers modules and preserves exact source destinations (0.259713ms)
+✔ Default supports word-prefix typos; Advanced also includes partial words (1.551105ms)
+✔ fuzzy defaults correct word typos while Advanced still requires exact numeric tokens (0.176897ms)
+✔ global exact SKU has priority even when its display helper also contains Bangla text (0.326088ms)
+(node:42206) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/import/fileReader.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CSV retains Bangla and leading zeros in SKU and phone (2.24351ms)
+✔ quoted CSV embedded newlines preserve original physical row numbers (0.443068ms)
+✔ malformed CSV and row overflows fail instead of truncating data (9.020854ms)
+✔ CSV file reader rejects old Excel, macros and non-CSV extensions (3.629827ms)
+✔ XLSX preflight rejects malformed ZIP before any cell is read (0.390275ms)
+(node:42213) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/import/fieldSchemas.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ product headers recognize Bangla name and English SKU / selling price (1.808237ms)
+✔ customer and supplier schemas have independently dated opening balances (0.28574ms)
+✔ duplicate alias headings are ambiguous and not silently picked (1.038128ms)
+✔ column mapper rejects one source column mapped to multiple target fields (0.564064ms)
+✔ original row numbers and raw source values survive mapped staging (0.844637ms)
+✔ unmapped required headings fail instead of inventing a product name (0.31526ms)
+✔ blank required values become review errors and can be corrected without changing originals (0.308998ms)
+(node:42220) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/import/importTemplates.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ product template includes unit factor, price entry unit and opening lot data (1.881012ms)
+✔ Customer/Supplier templates keep full phone and opposite opening directions (0.551017ms)
+✔ CSV error report neutralizes spreadsheet formula fields (0.38788ms)
+✔ XLSX template returns a real ZIP workbook Blob (274.59291ms)
+(node:42227) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/import/safeXlsx.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ known minimal XLSX ZIP passes structure preflight without executing cells (5.389663ms)
+✔ formula with a cached numeric value is rejected (3.507384ms)
+✔ XML formula using a namespace prefix is rejected (0.79507ms)
+✔ remote links, macros and decompression-bomb workbooks are rejected (117.752413ms)
+✔ HisabIQ generated Excel template passes XLSX safety check (161.196078ms)
+(node:42234) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two historical partial returns reconcile exactly to original parent net value (198.460054ms)
+✔ bundle return uses original parent Set value and requires frozen source recipe (13.152786ms)
+✔ paid receipts and larger return leave explicit surplus, not negative due or cash movement (1.601843ms)
+✔ settlement cannot create an unsupported negative due or unreasoned credit (14.905902ms)
+✔ unknown historical source, stale revision and missing actor create no events (2.206732ms)
+✔ agreement preview uses existing HisabIQ data layout and truthful posting disclaimer (0.860244ms)
+✔ agreement details display source-derived paid, due, overdue and receipt history (1.010561ms)
+✔ closed history must not redirect a new sale receipt to a previously opened agreement (0.205051ms)
+(node:42302) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial collection keeps down payment separate and allocates oldest unpaid first (13.373599ms)
+✔ overdue due today upcoming and paid are distinct on business calendar dates (0.431338ms)
+✔ early payment may reach future installments but never another agreement (1.492501ms)
+✔ repeated over-allocation and duplicate receipt ids cannot hide negative outstanding (2.02256ms)
+✔ invalid allocation sums and invalid business dates reject without mutation (1.02127ms)
+✔ installment breakdown reuses HisabIQ dialog, calendar, numeric inputs (4.550033ms)
+✔ draft breakdown edits are local and balanced on apply (0.556271ms)
+(node:42316) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ valid six-installment sale passes draft validation (4.088299ms)
+✔ requires durable customer reference for installment due (0.431724ms)
+✔ rejects invalid price, full payment, or too large down payment (0.34897ms)
+✔ does not silently rewrite a manually edited installment schedule (0.208357ms)
+✔ rejects schedule with duplicate due date or negative amounts (31.987125ms)
+(node:42323) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/historicalLines.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ sold base quantities for whole Pcs, compound Box+Pcs and service are frozen (4.050416ms)
+✔ whole Set parent stores immutable sale-time component recipe not current product recipe (0.614165ms)
+✔ old agreements with no historical evidence block returns, never consult product master (3.914956ms)
+✔ reject missing bundle recipe, impossible positive quantities and mismatched source identity (1.290906ms)
+(node:42330) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ reduction larger than remaining shows surplus separately, not negative customer due (28.238774ms)
+✔ a paid installment and partial payment remain anchored through rescheduling (1.237701ms)
+✔ as-of replay excludes receipts and lifecycle events not yet effective (2.012797ms)
+✔ foreign or duplicate lifecycle sources rejected without mutating original invoice (1.129075ms)
+(node:42337) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ collect after authorized settlement using current reduced agreement only (19.650652ms)
+✔ after partial payment and reschedule, allocation targets linked successor row, not obsolete row (2.616994ms)
+✔ overpayment and unknown successor ID are rejected without mutating receipts (1.921259ms)
+(node:42344) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ stores one immutable-preview snapshot with six scheduled future payments (3.571407ms)
+✔ same operation and snapshot is idempotent, but changed source is rejected (1.358101ms)
+✔ rejects mismatched totals, missing customer and duplicate price line identity (0.867734ms)
+✔ advanced price adjustment is opt-in and edits the original cart price via parent callback (1.834473ms)
+(node:42358) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/pricing.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ convert taka text to integer paisa without allowing rounding or unsafe amounts (1.806585ms)
+✔ no duration preset uses regular price, while matching preset is only a suggestion (0.353972ms)
+✔ direct total or fixed/percentage negotiation reaches same price without compounding (0.654726ms)
+✔ one product receives exact price with no allocation UI; zero lines remain zero (1.734139ms)
+✔ multiple product lines allocate proportionally, deterministically and without fractional paisa (0.7573ms)
+✔ reject impossible allocations and duplicate keys (0.51386ms)
+(node:42365) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/printLifecycle.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ printable audit includes source invoice, schedule, totals, reason and conspicuous PREVIEW notice (44.755146ms)
+✔ unsafe customer text is escaped in printed markup (1.50232ms)
+(node:42372) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ reversal retains original source receipt and restores exact scheduled outstanding (28.909104ms)
+✔ duplicate reversal cannot create another event, identical operation is idempotent (2.621961ms)
+✔ foreign receipt, actor/reason and stale revision rejected with zero event mutation (1.898918ms)
+✔ reversing receipt after subsequent settlement requires review, not a silent edit (2.333836ms)
+(node:42379) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial receipt is idempotent and receipt details are immutable snapshots (25.7276ms)
+✔ receipt cannot exceed agreement or use nonexisting installment, wrong split amount (2.197379ms)
+✔ inactive/wrong cash or MFS account and future date are rejected before record mutation (2.299015ms)
+✔ sequential receipts allocate only unpaid agreement rows without double posting (39.169562ms)
+✔ Cash, Bank and MFS split receipt is source-validated without changing finance or Party ledgers (1.532739ms)
+(node:42386) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/installments/schedule.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ single product six monthly installments start next month and sum precisely (3.49473ms)
+✔ paisa remainder is deterministic on final installment (0.289771ms)
+✔ monthly anchor clamped without permanent drift after February (0.179205ms)
+✔ weekly recurrence uses calendar days without timezone midnight drift (0.181467ms)
+✔ manual amount/date edits preserved when other rows rebalanced (0.561666ms)
+✔ edited amounts exceeding target or fully locked imbalance cause clear error (0.599438ms)
+✔ reject zero count, duplicate/invalid dates and nonpositive payment amounts (1.538637ms)
+(node:42393) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/installmentPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial paid row remains anchored while its unpaid 300000 paisa goes into successor (20.618414ms)
+✔ stale versions, duplicate row id and edited locked paid row reject atomically (2.723261ms)
+✔ date, actor, reason and exact unpaid amount are mandatory (34.095053ms)
+✔ a revised operation id cannot silently overwrite original audit evidence (1.090704ms)
+✔ terms panel reuses shared controls and derives numbers from checkout totals (0.875969ms)
+(node:42407) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/auditEngine.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ partial sale, later payment, corrections and safe delete stay consistent end to end (3.873844ms)
+(node:42414) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/documents/profile.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ full English amount words retain taka, paisa, signs and Bangladesh grouping (1.191057ms)
+✔ all invoice templates render single-language output or actual secondary Bangla helpers (914.224094ms)
+(node:42433) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/documents/profile.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Business Pad offset is applied to document once, never to both wrapper and document (0.658413ms)
+(node:42440) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/sales.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ invoice display revision preserves financial source, original snapshot and audit (5.091966ms)
+(node:42447) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/documents/profile.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ designed invoice preserves payment accounts, change, warranty terms and price-free package contents (1492.097846ms)
+(node:42466) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/lotSellingPrice.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ opening stock always inherits product default, regardless of a stale lot price (7.25338ms)
+✔ purchase lot price is optional, and does not mutate the master selling price (0.206842ms)
+✔ product-level override wins without deleting existing lot prices (0.120277ms)
+✔ POS chooses allocated lot price; a mixed-price line is explicitly flagged (17.992612ms)
+✔ multi-unit prices stay custom when a purchase lot inherits product default (0.225763ms)
+(node:42473) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/multiUnitTransactions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mixed POS quantities compute true base stock and independent unit prices (5.805183ms)
+✔ mixed purchase quantities use individual purchase prices and blended stock lot cost (0.764351ms)
+✔ posted unit snapshot retains accounting despite later catalog price changes (0.254178ms)
+✔ reject invalid quantities and non-configured units before checkout (3.427175ms)
+✔ mobile decimal typing remains calculable while money payments stay in paisa (0.435629ms)
+✔ temporary invalid POS price cannot crash the live cart and is rejected at checkout (0.431396ms)
+✔ module Settings is provided through the shared toolbar rather than a standalone header row (1.410917ms)
+✔ regular module headers default to Settings before existing actions (4.220264ms)
+✔ Daybook places existing module Settings after Print in the compact action row (0.393047ms)
+✔ POS keeps its original custom header and displays the same Settings control inline (3.529857ms)
+(node:42487) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/moduleUiActions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ received cheque lifecycle exposes deposit and settlement states (1.441564ms)
+✔ issued cheque lifecycle exposes presented, cleared and stop states (0.193157ms)
+✔ daybook duplicate is limited to source-owned reusable transactions (0.13915ms)
+✔ manual accounting sources are owned by Accounts (0.132507ms)
+✔ opening balance lines stay balanced against opening equity (0.169481ms)
+✔ audit delete preview is contextual rather than a generic checklist (0.11489ms)
+(node:42494) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/moduleViews.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ personal module choices override business defaults while essential identity/totals remain (1.394355ms)
+✔ incomplete imported module preferences cannot crash a consuming table (0.242796ms)
+✔ existing browser preference keys retain their source identities (0.157707ms)
+✔ every existing ERP tab strip uses the shared moving underline (3.921532ms)
+✔ tab indicator scopes layout identity and supports reduced motion (0.186323ms)
+✔ Online Sales uses the shared underline rather than a selected filled pill (0.561838ms)
+(node:42508) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/unitChain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ POS selected intermediary units calculate quantities and selling prices (18.387412ms)
+✔ purchase switching to an intermediary unit preserves lot quantity and base cost (0.878315ms)
+✔ legacy one-large-unit product keeps its configured selling-price override (0.141975ms)
+✔ a fixed-price offer in an intermediary unit is converted correctly (0.170486ms)
+(node:42549) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/numericStep.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ whole-unit steps preserve decimal precision without floating point drift (3.258998ms)
+✔ empty inputs, boundaries and invalid numbers remain safe (0.195848ms)
+✔ only complete zero values clear on focus; wheel gestures use one whole step (1.608452ms)
+(node:42563) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/onlineSales/onlineStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ COD, delivery-charge paid, partial advance, fully prepaid are calculated separately (8.141349ms)
+✔ fractional small-unit quantities round per line to paisa (0.208572ms)
+✔ reject underflow, overpayment, invalid phone and wrong payment mode without mutation (1.053867ms)
+✔ no cash or stock movement on order create, handover, tracking, delivery or payout preview (6.051597ms)
+✔ customer CRM can record follow-up without auto-creating order or Party (0.940709ms)
+(node:42572) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/partyActions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ sale edit is source-owned and permission gated, with verified POS route (1.746842ms)
+✔ purchase without verified deep-link never offers a fake source navigation (0.357829ms)
+✔ reversed, missing source id, opening and note are mutation constrained (1.008795ms)
+✔ customer refund permission follows customer payments, finance has its own permissions (0.285406ms)
+✔ supplier refund actions are purchase-owned and credit application is read-only (1.273242ms)
+(node:42579) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ owner investment and withdrawal change capital without affecting other roles (76.131152ms)
+✔ lender credit/debit are liability and borrower debit/credit are loan receivable (10.023062ms)
+✔ opening capital and loans change relation only, not cash/bank (1.637348ms)
+✔ role mismatch and unsupported account splits do not change preview state (6.073177ms)
+✔ preview finance transactions reverse with audit, but original Finance source remains protected (2.270424ms)
+✔ explicit owner finance identity mapping never auto-matches lender or borrower by name (12.80346ms)
+(node:42586) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/parties.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ party drafts require a name and at least one distinct role (6.84643ms)
+✔ selected party and relationship are resolved together (0.43174ms)
+✔ directory search includes Bangla names, phone and area (4.669627ms)
+✔ legacy fixture dates normalize and financial references are not double counted (1.634563ms)
+✔ seeded invoices and purchases include their original paid amounts exactly once (0.726788ms)
+(node:42593) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/partyImport.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CSV import supports Bangla, quoted commas and multiple roles (4.438065ms)
+✔ invalid role, blank name and malicious formulas are rejected independently (0.467925ms)
+✔ malformed quotes or absent name header never import arbitrary rows (0.667923ms)
+(node:42600) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one revision and notification per batch with audited, unverified opening sources (38.334923ms)
+✔ same person can gain Customer and Supplier roles with independent opening directions (3.548391ms)
+✔ invalid late source rolls back parties, openings, audit and revisions (2.94238ms)
+✔ stale snapshot, preexisting opening, and unconfirmed phone collision are blocked (2.567968ms)
+✔ unverified Customer credit cannot fund a refund; Supplier Dr remains a separate advance (1.206188ms)
+(node:42607) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Customer Dr and Supplier Cr are independently planned, with no payment splits (20.392217ms)
+✔ numeric Excel phone is not reconstructed from a missing leading zero (6.413438ms)
+✔ strong Party ID and suggestive phone need explicit Add Role or Create separately (0.821904ms)
+✔ duplicate identity, unknown ID and existing relationship are not auto-imported (0.295826ms)
+✔ impossible dates, negative opening and missing direction are invalid (0.553986ms)
+(node:42623) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/partyLedger.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ date range statement includes opening, debit/credit and running balances (32.208591ms)
+✔ empty date period preserves opening and closing (0.181263ms)
+✔ all time resets opening; pagination does not recalculate row balance (0.264178ms)
+✔ correction and reversed rows are excluded and same date keeps source sequence (0.319307ms)
+✔ role selection cannot cross-net customer and supplier accounts (0.189942ms)
+✔ amounts use integer paisa and reject invalid/future dates (0.526858ms)
+✔ balance summary does not assume a negative net due is cash-backed refundable credit (6.569862ms)
+(node:42630) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/partyLedgerImpact.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ classifies cash flows by source, never by debit/credit column (1.242862ms)
+✔ opening, returns and notes are never mislabeled as cash transfer (11.438247ms)
+✔ finance role cash movement follows finance type not account-side debit sign (0.23107ms)
+✔ legacy unknown-source expenses are not asserted as cash payments (0.288011ms)
+(node:42638) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new party has one opening per relationship with independent debit and credit signs (67.350674ms)
+✔ updating opening preserves reversed source and auditable correction without bank splits (8.855619ms)
+✔ credit opening is unverified, not eligible for customer refund (1.224928ms)
+✔ zero amount clears opening while retaining an audit record (13.617076ms)
+✔ invalid parties, role, amount, date and chronology fail atomically (1.362166ms)
+(node:42657) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer multi-payment is one audited source and total splits match cash (42.230264ms)
+✔ invalid bank, wrong type, missing split, negative splits reject atomically (4.477416ms)
+✔ discount requires explanation, stays out of cash and does not increase refundable credit (1.610042ms)
+✔ purchase payments have supplier-side debit sign and strict party relation (6.119646ms)
+✔ counter preview accepts selected active finance accounts created in the current account list (0.942454ms)
+✔ payment targeting invoice must belong to party and not predate it (2.010663ms)
+(node:42664) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ create, update and multi-role selection are one atomic preview source (2.389751ms)
+✔ duplicate id and invalid edit leave revision and state unchanged (0.663698ms)
+✔ adding, editing and removing notes never changes monetary movements (24.273865ms)
+✔ subscribers get one notification per valid state change (1.029132ms)
+✔ financially linked parties cannot be deactivated (0.786178ms)
+✔ notes belong to the selected relationship, never the first role by accident (0.650353ms)
+(node:42671) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Quick Add merges all selected relationships without changing profile or historical sources (4.1806ms)
+✔ Quick Add retains existing opening balances and can open only a new relationship (57.15213ms)
+✔ Quick Add refuses inactive and ambiguous exact identities without changing state (1.01885ms)
+✔ same names with different phones stay separate and new profiles retain their entered fields (0.634346ms)
+(node:42678) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer cash-backed credit can be refunded only once and only as of funding date (90.257363ms)
+✔ supplier advance refund records incoming cash/credit, not customer debit (4.626296ms)
+(node:42720) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/partySettlement.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ customer 100 invoice, cash receipt 130 creates 30 refundable verified advance (36.987466ms)
+✔ future invoice automatically consumes prior valid credit oldest-first (0.387461ms)
+✔ return credit becomes eligible only when the return exists at requested date (0.95147ms)
+✔ discount never turns into cash-backed advance and requires due (0.494092ms)
+✔ unproven legacy payment still settles due but cannot authorize refund (0.365922ms)
+✔ source ids are deduplicated and deterministic same-day sequence wins (0.26786ms)
+✔ supplier liabilities have reversed signs; paid advance is refundable on supplier role only (0.456972ms)
+✔ refunded credit cannot be refunded twice or move back in time (7.966337ms)
+✔ Party summary uses real cash-backed credit, not negative Party.balance (31.718094ms)
+✔ ERP-wide button polish retains existing component events and variants (2.451621ms)
+✔ Ledger closing balances provide contextual meanings without modifying ledger numbers (0.745833ms)
+✔ Invoice/source quick previews use real store records with safe missing-source fallback (3.275159ms)
+✔ Attachment quick preview offers image/PDF rendering and safe file URLs (0.699703ms)
+✔ Ledger amount colors are neutral while semantic movement icons are colored on every viewport (0.417598ms)
+✔ Magic Patterns role action buttons preserve correct finance debit and credit transaction types (0.791648ms)
+✔ Vendor quick settlement embeds existing source-linked form and validates memo allocation (0.662261ms)
+✔ Shared ERP Dialog adopts precise Sabab 180ms entrance without changing existing form logic (0.509334ms)
+(node:42743) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/partyStatement.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ CSV includes full statement dates, opening, period and closing (0.98867ms)
+✔ CSV escapes spreadsheet formulas and embedded quotes (0.196399ms)
+✔ print rows preserve running balances and never create synthetic changes (0.676403ms)
+✔ supplier credit balances remain numeric negative amounts in exported CSV (0.195522ms)
+(node:42750) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/erpDemoStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ supplier quick-add is visible to both Purchase and Party directory through one identity (3.324747ms)
+(node:42757) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ payment source edit updates its original record once and writes an audit event (19.660816ms)
+✔ reversing preview payment preserves an audit record and blocks double reversal (4.860843ms)
+✔ credit refund dependency prevents erasing or reducing its funding payment (8.622599ms)
+✔ ledger preview never directly reverses original Sales invoice or legacy opening record (0.370846ms)
+(node:42764) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/permissions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Daybook edit and delete inherit source-module permissions (3.279178ms)
+✔ Audit correction and delete require both Audit Ledger and source permissions (0.341213ms)
+✔ opening-balance audit actions require Accounts permission and cannot borrow Finance permission (0.308065ms)
+✔ source groups map finance and accounting records to their owning modules (0.200749ms)
+✔ shared action availability keeps menus and detail dialogs on the same permission result (0.780904ms)
+✔ Party directory preserves selected ID and button keyboard activation while exposing option itself (1.795535ms)
+✔ Date display contributes to accessibility name without changing ISO values, commit or range calculations (0.427564ms)
+✔ Header includes visible user initials in the same accessible menu name (0.27209ms)
+✔ Only the Dashboard Recent Sales table gains a tab stop when horizontal scrolling is required (0.269046ms)
+(node:42778) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/posCheckoutValidation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ money rejects malformed prefixes and preserves valid paisa (0.831594ms)
+✔ checkout rejects invalid price, discount, payment and zero-quantity lines (0.472353ms)
+✔ customer credit needs an active Customer identity, available credit and remaining invoice value (0.31032ms)
+(node:42785) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/posQuantity.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ converts compound quantity to base units (0.71255ms)
+✔ calculates line total from the selected larger-unit price (0.266962ms)
+✔ formats a human-readable compound quantity (0.216728ms)
+✔ normalizes an overflowing smaller-unit quantity (0.818968ms)
+✔ parses compound historical sale quantities (0.498276ms)
+(node:42792) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/posStock.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ uses normal product stock for ordinary shortage checks (1.215359ms)
+✔ uses sellable lots for expiry-tracked stock (0.572541ms)
+✔ converts clamped stock back into the existing compound cart fields (0.977951ms)
+✔ blends own-stock and vendor cost (0.255203ms)
+(node:42799) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/productEntry.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ converts a selling price entered in the larger unit to the base unit price (1.059943ms)
+✔ converts opening and minimum stock entered in a larger unit to base quantity (0.189427ms)
+✔ opening stock joined unit switch preserves the base inventory quantity (0.235916ms)
+✔ minimum stock quantity switch handles fractional large units without changing thresholds (0.231184ms)
+✔ empty stock fields remain empty when switching display units (0.238216ms)
+(node:42806) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/productFeatures.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normalizes pasted serials and finds duplicates case-insensitively (4.322484ms)
+✔ required serial tracking uses base-unit item count only (0.497848ms)
+✔ creates immutable warranty snapshot fields (0.495986ms)
+✔ validates offer overlap and effective price (0.760173ms)
+✔ expiry breakdown excludes expired stock and FEFO sorts earliest expiry first (55.534416ms)
+✔ offers may be free but may not make the selected price unit negative (0.215236ms)
+(node:42814) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ new products use tenant defaults with optional multi-unit setup off (2.123737ms)
+✔ four-level form saves the existing cart model with normalized stock, prices and explicit overrides (3.193816ms)
+✔ switching units and removing a selected middle level retains physical value (1.057045ms)
+✔ invalid ratios, duplicates, custom prices and measurement serials reveal the correct section (0.89121ms)
+✔ edit/reopen preserves all legacy and chain prices, active state and stock; unit migration is blocked (1.763185ms)
+✔ edit product toggles normal price override without changing units or historical lots (0.668019ms)
+✔ opening serial and expiry checks retain metadata; services never create stock (0.404257ms)
+✔ contextual creation retains opening-lot serial/expiry evidence and does not duplicate it on retry (139.172078ms)
+✔ save and reopen keeps the whole photo gallery and supports legacy cover-only products (2.28122ms)
+✔ stock needs unit, category and explicitly entered cost, but zero-cost freebies and blank service cost are allowed (0.337073ms)
+(node:42831) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/import/productImport.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two Box opening stock becomes 20 Pcs and creates one matching dated lot/movement (2.61358ms)
+✔ Gauge/Gira conversion retains explicit Gauge price and required serial tracking (0.712807ms)
+✔ bad conversion, invalid date, missing serials and service stock are rejected (1.244608ms)
+✔ existing and intra-file duplicate SKUs default to skip; explicit update does not add stock (1.074719ms)
+✔ bad second row produces errors and cannot make the batch ready (0.254374ms)
+(node:42838) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/import/productImport.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one revision/notification for two products, lots, and movements; session replay no duplicates (3.009866ms)
+✔ late invalid lot and duplicate SKU fail without partial changes (0.964998ms)
+✔ stale revision and planner validation errors reject without state change (0.642528ms)
+(node:42846) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/productMasterEdit.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ renaming a category trims whitespace and rejects duplicate or empty labels (29.935426ms)
+✔ editing unit symbols preserves stable stock and invoice unit keys (1.869437ms)
+(node:42859) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/erpDemoStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ classification edits update selectors and current products, retaining metadata and inventory (2.582595ms)
+✔ unit display edits retain historical keys and conversion chains (5.916622ms)
+✔ invalid and duplicate edits leave preview state unchanged (2.775228ms)
+✔ inline master edits and Settings share metadata and stable unit keys (5.033749ms)
+(node:42907) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/purchaseCart.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ purchase quantity uses large + small units, like POS (17.342189ms)
+✔ lot selling price is independently editable and converts between units (2.651033ms)
+✔ new purchase lots inherit the product default unless the buyer enters a price (0.701957ms)
+✔ POS-style unit switch keeps the same compound stock quantity and purchase total (2.730798ms)
+✔ single-unit product ignores unsupported unit switch (3.028171ms)
+✔ switching units does not turn an inherited default into a stored lot price (0.254475ms)
+✔ switching units retains independently entered lot selling price (2.365915ms)
+(node:42998) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/purchaseCheckout.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ purchase discounts match POS amount and percentage controls (2.331217ms)
+✔ purchase discount clamps to bill and percent is capped at 100 (0.297ms)
+✔ rounding matches POS sales rounding setting and is applied after discount (0.217003ms)
+✔ split supplier payments and Remaining never create customer-style change (0.272201ms)
+(node:43015) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/purchaseDraftsPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Purchase drafts save without requiring posting validation and update the same ID (15.192579ms)
+✔ Purchase draft snapshots are copied and tenant updates cannot cross businesses (6.636886ms)
+(node:43022) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/purchaseSource.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ returns allocate original discount and reduce unpaid supplier due before credit/refund (61.798308ms)
+✔ remaining quantity, duplicate lines and invalid numeric input are guarded (1.519949ms)
+✔ cumulative paisa allocation returns the exact original bill total across repeated partial returns (1.791052ms)
+✔ summary-only bills and tracked stock cannot fabricate return allocations (0.384915ms)
+✔ preview source mutations update stock, supplier balance, payment dates and history together; stale retries cannot post twice (149.966774ms)
+✔ largest-remainder line budgets never go negative and zero-money goods remain returnable (0.282811ms)
+(node:43029) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/purchaseSupplierGuard.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ embedded Vendor purchase cannot be assigned to another Party (1.612493ms)
+(node:43036) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/quotations/quotePreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ quantities, discount and unit price are never interpreted as stock movement (1.57391ms)
+✔ reject invalid dates, negative unit price, zero qty and oversize discount (0.575378ms)
+✔ create edit duplicate and status changes are atomic observable preview changes (2.126332ms)
+✔ expired sent quotes cannot be accepted until revised (0.521492ms)
+(node:43043) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/reconciliation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ matches require same account, direction, finite positive amount and exact paisa (0.785599ms)
+✔ one ERP entry cannot be reused and empty or ignored statements cannot finish (4.382789ms)
+✔ export preserves direction and escapes CSV formulas (0.358831ms)
+(node:43050) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/reorderCartLines.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ POS reorder changes actual cart array in invoice/print order (2.324074ms)
+✔ keyboard arrows move only the selected cart item (0.435319ms)
+✔ invalid drag order cannot silently discard or duplicate invoice rows (0.321442ms)
+(node:43060) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/analysis.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ forecast is explicitly modeled, balances reconcile and saving cannot mutate source records (1.574656ms)
+✔ empty evidence yields no fabricated recommendations or costs (1.565687ms)
+✔ known historical cost is required for a margin recommendation (1.813776ms)
+✔ internal finance transfers never inflate operating cash totals (0.328785ms)
+✔ cash modeling rejects values too large for exact paisa arithmetic (0.322384ms)
+✔ dismissed insight identity changes when its source quantities materially change (0.527156ms)
+(node:43073) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/preferences.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all eleven Reports destinations have stable URL state (4.709658ms)
+✔ legacy report links preserve every catalog destination (0.793051ms)
+✔ saved views keep the analysis screen and required label column, capped at twenty (3.59422ms)
+(node:43080) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/reportOutput.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ isolated print document includes exact selected rows, money direction and escaped names (2.765066ms)
+✔ CSV preserves Bangla, quoted commas and amounts; prevents formula execution (0.949773ms)
+(node:43087) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ date, category and search filters change actual source totals and exclude draft/deleted sales (4.428656ms)
+✔ unknown historical cost stays unknown even when the product master has a purchase price (0.777789ms)
+✔ historical cost and integer discount allocation reconcile to invoice net revenue (0.786885ms)
+✔ account filtering totals only the matching split, not the whole invoice receipt (0.365592ms)
+✔ current outstanding is not fabricated as an historical balance or a due-date overdue amount (0.766462ms)
+✔ previous comparison period has exactly the same number of calendar days across months (1.225977ms)
+✔ reorder excludes expired stock and rounds purchasing packs without subtracting commitments twice (0.57684ms)
+✔ unknown mixed-unit quantities are not guessed from human-readable compound text (0.471165ms)
+✔ malformed date ranges fail safely instead of treating them as all dates (0.424535ms)
+✔ an intentionally cleared date range survives the URL round trip (0.501331ms)
+✔ corrupt saved views recover without crashing or creating unknown reports (1.015358ms)
+✔ supplier returns reduce current payable through the existing source position (0.912103ms)
+✔ finance splits preserve per-account amounts instead of joining account names (0.479603ms)
+✔ fractional base quantities retain their precision in grouped demand (0.517553ms)
+✔ stock velocity exposes unsold stock without inventing demand or adding unlike units (11.413853ms)
+(node:43095) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/magicpatterns/advisorEvidence.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Advisor source actions target product contributor, customer account and forecast (7.377935ms)
+(node:43102) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/magicpatterns/adapter.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an unconvertible historical quantity cannot silently erase the recorded sale total (1.246651ms)
+✔ a supplier bill without an agreed due date is not contractually overdue (0.854915ms)
+✔ drilldown resolves exact product records, nested invoices and current historical cost status (5.223507ms)
+✔ no matching evidence is explicit and cannot substitute unrelated rows (0.409241ms)
+(node:43109) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/screens.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an analysis destination owns its report definition even when an incompatible report is supplied (2.105108ms)
+✔ expense evidence is explicitly scoped to all accounts when a cash account is selected (0.327839ms)
+✔ frozen purchase stock unit must be the terminal unit of its conversion chain (35.009493ms)
+✔ expiry evidence labels signed days until expiry rather than stock age (1.470982ms)
+✔ invalid and unavailable report overrides cannot replace an analysis screen, including saved views (37.345746ms)
+(node:43116) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/erpDemoStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ full frozen purchase chain accepts intermediate cost unit and fractional stock quantity (89.235584ms)
+✔ purchase publication is observable once, idempotent and includes stock evidence (3.579108ms)
+(node:43123) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ announcement cancellation prevents simulated delivery and keeps audit reason (9.246492ms)
+✔ settings updates validate bounds and prohibit support-only changes (5.675858ms)
+✔ scoped audit views hide other tenants and private module snapshots (1.417908ms)
+✔ local datetime input retains the same UTC schedule when saved unchanged (1.454826ms)
+(node:43130) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ verification allocates once and activates only full settlement (8.957476ms)
+✔ excess receipt remains unapplied and full invoice activates subscription (2.994057ms)
+✔ self approval, duplicate reference and invalid submissions are rejected (1.803805ms)
+✔ refund retains receipt and reduces allocations without double refund (10.066617ms)
+✔ repayment after refund restores access without extending renewal twice (1.378208ms)
+✔ claimed payment decisions belong to the claimed reviewer (1.440487ms)
+(node:43137) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ package order creates invoice and settlement credits exactly once (4.975085ms)
+✔ SMS reservation and retry never duplicate charges; insufficient credits reject (1.172224ms)
+✔ service completion requires progress and deliverable, independent of invoice (0.938442ms)
+✔ expired credit usage does not reduce a newer package balance (8.031686ms)
+✔ package invoice retains the purchased validity after catalog edits (3.793884ms)
+✔ SMS templates are configured by staff and reusable without sending (0.37474ms)
+(node:43148) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/saas/permissions.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ combined roles preserve each grant scope (47.742017ms)
+✔ removing one role does not remove another grant and tenant cannot cross scope (0.400296ms)
+✔ global administration modules reject tenant-scoped view grants (4.242427ms)
+(node:43155) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/saas/state.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ owner and assigned-role protections reject atomically (185.067699ms)
+✔ storage validation rejects corrupt structures and supports blocked storage (4.612257ms)
+✔ malformed role records are rejected before rendering and owner role cannot be stripped (2.88621ms)
+✔ malformed persisted domain records recover safely (5.479953ms)
+✔ last owner cannot be deactivated through a generic staff edit (2.11801ms)
+✔ valid saved roles with mixed all-tenant and selected-tenant scopes reload without data loss (3.430022ms)
+(node:43164) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tenant conversation hides internal notes and rejects internal-note creation (9.3419ms)
+✔ support access requires consent, expires and can be revoked (0.834912ms)
+✔ ticket resolution and reopening preserve conversation history (6.073811ms)
+✔ support attachments follow public and private message audiences (3.174787ms)
+(node:43171) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/saas/seed.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tenant creation creates a trial and preserves subscription on suspension (5.509556ms)
+✔ archive blockers, missing reason, bad tenant and stale version reject atomically (2.297357ms)
+(node:43178) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/products.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ templates share a source across create, edit, duplicate, POS load and delete (30.863171ms)
+✔ template validation rejects malformed quantities, prices, missing products and empty carts (1.830507ms)
+✔ template round trip preserves compound units and recipe identity without reserving serials or sources (0.43388ms)
+✔ planned bundles preserve pinned recipes without persisting fulfillment reservations (0.433734ms)
+(node:43199) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/salesDocuments.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ receipt preserves source line order, compound quantities and customer/totals without recalculating (5.556201ms)
+✔ receipt retains serial/warranty data, exact discounts/rounding and multiple payment label (0.499806ms)
+✔ return document uses the original references, settlement and amount; no synthetic refund (1.476996ms)
+(node:43211) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/reports/catalog.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ experiment is an additional screen, never a replacement for original screens and 34-report library (5.947072ms)
+✔ deep links and saved views retain screen, selected report and existing filters (36.113938ms)
+✔ switching detailed reports preserves period and comparison but drops invalid dimension filters and old search/sort (0.268123ms)
+✔ experiment uses the canonical historical-cost calculation without inventing gross profit (7.225889ms)
+(node:43226) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/salesPaymentAmounts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Sales must reject malformed complete money strings, not parse prefixes (1.385354ms)
+✔ valid split amounts use integer paisa and preserve exact totals (5.283691ms)
+✔ Remaining fills only its own split and respects exact paisa (0.536734ms)
+(node:43233) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/parties.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ordinary returns reduce remaining quantity and reject cumulative over-return (1.816999ms)
+✔ refund uses historical net line amount, not editable or current product price (1.053587ms)
+✔ reject malformed quantities and missing discounted source allocation (0.452455ms)
+✔ serials must be exact, unique and not previously returned (0.543139ms)
+✔ opening source balance is consumed, and missing historical allocations fail closed (0.336721ms)
+✔ return ledger targets the original Customer identity and rejects ambiguous legacy names (0.354683ms)
+(node:43244) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ employee joined date rejects invalid calendars while old records stay readable (14.544148ms)
+(node:43251) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/settingsHub.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tenant settings follows the Settings directory, then related standalone pages (52.812192ms)
+✔ Settings removes unready destinations instead of showing broken tiles (17.944095ms)
+✔ cashier sees ordinary personal settings, not owner subscription or provider configuration (0.665459ms)
+(node:43314) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ delegated user edit cannot change role permissions through a team batch (14.514537ms)
+✔ role management alone cannot disable an employee through a team batch (6.802112ms)
+✔ explicit setting edit capability reaches ordinary settings but not role administration (2.076978ms)
+(node:43321) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ NestSherERP catalogue ports every implemented authority as separate capability (2.14154ms)
+✔ role mutation protects owner, built-in identity and current assigned members (4.639418ms)
+✔ legacy settings migrate document fields without losing old grants, values or assignments (25.134438ms)
+✔ all NestSherERP invoice design controls validate and page mode affects real print CSS (0.311897ms)
+✔ cosmetic invoice revision cannot edit accounting and never mutates source (3.546146ms)
+✔ financial order moves actual asymmetric values and naming never changes canonical meaning (1.260131ms)
+✔ new shared settings are owner-only, revision checked, no-op does not add audit (43.05138ms)
+✔ actual legacy owner arrays gain only new owner authority without resetting saved business data (10.658087ms)
+(node:43328) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ encrypted SQL snapshot is authenticated, tenant checked and never accepts arbitrary SQL (1197.744439ms)
+(node:43388) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/subsections.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ business fields stay in a reachable sub-page, including Advanced and branding (0.931601ms)
+✔ invoice design and output profiles stay separate within one saved section (0.828161ms)
+(node:43395) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/counterAllocation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ supplier bills expose exact remaining dues and targeted payments consume only their source (9.591062ms)
+✔ supplier targeted overpayment, unrelated identity and over-discount fail atomically (2.848119ms)
+✔ supplier payment edits validate the selected bill after excluding their original payment (2.41073ms)
+(node:43402) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/settings/model.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ settings backups belong to one business and cannot replace another business (12.063889ms)
+✔ cashier and accountant roles combine without granting sales policy access (0.798598ms)
+✔ disabled employees have no settings authority (0.342779ms)
+✔ restore authority remains owner-only even with a delegated import permission (0.581728ms)
+✔ posting lock dates reject nonexistent calendar days (1.280773ms)
+✔ unauthorized changes fail atomically and preserve saved policy (38.53615ms)
+✔ stale forms cannot overwrite a newer business settings revision (1.439198ms)
+✔ saving a section records attribution and preserves all other sections (1.018598ms)
+✔ the last owner cannot be disabled or reassigned out of ownership (0.420203ms)
+✔ delegated team management cannot assign owner authority (2.299022ms)
+✔ used role IDs must still exist and owner role remains protected (0.429648ms)
+✔ invalid imported field types and enum values recover safely (3.891415ms)
+✔ invalid values cannot be saved through direct commands (2.805069ms)
+✔ personal display mode is independently validated (0.196038ms)
+✔ rounding preferences preserve compound quantity arithmetic (0.919945ms)
+✔ theme initializes before rendering and resolves preferences safely (41.592621ms)
+✔ theme still follows the OS when browser storage is unavailable (0.901942ms)
+✔ both palettes meet AA for text, button states, statuses and input boundaries (7.375308ms)
+(node:43443) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/transactionLines.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 2 Box 5 Pcs and 1 Gauge 12 Gira share the same amount semantics (0.851325ms)
+✔ quotation totals retain small units and validate leftover quantity (5.450165ms)
+✔ COD and POS handoff preserve both quantities without fake payment (0.928562ms)
+(node:43450) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/transactionDates.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ date view defaults can use transaction date independently of created date (0.922163ms)
+✔ selected date and inclusive date ranges use the selected date view (0.152627ms)
+✔ sorting follows transaction or created date without mutating source rows (54.127809ms)
+(node:43458) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/transactionProjection.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ credit sale has no money movement (1.02802ms)
+✔ partial multi-payment sale is one row with actual money in and account summary (1.049829ms)
+✔ internal transfer shows both directions but does not count toward business cashflow (0.265652ms)
+(node:43473) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/i18n/uiCopy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Bangla uses shopkeeper words, with no মাল label (3.848608ms)
+✔ English and bilingual primary labels retain their current English copy (0.167816ms)
+✔ Bangla helper shows only in mixed mode (0.240465ms)
+(node:43482) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/unitChain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ three-level chain flattens into the smallest stock unit (31.672319ms)
+✔ rejects cycles, repeated units, disconnected chains and invalid ratios (0.310256ms)
+✔ existing products continue to support one alternate unit (0.176643ms)
+(node:43489) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/productUnits.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ short labels resolve full names and legacy keys without changing conversions (1.525941ms)
+✔ new units require explicit short symbols and reject ambiguous names/symbols (2.194185ms)
+(node:43496) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/units.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ formats positive compound stock (0.864163ms)
+✔ formats negative compound stock without awkward floor division (0.204557ms)
+✔ respects base-unit stock view preference (12.23646ms)
+✔ keeps compound stock when larger unit is the preferred view (0.421725ms)
+✔ multi-level Stock View displays Bag / Box / Pcs without mutating base stock (0.961322ms)
+(node:43503) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unpriced Vendor sourcing remains visible in All Activity with no fabricated zero amount (10.527693ms)
+✔ same Vendor Party shows ordinary Purchase as separate bucket without netting Vendor sourced debt (0.467659ms)
+✔ date filters apply to purchase and sources without hiding previous-date audit history (0.789367ms)
+✔ ordinary Purchase payable is a separate summary and not netted against Vendor sourcing (0.194098ms)
+✔ source recorded with unknown price stays labelled pending in audit after a later quote (0.351154ms)
+(node:43510) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mixed cash plus returned product is a single atomic Vendor clearance (4.30798ms)
+✔ no half post on insufficient stock, split mismatch, wrong Vendor, or overpayment (0.993507ms)
+✔ reversal restores returned owned stock and full unpaid amount (0.618863ms)
+✔ unpriced items can be fully returned without imaginary money (0.356684ms)
+(node:43517) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ source correction replaces an unsettled source exactly once and preserves audit history (2.720119ms)
+✔ settled source cannot be deleted or corrected, so restore settlement first (1.616863ms)
+✔ reversing a payment restores payable and records compensating audit entry (0.628305ms)
+✔ reversing an in-kind replacement restores owned stock, not money without quote (0.329598ms)
+✔ priced source quote cannot reverse while settlement is linked; reversal restores unpriced state (1.697762ms)
+✔ reversed physical issue restores stock and receivable without removing history (0.254843ms)
+✔ inactive Vendor historical sources remain visible and reversals require reason and actor (0.397099ms)
+✔ wrong Vendor, malformed date and invalid correction do not mutate state (0.382082ms)
+✔ same operation ID with a changed payload is rejected, exact retry is idempotent (1.178978ms)
+✔ customer return from sourced sale needs physical receipt decision; no automatic stock restore (0.530166ms)
+✔ source linked to a customer sale cannot silently switch to another product (0.589294ms)
+(node:43524) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two-product memo issues owned stock once and adds receivable, not payable (2.936368ms)
+✔ one invalid memo line rolls back all lines and inventory (0.702627ms)
+✔ duplicate product source ID and wrong Party reject before writing (0.266352ms)
+(node:43531) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ opening from before selected range remains in payable closing total (9.205198ms)
+✔ unpriced obligations show in pending quantity queue, not invented money (0.666007ms)
+✔ date range validation protects print and running balances (0.661813ms)
+✔ CSV escapes spreadsheet injection and preserves BOM (0.262982ms)
+(node:43538) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ multi-product Taken memo creates one source per line without claiming owned stock (3.436648ms)
+✔ bad second line, wrong Vendor and changed retry are atomic failures (2.953148ms)
+(node:43545) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unpriced POS sourcing records quantity but no fabricated payable (3.517939ms)
+✔ known sourcing creates payable and leaves other Vendor roles separate (0.437226ms)
+✔ goods issued to Vendor creates receivable only (0.466378ms)
+✔ opening Vendor payable and receivable never net (0.331741ms)
+✔ operation retry is idempotent without revision or notifications (0.28177ms)
+✔ invalid Vendor, duplicate source or bad cost reject atomically (1.131157ms)
+✔ Vendor money settlement accepts genuine bank splits and replays an exact retry once (0.844778ms)
+✔ Vendor settlement rejects unknown account, wrong method, invalid splits without mutation (1.070888ms)
+✔ Clear Vendor due validates real cash account identity and payment method (0.907901ms)
+✔ Product-only Vendor return cannot carry hidden money account splits (0.767368ms)
+(node:43552) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one multi-role Party keeps Taken, Given and ordinary Purchases independent (32.156256ms)
+✔ unpriced source never becomes a fabricated cash amount (1.105821ms)
+✔ separate date filter and source events prevent mixed running balance (1.069181ms)
+✔ Party Vendor ledger uses Supplier-style debit and credit but never nets its two balances (0.714146ms)
+(node:43559) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/data/partyPreviewStore.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ seed Vendor preview has linked real Party IDs and an unpriced source (1.892331ms)
+✔ one simulation dispatch emits one notification; invalid, retry and unsubscribed do not emit (3.68201ms)
+✔ reset restores demo source and clears test writes (0.334289ms)
+(node:43566) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unpriced quantity is an obligation, evening quote creates known payable only once (10.562177ms)
+✔ return one matching piece before quote prices only remaining two (1.687206ms)
+✔ fully returned before quote closes quantity without ever valuing it at zero (1.202481ms)
+✔ bad quote or cross-Vendor source rejects atomically (9.80754ms)
+(node:43573) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ordinary Vendor purchase adds owned stock but NOT sourcing payable/receivable (1.673848ms)
+✔ reject invalid purchase stock atomically (0.445355ms)
+✔ ordinary replacement purchase and matching return change stock once each (7.333804ms)
+✔ same Purchase invoice cannot be added twice with different operation IDs (0.222706ms)
+(node:43580) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorRoute.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ open Vendor module with preselected canonical Party and operational tab (4.685653ms)
+✔ invalid Party or tab cannot access another role or unknown Vendor (1.37872ms)
+✔ canonical deep link preserves selected Vendor and tab (0.580483ms)
+✔ fuzzy Vendor discovery keeps exact role and source identity (0.599606ms)
+(node:43587) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorSalePreview.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ simulated sale creates linked unpriced source but no monetary payable (38.132408ms)
+✔ multi Vendor sources atomically create only linked records or none (1.114897ms)
+✔ negative stock source does not make a Vendor demo obligation (0.844344ms)
+(node:43595) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/vendor/vendorModel.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ pay 200 then return one at 110 leaves known payable 20, inventory -1 (5.914261ms)
+✔ unpriced goods can be returned then remaining priced and paid without double counting (2.519598ms)
+✔ receivable issued 3 then receive money and return one source piece (3.060505ms)
+✔ bad links, too little stock, overpayment, split mismatch, future date fail atomically (4.773734ms)
+✔ multi-source split is atomic and duplicate source allocation rejected (0.775551ms)
+(node:43644) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/refine-worktrees/refine-party-ledger-polish/src/utils/posQuantity.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/refine-worktrees/refine-party-ledger-polish/src/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ own, negative and Vendor modes have distinct cart-wide quantities (3.21501ms)
+✔ two lines of same product reserve own stock only once (0.274328ms)
+✔ unresolved shortage remains unresolved not silently clamped (0.18662ms)
+✔ net stock 1 beats positive-lot sum 3 when OVERSOLD lot -2 remains (0.199312ms)
+✔ compound units reach exact base units, service never needs sourcing (7.048674ms)
+✔ no negative/NaN quantities and no expired lot own stock (5.82579ms)
+ℹ tests 851
+ℹ suites 0
+ℹ pass 851
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 87899.192716

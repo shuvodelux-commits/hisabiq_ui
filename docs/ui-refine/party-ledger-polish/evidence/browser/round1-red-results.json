@@ -1,0 +1,79 @@
+[
+  {
+    "name": "320-light selected count contrast",
+    "status": "passed"
+  },
+  {
+    "name": "320-light mobile identity appears once",
+    "status": "failed",
+    "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'Promised to clear dues before Durga Puja. Call Mr. Habib.',\n+   'Opening balance'\n+ ]\n- []\n"
+  },
+  {
+    "name": "320-light complete large money and meaning",
+    "status": "failed",
+    "error": "{\"width\":247,\"scroll\":247,\"title\":21.265625,\"helper\":21.265625}"
+  },
+  {
+    "name": "320-dark selected count contrast",
+    "status": "failed",
+    "error": "selected badge contrast 1.18:1"
+  },
+  {
+    "name": "320-dark mobile identity appears once",
+    "status": "failed",
+    "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'Promised to clear dues before Durga Puja. Call Mr. Habib.',\n+   'Opening balance'\n+ ]\n- []\n"
+  },
+  {
+    "name": "320-dark complete large money and meaning",
+    "status": "failed",
+    "error": "{\"width\":247,\"scroll\":247,\"title\":21.265625,\"helper\":21.265625}"
+  },
+  {
+    "name": "390-light selected count contrast",
+    "status": "passed"
+  },
+  {
+    "name": "390-light mobile identity appears once",
+    "status": "failed",
+    "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'Promised to clear dues before Durga Puja. Call Mr. Habib.',\n+   'Opening balance'\n+ ]\n- []\n"
+  },
+  {
+    "name": "390-light complete large money and meaning",
+    "status": "failed",
+    "error": "{\"width\":317,\"scroll\":317,\"title\":59.84375,\"helper\":59.84375}"
+  },
+  {
+    "name": "390-dark selected count contrast",
+    "status": "failed",
+    "error": "selected badge contrast 1.18:1"
+  },
+  {
+    "name": "390-dark mobile identity appears once",
+    "status": "failed",
+    "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'Promised to clear dues before Durga Puja. Call Mr. Habib.',\n+   'Opening balance'\n+ ]\n- []\n"
+  },
+  {
+    "name": "390-dark complete large money and meaning",
+    "status": "failed",
+    "error": "{\"width\":317,\"scroll\":317,\"title\":59.84375,\"helper\":59.84375}"
+  },
+  {
+    "name": "1440-light selected count contrast",
+    "status": "passed"
+  },
+  {
+    "name": "light desktop directory keyboard",
+    "status": "failed",
+    "error": "expect(locator).toBeFocused() failed\n\nLocator:  getByRole('option').filter({ hasText: 'Hossain Electric' })\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.be.focused\" with timeout 5000ms\n  - waiting for getByRole('option').filter({ hasText: 'Hossain Electric' })\n    14 × locator resolved to <button role=\"option\" aria-selected=\"false\" class=\"flex w-full items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors border-transparent hover:bg-ink-50\">…</button>\n       - unexpected value \"inactive\"\n"
+  },
+  {
+    "name": "1440-dark selected count contrast",
+    "status": "failed",
+    "error": "selected badge contrast 1.18:1"
+  },
+  {
+    "name": "dark desktop directory keyboard",
+    "status": "failed",
+    "error": "expect(locator).toBeFocused() failed\n\nLocator:  getByRole('option').filter({ hasText: 'Hossain Electric' })\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.be.focused\" with timeout 5000ms\n  - waiting for getByRole('option').filter({ hasText: 'Hossain Electric' })\n    14 × locator resolved to <button role=\"option\" aria-selected=\"false\" class=\"flex w-full items-center gap-2.5 border-l-2 px-3 py-2.5 text-left transition-colors border-transparent hover:bg-ink-50\">…</button>\n       - unexpected value \"inactive\"\n"
+  }
+]

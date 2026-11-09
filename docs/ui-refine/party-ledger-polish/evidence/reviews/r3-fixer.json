@@ -1,0 +1,109 @@
+{
+  "round": 3,
+  "status": "committed",
+  "commit": "d1de6a904755604f878d5578d8d63e59ce3728e8",
+  "commands": [
+    "harden",
+    "adapt",
+    "polish"
+  ],
+  "commandMethod": "Read project taste first, AGENTS/design guide/contracts and original fixer brief/routing; pinned Impeccable Commands and harden/adapt/polish playbooks. Read craft-floor immediately before production edits. Used supplied scoped subagent brief in place of another interview; no additional agents spawned. Polish last over the touched existing Operate UI.",
+  "fixed": [
+    {
+      "id": "party-dialog-validation-association",
+      "evidence": "T7/T9/T10/T11: Party-local usePartyDialogError supplies stable per-instance error/field IDs, aria-invalid/describedby, first known invalid field focus and focusable summary fallback for unknown/domain errors. Each new failure state is a fresh object so repeated identical invalid submissions refocus correctly. Payment, refund, finance, opening and correction/reversal retain current validators/order/messages/payloads/drafts. Dedicated browser checks repeated failures, unchanged IDs, retained note/reason/amount drafts and Escape; a real negative-opening domain rejection verifies summary focus without assigning a guessed field."
+    },
+    {
+      "id": "party-split-amount-name",
+      "evidence": "T7/T12: narrowly optional amountInputProps callback accepts only id/ARIA input semantics. Exactly four Party consumers opt in with translated row number, amount purpose and current payment method. Other consumers receive no new defaults. Browser checks all four consumers at one/two rows and live Finance defaults with unchanged absent attributes, value editing and Add behavior."
+    },
+    {
+      "id": "party-statement-mobile-summary-overflow",
+      "evidence": "T5/T6/T7/T10: local min-width containment and wrapping keep opening/period/closing summaries inside the dialog; comparative table alone has a40rem screen minimum in its labelled keyboard-focusable native horizontal scroller. Browser checks320/390 light/dark document/header/summary bounds, visible focus, ArrowRight scrolling and full rightmost balance-cell access. Print resets table minimum and retains the scoped normal document flow. All four320/1440 light/dark PDFs remain5pages with original references,32UI-created bilingual note rows and exact84,950/36,300/48,650 totals."
+    },
+    {
+      "id": "party-financial-dialog-narrow-overflow",
+      "evidence": "T4/T5/T6/T7/T10: five existing financial dialogs use min-w-0 containment, explicit single-column phone grids and wrapping footer actions. Shared 36px controls and14px/20px button typography preserved. Supplier Bangla visible confirmation is টাকা দেওয়া নিশ্চিত করুন; the original full role-specific accessible name remains. Validators, data payloads and transaction behavior unchanged. Fresh layout matrix covers320/390, light/dark, English/bilingual/Bangla across blank/error/review states, touch and Enter, preserved drafts and confirmation outcomes."
+    }
+  ],
+  "skipped": [],
+  "outOfScope": [
+    {
+      "path": "src/components/finance/FinancePaymentSplitEditor.tsx",
+      "reason": "Approved shared-component exception: optional input semantic attributes required by four Party consumers; discovered Finance.tsx, FinanceRecordDialogs and InstallmentReceivePaymentDialog remain untouched with identical default output/behavior."
+    },
+    {
+      "path": "scripts/party-ledger-round3-polish-browser.cjs",
+      "reason": "Dedicated regression and evidence harness for the three approved Party presentation issues."
+    }
+  ],
+  "checks": "PASS: fresh round-3-layout-complete all6 gates: TypeScript, approved authored lint excluding pre-existing vendor/super-board, UI contracts,851/851 unit tests, build, design guide. Fresh final financial-dialog layout252/252 across320/390px, both themes, three languages; footer assertions require36px controls and14px/20px typography. Dedicated round3 browser36/36. Extra unobscured Bangla320 refund run21/21. Official detector exit0[]; focused harness eslint and git diff --check pass. Original round3after/comparison shots refreshed and inspected. No push/PR/merge.",
+  "checkPaths": [
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/checks/round-3-polish-final/results.txt",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-red.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-table-red.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-keyboard-table-red.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-browser.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-browser/round3-results.json",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-authored-lint.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-fixer-detector.json",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-daybook.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-round1-regression.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-round2-regression.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-shoot.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-shot-hash-verification.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/checks/round-3-layout-complete/results.txt",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final/dialog-layout-results.json",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-a11y.log",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-a11y/round3-results.json",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-detector.json",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-shoot.log"
+  ],
+  "afterShots": [
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-desktop-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-desktop-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-mobile-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-mobile-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-desktop-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-desktop-light-s1.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-desktop-light.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-mobile-dark.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-mobile-light-s1.png",
+    "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-mobile-light.png"
+  ],
+  "openStateEvidence": "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final",
+  "printEvidence": "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-round2-regression",
+  "imageInspection": "Opened all10original main/crop/before-after PNGs, light/dark mobile and desktop; header/logo/navigation remain at top and incumbent layout retained. Open payment/refund/finance/opening/correction/reversal failures and320/390statement summaries inspected with viewport captures only. Original shoot rerun after amended commit; main shots hash-identical to the inspected images. Final original round3 comparison sheets refreshed and inspected after the late overflow correction;320px Bangla supplier/customer footer pixels inspected at approved14/20 typography.",
+  "limitations": [
+    "Chromium emulated viewports/keyboard only; no physical Android/iOS or assistive-technology certification.",
+    "Existing cross1024dialog draft loss and direct-source return-query loss remain documented baseline limitations outside this patch.",
+    "Synchronous UI preview supplies no authentic loading/network-failure state; all mutations in tests are safe isolated browser-preview data.",
+    "Full default lint inherits58upstream vendor/super-board errors; the required approved authored lint excludes only that vendor subtree."
+  ],
+  "openQuestions": [],
+  "executedChecks": [
+    "PARTY_LEDGER_WIDTHS=320 PARTY_LEDGER_THEMES=light node scripts/party-ledger-round3-browser.cjs (baseline RED:0/5)",
+    "node scripts/party-ledger-round3-browser.cjs (final:36/36)",
+    "bash /workspace/refine-worktrees/refine-party-ledger-polish.run/checks.sh round-3-polish-final",
+    "NODE_OPTIONS=--require=/tmp/hisabiq-playwright-full.cjs node scripts/party-ledger-daybook-refine-browser.cjs",
+    "node scripts/party-ledger-round1-browser.cjs",
+    "node scripts/party-ledger-round2-browser.cjs (fresh print polish evidence)",
+    "npx eslint src/components/parties/PartyPaymentDialog.tsx src/components/parties/PartyCreditRefundDialog.tsx src/components/parties/PartyFinanceDialog.tsx src/components/parties/PartyOpeningDialog.tsx src/components/parties/PartyTransactionDialog.tsx src/components/parties/PartyStatementDialog.tsx src/components/parties/usePartyDialogError.ts src/components/finance/FinancePaymentSplitEditor.tsx scripts/party-ledger-round3-browser.cjs",
+    "sh .agents/skills/impeccable/scripts/impeccable detect --json src/components/parties src/components/finance/FinancePaymentSplitEditor.tsx",
+    "NODE_OPTIONS=--require=/tmp/hisabiq-playwright-full.cjs node .agents/skills/ui-refine-loop/scripts/shoot.mjs --base http://127.0.0.1:4311 --route /#/app/parties?id=c1&role=Customer --out /workspace/refine-worktrees/refine-party-ledger-polish.run/shots --label round-3 --compare round-0 --sections main>div",
+    "bash /workspace/refine-worktrees/refine-party-ledger-polish.run/checks.sh round-3-layout-complete",
+    "PARTY_LEDGER_EVIDENCE=.../round3-layout-final node scripts/party-ledger-round3-dialog-layout-browser.cjs (252/252)",
+    "PARTY_LEDGER_EVIDENCE=.../round3-layout-final-a11y node scripts/party-ledger-round3-browser.cjs (36/36)",
+    "Temporary identical harness, Bangla320light, with5.5s wait before refund review viewport capture to clear previous preview toast (21/21)"
+  ],
+  "proofNotes": "A programmatic .focus() after a mouse click does not activate CSS focus-visible; the proof now uses actual Shift+Tab from the footer Close button, then ArrowRight. Interrupted diagnostic stdout from that test-authoring iteration is quarantined in the older round3-browser artifacts; final evidence uses the separate clean round3-polish-browser directory/log. Table-specific RED artifacts separately prove missing readable width and missing labelled region before each polish.",
+  "lateOverflowProof": {
+    "baseline": "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-red.log",
+    "final": "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final/dialog-layout-results.json",
+    "viewportShots": "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final",
+    "unobscuredRefundFooter": "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-unobscured/320-light-Bangla-refund-review-footer.png",
+    "notes": "Open dialogs captured with viewport screenshots only; fullPage transient1px resize can remount the existing responsive workspace. Footer geometry explicitly checks36px height,14px font and20px line height plus no horizontal clipping or scroll.",
+    "result": "252/252 passed; all footer controls36px with14px font/20px line height and no clipped labels."
+  }
+}

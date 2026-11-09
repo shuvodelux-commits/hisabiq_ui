@@ -1,0 +1,121 @@
+{
+  "round": 2,
+  "assessment": "Assessment B · isolated detector and source audit",
+  "head": "5407bbffb3b572ada674b009631b1b1a2819c087",
+  "detectorRan": true,
+  "detectorCommand": "sh .agents/skills/impeccable/scripts/impeccable detect --json src/components/parties src/pages/Parties.tsx",
+  "detectorExitCode": 0,
+  "detectorRaw": "r2-detector-raw.json",
+  "detectorFindings": [],
+  "verifiedDetectorFindings": [],
+  "falsePositives": [],
+  "scores": {
+    "accessibility": 2,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 3,
+    "integrity": 3
+  },
+  "auditTotal": 14,
+  "scoreBasis": "Source-only audit, 14/20 (Good). Coarse dimension scores are not a runtime certificate. Round-1 local reflow, directory keyboard, count-token and duplicate-copy fixes improve the source, but remaining tab/form accessibility and print-output risks keep the audit in the same band. No screenshots, browser, contrast measurement, performance profiling, touch synthesis or fresh PDF inspection were used.",
+  "dimensionEvidence": {
+    "accessibility": "2: shared labelled dialogs, live alerts, focus containment and improved directory composite navigation exist; content tabs still lack the documented keyboard/panel model, validation lacks field association/focus, and shared split amounts lack names.",
+    "performance": "3: no scoped layout read/write loops, persistent will-change, unbounded blur or decorative animation found by source search; reduced-motion-aware shared tabs/dialogs and bounded paged ledger rendering are retained. Asset/network/render timing and large-dataset behavior were not profiled.",
+    "responsive": "3: adaptive desktop/responsive views, scoped balance wrapping, mobile rows and visible action containers are deliberate; note icon actions remain approximately 22px and printed document flow remains constrained. No new viewport/touch/zoom result is claimed.",
+    "theming": "3: semantic surfaces/text and shared controls dominate; selected counts now use the existing bg-teal-50/text-teal-800 pair in both renderers. Dark contrast and portal parity were not measured; no AAA/full-AA claim follows from token names.",
+    "integrity": "3: coherent existing Party workspace, shared controls, role-action mapping, honest preview language and callbacks remain; Reset grouping, raw note controls and numeric-feature inheritance still diverge from explicit local contracts. Detector clean does not prove interaction or output integrity."
+  },
+  "integrityVerdict": "Pass for coherent product-specific presentation; incomplete acceptance until the verified gaps below are addressed. No redesign or finance/domain changes are warranted.",
+  "problems": [
+    {
+      "id": "statement-print-clipping",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/parties/PartyStatementDialog.tsx:39",
+      "evidence": "T2/T10/T11 and guide §28. Current source still mounts the statement inside max-h-[92vh] overflow-y-auto DialogContent; src/index.css:81-86 makes #party-statement-print position:fixed and only releases overflow on that child. Dialog ancestry remains fixed/transformed and max-height/overflow constrained (shared [data-dialog-root] at index.css:94 and Dialog.tsx). This source mechanism is unchanged from stable r1 issue statement-print-clipping. r1-checker.json records an independently verified header-only browser PDF; that prior outcome is carried forward, not reproduced by this auditor. Raw detector [] is unrelated to print completeness.",
+      "fix": "Preserve the same statement renderer, exact data, role/date/filter scope, CSV and window.print handler. Add Party-statement-scoped print treatment that releases its dialog/ancestor clipping and places the whole document in normal paginated flow; hide controls. Validate actual A4 PDFs against screen references, all rows and opening/period/closing money, including multi-page output and phone entry. Do not redesign global print/dialog behavior."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyDetail.tsx:249",
+      "evidence": "T7 and guide §§20/30. PartyDetail.tsx:249-266 and PartyDetailResponsive.tsx:396-413 still render role=tablist/role=tab with aria-selected and click handlers only: no roving tabIndex, ArrowLeft/Right/Home/End handler, tab IDs, aria-controls, or linked role=tabpanel. src/motion/MotionTabList.tsx:5 expressly supplies presentation only. All tabs remain default Tab stops. Source verifies the incomplete advertised composite pattern; no dedicated runtime arrow-key result is claimed.",
+      "fix": "Keep the existing underline strip, labels/counts, selected state and panel content. Add one Party-local roving focus/selection model and stable linked tab/panel IDs in both renderers, reveal the focused offscreen tab, and preserve drafts, callbacks and expected Tab order."
+    },
+    {
+      "id": "party-split-amount-name",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:97",
+      "evidence": "T7/T12 and guide §§9/30. PartyPaymentDialog.tsx:97, PartyCreditRefundDialog.tsx:90 and PartyFinanceDialog.tsx:95 consume FinancePaymentSplitEditor. Its src/components/finance/FinancePaymentSplitEditor.tsx:87-93 renders each decimal amount Input with value/placeholder only, no label/aria-label/aria-labelledby/id. The row is a div, not a labelled field. Input routes decimal values to NumericInput; NumericInput.tsx:47 spreads those props onto the real input without inventing a name (its inferred label is used only on stepper controls). Repeated amount fields therefore have no stable task/row name; the numeric placeholder is not a useful field label. This shared dependency directly breaks the scoped Party payment/refund/finance forms.",
+      "fix": "Give split amount inputs a translated, row-specific accessible name through a narrowly scoped reusable opt-in for the Party consumers, or an equivalently safe shared API. Keep method/account/amount values, normalization, validators and submission unchanged. Verify names for one and multiple payment rows; do not redesign the shared finance editor."
+    },
+    {
+      "id": "party-dialog-validation-association",
+      "severity": "P2",
+      "type": "accessibility",
+      "location": "src/components/parties/PartyPaymentDialog.tsx:53",
+      "evidence": "T7/T9 and guide §§7/14/30. Failed payment review sets one bottom error string and returns (PartyPaymentDialog.tsx:53-57,106) without aria-invalid, aria-describedby/error IDs, or focus movement on amount/discount/reason/splits. Refund repeats this at PartyCreditRefundDialog.tsx:45-49,97; finance at PartyFinanceDialog.tsx:51-61,105; opening at PartyOpeningDialog.tsx:50-55,77-90. Visible labels and role=alert exist, so this is a specific association/recovery gap rather than no error feedback. Source verified; no fresh browser validation reproduction.",
+      "fix": "Expose existing validation outcomes on the affected fields with stable error IDs, aria-invalid/aria-describedby, and focus the first invalid field or existing error summary after failed review/save. Use Party-local presentation state and a narrow shared opt-in only where required for split fields. Preserve the exact validators, domain messages, payloads and stored draft values."
+    },
+    {
+      "id": "party-note-action-targets",
+      "severity": "P2",
+      "type": "responsive",
+      "location": "src/components/parties/PartyDetailResponsive.tsx:539",
+      "evidence": "T4/T7/T12 and guide §§8/21. Notes Edit/Delete remain raw buttons with size-3.5 (14px) icons plus p-1 (4px per side), approximately 22px targets, in gap-1 at PartyDetailResponsive.tsx:538-540 and PartyDetail.tsx:379-381. They do not receive the shared .hisabiq-button 36px geometry. This violates the explicit product icon-action contract and makes adjacent routine actions harder to tap. Four-pixel spacing may satisfy the WCAG 24px target-spacing exception; no blanket 44px WCAG failure is asserted.",
+      "fix": "Reuse shared Button size=icon with the existing ghost/danger semantic styling and translated accessible labels. Retain exact edit/delete callbacks and dialog behavior; use the required 36px controls without changing the notes layout or global defaults."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "severity": "P2",
+      "type": "typography",
+      "location": "src/components/parties/PartyDirectory.tsx:87",
+      "evidence": "T5 and guide §5. Round 1 removed the directory tabular-nums utility, but src/index.css:39 still sets body font-feature-settings: tnum 1. Neither PartyDirectory nor PartyDirectoryResponsive has a normal/pnum feature reset or the data-erp-table/data-erp-table-view markers whose source rule at index.css:784-794 resets inherited numeric features. Thus removing only the utility does not clear the inherited low-level tnum feature. Additionally PartyDetail.tsx:326 and PartyDetailResponsive.tsx:485 explicitly retain tabular-nums on invoice/payment money outside a marked table surface. No other source override was found in layout/theme CSS. This is CSS inheritance evidence, not a measured glyph/computed-style result; retain the stable lower-ranked r1 checker ID.",
+      "fix": "Use a narrow Party presentation numeric-feature reset for the affected directory and non-table money surfaces, and remove explicit local tabular-nums there. Preserve Geist/Hind Siliguri, exact formatting, amounts and alignment. Verify computed font-feature-settings/font-variant-numeric in desktop/mobile directory and invoice/payment rows without editing the global body rule."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "severity": "P2",
+      "type": "spacing-hierarchy",
+      "location": "src/components/parties/PartyLedgerToolbar.tsx:40",
+      "evidence": "T1/T8 and the explicit 2026-11-05 filter-row rule require Reset immediately beside the final type/status filter. PartyLedgerToolbar.tsx:38-46 renders Transaction type followed by a separate Rows-per-page-plus-Reset group. PartyLedgerToolbarResponsive.tsx:62-75 similarly groups Reset inside the Rows wrapper, after Type. The current source preserves full reset semantics and translated labels but associates the action with pagination instead of the filter. Stable lower-ranked r1 checker issue ledger-reset-filter-grouping remains.",
+      "fix": "Place the existing 36px Reset icon immediately beside Transaction type in both toolbar presentations, retaining the onReset callback, full reset scope, translated title/ARIA label, visible order and compact responsive filter layout. Keep Rows per page and print available."
+    }
+  ],
+  "positiveFindings": [
+    "Directory source now shares search ArrowDown, list ArrowUp/Down/Home/End and one tab-stop model; role filters use a labelled pressed-button group and visible list-option focus rings.",
+    "The balance card now uses a local flex-wrap label/value layout rather than forcing long money to squeeze the meaning/helper column. Runtime extreme-value/zoom proof remains for the browser reviewer.",
+    "Mobile ledger identity is derived once and secondary description is omitted when identical, preserving content without duplicate note/opening copy.",
+    "Both detail renderers use the existing selected-count bg-teal-50/text-teal-800 token pair; the old inverted dark-specific pair is gone. No measured contrast claim is made.",
+    "The official full-scope source detector completed successfully with zero findings; no deterministic hit required false-positive filtering."
+  ],
+  "openQuestions": [
+    "After the print fix, compare actual multi-page A4 PDF text/content with screen statement rows and exact opening/period/closing figures; this audit did not render or inspect a new PDF.",
+    "Verify computed numeric feature settings on directory and invoice/payment money. Source shows inherited tnum and two explicit tabular-nums utilities; no visual spacing measurement was made.",
+    "Confirm actual tab keyboard behavior, invalid-field focus, screen-reader split amount names, 320px/200% reflow, theme contrast and touch geometry in the independent browser pass. Detector [] cannot establish these.",
+    "No tests/gates were rerun: parent context already reports the six round-1 final gates green (851 tests), with default lint blocked by existing vendor/super-board findings and authored lint excluding only that dependency. This report makes no new gate-pass claim."
+  ],
+  "inspection": {
+    "sourceEdited": false,
+    "browserUsed": false,
+    "imagesRead": [],
+    "assessmentsRead": [],
+    "identityLedgerRead": "r1-checker.json (stable issue identity and supplied prior output failure only)",
+    "sourceScope": [
+      "src/components/parties",
+      "src/pages/Parties.tsx"
+    ],
+    "supportingSources": [
+      "src/index.css",
+      "src/motion/MotionTabList.tsx",
+      "src/components/Dialog.tsx",
+      "src/components/Input.tsx",
+      "src/components/NumericInput.tsx",
+      "src/components/FormSelect.tsx",
+      "src/components/finance/FinancePaymentSplitEditor.tsx"
+    ],
+    "limitations": "Source-only independent B. No screenshots or design-reviewer outputs opened; no browser, code edits, commits or new regression execution. Existing untracked browser script belongs to concurrent work and was untouched."
+  }
+}

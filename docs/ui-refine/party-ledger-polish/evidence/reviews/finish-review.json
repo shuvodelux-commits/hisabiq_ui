@@ -1,0 +1,281 @@
+{
+  "reviewer": "fresh independent FINISH and regression reviewer; no source edits, browser operation or publication",
+  "head": "d1de6a904755604f878d5578d8d63e59ce3728e8",
+  "basis": "Original ui-refine-loop finish-reviewer brief; project taste and incumbent composition outrank generic craft suggestions. Grades assess final source/pixels/runtime artifacts, not fixer intent. No second detector run.",
+  "grades": [
+    {
+      "round": 1,
+      "id": "party-balance-large-money-fit",
+      "grade": "fixed",
+      "evidence": "coverage/final-320-dark-large-credit-balance.png and round1-recovery-green/320-light-large-money.png: complete ৳12,34,56,78,90,123.45 has its own line while title/helper remain readable; baseline390 helper was crushed."
+    },
+    {
+      "round": 1,
+      "id": "party-directory-keyboard",
+      "grade": "fixed",
+      "evidence": "usePartyDirectoryKeyboard.ts and both directory consumers provide search ArrowDown, bounded arrows/Home/End, roving option focus and native Enter; final-results.json chooser keyboard cases pass in phone/desktop both themes."
+    },
+    {
+      "round": 1,
+      "id": "party-tab-count-dark-contrast",
+      "grade": "fixed",
+      "evidence": "shots/cmp-round-3-main-mobile-dark.png shows readable selected8 badge; round1-recovery-green/results.json contrast cases pass at320/390/1440 both themes; reversed dark overrides removed."
+    },
+    {
+      "round": 1,
+      "id": "ledger-mobile-duplicate-description",
+      "grade": "fixed",
+      "evidence": "shots/round-3-main-mobile-light.png and dark counterpart show Note and Opening content once; LedgerTableResponsive identity comparison suppresses only duplicate description."
+    },
+    {
+      "round": 1,
+      "id": "party-directory-proportional-money",
+      "grade": "fixed",
+      "evidence": "PartyDirectory/Responsive and PartyDetail/Responsive root fontFeatureSettings normal/proportional-nums counter inheritedtnum; invoice/payment tabular utilities removed; round3-polish-round2-regression/round2-results.json12/12 supports computed styles."
+    },
+    {
+      "round": 2,
+      "id": "statement-print-clipping",
+      "grade": "fixed",
+      "evidence": "round3-polish-round2-regression/1440-light-print-1.png/-5.png and dark equivalents show actual ledger rows, continued table header and84,950/36,300/48,650 totals, rather than baseline empty document headers; final statement PDF cases also pass."
+    },
+    {
+      "round": 2,
+      "id": "party-tabs-keyboard",
+      "grade": "fixed",
+      "evidence": "usePartyContentTabs.ts plus both detail consumers connect stable tab/panel IDs, roving focus and wrapping arrows/Home/End with reveal; full final keyboard/panel cases pass all6 widths both themes."
+    },
+    {
+      "round": 2,
+      "id": "ledger-reset-filter-grouping",
+      "grade": "fixed",
+      "evidence": "shots/round-3-main-desktop-light-s1.png places Reset directly after transaction type; both toolbar sources preserve onReset and responsive adjacency; round2 runtime matrix12/12 and final filter tests pass."
+    },
+    {
+      "round": 2,
+      "id": "party-note-action-targets",
+      "grade": "fixed",
+      "evidence": "Both PartyDetail renderers use shared36px icon Button with8px gap and original edit/delete callbacks; round2-results12/12 proves geometry/focus/edit-save-delete outcomes."
+    },
+    {
+      "round": 2,
+      "id": "party-directory-proportional-money",
+      "grade": "fixed",
+      "evidence": "PartyDirectory/Responsive and PartyDetail/Responsive root fontFeatureSettings normal/proportional-nums counter inheritedtnum; invoice/payment tabular utilities removed; round3-polish-round2-regression/round2-results.json12/12 supports computed styles."
+    },
+    {
+      "round": 3,
+      "id": "party-dialog-validation-association",
+      "grade": "fixed",
+      "evidence": "usePartyDialogError.ts keeps stable per-instance IDs, aria-invalid/describedby and repeated-failure focus with summary fallback; round3-layout-final-a11y/round3-results.json36/36 and final validation cases pass; inspected opening domain rejection and financial-error pixels preserve drafts."
+    },
+    {
+      "round": 3,
+      "id": "party-split-amount-name",
+      "grade": "fixed",
+      "evidence": "FinancePaymentSplitEditor optional semantics callback and four Party consumers supply row/purpose/method names; existing handlers/default attrs unchanged; final-a11y36/36 includes one/two-row labels and live Finance defaults."
+    },
+    {
+      "round": 3,
+      "id": "party-statement-mobile-summary-overflow",
+      "grade": "fixed",
+      "evidence": "round3-polish-browser/320-light-statement-table-start.png and320-dark-statement-table-end.png show contained opening/period/closing text, readable table columns inside labelled focus-ring scroller and rightmost balances; final-a11y asserts actual Shift+Tab focus and ArrowRight scrolling."
+    },
+    {
+      "round": 3,
+      "id": "party-financial-dialog-narrow-overflow",
+      "grade": "fixed",
+      "evidence": "round3-layout-final/dialog-layout-results.json252/252 verifies own dialog/control bounds and footer36px height14px/20px type with no scroll clipping; unobscured320-light-Bangla-refund-review-footer.png and inspected payment/finance footer pixels keep full labels readable."
+    }
+  ],
+  "counts": {
+    "claimedFixOccurrences": 14,
+    "uniqueClaimedFixes": 13,
+    "fixed": 14,
+    "partial": 0,
+    "notFixed": 0,
+    "introducedRegressions": 0
+  },
+  "regressions": [],
+  "disposition": "ready for review of the bounded patch; inherited failures and unsupported states below remain open and must stay disclosed. This is not full browser acceptance or merge approval.",
+  "gates": {
+    "freshSixGates": "checks/round-3-layout-complete/results.txt: all exit0 (TypeScript, authored lint, UI contract,851 unit tests, build, design guide)",
+    "fullBrowser": {
+      "path": "coverage/final-results.json",
+      "passed": 151,
+      "failed": 2,
+      "total": 153,
+      "screenshotsRecorded": 247,
+      "allRecordedScreenshotFilesExist": true,
+      "blockedNoteEntries": 14,
+      "note": "Read complete results, blocked list and geometry metadata.14 repeated notes are not14 distinct issues. This suite is RED."
+    },
+    "focusedLayout": "252/252; includes320/390, light/dark, English/bilingual/Bangla, blank/error/review own bounds and final footer typography",
+    "focusedA11y": "36/36 fresh final-a11y; previous round1/round2 evidence retained",
+    "detector": "round3-fixer-detector.json [] (existing official scan, not rerun by reviewer)",
+    "diffCheck": "git diff --check passes"
+  },
+  "remainingBaselineLimits": [
+    {
+      "issue": "320px Vendor Pay Vendor dialog overflows326px into288px width in both themes",
+      "evidence": "Full final only2 failed cases exactly match pristine baseline-vendor-containment-red-results.json; Vendor component unchanged; not a fixed claim or introduced regression."
+    },
+    {
+      "issue": "Cross1024 breakpoint remount closes financial dialog and discards local draft; same desktop band retains it",
+      "evidence": "coverage/final-real-resize-draft.json matches documented baseline."
+    },
+    {
+      "issue": "Direct source→Back loses ledger search and POS editor returns to Sales; new-invoice return context passes",
+      "evidence": "Repeated final-results blocked notes; pre-existing, not a fixed claim."
+    },
+    {
+      "issue": "Bangla numeral payment input remains rejected by existing parser; some Receive Money data has no priced outstanding memo",
+      "evidence": "Final-results blocked notes explicitly identify parser and truthful empty-state limits; no parser/domain changes."
+    },
+    {
+      "issue": "1024 desktop identity column remains cramped beneath balance surface",
+      "evidence": "Direct pixel comparison coverage/final-1024-light-populated.png vs baseline-corrected-1024-light-populated.png shows same incumbent layout; not introduced."
+    }
+  ],
+  "verificationLimits": [
+    "No genuine asynchronous loading/network-failure source exists in this synchronous preview; none was fabricated.",
+    "Chromium emulated widths/touch/keyboard and browser-preview mutations do not establish physical-device, Safari or screen-reader certification or real backend/bank/accounting posting.",
+    "Default repository lint retains58 pre-existing vendor/super-board errors; authored lint excludes that subtree and passes.",
+    "247 final screenshot files were existence/dimension checked; representative pictures listed below were visually inspected, not all247."
+  ],
+  "scopeReview": {
+    "result": "No domain/backend/accounting arithmetic/persistence/permissions/POS/Settings/Reports source changes. Party callbacks, validation order and payloads remain intact. Narrow shared FinancePaymentSplitEditor exception adds optional id/ARIA semantics only; no new values/handlers/classes/default attrs for non-opt-in consumers. PartyBalanceCard existing mobileHorizontal opt-in retains default branch ordering and classes.",
+    "changedPaths": [
+      "docs/design/taste.md",
+      "docs/ui-refine/party-ledger-polish/brief.md",
+      "scripts/party-ledger-round1-browser.cjs",
+      "scripts/party-ledger-round2-browser.cjs",
+      "scripts/party-ledger-round3-browser.cjs",
+      "scripts/party-ledger-round3-dialog-layout-browser.cjs",
+      "src/components/finance/FinancePaymentSplitEditor.tsx",
+      "src/components/parties/LedgerTableResponsive.tsx",
+      "src/components/parties/PartyBalanceCard.tsx",
+      "src/components/parties/PartyCreditRefundDialog.tsx",
+      "src/components/parties/PartyDetail.tsx",
+      "src/components/parties/PartyDetailResponsive.tsx",
+      "src/components/parties/PartyDirectory.tsx",
+      "src/components/parties/PartyDirectoryResponsive.tsx",
+      "src/components/parties/PartyFinanceDialog.tsx",
+      "src/components/parties/PartyLedgerToolbar.tsx",
+      "src/components/parties/PartyLedgerToolbarResponsive.tsx",
+      "src/components/parties/PartyOpeningDialog.tsx",
+      "src/components/parties/PartyPaymentDialog.tsx",
+      "src/components/parties/PartyStatementDialog.tsx",
+      "src/components/parties/PartyTransactionDialog.tsx",
+      "src/components/parties/usePartyContentTabs.ts",
+      "src/components/parties/usePartyDialogError.ts",
+      "src/components/parties/usePartyDirectoryKeyboard.ts"
+    ]
+  },
+  "inspectedFiles": {
+    "images": [
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-0-main-desktop-light.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-0-main-desktop-dark.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-0-main-mobile-light.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-0-main-mobile-dark.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-desktop-light.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-desktop-dark.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-mobile-light.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-mobile-dark.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-desktop-light.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-desktop-dark.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-mobile-light.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/cmp-round-3-main-mobile-dark.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-0-main-desktop-light-s1.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-0-main-mobile-light-s1.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-desktop-light-s1.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/shots/round-3-main-mobile-light-s1.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-corrected-1024-light-populated.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-390-light-large-credit-balance.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-payment-validation.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-large-credit-balance.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round1-recovery-green/320-light-large-money.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round1-recovery-green/390-dark-large-money.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-round2-regression/1440-light-print-1.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-round2-regression/1440-light-print-5.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-round2-regression/1440-dark-print-1.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-round2-regression/1440-dark-print-5.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-browser/320-light-statement-table-start.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-browser/320-dark-statement-table-end.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-browser/390-light-payment-error.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-browser/1440-dark-correction-error.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final/320-light-English-+-Bangla-finance-review-footer.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final/320-light-Bangla-payment-review-footer.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final/320-light-English-+-Bangla-opening-save.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final/320-light-English-+-Bangla-refund-review-footer.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-a11y/320-dark-finance-error.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-a11y/320-light-opening-error.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-a11y/320-dark-refund-error.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-a11y/320-light-reversal-error.png",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-unobscured/320-light-Bangla-refund-review-footer.png"
+    ],
+    "reports": [
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/r1-fixer.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/r2-fixer.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/r3-fixer.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/r1-checker.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/r2-checker.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/r3-checker.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/context.txt",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-results.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-real-resize-draft.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/baseline-vendor-containment-red-results.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round1-recovery-green/results.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-browser/round3-results.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-polish-round2-regression/round2-results.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final/dialog-layout-results.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-final-a11y/round3-results.json",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/checks/round-3-layout-complete/results.txt",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/checks/round-3-layout-final/results.txt",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-layout-red.log",
+      "/workspace/refine-worktrees/refine-party-ledger-polish.run/round3-fixer-detector.json"
+    ],
+    "source": [
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/finance/FinancePaymentSplitEditor.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/LedgerTableResponsive.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyBalanceCard.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyCreditRefundDialog.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyDetail.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyDetailResponsive.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyDirectory.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyDirectoryResponsive.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyFinanceDialog.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyLedgerToolbar.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyLedgerToolbarResponsive.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyOpeningDialog.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyPaymentDialog.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyStatementDialog.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/PartyTransactionDialog.tsx",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/usePartyContentTabs.ts",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/usePartyDialogError.ts",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/src/components/parties/usePartyDirectoryKeyboard.ts"
+    ],
+    "rules": [
+      "/workspace/refine-worktrees/refine-party-ledger-polish/AGENTS.md",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/docs/design/taste.md",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/docs/ui/UI-REFINEMENT-RULES.md",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/docs/ui/HISABIQ-DESIGN-GUIDE.md",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/vendor/super-board/skills/ui-refine-loop/references/finish-reviewer-brief.md",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/vendor/impeccable/skill/reference/craft-floor.md",
+      "/workspace/refine-worktrees/refine-party-ledger-polish/vendor/impeccable/plugin/skills/impeccable/reference/degraded/finish-reviewer.md"
+    ],
+    "testSource": [
+      "/workspace/refine-worktrees/refine-party-ledger-polish/scripts/party-ledger-round3-dialog-layout-browser.cjs"
+    ]
+  }
+}

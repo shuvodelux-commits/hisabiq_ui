@@ -1,0 +1,55 @@
+# Party Ledger workflow evidence
+
+Target: `#/app/parties`, `src/App.tsx` Parties route → `src/pages/Parties.tsx` → `PartyDetailAdaptive`. Desktop >=1024 uses `PartyDetail`; smaller widths use `PartyDetailResponsive`. Existing in-memory fixtures and UI controls only. No API/source-data injection, backend/database change, real payment, accounting posting or durable tenant certification.
+
+Runner: `scripts/party-ledger-polish-browser.cjs`. System Chromium `/usr/bin/chromium`; `pdftotext` checks the actual browser-produced A4 PDF. `PARTY_LEDGER_URL`, `PARTY_LEDGER_LABEL`, `PARTY_LEDGER_EVIDENCE`, `PARTY_LEDGER_WIDTHS`, and optional `PARTY_LEDGER_CASES` configure independent runs. The original checkout served at4312 is the pristine baseline; isolated refinement serves at4311.
+
+## Tested workflow map
+
+| Workflow | Actual fixture and exercised actions | Evidence / limit |
+| --- | --- | --- |
+| Route, shell and entry point | `c1` Customer (Rahman Hardware), exact Parties URL, loaded Ledger tab, viewport/page overflow and global header geometry | 320/390/768 portrait/820/1024 landscape/1440, both themes. Topbar verified y≈0. |
+| Party navigation/search | Change party; search Hossain; matching `c2` option; ArrowDown then Enter, Customer role retained | Mobile picker works; baseline desktop directory ArrowDown fails. Selected relationship never combines unrelated balances. |
+| Ledger search/type/reset | Seeded `c1` eight transactions; Sales filter, collapse/reopen retains applied state, reset clears kind/query; unmatched query shows real empty state | Both themes/all widths. Phone/tablet Filter is actually tapped using Playwright `locator.tap()` in current runner. |
+| Dates and popup placement | Existing date range calendar, Escape/focus return, Today → Apply excludes seeded Sep/Oct rows, reset restores them | Calendar viewport bounds checked. Main toolbar remains real `AppDateRangePicker`. |
+| Pagination | Rows25 →5 →Next →Previous; Next/Previous eligibility, original row text/running figure and period closing unchanged; restore25 | Supplemental run explicitly exercises this, not merely a page-size selector screenshot. |
+| Ledger actions/details | `INV-000241` row menu opened by Enter and touch/click; menu bounds; Escape restores exact trigger; View opens source quick preview | Row ⋮ is in viewport at scrollLeft0. Source preview is read-only. |
+| Attachments | `s1` Supplier Karim Traders, real purchase-receipt attachment in normalized ledger; attachment opens its own preview | Actual file preview captured. Unsupported or absent attachment URLs are not fabricated. |
+| Statements/CSV/print | `c1` complete statement; actual CSV download contains party, references and opening; existing Print handler invoked; actual A4 PDF text inspected | Baseline browser PDF contains repeated business/party header but omits transaction table and balances. This is a genuine RED regression, separate from successful CSV/download and screen preview. |
+| Customer receipt/settlement | `c4` Nur Enterprise; blank validation,100 cash receipt, review/confirm; edit amount80 with reason; review/confirm correction; review/confirm reversal | Real preview reducer operations with auditable source. All data is disposable in-browser sample data. |
+| Credit refunds | `c4` Customer and `s1` Supplier receive/pay200000 in safe preview, creating verified advance; blank refund validation;10 refund with reason, review/confirm | Both directions use existing relationship-specific refund dialog and source record. No new credit rules introduced. |
+| Supplier payment | `s1` Make payment50 review; allocation/outstanding supplier wording retained; cancel | Supplier semantics are not treated as customer receipts. |
+| Opening / negative / zero / large | `py1` Payee DESCO; credit opening1234567890123.45 with long mixed-language note; screenshot; zero clear and settled closing screenshot | Credit gives existing Cr/payable meaning; not a negative input workaround. Baseline small-phone summary fragments the long number across lines. Large assertion runs after zero capture so RED does not suppress zero evidence. |
+| Finance relationships | `o1` Owner: Add capital/Owner drawing; `l1` Lender: Repay loan/Loan received; `b1` Borrower: Collect repayment/Lend money | Each verifies the actual finance type, blank validation,100 review/confirm and one new source row. Reload isolates each sample journey. |
+| Vendor settlement | `s3` Supplier+Vendor Padma Electric Supply selected explicitly as Vendor; Pay Vendor and Receive Money open existing memo settlement;1 payment/receipt when a priced outstanding memo exists | No customer/supplier cross-role action substituted. Genuine no-priced-memo state is recorded if present; no artificial vendor source is injected. |
+| Long bilingual zero-money note | `c1`; New note input with long English/Bangla text, Enter submits, Ledger displays note; delete confirmation removes sample note | Existing note workflow, no monetary effect. Desktop has two Add note controls; runner submits the actual form with Enter. |
+| New invoice and return | `c1`, queryINV-000241; New invoice →POS preselected party →Back to party; query remains; verified source preview →Open full invoice and browserBack also exercised | New-invoice return is a separate passing flow. No sale is committed by this runner. |
+| Direct source return gap | Fresh `c1` with queryINV-000241; View →Open full invoice →browserBack | **Preexisting, outside this presentation refinement:** party/role survive but direct source/browserBack loses ledger search. Existing POS edit control says Back to sales. Source navigation/handler requires its own scoped workflow fix; do not claim complete context preservation. |
+| Bilingual and Bangla digits | Actual English / English + Bangla / Bangla personal-language labels and payment input exercised | Final full report supersedes the earlier success claim: all three language modes reject Bangla-digit payment input through the existing parser. Parser unchanged; no successful Bangla-digit Review is claimed. |
+| Validation accessibility | Blank Party payment amount exposes alert; separate regression requires aria-invalid, error association and first-invalid-field focus | Baseline fails field semantics although visible error and existing review prevention work. |
+| Tab accessibility | Ledger focused then ArrowRight; selected Invoices focus/state and associated tabpanel expected | Baseline lacks this keyboard pattern. This is distinct from pointer tab selection working. |
+| Loading/network failures | Existing Party Ledger is synchronous in-memory preview | **Unsupported authentic state:** no real async Party Ledger fetch/retry/error state to exercise. No invented loading/error fixture or production API claim. |
+
+## Baseline reports
+
+All report and screenshot paths below are under `/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/`.
+
+- `baseline-results.json`: initial core matrix89 passed /2 failed. Both failures are desktop directory ArrowDown (light/dark). This run predates real PDF text and strengthened accessibility assertions; its successful Print invocation is not a claim that PDF contents are correct.
+- `baseline-confirmed-results.json`: expanded early report47 passed /12 failed; contains known harness defects in long-note submission and same-hash tab preservation. **Superseded for those journeys** by isolated `baseline-flow-confirmed-results.json`11/11 passing. Do not count those harness errors as product defects.
+- `baseline-accessibility-results.json`:0 passed /4 failed at390 light/dark: content-tab ArrowRight, payment aria-invalid. Genuine baseline RED.
+- `baseline-flow-confirmed-results.json`:11/11 passing: isolated long-note, new-invoice/source return, actual three-language Bangla-digit Review. Source direct-return gap above was checked independently, so these passes do not conceal it.
+- `baseline-final-results.json`: full normalized historical run96 passed /45 failed. Includes genuine baseline tab/validation/print/large/directory RED plus desktop overlay capture interference; see corrected isolated reports below. Not a full green baseline.
+- `baseline-supplement-results.json`:38 passed /4 failed. Covers pagination/touch, both customer/supplier refunds, six finance action directions and vendor Pay/Receive. Four desktop refund/finance failures superseded by corrected capture below.
+- `baseline-desktop-viewport-results.json`:6/6 passing at1440 light/dark with corrected viewport-only overlay captures; receive/correct/reverse, Customer+Supplier refunds, all6 finance directions. Screenshots show actual live dialogs.
+- `baseline-desktop-focus-corrected-results.json`:8/8 passing at1024/1440 light/dark; calendar/menu Escape and exact trigger focus return, read-only source preview.
+- `baseline-real-resize-draft.json`: genuine orientation/breakpoint probe;1024→1440 retains123.45 and bilingual reason, crossing to768 closes dialog and reopening empties fields. **Preexisting draft-loss limitation**, outside bounded presentation patch. Party/role survives. See `../coverage-recovery.md` for causal evidence and final command.
+
+## Screenshot interpretation
+
+Earlier raw full-page captures after clicking a low control could place a sticky topbar partway down the image because Chromium captures full-page content at the document's current scroll offset. This is a screenshot artifact, not evidence that the app shell moved. Current runner explicitly resets **document scroll only** to0 before capture, verifies the global header y≈0 and records `screenshotGeometry` in JSON. Open overlays now use viewport screenshots: full-page Chromium capture was observed emitting a transient1×1 resize that crossed `PartyDetailAdaptive`’s breakpoint and discarded desktop local dialog state. Capture helper now asserts open overlay names survive every screenshot. This prevents harness interference; it does not fix or claim real cross-breakpoint draft preservation. Dialog inner scroll and selected state remain unchanged by the corrected helper. Validation snapshots can show a scrolled dialog footer; exact field/error semantics are checked separately. `baseline-final-*` and later normalized captures should be used for review/PR evidence. Every PNG is a real browser capture, and PDF/CSV are actual output files.
+
+Source-only findings and successful input retention are not reported as completed workflows. Final branch checks and post-fix results belong in the coordinator's round ledger.
+
+## Final branch disposition
+
+Final tested code `d1de6a9`:153 cases,151 passed/2 failed,14 blocked notes. Both failures are inherited320px Vendor Pay Vendor dialog overflow in light/dark, identically reproduced on pristine baseline. See `final-coverage.md`, `evidence/browser/final-results.json` and the baseline Vendor containment report. All12 actual CSV/PDF statement cases passed. Required final code gates pass (851 unit tests); default lint remains the disclosed58 upstream errors. Cross1024draft loss/direct-source query loss remain; no authentic asynchronous state was fabricated.

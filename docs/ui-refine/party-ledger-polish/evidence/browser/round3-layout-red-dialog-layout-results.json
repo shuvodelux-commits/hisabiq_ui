@@ -1,0 +1,1044 @@
+[
+  {
+    "name": "320-light-English-+-Bangla payment-blank",
+    "status": "failed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 305
+      },
+      "controls": [
+        {
+          "name": "Payment date: 7 Nov 2026",
+          "left": 32,
+          "right": 304.65625,
+          "width": 272.65625,
+          "height": 36
+        },
+        {
+          "name": "Payment amount",
+          "left": 33,
+          "right": 252.5,
+          "width": 219.5,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment amount",
+          "left": 230.5,
+          "right": 250.5,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment amount",
+          "left": 230.5,
+          "right": 250.5,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Full",
+          "left": 257.5,
+          "right": 304.65625,
+          "width": 47.15625,
+          "height": 36
+        },
+        {
+          "name": "Payment discount",
+          "left": 33,
+          "right": 303.65625,
+          "width": 270.65625,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment discount",
+          "left": 281.65625,
+          "right": 301.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment discount",
+          "left": 281.65625,
+          "right": 301.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Invoice selection",
+          "left": 32,
+          "right": 304.65625,
+          "width": 272.65625,
+          "height": 36
+        },
+        {
+          "name": "Add",
+          "left": 223.734375,
+          "right": 291.65625,
+          "width": 67.921875,
+          "height": 36
+        },
+        {
+          "name": "Cash",
+          "left": 45,
+          "right": 291.65625,
+          "width": 246.65625,
+          "height": 36
+        },
+        {
+          "name": "Payment account: Main Cash Counter",
+          "left": 45,
+          "right": 291.65625,
+          "width": 246.65625,
+          "height": 36
+        },
+        {
+          "name": "Payment source 1 amount · Cash",
+          "left": 46,
+          "right": 290.65625,
+          "width": 244.65625,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment source 1 amount · Cash",
+          "left": 268.65625,
+          "right": 288.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment source 1 amount · Cash",
+          "left": 268.65625,
+          "right": 288.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Remove payment source",
+          "left": 45,
+          "right": 77,
+          "width": 32,
+          "height": 32
+        },
+        {
+          "name": "Cancel",
+          "left": 71.453125,
+          "right": 141.046875,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Review payment",
+          "left": 149.046875,
+          "right": 304.65625,
+          "width": 155.609375,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": [
+      "dialog needs sideways scrolling",
+      "offscreen control Payment date: 7 Nov 2026",
+      "offscreen control Full",
+      "offscreen control Payment discount",
+      "offscreen control Increase Payment discount",
+      "offscreen control Decrease Payment discount",
+      "offscreen control Invoice selection",
+      "offscreen control Add",
+      "offscreen control Cash",
+      "offscreen control Payment account: Main Cash Counter",
+      "offscreen control Payment source 1 amount · Cash",
+      "offscreen control Review payment"
+    ]
+  },
+  {
+    "name": "320-light-English-+-Bangla payment-error",
+    "status": "failed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 305
+      },
+      "controls": [
+        {
+          "name": "Payment date: 7 Nov 2026",
+          "left": 32,
+          "right": 304.65625,
+          "width": 272.65625,
+          "height": 36
+        },
+        {
+          "name": "Payment amount",
+          "left": 33,
+          "right": 252.5,
+          "width": 219.5,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment amount",
+          "left": 230.5,
+          "right": 250.5,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment amount",
+          "left": 230.5,
+          "right": 250.5,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Full",
+          "left": 257.5,
+          "right": 304.65625,
+          "width": 47.15625,
+          "height": 36
+        },
+        {
+          "name": "Payment discount",
+          "left": 33,
+          "right": 303.65625,
+          "width": 270.65625,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment discount",
+          "left": 281.65625,
+          "right": 301.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment discount",
+          "left": 281.65625,
+          "right": 301.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Invoice selection",
+          "left": 32,
+          "right": 304.65625,
+          "width": 272.65625,
+          "height": 36
+        },
+        {
+          "name": "Add",
+          "left": 223.734375,
+          "right": 291.65625,
+          "width": 67.921875,
+          "height": 36
+        },
+        {
+          "name": "Cash",
+          "left": 45,
+          "right": 291.65625,
+          "width": 246.65625,
+          "height": 36
+        },
+        {
+          "name": "Payment account: Main Cash Counter",
+          "left": 45,
+          "right": 291.65625,
+          "width": 246.65625,
+          "height": 36
+        },
+        {
+          "name": "Payment source 1 amount · Cash",
+          "left": 46,
+          "right": 290.65625,
+          "width": 244.65625,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment source 1 amount · Cash",
+          "left": 268.65625,
+          "right": 288.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment source 1 amount · Cash",
+          "left": 268.65625,
+          "right": 288.65625,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Remove payment source",
+          "left": 45,
+          "right": 77,
+          "width": 32,
+          "height": 32
+        },
+        {
+          "name": "Cancel",
+          "left": 71.453125,
+          "right": 141.046875,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Review payment",
+          "left": 149.046875,
+          "right": 304.65625,
+          "width": 155.609375,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": [
+      "dialog needs sideways scrolling",
+      "offscreen control Payment date: 7 Nov 2026",
+      "offscreen control Full",
+      "offscreen control Payment discount",
+      "offscreen control Increase Payment discount",
+      "offscreen control Decrease Payment discount",
+      "offscreen control Invoice selection",
+      "offscreen control Add",
+      "offscreen control Cash",
+      "offscreen control Payment account: Main Cash Counter",
+      "offscreen control Payment source 1 amount · Cash",
+      "offscreen control Review payment"
+    ]
+  },
+  {
+    "name": "320-light-English-+-Bangla payment-review",
+    "status": "failed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 323
+      },
+      "controls": [
+        {
+          "name": "Payment date: 7 Nov 2026",
+          "left": 32,
+          "right": 323.078125,
+          "width": 291.078125,
+          "height": 36
+        },
+        {
+          "name": "Payment amount",
+          "left": 33,
+          "right": 270.921875,
+          "width": 237.921875,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment amount",
+          "left": 248.921875,
+          "right": 268.921875,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment amount",
+          "left": 248.921875,
+          "right": 268.921875,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Full",
+          "left": 275.921875,
+          "right": 323.078125,
+          "width": 47.15625,
+          "height": 36
+        },
+        {
+          "name": "Payment discount",
+          "left": 33,
+          "right": 322.078125,
+          "width": 289.078125,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment discount",
+          "left": 300.078125,
+          "right": 320.078125,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment discount",
+          "left": 300.078125,
+          "right": 320.078125,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Invoice selection",
+          "left": 32,
+          "right": 323.078125,
+          "width": 291.078125,
+          "height": 36
+        },
+        {
+          "name": "Add",
+          "left": 242.15625,
+          "right": 310.078125,
+          "width": 67.921875,
+          "height": 36
+        },
+        {
+          "name": "Cash",
+          "left": 45,
+          "right": 310.078125,
+          "width": 265.078125,
+          "height": 36
+        },
+        {
+          "name": "Payment account: Main Cash Counter",
+          "left": 45,
+          "right": 310.078125,
+          "width": 265.078125,
+          "height": 36
+        },
+        {
+          "name": "Payment source 1 amount · Cash",
+          "left": 46,
+          "right": 309.078125,
+          "width": 263.078125,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment source 1 amount · Cash",
+          "left": 287.078125,
+          "right": 307.078125,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment source 1 amount · Cash",
+          "left": 287.078125,
+          "right": 307.078125,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Remove payment source",
+          "left": 45,
+          "right": 77,
+          "width": 32,
+          "height": 32
+        },
+        {
+          "name": "Cancel",
+          "left": 32,
+          "right": 101.59375,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Confirm receive payment",
+          "left": 109.59375,
+          "right": 323.078125,
+          "width": 213.484375,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": [
+      "dialog needs sideways scrolling",
+      "offscreen control Payment date: 7 Nov 2026",
+      "offscreen control Full",
+      "offscreen control Payment discount",
+      "offscreen control Increase Payment discount",
+      "offscreen control Decrease Payment discount",
+      "offscreen control Invoice selection",
+      "offscreen control Add",
+      "offscreen control Cash",
+      "offscreen control Payment account: Main Cash Counter",
+      "offscreen control Payment source 1 amount · Cash",
+      "offscreen control Increase Payment source 1 amount · Cash",
+      "offscreen control Decrease Payment source 1 amount · Cash",
+      "offscreen control Confirm receive payment"
+    ]
+  },
+  {
+    "name": "320-light-English-+-Bangla correction-blank",
+    "status": "passed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 273
+      },
+      "controls": [
+        {
+          "name": "Corrected payment date: 7 Nov 2026",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Corrected payment amount",
+          "left": 33,
+          "right": 272,
+          "width": 239,
+          "height": 34
+        },
+        {
+          "name": "Increase Corrected payment amount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Corrected payment amount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Corrected discount",
+          "left": 33,
+          "right": 272,
+          "width": 239,
+          "height": 34
+        },
+        {
+          "name": "Increase Corrected discount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Corrected discount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Add",
+          "left": 192.078125,
+          "right": 260,
+          "width": 67.921875,
+          "height": 36
+        },
+        {
+          "name": "Cash",
+          "left": 45,
+          "right": 260,
+          "width": 215,
+          "height": 36
+        },
+        {
+          "name": "Payment account: Main Cash Counter",
+          "left": 45,
+          "right": 260,
+          "width": 215,
+          "height": 36
+        },
+        {
+          "name": "Payment source 1 amount · Cash",
+          "left": 46,
+          "right": 259,
+          "width": 213,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment source 1 amount · Cash",
+          "left": 237,
+          "right": 257,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment source 1 amount · Cash",
+          "left": 237,
+          "right": 257,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Remove payment source",
+          "left": 45,
+          "right": 77,
+          "width": 32,
+          "height": 32
+        },
+        {
+          "name": "Correction reason",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Cancel",
+          "left": 53.21875,
+          "right": 122.8125,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Review correction",
+          "left": 130.8125,
+          "right": 273,
+          "width": 142.1875,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": []
+  },
+  {
+    "name": "320-light-English-+-Bangla correction-error",
+    "status": "passed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 273
+      },
+      "controls": [
+        {
+          "name": "Corrected payment date: 7 Nov 2026",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Corrected payment amount",
+          "left": 33,
+          "right": 272,
+          "width": 239,
+          "height": 34
+        },
+        {
+          "name": "Increase Corrected payment amount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Corrected payment amount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Corrected discount",
+          "left": 33,
+          "right": 272,
+          "width": 239,
+          "height": 34
+        },
+        {
+          "name": "Increase Corrected discount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Corrected discount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Add",
+          "left": 192.078125,
+          "right": 260,
+          "width": 67.921875,
+          "height": 36
+        },
+        {
+          "name": "Cash",
+          "left": 45,
+          "right": 260,
+          "width": 215,
+          "height": 36
+        },
+        {
+          "name": "Payment account: Main Cash Counter",
+          "left": 45,
+          "right": 260,
+          "width": 215,
+          "height": 36
+        },
+        {
+          "name": "Payment source 1 amount · Cash",
+          "left": 46,
+          "right": 259,
+          "width": 213,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment source 1 amount · Cash",
+          "left": 237,
+          "right": 257,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment source 1 amount · Cash",
+          "left": 237,
+          "right": 257,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Remove payment source",
+          "left": 45,
+          "right": 77,
+          "width": 32,
+          "height": 32
+        },
+        {
+          "name": "Correction reason",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Cancel",
+          "left": 53.21875,
+          "right": 122.8125,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Review correction",
+          "left": 130.8125,
+          "right": 273,
+          "width": 142.1875,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": []
+  },
+  {
+    "name": "320-light-English-+-Bangla correction-review",
+    "status": "passed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 273
+      },
+      "controls": [
+        {
+          "name": "Corrected payment date: 7 Nov 2026",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Corrected payment amount",
+          "left": 33,
+          "right": 272,
+          "width": 239,
+          "height": 34
+        },
+        {
+          "name": "Increase Corrected payment amount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Corrected payment amount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Corrected discount",
+          "left": 33,
+          "right": 272,
+          "width": 239,
+          "height": 34
+        },
+        {
+          "name": "Increase Corrected discount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Corrected discount",
+          "left": 250,
+          "right": 270,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Add",
+          "left": 192.078125,
+          "right": 260,
+          "width": 67.921875,
+          "height": 36
+        },
+        {
+          "name": "Cash",
+          "left": 45,
+          "right": 260,
+          "width": 215,
+          "height": 36
+        },
+        {
+          "name": "Payment account: Main Cash Counter",
+          "left": 45,
+          "right": 260,
+          "width": 215,
+          "height": 36
+        },
+        {
+          "name": "Payment source 1 amount · Cash",
+          "left": 46,
+          "right": 259,
+          "width": 213,
+          "height": 34
+        },
+        {
+          "name": "Increase Payment source 1 amount · Cash",
+          "left": 237,
+          "right": 257,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Decrease Payment source 1 amount · Cash",
+          "left": 237,
+          "right": 257,
+          "width": 20,
+          "height": 15
+        },
+        {
+          "name": "Remove payment source",
+          "left": 45,
+          "right": 77,
+          "width": 32,
+          "height": 32
+        },
+        {
+          "name": "Correction reason",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Cancel",
+          "left": 45.609375,
+          "right": 115.203125,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Confirm correction",
+          "left": 123.203125,
+          "right": 273,
+          "width": 149.796875,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": []
+  },
+  {
+    "name": "320-light-English-+-Bangla reversal-blank",
+    "status": "passed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 273
+      },
+      "controls": [
+        {
+          "name": "Correction reason",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Cancel",
+          "left": 68.015625,
+          "right": 137.609375,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Review reversal",
+          "left": 145.609375,
+          "right": 273,
+          "width": 127.390625,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": []
+  },
+  {
+    "name": "320-light-English-+-Bangla reversal-error",
+    "status": "passed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 273
+      },
+      "controls": [
+        {
+          "name": "Correction reason",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Cancel",
+          "left": 68.015625,
+          "right": 137.609375,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Review reversal",
+          "left": 145.609375,
+          "right": 273,
+          "width": 127.390625,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": []
+  },
+  {
+    "name": "320-light-English-+-Bangla reversal-review",
+    "status": "passed",
+    "geometry": {
+      "dialog": {
+        "left": 16,
+        "right": 289,
+        "clientWidth": 273,
+        "scrollWidth": 273
+      },
+      "controls": [
+        {
+          "name": "Correction reason",
+          "left": 32,
+          "right": 273,
+          "width": 241,
+          "height": 36
+        },
+        {
+          "name": "Cancel",
+          "left": 60.40625,
+          "right": 130,
+          "width": 69.59375,
+          "height": 36
+        },
+        {
+          "name": "Confirm reversal",
+          "left": 138,
+          "right": 273,
+          "width": 135,
+          "height": 36
+        },
+        {
+          "name": "Close",
+          "left": 253,
+          "right": 281,
+          "width": 28,
+          "height": 28
+        }
+      ]
+    },
+    "failures": []
+  },
+  {
+    "name": "320-light-English-+-Bangla workflow",
+    "status": "failed",
+    "error": "locator.tap: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('menuitem', { name: 'Refund credit', exact: true }).or(getByRole('button', { name: 'Refund credit', exact: true })).first()\u001b[22m\n"
+  }
+]

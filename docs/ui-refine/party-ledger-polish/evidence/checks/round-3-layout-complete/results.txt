@@ -1,0 +1,6 @@
+0 npx tsc --noEmit
+0 npm run lint -- --ignore-pattern 'vendor/super-board/**'
+0 npm run check:ui-contract
+0 CI=1 npm test
+0 npm run build
+0 npm run check:design-guide

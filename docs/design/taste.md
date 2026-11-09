@@ -115,3 +115,11 @@ See `docs/ui/RESPONSIVE-FILTER-ACTION-PATTERN.md` for the module-by-module imple
 - **Keep:** All seven KPIs, Loan/Owner/Bank/Cash/Mobile money meanings, Cheques and Cash Sessions tabs, original source IDs, account/transfer/finance dialogs and edits, reversal review, URL tab state, Finance People, payment splits, source-ledger relationships, permission handlers, theme, Bangla and keyboard/touch.
 - **Responsive acceptance:** 320–767 Search+36px funnel Filter; 768–1023 Search+Filter on one row; desktop Search+type filter+Reset inline. Hide only the secondary type selector below 1024 until expanded; do not hide applied filter state. No new date filter. Full FIN transaction ID, amount, status and sticky action visible without horizontal scroll below 1024; preserve the rich desktop table.
 - **Review:** Three bounded GitHub-only passes, C0/C4 screenshot and official mechanical detector evidence. Real menu/detail screenshots at 320/390/768/1024/1440, light/dark; no invented /40 score or claim of separate agent visual review. Draft PR only; owner approves merge.
+
+### #/app/parties — Party Ledger polish (2026-11-07)
+
+- Goal: professional compactness, readable complete money/reference/bilingual content, faster selection/filtering and accessible touch/keyboard interactions.
+- Direction: preserve the approved existing Party workspace and desktop/mobile layout; precise presentation and accessibility fixes only.
+- Keep: calculations, role isolation, payments/refunds/finance/settlements, source/audit links, dates/filters/drafts/return context, printing/export, shared tokens, proportional fonts, 36px controls and universal radii.
+- Avoid: Party module redesign, backend/domain/data changes, unrelated module edits, invented fixture/posting claims, hidden money/actions, decorative chrome or larger controls.
+- Evidence: real baseline and final screenshots, original skill fresh independent agents, three bounded fix rounds, full checks and draft PR only.

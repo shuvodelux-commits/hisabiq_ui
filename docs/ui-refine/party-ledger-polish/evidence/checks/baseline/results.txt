@@ -1,0 +1,6 @@
+0 npx tsc --noEmit
+1 npm run lint
+0 npm run check:ui-contract
+1 CI=1 npm test
+0 npm run build
+0 npm run check:design-guide

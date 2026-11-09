@@ -1,0 +1,7984 @@
+{
+  "label": "final",
+  "base": "http://127.0.0.1:4311",
+  "results": [
+    {
+      "name": "320-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "320-light content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "320-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "320-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "320-light pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "320-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "320-light statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "320-light chooser search and keyboard selection",
+      "status": "passed"
+    },
+    {
+      "name": "320-light payment field validation semantics",
+      "status": "passed"
+    },
+    {
+      "name": "320-light payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "320-light customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "320-light supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "320-light owner lender borrower finance isolation",
+      "status": "passed"
+    },
+    {
+      "name": "320-light vendor memo settlement controls",
+      "status": "failed",
+      "error": "open dialog content stays within its horizontal scroll boundary: [{\"name\":\"Pay Vendor\",\"scrollWidth\":326,\"clientWidth\":288,\"rect\":{\"x\":16,\"y\":91.5,\"width\":288,\"height\":717,\"top\":91.5,\"right\":304,\"bottom\":808.5,\"left\":16}}]"
+    },
+    {
+      "name": "320-light opening balance large, negative and zero presentation",
+      "status": "passed"
+    },
+    {
+      "name": "320-light long bilingual note and zero-money ledger row",
+      "status": "passed"
+    },
+    {
+      "name": "320-light source invoice and preserved new-invoice return",
+      "status": "passed"
+    },
+    {
+      "name": "320-light direct source return context",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark chooser search and keyboard selection",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark payment field validation semantics",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark owner lender borrower finance isolation",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark vendor memo settlement controls",
+      "status": "failed",
+      "error": "open dialog content stays within its horizontal scroll boundary: [{\"name\":\"Pay Vendor\",\"scrollWidth\":326,\"clientWidth\":288,\"rect\":{\"x\":16,\"y\":91.5,\"width\":288,\"height\":717,\"top\":91.5,\"right\":304,\"bottom\":808.5,\"left\":16}}]"
+    },
+    {
+      "name": "320-dark opening balance large, negative and zero presentation",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark long bilingual note and zero-money ledger row",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark source invoice and preserved new-invoice return",
+      "status": "passed"
+    },
+    {
+      "name": "320-dark direct source return context",
+      "status": "passed"
+    },
+    {
+      "name": "390-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "390-light content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "390-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "390-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "390-light pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "390-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "390-light statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "390-light chooser search and keyboard selection",
+      "status": "passed"
+    },
+    {
+      "name": "390-light payment field validation semantics",
+      "status": "passed"
+    },
+    {
+      "name": "390-light payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "390-light customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "390-light supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "390-light owner lender borrower finance isolation",
+      "status": "passed"
+    },
+    {
+      "name": "390-light vendor memo settlement controls",
+      "status": "passed"
+    },
+    {
+      "name": "390-light opening balance large, negative and zero presentation",
+      "status": "passed"
+    },
+    {
+      "name": "390-light long bilingual note and zero-money ledger row",
+      "status": "passed"
+    },
+    {
+      "name": "390-light source invoice and preserved new-invoice return",
+      "status": "passed"
+    },
+    {
+      "name": "390-light direct source return context",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark chooser search and keyboard selection",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark payment field validation semantics",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark owner lender borrower finance isolation",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark vendor memo settlement controls",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark opening balance large, negative and zero presentation",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark long bilingual note and zero-money ledger row",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark source invoice and preserved new-invoice return",
+      "status": "passed"
+    },
+    {
+      "name": "390-dark direct source return context",
+      "status": "passed"
+    },
+    {
+      "name": "768-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "768-light content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "768-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "768-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "768-light pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "768-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "768-light statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "768-dark statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "820-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "820-light content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "820-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "820-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "820-light pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "820-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "820-light statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "820-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "820-dark content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "820-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "820-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "820-dark pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "820-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "820-dark statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1024-light statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1024-dark statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light chooser search and keyboard selection",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light payment field validation semantics",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light owner lender borrower finance isolation",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light vendor memo settlement controls",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light opening balance large, negative and zero presentation",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light long bilingual note and zero-money ledger row",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light source invoice and preserved new-invoice return",
+      "status": "passed"
+    },
+    {
+      "name": "1440-light direct source return context",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark route, top bar, page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark content tabs keyboard and panel semantics",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark filter order, keyboard and applied state",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark date range, dropdown placement, Escape",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark pagination preserves accounting balances",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark row actions and read-only details",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark statement CSV and print output",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark chooser search and keyboard selection",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark payment field validation semantics",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark payment validation, review, correction and reversal",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark customer and supplier credit refunds",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark supplier payment and refund eligibility",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark owner lender borrower finance isolation",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark vendor memo settlement controls",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark opening balance large, negative and zero presentation",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark long bilingual note and zero-money ledger row",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark source invoice and preserved new-invoice return",
+      "status": "passed"
+    },
+    {
+      "name": "1440-dark direct source return context",
+      "status": "passed"
+    },
+    {
+      "name": "English bilingual payment input",
+      "status": "passed"
+    },
+    {
+      "name": "English + Bangla bilingual payment input",
+      "status": "passed"
+    },
+    {
+      "name": "Bangla bilingual payment input",
+      "status": "passed"
+    }
+  ],
+  "blocked": [
+    "320-light: existing direct source→browser Back retains Party/role but loses ledger search; POS editor returns to Sales. New-invoice return context separately passes.",
+    "320-dark: existing direct source→browser Back retains Party/role but loses ledger search; POS editor returns to Sales. New-invoice return context separately passes.",
+    "390-light: Receive Money has no priced outstanding memo; truthful empty state captured",
+    "390-light: existing direct source→browser Back retains Party/role but loses ledger search; POS editor returns to Sales. New-invoice return context separately passes.",
+    "390-dark: Receive Money has no priced outstanding memo; truthful empty state captured",
+    "390-dark: existing direct source→browser Back retains Party/role but loses ledger search; POS editor returns to Sales. New-invoice return context separately passes.",
+    "1440-light: Receive Money has no priced outstanding memo; truthful empty state captured",
+    "1440-light: existing direct source→browser Back retains Party/role but loses ledger search; POS editor returns to Sales. New-invoice return context separately passes.",
+    "1440-dark: Receive Money has no priced outstanding memo; truthful empty state captured",
+    "1440-dark: existing direct source→browser Back retains Party/role but loses ledger search; POS editor returns to Sales. New-invoice return context separately passes.",
+    "English: existing payment parser rejects Bangla-digit input: Enter a payment amount.",
+    "English + Bangla: existing payment parser rejects Bangla-digit input: Enter a payment amount.",
+    "Bangla: existing payment parser rejects Bangla-digit input: কত টাকা দিচ্ছেন লিখুন।",
+    "Loading/network-error state has no genuine async Party Ledger data source in this in-memory preview. Not fabricated."
+  ],
+  "screenshotGeometry": [
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-populated.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-expanded-filtered.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-empty.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-calendar.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 302,
+          "clientWidth": 302,
+          "rect": {
+            "x": 8,
+            "y": 118.375,
+            "width": 304,
+            "height": 469,
+            "top": 118.375,
+            "right": 312,
+            "bottom": 587.375,
+            "left": 8
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-date-filtered.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-page-2.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-row-menu.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 71,
+            "y": 435.375,
+            "width": 220,
+            "height": 259,
+            "top": 435.375,
+            "right": 291,
+            "bottom": 694.375,
+            "left": 71
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-source-preview.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 142,
+            "width": 288,
+            "height": 616,
+            "top": 142,
+            "right": 304,
+            "bottom": 758,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-statement.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-chooser.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        ":r1f:-title"
+      ],
+      "overlayGeometry": [
+        {
+          "name": ":r1f:-title",
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "rect": {
+            "x": 0,
+            "y": 542.625,
+            "width": 320,
+            "height": 357.375,
+            "top": 542.625,
+            "right": 320,
+            "bottom": 900,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-validation-semantics.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-payment-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-payment-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-correction-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction editor",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-customer-refund-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-customer-refund-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-supplier-refund-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-supplier-refund-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-supplier-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-attachment.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Attachment preview",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 206.9140625,
+            "width": 288,
+            "height": 486.171875,
+            "top": 206.9140625,
+            "right": 304,
+            "bottom": 693.0859375,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-owner-credit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-lender-debit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-borrower-credit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-owner-debit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-lender-credit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-borrower-debit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 326,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 91.5,
+            "width": 288,
+            "height": 717,
+            "top": 91.5,
+            "right": 304,
+            "bottom": 808.5,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-large-credit-balance.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-zero-balance.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-long-bilingual-note.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-light-source-return.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-populated.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-expanded-filtered.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-empty.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-calendar.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 302,
+          "clientWidth": 302,
+          "rect": {
+            "x": 8,
+            "y": 118.375,
+            "width": 304,
+            "height": 469,
+            "top": 118.375,
+            "right": 312,
+            "bottom": 587.375,
+            "left": 8
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-date-filtered.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-page-2.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-row-menu.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 71,
+            "y": 435.375,
+            "width": 220,
+            "height": 259,
+            "top": 435.375,
+            "right": 291,
+            "bottom": 694.375,
+            "left": 71
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-source-preview.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 142,
+            "width": 288,
+            "height": 616,
+            "top": 142,
+            "right": 304,
+            "bottom": 758,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-statement.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-chooser.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        ":r1f:-title"
+      ],
+      "overlayGeometry": [
+        {
+          "name": ":r1f:-title",
+          "scrollWidth": 320,
+          "clientWidth": 320,
+          "rect": {
+            "x": 0,
+            "y": 542.625,
+            "width": 320,
+            "height": 357.375,
+            "top": 542.625,
+            "right": 320,
+            "bottom": 900,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-validation-semantics.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-payment-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-payment-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-correction-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction editor",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-customer-refund-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-customer-refund-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-supplier-refund-validation.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-supplier-refund-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-supplier-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-attachment.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Attachment preview",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 206.9140625,
+            "width": 288,
+            "height": 486.171875,
+            "top": 206.9140625,
+            "right": 304,
+            "bottom": 693.0859375,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-owner-credit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-lender-debit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-borrower-credit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-owner-debit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-lender-credit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-borrower-debit-review.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 288,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 288,
+            "height": 868,
+            "top": 16,
+            "right": 304,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 326,
+          "clientWidth": 288,
+          "rect": {
+            "x": 16,
+            "y": 91.5,
+            "width": 288,
+            "height": 717,
+            "top": 91.5,
+            "right": 304,
+            "bottom": 808.5,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-large-credit-balance.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-zero-balance.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-long-bilingual-note.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-320-dark-source-return.png",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 142
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-populated.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-expanded-filtered.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-empty.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-calendar.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 372,
+          "clientWidth": 372,
+          "rect": {
+            "x": 8,
+            "y": 41.875,
+            "width": 374,
+            "height": 469,
+            "top": 41.875,
+            "right": 382,
+            "bottom": 510.875,
+            "left": 8
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-date-filtered.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-page-2.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-row-menu.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 141,
+            "y": 360.875,
+            "width": 220,
+            "height": 259,
+            "top": 360.875,
+            "right": 361,
+            "bottom": 619.875,
+            "left": 141
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-source-preview.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 170,
+            "width": 358,
+            "height": 560,
+            "top": 170,
+            "right": 374,
+            "bottom": 730,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-statement.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-chooser.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        ":r1f:-title"
+      ],
+      "overlayGeometry": [
+        {
+          "name": ":r1f:-title",
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "rect": {
+            "x": 0,
+            "y": 542.625,
+            "width": 390,
+            "height": 357.375,
+            "top": 542.625,
+            "right": 390,
+            "bottom": 900,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-validation-semantics.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-payment-validation.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-payment-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-correction-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction editor",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-customer-refund-validation.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-customer-refund-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-supplier-refund-validation.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-supplier-refund-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-supplier-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-attachment.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Attachment preview",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 160.0390625,
+            "width": 358,
+            "height": 579.921875,
+            "top": 160.0390625,
+            "right": 374,
+            "bottom": 739.9609375,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-owner-credit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-lender-debit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-borrower-credit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-owner-debit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-lender-credit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-borrower-debit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 97.5,
+            "width": 358,
+            "height": 705,
+            "top": 97.5,
+            "right": 374,
+            "bottom": 802.5,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-vendor-receive-money.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Receive Money"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Receive Money",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 305,
+            "width": 358,
+            "height": 290,
+            "top": 305,
+            "right": 374,
+            "bottom": 595,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-large-credit-balance.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-zero-balance.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-long-bilingual-note.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-light-source-return.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-populated.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-expanded-filtered.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-empty.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-calendar.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 372,
+          "clientWidth": 372,
+          "rect": {
+            "x": 8,
+            "y": 41.875,
+            "width": 374,
+            "height": 469,
+            "top": 41.875,
+            "right": 382,
+            "bottom": 510.875,
+            "left": 8
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-date-filtered.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-page-2.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-row-menu.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 141,
+            "y": 497.875,
+            "width": 220,
+            "height": 259,
+            "top": 497.875,
+            "right": 361,
+            "bottom": 756.875,
+            "left": 141
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-source-preview.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 170,
+            "width": 358,
+            "height": 560,
+            "top": 170,
+            "right": 374,
+            "bottom": 730,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-statement.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-chooser.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        ":r1f:-title"
+      ],
+      "overlayGeometry": [
+        {
+          "name": ":r1f:-title",
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "rect": {
+            "x": 0,
+            "y": 542.625,
+            "width": 390,
+            "height": 357.375,
+            "top": 542.625,
+            "right": 390,
+            "bottom": 900,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-validation-semantics.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-payment-validation.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-payment-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-correction-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction editor",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-customer-refund-validation.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-customer-refund-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-supplier-refund-validation.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-supplier-refund-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-supplier-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-attachment.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Attachment preview",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 160.0390625,
+            "width": 358,
+            "height": 579.921875,
+            "top": 160.0390625,
+            "right": 374,
+            "bottom": 739.9609375,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-owner-credit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-lender-debit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-borrower-credit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-owner-debit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-lender-credit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-borrower-debit-review.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 358,
+            "height": 868,
+            "top": 16,
+            "right": 374,
+            "bottom": 884,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 97.5,
+            "width": 358,
+            "height": 705,
+            "top": 97.5,
+            "right": 374,
+            "bottom": 802.5,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-vendor-receive-money.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Receive Money"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Receive Money",
+          "scrollWidth": 358,
+          "clientWidth": 358,
+          "rect": {
+            "x": 16,
+            "y": 305,
+            "width": 358,
+            "height": 290,
+            "top": 305,
+            "right": 374,
+            "bottom": 595,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-large-credit-balance.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-zero-balance.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-long-bilingual-note.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-dark-source-return.png",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-populated.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-expanded-filtered.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-empty.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-calendar.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 105,
+            "y": 552.75,
+            "width": 655,
+            "height": 432.5,
+            "top": 552.75,
+            "right": 760,
+            "bottom": 985.25,
+            "left": 105
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-date-filtered.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-page-2.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-row-menu.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 510,
+            "y": 728.75,
+            "width": 220,
+            "height": 259,
+            "top": 728.75,
+            "right": 730,
+            "bottom": 987.75,
+            "left": 510
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-source-preview.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 88.5,
+            "y": 262,
+            "width": 576,
+            "height": 500,
+            "top": 262,
+            "right": 664.5,
+            "bottom": 762,
+            "left": 88.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-light-statement.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 753,
+          "clientWidth": 753,
+          "rect": {
+            "x": 0,
+            "y": 26.5,
+            "width": 753,
+            "height": 971,
+            "top": 26.5,
+            "right": 753,
+            "bottom": 997.5,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-populated.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-expanded-filtered.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-empty.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-calendar.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 105,
+            "y": 552.75,
+            "width": 655,
+            "height": 432.5,
+            "top": 552.75,
+            "right": 760,
+            "bottom": 985.25,
+            "left": 105
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-date-filtered.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-page-2.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-row-menu.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 510,
+            "y": 728.75,
+            "width": 220,
+            "height": 259,
+            "top": 728.75,
+            "right": 730,
+            "bottom": 987.75,
+            "left": 510
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-source-preview.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 88.5,
+            "y": 262,
+            "width": 576,
+            "height": 500,
+            "top": 262,
+            "right": 664.5,
+            "bottom": 762,
+            "left": 88.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-768-dark-statement.png",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 753,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 753,
+          "clientWidth": 753,
+          "rect": {
+            "x": 0,
+            "y": 26.5,
+            "width": 753,
+            "height": 971,
+            "top": 26.5,
+            "right": 753,
+            "bottom": 997.5,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-populated.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-expanded-filtered.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-empty.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-calendar.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 157,
+            "y": 536.75,
+            "width": 655,
+            "height": 355.25,
+            "top": 536.75,
+            "right": 812,
+            "bottom": 892,
+            "left": 157
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-date-filtered.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-page-2.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-row-menu.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 562,
+            "y": 403.75,
+            "width": 220,
+            "height": 259,
+            "top": 403.75,
+            "right": 782,
+            "bottom": 662.75,
+            "left": 562
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-source-preview.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 114.5,
+            "y": 200,
+            "width": 576,
+            "height": 500,
+            "top": 200,
+            "right": 690.5,
+            "bottom": 700,
+            "left": 114.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-light-statement.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 805,
+          "clientWidth": 805,
+          "rect": {
+            "x": 0,
+            "y": 16,
+            "width": 805,
+            "height": 868,
+            "top": 16,
+            "right": 805,
+            "bottom": 884,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-populated.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-expanded-filtered.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-empty.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-calendar.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 157,
+            "y": 536.75,
+            "width": 655,
+            "height": 355.25,
+            "top": 536.75,
+            "right": 812,
+            "bottom": 892,
+            "left": 157
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-date-filtered.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-page-2.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-row-menu.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 562,
+            "y": 403.75,
+            "width": 220,
+            "height": 259,
+            "top": 403.75,
+            "right": 782,
+            "bottom": 662.75,
+            "left": 562
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-source-preview.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 114.5,
+            "y": 200,
+            "width": 576,
+            "height": 500,
+            "top": 200,
+            "right": 690.5,
+            "bottom": 700,
+            "left": 114.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-820-dark-statement.png",
+      "viewport": {
+        "width": 820,
+        "height": 900
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 805,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 805,
+          "clientWidth": 805,
+          "rect": {
+            "x": 0,
+            "y": 16,
+            "width": 805,
+            "height": 868,
+            "top": 16,
+            "right": 805,
+            "bottom": 884,
+            "left": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-populated.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-expanded-filtered.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-empty.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-calendar.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 361,
+            "y": 158.75,
+            "width": 655,
+            "height": 432.5,
+            "top": 158.75,
+            "right": 1016,
+            "bottom": 591.25,
+            "left": 361
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-date-filtered.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-page-2.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-row-menu.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 756,
+            "y": 621.25,
+            "width": 220,
+            "height": 259,
+            "top": 621.25,
+            "right": 976,
+            "bottom": 880.25,
+            "left": 756
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-source-preview.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 216.5,
+            "y": 134,
+            "width": 576,
+            "height": 500,
+            "top": 134,
+            "right": 792.5,
+            "bottom": 634,
+            "left": 216.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-light-statement.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 896,
+          "clientWidth": 896,
+          "rect": {
+            "x": 56.5,
+            "y": 16,
+            "width": 896,
+            "height": 736,
+            "top": 16,
+            "right": 952.5,
+            "bottom": 752,
+            "left": 56.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-populated.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-expanded-filtered.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-empty.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-calendar.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 361,
+            "y": 158.75,
+            "width": 655,
+            "height": 432.5,
+            "top": 158.75,
+            "right": 1016,
+            "bottom": 591.25,
+            "left": 361
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-date-filtered.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-page-2.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-row-menu.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 756,
+            "y": 621.25,
+            "width": 220,
+            "height": 259,
+            "top": 621.25,
+            "right": 976,
+            "bottom": 880.25,
+            "left": 756
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-source-preview.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 216.5,
+            "y": 134,
+            "width": 576,
+            "height": 500,
+            "top": 134,
+            "right": 792.5,
+            "bottom": 634,
+            "left": 216.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1024-dark-statement.png",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "touchPoints": 1,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 753,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 896,
+          "clientWidth": 896,
+          "rect": {
+            "x": 56.5,
+            "y": 16,
+            "width": 896,
+            "height": 736,
+            "top": 16,
+            "right": 952.5,
+            "bottom": 752,
+            "left": 56.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-populated.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-expanded-filtered.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-empty.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-calendar.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 777,
+            "y": 415.25,
+            "width": 655,
+            "height": 432.5,
+            "top": 415.25,
+            "right": 1432,
+            "bottom": 847.75,
+            "left": 777
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-date-filtered.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-page-2.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-row-menu.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 1172,
+            "y": 590.75,
+            "width": 220,
+            "height": 259,
+            "top": 590.75,
+            "right": 1392,
+            "bottom": 849.75,
+            "left": 1172
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-source-preview.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 424.5,
+            "y": 200,
+            "width": 576,
+            "height": 500,
+            "top": 200,
+            "right": 1000.5,
+            "bottom": 700,
+            "left": 424.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-statement.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 896,
+          "clientWidth": 896,
+          "rect": {
+            "x": 264.5,
+            "y": 16,
+            "width": 896,
+            "height": 868,
+            "top": 16,
+            "right": 1160.5,
+            "bottom": 884,
+            "left": 264.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-chooser.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-validation-semantics.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 115,
+            "width": 672,
+            "height": 670,
+            "top": 115,
+            "right": 1048.5,
+            "bottom": 785,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-payment-validation.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 115,
+            "width": 672,
+            "height": 670,
+            "top": 115,
+            "right": 1048.5,
+            "bottom": 785,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-payment-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 47,
+            "width": 672,
+            "height": 806,
+            "top": 47,
+            "right": 1048.5,
+            "bottom": 853,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-correction-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction editor",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 117,
+            "width": 672,
+            "height": 666,
+            "top": 117,
+            "right": 1048.5,
+            "bottom": 783,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-customer-refund-validation.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 124,
+            "width": 672,
+            "height": 652,
+            "top": 124,
+            "right": 1048.5,
+            "bottom": 776,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-customer-refund-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 74,
+            "width": 672,
+            "height": 752,
+            "top": 74,
+            "right": 1048.5,
+            "bottom": 826,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-supplier-refund-validation.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 124,
+            "width": 672,
+            "height": 652,
+            "top": 124,
+            "right": 1048.5,
+            "bottom": 776,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-supplier-refund-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 74,
+            "width": 672,
+            "height": 752,
+            "top": 74,
+            "right": 1048.5,
+            "bottom": 826,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-supplier-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 47,
+            "width": 672,
+            "height": 806,
+            "top": 47,
+            "right": 1048.5,
+            "bottom": 853,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-attachment.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Attachment preview",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 107,
+            "width": 672,
+            "height": 686,
+            "top": 107,
+            "right": 1048.5,
+            "bottom": 793,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-owner-credit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-lender-debit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-borrower-credit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-owner-debit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-lender-credit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-borrower-debit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 512,
+          "clientWidth": 512,
+          "rect": {
+            "x": 456.5,
+            "y": 141.5,
+            "width": 512,
+            "height": 617,
+            "top": 141.5,
+            "right": 968.5,
+            "bottom": 758.5,
+            "left": 456.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-vendor-receive-money.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Receive Money"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Receive Money",
+          "scrollWidth": 512,
+          "clientWidth": 512,
+          "rect": {
+            "x": 456.5,
+            "y": 325,
+            "width": 512,
+            "height": 250,
+            "top": 325,
+            "right": 968.5,
+            "bottom": 575,
+            "left": 456.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-large-credit-balance.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-zero-balance.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-long-bilingual-note.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-light-source-return.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-populated.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-expanded-filtered.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-empty.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-calendar.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger date range calendar"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger date range calendar",
+          "scrollWidth": 653,
+          "clientWidth": 653,
+          "rect": {
+            "x": 777,
+            "y": 415.25,
+            "width": 655,
+            "height": 432.5,
+            "top": 415.25,
+            "right": 1432,
+            "bottom": 847.75,
+            "left": 777
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-date-filtered.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-page-2.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-row-menu.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Transaction actions for INV-000241"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Transaction actions for INV-000241",
+          "scrollWidth": 218,
+          "clientWidth": 218,
+          "rect": {
+            "x": 1172,
+            "y": 590.75,
+            "width": 220,
+            "height": 259,
+            "top": 590.75,
+            "right": 1392,
+            "bottom": 849.75,
+            "left": 1172
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-source-preview.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction details"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction details",
+          "scrollWidth": 576,
+          "clientWidth": 576,
+          "rect": {
+            "x": 424.5,
+            "y": 200,
+            "width": 576,
+            "height": 500,
+            "top": 200,
+            "right": 1000.5,
+            "bottom": 700,
+            "left": 424.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-statement.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party ledger statement"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party ledger statement",
+          "scrollWidth": 896,
+          "clientWidth": 896,
+          "rect": {
+            "x": 264.5,
+            "y": 16,
+            "width": 896,
+            "height": 868,
+            "top": 16,
+            "right": 1160.5,
+            "bottom": 884,
+            "left": 264.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-chooser.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-validation-semantics.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 115,
+            "width": 672,
+            "height": 670,
+            "top": 115,
+            "right": 1048.5,
+            "bottom": 785,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-payment-validation.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 115,
+            "width": 672,
+            "height": 670,
+            "top": 115,
+            "right": 1048.5,
+            "bottom": 785,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-payment-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 47,
+            "width": 672,
+            "height": 806,
+            "top": 47,
+            "right": 1048.5,
+            "bottom": 853,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-correction-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party transaction editor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party transaction editor",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 117,
+            "width": 672,
+            "height": 666,
+            "top": 117,
+            "right": 1048.5,
+            "bottom": 783,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-customer-refund-validation.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 124,
+            "width": 672,
+            "height": 652,
+            "top": 124,
+            "right": 1048.5,
+            "bottom": 776,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-customer-refund-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 74,
+            "width": 672,
+            "height": 752,
+            "top": 74,
+            "right": 1048.5,
+            "bottom": 826,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-supplier-refund-validation.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 124,
+            "width": 672,
+            "height": 652,
+            "top": 124,
+            "right": 1048.5,
+            "bottom": 776,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-supplier-refund-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party credit refund"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party credit refund",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 74,
+            "width": 672,
+            "height": 752,
+            "top": 74,
+            "right": 1048.5,
+            "bottom": 826,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-supplier-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 47,
+            "width": 672,
+            "height": 806,
+            "top": 47,
+            "right": 1048.5,
+            "bottom": 853,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-attachment.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Attachment preview"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Attachment preview",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 107,
+            "width": 672,
+            "height": 686,
+            "top": 107,
+            "right": 1048.5,
+            "bottom": 793,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-owner-credit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-lender-debit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-borrower-credit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-owner-debit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-lender-credit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-borrower-debit-review.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party finance transaction"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party finance transaction",
+          "scrollWidth": 672,
+          "clientWidth": 672,
+          "rect": {
+            "x": 376.5,
+            "y": 78,
+            "width": 672,
+            "height": 744,
+            "top": 78,
+            "right": 1048.5,
+            "bottom": 822,
+            "left": 376.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-vendor-pay-vendor.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Pay Vendor"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Pay Vendor",
+          "scrollWidth": 512,
+          "clientWidth": 512,
+          "rect": {
+            "x": 456.5,
+            "y": 141.5,
+            "width": 512,
+            "height": 617,
+            "top": 141.5,
+            "right": 968.5,
+            "bottom": 758.5,
+            "left": 456.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-vendor-receive-money.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Receive Money"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Receive Money",
+          "scrollWidth": 512,
+          "clientWidth": 512,
+          "rect": {
+            "x": 456.5,
+            "y": 325,
+            "width": 512,
+            "height": 250,
+            "top": 325,
+            "right": 968.5,
+            "bottom": 575,
+            "left": 456.5
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-large-credit-balance.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-zero-balance.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-long-bilingual-note.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-1440-dark-source-return.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 256,
+        "y": 0,
+        "width": 1169,
+        "height": 57
+      },
+      "fullPage": true,
+      "openOverlays": [],
+      "overlayGeometry": []
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-English-bangla-digits.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 343,
+          "clientWidth": 343,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 343,
+            "height": 812,
+            "top": 16,
+            "right": 359,
+            "bottom": 828,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-English-+-Bangla-bangla-digits.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "Party payment"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "Party payment",
+          "scrollWidth": 343,
+          "clientWidth": 343,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 343,
+            "height": 812,
+            "top": 16,
+            "right": 359,
+            "bottom": 828,
+            "left": 16
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/refine-worktrees/refine-party-ledger-polish.run/coverage/final-390-Bangla-bangla-digits.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "touchPoints": 0,
+      "scrollY": 0,
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 102
+      },
+      "fullPage": false,
+      "openOverlays": [
+        "পক্ষের পেমেন্ট"
+      ],
+      "overlayGeometry": [
+        {
+          "name": "পক্ষের পেমেন্ট",
+          "scrollWidth": 343,
+          "clientWidth": 343,
+          "rect": {
+            "x": 16,
+            "y": 16,
+            "width": 343,
+            "height": 812,
+            "top": 16,
+            "right": 359,
+            "bottom": 828,
+            "left": 16
+          }
+        }
+      ]
+    }
+  ],
+  "passed": 151,
+  "failed": 2
+}

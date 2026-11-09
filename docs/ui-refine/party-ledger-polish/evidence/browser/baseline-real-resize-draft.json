@@ -1,0 +1,68 @@
+{
+  "base": "http://127.0.0.1:4312",
+  "before": {
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "url": "http://127.0.0.1:4312/#/app/parties?id=c4&role=Customer",
+    "dialogVisible": true,
+    "amount": "123.45",
+    "note": "Draft retained? · বাংলা খসড়া",
+    "header": {
+      "x": 256,
+      "y": 0,
+      "width": 753,
+      "height": 57
+    }
+  },
+  "sameBand": {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "url": "http://127.0.0.1:4312/#/app/parties?id=c4&role=Customer",
+    "dialogVisible": true,
+    "amount": "123.45",
+    "note": "Draft retained? · বাংলা খসড়া",
+    "header": {
+      "x": 256,
+      "y": 0,
+      "width": 1169,
+      "height": 57
+    }
+  },
+  "portrait": {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "url": "http://127.0.0.1:4312/#/app/parties?id=c4&role=Customer",
+    "dialogVisible": false,
+    "amount": null,
+    "note": null,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 753,
+      "height": 102
+    }
+  },
+  "reopened": {
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "url": "http://127.0.0.1:4312/#/app/parties?id=c4&role=Customer",
+    "dialogVisible": true,
+    "amount": "",
+    "note": null,
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 753,
+      "height": 102
+    }
+  },
+  "conclusion": "Real viewport crossing of1024px breakpoint remounts PartyDetailAdaptive and closes its local dialog, discarding unsaved fields. Same desktop band retains draft. Preexisting baseline behavior; not caused by refinement and outside bounded presentation patch."
+}

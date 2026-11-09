@@ -1,0 +1,18 @@
+﻿Business,HisabIQ · Business preview
+Party,Rahman Hardware
+Relationship,Customer
+From,All time
+To,All time
+Opening balance,0
+Date,Type,Reference,Description,Debit,Credit,Running balance
+2026-09-01,opening,,Opening balance,22400,0,22400
+2026-09-06,sale,INV-000198,"PVC Pipe 1"" × 40, Gate Valve ¾"" × 6",20700,0,43100
+2026-09-10,customer-payment,RCV-000087,Cash received at counter,0,25000,18100
+2026-09-18,sale,INV-000221,"LED Bulb 12W × 5 Box, Electric Wire 1.5 rm × 3 Coil",16300,0,34400
+2026-09-22,note,,Promised to clear dues before Durga Puja. Call Mr. Habib.,0,0,34400
+2026-09-24,sale-return,RTN-000012,"Returned 2 damaged Gate Valve ¾""",0,1300,33100
+2026-09-27,customer-payment,RCV-000101,bKash received (TrxID 9KJ27XQ1),0,10000,23100
+2026-10-01,sale,INV-000241,"MS Angle 1.5"" × 1.5"", Teflon Tape",25550,0,48650
+Period debit,84950
+Period credit,36300
+Closing balance,48650

@@ -114,7 +114,10 @@ async function main() {
     await page.getByRole('heading',{name:/Karim Traders/}).waitFor();
     // Supplier screenshot contract: compact horizontal owed-card plus just the three actions.
     const supplierCard=page.locator('[data-testid="party-balance-card"]:visible').first();
-    assert.equal(await supplierCard.evaluate(el=>getComputedStyle(el).display),'grid');
+    assert.deepEqual(await supplierCard.evaluate(el=>{
+      const style=getComputedStyle(el);
+      return {display:style.display,direction:style.flexDirection};
+    }),{display:'flex',direction:'row'},'Supplier amount stays horizontally aligned on narrow phones');
     assert.ok(await supplierCard.getByText('Supplier payable').isVisible());
     assert.ok(await supplierCard.getByText('You owe them',{exact:false}).isVisible());
     const supplierActions=page.getByTestId('party-mobile-actions');
@@ -217,12 +220,14 @@ async function main() {
         assert.equal(await mobileActions.getByRole('button',{name:'Refund credit'}).count(),0,`Phone ${width}px refund is overflow-only`);
         const card=page.locator('[data-testid="party-balance-card"]:visible').first();
         assert.ok(await card.isVisible(),`Phone ${width}px balance tile is visible`);
-        assert.equal(await card.evaluate(el=>getComputedStyle(el).display),'grid',`Phone ${width}px balance tile is horizontal`);
+        assert.deepEqual(await card.evaluate(el=>{
+          const style=getComputedStyle(el);
+          return {display:style.display,direction:style.flexDirection};
+        }),{display:'flex',direction:'row'},`Phone ${width}px uses the approved horizontal balance tile`);
         const title=await card.locator('p').nth(0).boundingBox();
-        const amount=await card.locator('p').nth(1).boundingBox();
+        const amount=await card.locator('p').nth(2).boundingBox();
         const cardRect=await card.boundingBox();
-        const columns=await card.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
-        assert.ok(columns>=2 && title&&amount&&cardRect &&
+        assert.ok(title&&amount&&cardRect &&
           amount.x>title.x+12 && amount.x>=cardRect.x+cardRect.width*0.45,
           `Phone ${width}px card has a left label and right-aligned amount`);
       } else if(width<1024){

@@ -1,3 +1,4 @@
+import {usePartyDialogError} from './usePartyDialogError';
 import React,{useEffect,useState} from 'react';
 import {BookOpen} from 'lucide-react';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '../Dialog';
@@ -37,14 +38,14 @@ export function PartyOpeningDialog({open,party,relationship,existing,onClose,onS
  const [side,setSide]=useState<'debit'|'credit'>(defaultOpeningSide(relationship));
  const [date,setDate]=useState(businessToday());
  const [note,setNote]=useState('');
- const [error,setError]=useState('');
+ const {error,setError,inputErrorProps,errorSummaryProps}=usePartyDialogError();
  useEffect(()=>{
   if(open){
    setAmount(existing?String(existing.debit||existing.credit):'');
    setSide(existing?.credit?'credit':existing?.debit?'debit':defaultOpeningSide(relationship));
    setDate(existing?.date??businessToday());setNote('');setError('');
   }
- },[open,relationship,party.id,existing?.id]);
+ },[open,relationship,party.id,existing?.id,setError]);
  const names=openingDirectionLabels(relationship);
  const submit=(e:React.FormEvent)=>{
   e.preventDefault();setError('');
@@ -52,7 +53,7 @@ export function PartyOpeningDialog({open,party,relationship,existing,onClose,onS
    if(!amount.trim())throw new Error(text('Enter the opening balance, or 0 to clear it.','শুরুর জের লিখুন। আগের জের মুছতে ০ লিখুন।'));
    onSubmit({partyId:party.id,relationship,amount:Number(amount),side,date,note:note.trim()});
    onClose();
-  }catch(e){setError(e instanceof Error?e.message:text('Could not save opening balance.','শুরুর জের রাখা যায়নি।'));}
+  }catch(e){setError(e instanceof Error?e.message:text('Could not save opening balance.','শুরুর জের রাখা যায়নি।'),!amount.trim()?'amount':undefined);}
  };
  return <Dialog open={open} onOpenChange={value=>!value&&onClose()}>
   <DialogContent role="dialog" aria-modal="true" aria-label={text("Party opening balance","পার্টির শুরুর জের")} className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
@@ -60,7 +61,7 @@ export function PartyOpeningDialog({open,party,relationship,existing,onClose,onS
     <DialogTitle><BookOpen className="mr-1.5 inline size-4"/> {existing?text('Edit opening balance','শুরুর জের বদলান'):text('Set opening balance','শুরুর জের দিন')} {showHelper&&<span className="font-bn text-sm font-normal text-ink-500">প্রারম্ভিক জের</span>}</DialogTitle>
     <DialogDescription>{party.name} · {roleLabel} · {text('UI preview','শুধু প্রিভিউ')}</DialogDescription>
    </DialogHeader>
-   <form onSubmit={submit} className="space-y-4" aria-label={text("Opening balance form","শুরুর জেরের ফরম")}>
+   <form onSubmit={submit} className="min-w-0 space-y-4" aria-label={text("Opening balance form","শুরুর জেরের ফরম")}>
     {existing&&<div className="rounded-md border border-border bg-ink-50 p-3 text-xs text-ink-600">
       {text('Current:','এখন আছে:')} <strong className="text-ink">{taka(existing.debit||existing.credit)} {existing.credit?'Cr':'Dr'}</strong> · {existing.date}
       <p className="mt-1">{text('A correction preserves the previous source and records an audit event.','সংশোধন করলে আগের হিসাবের তথ্য ও পরিবর্তনের ইতিহাস রাখা হবে।')}</p>
@@ -72,9 +73,9 @@ export function PartyOpeningDialog({open,party,relationship,existing,onClose,onS
       <span className="text-ink">{partyOpeningDirectionLabel(names[value],language)}</span><span className="ml-auto text-ink-500">{value==='debit'?'Dr':'Cr'}</span>
      </label>)}
     </fieldset>
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 [&>*]:min-w-0">
      <label className="space-y-1 text-xs font-medium text-ink-700">{text('Amount (৳)','টাকার পরিমাণ (৳)')}
-      <Input aria-label={text('Opening balance amount','শুরুর জেরের টাকা')} value={amount} inputMode="decimal" placeholder="0.00"
+      <Input {...inputErrorProps('amount')} aria-label={text('Opening balance amount','শুরুর জেরের টাকা')} value={amount} inputMode="decimal" placeholder="0.00"
        onChange={e=>setAmount(e.target.value)} autoFocus/>
      </label>
      <div className="space-y-1 text-xs font-medium text-ink-700"><span>{text('Opening date','শুরুর তারিখ')}</span>
@@ -87,8 +88,8 @@ export function PartyOpeningDialog({open,party,relationship,existing,onClose,onS
     <p role="note" className="rounded-md bg-ink-50 p-3 text-xs text-ink-600">
      {text('Opening balance changes the ledger only. No cash or bank payment is posted, and old credit is not automatically refundable. Enter 0 to clear an existing balance.','শুরুর জের শুধু খাতার হিসাব বদলায়। ক্যাশ বা ব্যাংকে কোনো টাকা জমা/খরচ হবে না। আগের জমা টাকা নিজে থেকে ফেরত দেওয়ার উপযোগী হবে না। পুরোনো জের মুছতে ০ লিখুন।')}
     </p>
-    {error&&<p role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
-    <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={onClose} >{text('Cancel','বাতিল')}</Button>
+    {error&&<p {...errorSummaryProps} role="alert" className="rounded-md bg-danger-bg p-2 text-xs text-danger">{error}</p>}
+    <div className="flex flex-wrap justify-end gap-2 [&>button]:max-w-full [&>button]:whitespace-normal"><Button type="button" variant="outline" onClick={onClose} >{text('Cancel','বাতিল')}</Button>
       <Button type="submit">{Number(amount)===0&&existing?text('Clear opening balance','শুরুর জের মুছুন'):text('Save opening balance','শুরুর জের রাখুন')}</Button></div>
    </form>
   </DialogContent>

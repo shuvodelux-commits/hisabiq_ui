@@ -1,0 +1,165 @@
+{
+  "assessment": "Checker · fresh closing merge",
+  "round": "C4 closing",
+  "commit": "d1de6a904755604f878d5578d8d63e59ce3728e8",
+  "critic": "impeccable",
+  "designScores": {
+    "specificity": 4,
+    "hierarchy": 4,
+    "typography": 3,
+    "color": 3,
+    "composition": 3
+  },
+  "designTotal": 17,
+  "auditScores": {
+    "accessibility": 3,
+    "performance": 3,
+    "responsive": 3,
+    "theming": 3,
+    "integrity": 4
+  },
+  "auditTotal": 16,
+  "visualTotal": 33,
+  "scoreMaximum": 40,
+  "scoreProvenance": "Independent isolated design17/20 plus isolated source audit16/20; checker sums the actual submitted scores without rescoring. Official detector exit0 with no findings.",
+  "detectorRan": true,
+  "detectorExitCode": 0,
+  "detectorRaw": "closing-detector-raw.json",
+  "detectorFindings": [],
+  "problems": [],
+  "vsBefore": "better",
+  "vsBeforeNote": "Desktop shell/logo/directory/detail hierarchy preserved; dark selected count clearer and Reset beside type; mobile note/opening duplication removed; narrow statement summaries and financial dialog footers fit in supplied final evidence.",
+  "summary": "The independent closing assessments sum to33/40, up from28/40 baseline through29/40 and30/40. No scoped P0/P1 or introduced visual regression is verified; broad final coverage is151passed/2failed with both failures independently reproduced in the pristine320px Vendor settlement dialog and retained as an explicit remaining limitation.",
+  "openQuestions": [],
+  "resolvedFromPriorIds": [
+    {
+      "id": "party-dialog-validation-association",
+      "status": "source resolved; visible validation evidence consistent",
+      "evidence": "usePartyDialogError supplies stable error IDs, aria-invalid/aria-describedby for known fields, first invalid control focus and focusable alert fallback. Payment/refund/finance/opening/correction/reversal consumers map errors without changing validation payloads. Supplied error shots show visible field states and specific errors."
+    },
+    {
+      "id": "party-split-amount-name",
+      "status": "source resolved",
+      "evidence": "All four scoped Party split-editor consumers pass translated row-specific amount names and method context via the optional amountInputProps API. Existing shared defaults are retained."
+    },
+    {
+      "id": "party-statement-mobile-summary-overflow",
+      "status": "visually/source resolved",
+      "evidence": "320px light/dark statement-summary captures show period debit84,950, credit36,300 and complete ৳48,650 Receivable, plus reachable wrapped footer. Only the labelled keyboard-focusable comparative table scrolls horizontally; document min-w-0 containment and wrapping summaries are present."
+    },
+    {
+      "id": "statement-print-clipping",
+      "status": "resolved in inspected first/last actual PDF rasters",
+      "evidence": "320/1440 light/dark print pages1 and5 retain header, references, full descriptions, repeated final-page heading and final period/closing totals. Middle pages were not re-inspected in this closing assessment."
+    },
+    {
+      "id": "party-tabs-keyboard",
+      "status": "source resolved",
+      "evidence": "Shared Party hook implements ArrowLeft/Right/Home/End, roving tabIndex, stable tab/panel IDs, focus and scroll reveal. Both detail roots consume it; no new browser interaction driven by this reviewer."
+    },
+    {
+      "id": "party-directory-keyboard",
+      "status": "source resolved",
+      "evidence": "Directory hook provides search ArrowDown, option movement/Home/End and roving option focus; directory supplies listbox/option semantics and visible focus."
+    },
+    {
+      "id": "party-tab-count-dark-contrast",
+      "status": "visually improved",
+      "evidence": "Round0 versus final dark main captures show clearer active count; no numerical contrast measurement claimed."
+    },
+    {
+      "id": "ledger-mobile-duplicate-description",
+      "status": "visually resolved",
+      "evidence": "Final mobile full shots/crop remove duplicate note and opening prose while retaining actual content."
+    },
+    {
+      "id": "ledger-reset-filter-grouping",
+      "status": "visually/source resolved",
+      "evidence": "Final desktop main/crop place Reset immediately after transaction type before Rows; responsive source groups Reset with transaction type."
+    },
+    {
+      "id": "party-note-action-targets",
+      "status": "source repair retained",
+      "evidence": "Both detail note action areas retain shared Button size=icon and separated edit/delete actions with translated names."
+    },
+    {
+      "id": "party-directory-proportional-money",
+      "status": "source resolved",
+      "evidence": "Directory/detail roots explicitly override legacy numeric feature settings with normal/proportional-nums."
+    },
+    {
+      "id": "party-balance-large-money-fit",
+      "status": "source repair retained; no new large-amount runtime claim",
+      "evidence": "BalanceCard uses bounded wrapping flex layout and complete formatted money; closing balance wraps its money. Baseline/final main money remains complete."
+    }
+  ],
+  "knownBaselineLimitations": [
+    {
+      "id": "party-cross-band-draft-loss",
+      "location": "src/components/parties/PartyDetailAdaptive.tsx:14-16",
+      "evidence": "Crossing1024px conditionally swaps PartyDetail and PartyDetailResponsive, whose local dialog/draft state is separate. File unchanged from baseline. Actual baseline observation is documented in coverage-recovery.md; no new runtime observation made here.",
+      "scopeDecision": "Retain explicit disclosure; shared state architecture exceeds this bounded presentation patch."
+    },
+    {
+      "id": "party-direct-source-return-query",
+      "location": "src/pages/Parties.tsx:49-55,140-142",
+      "evidence": "Workspace restoration is restricted to party-pos-return state; direct source action navigates only the source route. Parties.tsx unchanged. Existing direct source→browserBack query loss remains distinct from New invoice→Back to party preservation.",
+      "scopeDecision": "Retain explicit disclosure; do not claim all source returns preserve query."
+    },
+    {
+      "id": "party-vendor-narrow-dialog-overflow",
+      "location": "src/components/parties/VendorQuickSettlementDialog.tsx",
+      "evidence": "coverage/baseline-vendor-containment-red-results.json reproduces320px light/dark Pay Vendor dialog scrollWidth326/clientWidth288, identical to final broad run; exact baseline/current rectangles also match.",
+      "scopeDecision": "Verified inherited limitation, outside the five edited financial dialogs; preserve as unchecked acceptance/risk in the bounded three-round draft, no fourth fix round."
+    }
+  ],
+  "inspection": {
+    "assessmentsRead": [
+      "closing-design.json",
+      "closing-detector.json"
+    ],
+    "ledgerRead": "ledger.md",
+    "priorIdsRead": [
+      "r1-checker.json",
+      "r2-checker.json",
+      "r3-checker.json"
+    ],
+    "imagesRead": [
+      "shots/cmp-round-3-main-desktop-light.png",
+      "shots/cmp-round-3-main-desktop-dark.png",
+      "shots/cmp-round-3-main-mobile-light.png",
+      "shots/cmp-round-3-main-mobile-dark.png"
+    ],
+    "sourceSpotChecks": [
+      "PartyPaymentDialog.tsx error association and narrow layout",
+      "usePartyDialogError.ts focus and stable IDs",
+      "FinancePaymentSplitEditor.tsx compatible optional attributes",
+      "PartyBalanceCard.tsx full amount reflow"
+    ],
+    "sourceEdited": false,
+    "browserUsed": false
+  },
+  "limitations": [
+    "Design reviewer read prior r3 design assessment plus stable issue IDs, but never current closing detector output; detector read no images or design assessment.",
+    "Recovery r3 checker disclosed accidental exposure to prior r2 merged summary; preserved honestly in evidence rather than claiming perfect historical isolation.",
+    "Closing audit is source-only and design is supplied image/source review; neither certifies assistive technology, physical devices, production posting or runtime performance.",
+    "Cross1024px draft loss and direct-source browserBack query loss are inherited explicit limitations. Authentic loading/network failure is unsupported by this synchronous preview."
+  ],
+  "finalWorkflowEvidence": {
+    "path": "coverage/final-results.json",
+    "passed": 151,
+    "failed": 2,
+    "cases": 153,
+    "blockedNotes": 14,
+    "disposition": "Both failures: inherited320px light/dark Vendor Pay Vendor dialog overflow326/288, reproduced identically in baseline-vendor-containment-red-results.json. All12actual CSV/PDF statement cases passed. Do not claim full browser green."
+  },
+  "finishReview": {
+    "path": "finish-review.json",
+    "fixedOccurrences": 14,
+    "uniqueFixed": 13,
+    "partial": 0,
+    "notFixed": 0,
+    "introducedRegressions": 0,
+    "disposition": "Ready for human review of bounded patch; inherited browser failures remain open, no merge approval."
+  }
+}
