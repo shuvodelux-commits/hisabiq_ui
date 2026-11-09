@@ -341,8 +341,15 @@ async function main() {
     await dataUI.getByRole('heading', {name:/Recycle Bin/}).waitFor();
     await dataUI.getByText(/current session.*draft store/i).waitFor();
     await dataUI.getByRole('tab', {name:'Record exports & import preview'}).click();
-    await dataUI.getByLabel('Product CSV preview').waitFor();
-    await dataUI.getByText(/No records imported/i).waitFor();
+    await dataUI.getByLabel('Product CSV preview').setInputFiles({
+      name:'products-preview.csv', mimeType:'text/csv',
+      buffer:Buffer.from('Name,Category,Unit\\nPVC elbow,Hardware,Pcs\\nPipe,Plumbing,Ft'.replaceAll('\\n', '\n')),
+    });
+    await dataUI.getByRole('combobox',{name:'Map Product name'}).click();
+    await dataUI.getByRole('listbox',{name:'Map Product name options'}).getByRole('option',{name:'Name'}).click();
+    await dataUI.getByRole('button',{name:'Preview import'}).click();
+    await dataUI.getByRole('status').filter({hasText:/2 rows ready for review/}).waitFor();
+    await dataUI.getByText(/No records imported/).waitFor();
     // Original Magic SessionsPage: source summary, all columns, search, risk filters,
     // per-device controls, bulk/PIN protection and nonpersistent preview state.
     await go('sessions');
