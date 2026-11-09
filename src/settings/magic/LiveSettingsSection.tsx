@@ -75,11 +75,6 @@ export function LiveSettingsSection({
     const original = defaults(state.tenantId).sections[section] as unknown as Draft;
     setDraft(previous => ({ ...previous,
       ...Object.fromEntries(fields.map(field => [field.key, structuredClone(original[field.key])])),
-      ...(section === 'invoices' ? { numbering: {
-        ...(previous.numbering as SettingsSections['invoices']['numbering']),
-        sale: { ...(previous.numbering as SettingsSections['invoices']['numbering']).sale,
-          prefix: String(original.prefix) },
-      } } : {}),
     }));
     setError('');
     setNotice('Defaults for visible settings loaded into the draft. Save to apply.');
