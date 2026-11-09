@@ -4656,7 +4656,6 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/products/ProductSettings.tsx",
       "src/components/sales/SalesMobileLayout.tsx",
-      "src/pages/Accounts.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
       "src/pages/Warranty.tsx"
