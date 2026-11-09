@@ -67,13 +67,25 @@ test("audit statuses never conflate visibility, saving, consumption and enforcem
   }
 });
 
-test("report distinguishes main and unmerged PR 274 rather than assuming parity", () => {
+test("main and PR 274 descriptions allow unchanged behavior", () => {
+  const markdown = readFileSync(matrixPath, "utf8");
+  assert.match(markdown, /main.*e73e83d01f8e6237a7a74ce0a6db72e45d6292f4/s);
+  assert.match(markdown, /PR #274.*053f2ceb29fff556eed06461575dc9cbb650e92c/s);
   const rows = readRows();
   assert.ok(rows.length >= 72, "60 ordinary plus at least 12 specialists");
+  assert.ok(rows.some(row => /unchanged/i.test(row.pr)), "Unchanged features must be recorded honestly");
   for (const row of rows) {
-    assert.notEqual(row.main, row.pr, row.id + ": explicit separate main and PR #274 statements are required");
+    assert.ok(row.main.length > 5 && row.pr.length > 5, row.id + ": describe both versions");
   }
 });
+
+test("browser-working requires an observed UI consumer and saved state", () => {
+  for (const row of readRows().filter(row => row.readiness === "browser-working")) {
+    assert.ok(["yes", "partial"].includes(row.persistent), row.id + ": working without persistence");
+    assert.ok(["yes", "partial"].includes(row.consumed), row.id + ": unverified or absent consumer cannot be working");
+  }
+});
+
 
 test("the ordinary inventory retains exact English and Bangla field labels", () => {
   const rows = new Map(readRows().filter(row => row.kind === "ordinary").map(row => [row.id, row]));
