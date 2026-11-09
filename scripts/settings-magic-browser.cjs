@@ -527,10 +527,9 @@ async function main() {
     await studio.waitFor();
     assert.equal(await invoiceGallery.getByRole('radio', { name: /Standard/ }).getAttribute('aria-checked'), 'true', 'Invoice Studio does not fake persistence in Phase 1');
     await studio.locator('aside article[aria-label="Invoice preview"]').last().waitFor();
-    const numbering = page.locator('[data-settings-magic-general="invoices"]');
+    const numbering = page.locator('[data-settings-live-section="invoices"]');
     await numbering.waitFor();
-    await numbering.getByLabel('Invoice number prefix').waitFor();
-    await numbering.getByRole('switch', { name: /Offer receipt printing/ }).waitFor();
+    await numbering.getByRole('switch', { name: /Show business logo/ }).waitFor();
     // WCAG AA text contrast regression for source Magic Settings in both modes.
     // Theme token values are measured at their actual rendered element surfaces.
     const ratio = (fore, back) => {
@@ -591,15 +590,15 @@ async function main() {
         fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
         const sourceRoutes = [
           ['home', '', '[data-settings-magic-patterns]'],
-          ['business', 'business', '[data-settings-magic-general="business"]'],
-          ['names', 'financialTerminology', '[data-settings-magic-general="names"]'],
-          ['sales', 'sales', '[data-settings-magic-general="sales"]'],
-          ['products', 'products', '[data-settings-magic-general="products"]'],
-          ['purchases', 'purchases', '[data-settings-magic-general="purchases"]'],
-          ['finance', 'money', '[data-settings-magic-general="finance"]'],
-          ['notifications', 'notifications', '[data-settings-magic-general="notifications"]'],
-          ['personal', 'personal', '[data-settings-magic-general="personal"]'],
-          ['security', 'security', '[data-settings-magic-general="security"]'],
+          ['business', 'business', '[data-field-key=\"name\"]'],
+          ['names', 'financialTerminology', '[data-settings-magic-patterns]'],
+          ['sales', 'sales', '[data-settings-live-section=\"sales\"]'],
+          ['products', 'products', '[data-settings-live-section=\"products\"]'],
+          ['purchases', 'purchases', '[data-settings-live-section=\"purchases\"]'],
+          ['finance', 'money', '[data-settings-live-section=\"money\"]'],
+          ['notifications', 'notifications', '[data-settings-live-section=\"notifications\"]'],
+          ['personal', 'personal', '[data-settings-magic-patterns]'],
+          ['security', 'security', '[data-settings-magic-patterns]'],
           ['invoices', 'invoices', '[data-settings-magic-invoice-studio]'],
           ['interface', 'interface', '[data-settings-magic-interface]'],
           ['support', 'support', '[data-settings-embedded-support]'],
@@ -678,12 +677,12 @@ async function main() {
       assert.equal(formOverflow, false, 'Settings form overflows at ' + width);
       // Source risk-review modal is also readable and contained on small screens.
       await go('money');
-      const financeGeneral = page.locator('[data-settings-magic-general="finance"]');
+      const financeGeneral = page.locator('[data-settings-live-section="money"]');
       await financeGeneral.waitFor();
       await financeGeneral.getByRole('button', { name: 'Show advanced options' }).click();
-      await financeGeneral.getByRole('textbox', { name: 'Lock old entries before' }).fill('2026-10-31');
-      await financeGeneral.getByRole('button', { name: 'Save', exact: true }).click();
-      const riskDialog = page.getByRole('dialog', { name: 'Before you save' });
+      await financeGeneral.getByLabel('Lock posting through date').fill('2026-10-31');
+      await financeGeneral.getByRole('button', { name: 'Save changes' }).click();
+      const riskDialog = page.getByRole('dialog', { name: 'Review business setting changes' });
       await riskDialog.waitFor();
       const riskLayout = await riskDialog.evaluate(el => ({
         width: el.getBoundingClientRect().width,
@@ -700,7 +699,7 @@ async function main() {
           'settings-before-save-' + width + '-dark.png'), fullPage: true});
         await page.evaluate(() => document.documentElement.classList.remove('dark'));
       }
-      await riskDialog.getByRole('button', { name: 'Go back' }).click();
+      await riskDialog.getByRole('button', { name: 'Review again' }).click();
       await riskDialog.waitFor({ state: 'detached' });
       await go('data');
       const dataPage = page.locator('[data-settings-magic-data]');
@@ -825,7 +824,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles, Data & backup, and source Logged-in devices, Staff activity and Offline selling previews across five viewports passed.');
+    console.log('HisabIQ Settings: saved business preferences, POS Guardian visibility, Magic UI specialty previews, bilingual navigation, accessibility and five-viewport responsive coverage passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
