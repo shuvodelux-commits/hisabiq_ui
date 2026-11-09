@@ -112,6 +112,28 @@ async function main() {
       if (section === 'money') await panel.getByRole('button', {name:'Show advanced options'}).click();
       await panel.getByRole('switch', {name:field}).waitFor();
     }
+    // The legacy purchase receipt preference controls the actual editor.
+    await go('purchases');
+    const purchaseControls = page.locator('[data-settings-live-section="purchases"]');
+    await purchaseControls.waitFor();
+    const receipt = purchaseControls.getByRole('switch', {name:'Receipt attachments'});
+    const originalReceipt = await receipt.isChecked();
+    await receipt.uncheck();
+    if (originalReceipt) {
+      await purchaseControls.getByRole('button', {name:'Save changes'}).click();
+      await purchaseControls.getByText(/Saved for this business on this device/).waitFor();
+    }
+    await page.goto('http://127.0.0.1:4292/#/app/purchases/new', {waitUntil:'domcontentloaded'});
+    await page.locator('[data-purchase-layout]').waitFor();
+    assert.equal(await page.locator('[data-purchase-receipt]').count(), 0,
+      'Turning off receipt attachments hides the real Purchase Editor upload');
+    await go('purchases');
+    await purchaseControls.waitFor();
+    await receipt.setChecked(originalReceipt);
+    if (originalReceipt) {
+      await purchaseControls.getByRole('button', {name:'Save changes'}).click();
+      await purchaseControls.getByText(/Saved for this business on this device/).waitFor();
+    }
     for (const route of ['financialTerminology', 'personal', 'security']) {
       await go(route);
       await page.locator('.erp-settings section').first().waitFor();
