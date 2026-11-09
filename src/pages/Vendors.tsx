@@ -1,5 +1,5 @@
 import {useMemo,useState,useSyncExternalStore} from 'react';
-import {useSearchParams} from 'react-router-dom';
+import {useNavigate,useSearchParams} from 'react-router-dom';
 import {ChevronDown,Plus} from 'lucide-react';
 import {toast} from 'sonner';
 import {PageHeader} from '../components/PageHeader';
@@ -19,6 +19,7 @@ import {sourceOutstanding,vendorBalances} from '../vendor/vendorModel';
 import {filterVendors,resolveVendorView,type VendorWorkTab} from '../vendor/vendorRoute';
 
 export function Vendors(){
+ const navigate=useNavigate();
  const [params,setParams]=useSearchParams();
  const partyState=useSyncExternalStore(subscribePartyPreview,getPartyPreviewSnapshot);
  const snapshot=useSyncExternalStore(subscribeVendorPreview,getVendorPreviewSnapshot);
@@ -90,11 +91,11 @@ export function Vendors(){
    <PageHeader title="Vendor" titleBn="ভেন্ডর লেনদেন"
     description="Goods taken and given, purchases, settlement and ledger · UI preview only"
     descriptionBn="পণ্য নেওয়া-দেওয়া, দাম, পাওনা-দেনা ও হিসাব · শুধু প্রিভিউ"
-    actions={<Button type="button" size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button>}/>
+    actions={<><Button type="button" size="sm" variant="outline" onClick={()=>navigate("/app/vendors-v2"+(party?"?partyId="+encodeURIComponent(party.id):""))}>Try Vendor V2</Button><Button type="button" size="sm" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button></>}/>
   </div>
   <div className="flex items-center justify-between gap-3 sm:hidden">
    <h1 className="text-lg font-semibold text-ink">Vendor <span className="font-bn text-sm font-normal text-ink-500">· ভেন্ডর লেনদেন</span></h1>
-   <Button type="button" size="sm" variant="outline" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button>
+   <div className="flex gap-2"><Button type="button" size="sm" variant="outline" onClick={()=>navigate("/app/vendors-v2"+(party?"?partyId="+encodeURIComponent(party.id):""))}>V2</Button><Button type="button" size="sm" variant="outline" onClick={()=>setEditing(null)}><Plus className="size-4"/> Add Vendor</Button></div>
   </div>
   {party&&<button type="button" aria-label="Choose Vendor" aria-haspopup="dialog" aria-expanded={vendorPickerOpen}
    onClick={()=>setVendorPickerOpen(true)}

@@ -3274,6 +3274,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/vendor/VendorV2Cart.tsx",
+      "kind": "component",
+      "exports": [
+        "VendorV2Cart"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/contexts/CashSessionContext.tsx",
       "kind": "provider-or-context",
       "exports": [
@@ -3506,6 +3514,14 @@
       "kind": "page-or-feature",
       "exports": [
         "Sales"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/pages/VendorV2.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "VendorV2"
       ],
       "reexports": []
     },
@@ -4087,9 +4103,11 @@
       "src/components/parties/VendorCorrectionDialog.tsx",
       "src/components/products/BundleEditor.tsx",
       "src/components/reports/ReportDetails.tsx",
+      "src/components/vendor/VendorV2Cart.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/pages/Pos.tsx",
       "src/pages/PurchaseEditor.tsx",
+      "src/pages/VendorV2.tsx",
       "src/settings/ModuleSettingsEntry.tsx"
     ],
     "ArrowLeftIcon": [
@@ -4296,6 +4314,7 @@
       "src/components/sales/SalesMobileLayout.tsx",
       "src/pages/Products.tsx",
       "src/pages/Sales.tsx",
+      "src/pages/VendorV2.tsx",
       "src/pages/Vendors.tsx"
     ],
     "ChevronDownIcon": [
@@ -4401,7 +4420,8 @@
       "src/settings/SettingsSqlBackup.tsx"
     ],
     "Ellipsis": [
-      "src/components/vendor/VendorTabs.tsx"
+      "src/components/vendor/VendorTabs.tsx",
+      "src/pages/VendorV2.tsx"
     ],
     "ExternalLink": [
       "src/components/accounts/VoucherActionDialog.tsx",
@@ -4776,6 +4796,7 @@
       "src/components/purchases/PurchasePaymentPanel.tsx",
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorTabs.tsx",
+      "src/components/vendor/VendorV2Cart.tsx",
       "src/pages/Accounts.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
@@ -4787,6 +4808,7 @@
       "src/pages/Quotations.tsx",
       "src/pages/Reconciliation.tsx",
       "src/pages/Sales.tsx",
+      "src/pages/VendorV2.tsx",
       "src/pages/Vendors.tsx",
       "src/pages/Warranty.tsx",
       "src/settings/CommerceSettingsPanels.tsx",
@@ -5061,6 +5083,7 @@
       "src/components/purchases/PurchasePaymentPanel.tsx",
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
+      "src/components/vendor/VendorV2Cart.tsx",
       "src/pages/AuditLedger.tsx",
       "src/pages/Products.tsx",
       "src/pages/Quotations.tsx",
