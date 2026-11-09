@@ -337,6 +337,42 @@ async function main() {
     assert.equal(await page.getByLabel('Business name',{exact:true}).inputValue(),
       originalSettings.sections.business.name, 'Original settings restored after regression test');
     await go('data');
+    // A preview reviewed before a newer tab save must not overwrite new state.
+    await uploadSettings(changedBackup);
+    await restoreReview.waitFor();
+    const concurrentTab = await page.context().newPage();
+    await concurrentTab.goto('http://127.0.0.1:4292/#/app/settings/data', {waitUntil:'domcontentloaded'});
+    await concurrentTab.evaluate(() => {
+      const key = 'hisabiq-erp-settings-v1:t1';
+      const stored = JSON.parse(localStorage.getItem(key));
+      stored.revision += 1;
+      localStorage.setItem(key, JSON.stringify(stored));
+    });
+    await concurrentTab.close();
+    await restoreReview.getByRole('button', {name:'Restore settings'}).click();
+    await dataUI.getByRole('alert').getByText(/Settings changed.*Review the backup again/i).waitFor();
+    await restoreReview.getByRole('button', {name:'Cancel'}).click();
+    await restoreReview.waitFor({state:'hidden'});
+    await page.reload();
+    await dataUI.waitFor();
+
+    // The provider may apply changes in memory if localStorage is unavailable;
+    // the restore UI must not call that a durable browser save.
+    await uploadSettings(changedBackup);
+    await restoreReview.waitFor();
+    await page.evaluate(() => {
+      window.__originalBackupSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = () => { throw Error('Test browser storage quota'); };
+    });
+    await restoreReview.getByRole('button', {name:'Restore settings'}).click();
+    await dataUI.getByRole('status').filter({hasText:/Applied in memory only/i}).waitFor();
+    await page.evaluate(() => { Storage.prototype.setItem = window.__originalBackupSetItem; });
+    await page.reload();
+    await go('business');
+    assert.equal(await page.getByLabel('Business name', {exact:true}).inputValue(),
+      originalSettings.sections.business.name,
+      'A failed localStorage restore must not silently overwrite the durable business snapshot');
+    await go('data');
     await dataUI.getByRole('heading', {name:/Encrypted SQL backup & recovery/}).waitFor();
     await dataUI.getByRole('heading', {name:/Recycle Bin/}).waitFor();
     await dataUI.getByText(/current session.*draft store/i).waitFor();
