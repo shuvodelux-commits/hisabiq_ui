@@ -46,7 +46,17 @@ export function LiveSettingsSection({
   }, [state.revision, state.sections, section, dirty]);
 
   const set = (key: string, value: unknown) => {
-    setDraft(previous => ({ ...previous, [key]: value }));
+    setDraft(previous => {
+      // Invoice prefix is stored both as a convenience field and in the
+      // actual document-numbering rules. Never split those values.
+      if (section === 'invoices' && key === 'prefix') {
+        const numbering = previous.numbering as SettingsSections['invoices']['numbering'];
+        return { ...previous, prefix: value, numbering: {
+          ...numbering, sale: { ...numbering.sale, prefix: String(value) },
+        } };
+      }
+      return { ...previous, [key]: value };
+    });
     setError('');
     setNotice('');
   };
@@ -60,9 +70,19 @@ export function LiveSettingsSection({
     setNotice('Latest saved business preferences loaded.');
   };
   const restore = () => {
-    setDraft(structuredClone(defaults(state.tenantId).sections[section]) as unknown as Draft);
+    // This page exposes only a subset of invoice/business data. Resetting it
+    // must never wipe hidden invoice designs, numbering or ledger profiles.
+    const original = defaults(state.tenantId).sections[section] as unknown as Draft;
+    setDraft(previous => ({ ...previous,
+      ...Object.fromEntries(fields.map(field => [field.key, structuredClone(original[field.key])])),
+      ...(section === 'invoices' ? { numbering: {
+        ...(previous.numbering as SettingsSections['invoices']['numbering']),
+        sale: { ...(previous.numbering as SettingsSections['invoices']['numbering']).sale,
+          prefix: String(original.prefix) },
+      } } : {}),
+    }));
     setError('');
-    setNotice('Defaults loaded into the draft. Save to apply.');
+    setNotice('Defaults for visible settings loaded into the draft. Save to apply.');
   };
   const persist = () => {
     setConfirm(false);
