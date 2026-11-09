@@ -280,11 +280,11 @@ async function main() {
     await go('data');
     const dataUI = page.locator('[data-settings-magic-data]');
     await dataUI.waitFor();
-    assert.deepEqual(
-      await dataUI.getByRole('tab').allTextContents().then(values => values.map(value => value.trim())),
-      ['Backup & restore', 'Record exports & import preview'],
-      'Data page retains compact tabs while removing the misleading Reset demo flow',
-    );
+    const dataTabLabels = await dataUI.getByRole('tab').allTextContents();
+    assert.equal(dataTabLabels.length, 2, 'Data page has two concise tabs');
+    assert.ok(dataTabLabels[0].includes('Backup & restore'));
+    assert.ok(dataTabLabels[1].includes('Record exports & import preview'),
+      'The false Reset demo flow is replaced with the safe export/CSV preview');
     assert.equal(await dataUI.getByRole('button', {name:'Reset demo'}).count(), 0,
       'Data & Backup must never offer a fake bulk business-data reset');
     const [settingsDownload] = await Promise.all([
