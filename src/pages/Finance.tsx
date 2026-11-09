@@ -11,6 +11,7 @@ import {
   BriefcaseBusiness,
   CheckCircle2,
   Eye,
+  Filter,
   Pencil,
   Power,
   RotateCcw,
@@ -40,6 +41,7 @@ import { financeAccountIdentityLabel, transferAccountId, transferAccountLabel } 
 import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid, financePaymentDraftTotal } from '../utils/financePaymentDrafts';
 import { StatusBadge } from '../components/StatusBadge';
 import { RowActionMenu } from '../components/layout/RowActionMenu';
+import { AnimatedAdvancedFilters } from '../components/layout/AnimatedAdvancedFilters';
 import { ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
@@ -568,6 +570,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const openChequeActions = (item: ChequeRecord, mode: 'view' | 'edit') => { setChequeActionMode(mode); setChequeAction(item); };
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
+  const [loansFiltersOpen, setLoansFiltersOpen] = useState(false);
   const applyTransactionMovement = (list: FinanceAccount[], transaction: FinanceTransaction, factor = 1) => {
     if (transaction.direction === 'none' || transaction.status === 'Reversed') return list;
     const splits = transaction.paymentAccounts?.length
@@ -744,7 +747,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   ];
 
   return (
-    <div className={moneyAccountsOnly ? 'space-y-0' : 'mx-auto max-w-[1440px] space-y-4'}>
+    <div className={moneyAccountsOnly ? 'space-y-0' : counterOnly ? 'mx-auto max-w-[1440px] space-y-4' : 'mx-auto max-w-[1440px] space-y-3 sm:space-y-4'}>
       {!moneyAccountsOnly && <PageHeader
         title={counterOnly ? 'Counter' : 'Finance'}
         titleBn={counterOnly ? 'কাউন্টার' : 'টাকা-পয়সা'}
@@ -765,14 +768,14 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
         )}
       />}
 
-      {!counterOnly && !moneyAccountsOnly && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
+      {!counterOnly && !moneyAccountsOnly && <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         {summaryCards.map(({ label, value, sub, icon: Icon, tone }) => (
-          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+          <div key={label} data-finance-kpi="" className="rounded-lg border border-border bg-card px-3 py-2.5 shadow-card">
             <div className="flex items-start justify-between gap-2">
               <p className="text-[12.5px] text-ink-500">{label}</p>
               <Icon className="size-4 text-helper" />
             </div>
-            <p className={`mt-0.5 text-lg font-semibold ${tone ?? 'text-ink'}`}>{value}</p>
+            <p className={`mt-0.5 break-words text-base font-semibold sm:text-lg ${tone ?? 'text-ink'}`}>{value}</p>
             <p className="mt-0.5 text-[10.5px] text-ink-400">{sub}</p>
           </div>
         ))}
@@ -790,15 +793,27 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       )}
 
       <div className={moneyAccountsOnly ? '' : 'rounded-xl border border-border bg-card shadow-card'}>
-        {!counterOnly && !moneyAccountsOnly && <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist">
+        {!counterOnly && !moneyAccountsOnly && <MotionTabList className="flex flex-nowrap gap-1 overflow-x-auto border-b border-border px-3 scrollbar-thin" role="tablist" aria-label="Finance sections"
+          onKeyDown={(event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+            const current = buttons.findIndex((button) => document.activeElement === button);
+            if (current < 0) return;
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+              : (current + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
+            event.preventDefault();
+            buttons[next]?.focus();
+            setTab(tabs[next][0]);
+          }}>
           {tabs.map(([id, label, helper]) => (
             <button
               key={id}
               role="tab"
               aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               title={helper}
               onClick={() => setTab(id)}
-              className={`min-h-11 shrink-0 px-2.5 py-2.5 text-[13px] font-medium ${
+              className={`relative min-h-11 shrink-0 rounded-sm px-2.5 py-2.5 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 ${
                 tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'
               }`}>
               {label}
@@ -807,10 +822,10 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
         </MotionTabList>}
 
         {tab === 'overview' && (
-          <div className="grid gap-4 p-4 xl:grid-cols-[1.25fr_1fr]">
-            <section className="min-w-0 space-y-4">
+          <div className="grid gap-3 p-3 sm:p-4 xl:grid-cols-[1.25fr_1fr]">
+            <section className="min-w-0 space-y-3">
               <div className="rounded-xl border border-border">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5 sm:px-4 sm:py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Business relationship balances</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower balances never cross-net.</p>
@@ -838,7 +853,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
               </div>
 
               <div className="rounded-xl border border-border">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2.5 sm:px-4 sm:py-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Recent loans & owner money</p>
                     <p className="text-[11px] text-ink-500">Owner, lender and borrower money stays separate.</p>
@@ -875,8 +890,8 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
               </div>
             </section>
 
-            <section className="min-w-0 space-y-4">
-              <div className="rounded-xl border border-border p-4">
+            <section className="min-w-0 space-y-3">
+              <div className="rounded-lg border border-border p-3 sm:p-4">
                 <p className="text-sm font-semibold text-ink">Money Accounts</p>
                 <p className="mb-3 text-[11px] text-ink-500">Live balances by money account.</p>
                 <div className="space-y-2">
@@ -884,7 +899,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     <button
                       key={account.id}
                       onClick={() => setTab('accounts')}
-                      className="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2.5 text-left hover:bg-ink-50">
+                      className="flex w-full items-center gap-2.5 rounded-md border border-border px-2.5 py-2 text-left transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                       <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
                         {account.type === 'Cash' ? <Banknote className="size-4" /> : account.type === 'Bank' ? <Landmark className="size-4" /> : <WalletCards className="size-4" />}
                       </span>
@@ -892,13 +907,13 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <span className="block truncate text-[12.5px] font-medium text-ink">{account.name}</span>
                         <span className="block text-[10.5px] text-ink-400">{account.type} · {account.lastActivity}</span>
                       </span>
-                      <span className="text-[13px] font-semibold text-ink">{taka(account.balance)}</span>
+                      <span className="shrink-0 whitespace-nowrap text-[13px] font-semibold text-ink">{taka(account.balance)}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border p-4">
+              <div className="rounded-lg border border-border p-3 sm:p-4">
                 <p className="text-sm font-semibold text-ink">Quick tools</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[
@@ -907,7 +922,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                     { label: 'Reconcile', helper: 'Bank statement', icon: CheckCircle2, action: () => navigate('/app/reconciliation') },
                     { label: 'Daybook', helper: 'All transactions', icon: BookOpen, action: () => navigate('/app/daybook') }
                   ].map(({ label, helper, icon: Icon, action }) => (
-                    <button key={label} onClick={action} className="rounded-lg border border-border p-3 text-left hover:bg-ink-50">
+                    <button key={label} onClick={action} className="min-h-12 rounded-md border border-border px-2.5 py-2 text-left transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
                       <Icon className="size-4 text-teal-700" />
                       <p className="mt-2 text-[12.5px] font-medium text-ink">{label}</p>
                       <p className="text-[10.5px] text-ink-400">{helper}</p>
@@ -921,51 +936,74 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
         {tab === 'transactions' && (
           <>
-            <div className="flex flex-col gap-2 border-b border-border p-3 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1 lg:max-w-md">
+            <div data-finance-loans-toolbar="" className="-mr-2 grid grid-cols-[minmax(0,1fr)_36px] items-center gap-2 border-b border-border p-3 lg:mr-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,270px)]">
+              <div className="relative min-w-0 lg:max-w-md">
                 <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
-                <Input value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8" placeholder="Search finance transaction, party or reference" />
+                <Input aria-label={text('Search finance transaction, party or reference','টাকার লেনদেন, নাম বা নম্বর খুঁজুন')}
+                  value={query} onChange={(event) => setQuery(event.target.value)} className="pl-8"
+                  placeholder={text('Search finance transaction, party or reference','লেনদেন, নাম বা নম্বর খুঁজুন')} />
               </div>
-              <FormSelect className="w-full lg:w-48" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} options={['All transaction types', ...financeTypeOptions]} />
-              <Button variant="outline" size="sm" onClick={() => setPeopleOpen(true)}>
-                <UserRoundCog className="size-4" /> {text('Finance people','হিসাবের ব্যক্তি')}
+              <Button type="button" variant="outline" size="icon"
+                aria-label={text('Advanced filters','আরও ফিল্টার') + (typeFilter !== 'All transaction types' ? ' (1)' : '')}
+                aria-controls="finance-loans-advanced-filters" aria-expanded={loansFiltersOpen}
+                onClick={() => setLoansFiltersOpen((open) => !open)}
+                className={`relative size-9 shrink-0 rounded-md lg:hidden ${typeFilter === 'All transaction types' ? 'text-ink-500' : 'border-teal-500 text-teal-700'}`}>
+                <Filter className="size-4" aria-hidden="true" />
+                {typeFilter !== 'All transaction types' && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-teal-500" />}
               </Button>
-              <Button size="sm" onClick={() => setTransactionOpen(true)}>
-                <Plus className="size-4" /> {text('New transaction','নতুন লেনদেন')}
-              </Button>
+              <div className="col-span-2 min-w-0 lg:col-span-1">
+                <AnimatedAdvancedFilters id="finance-loans-advanced-filters" open={loansFiltersOpen} className="flex min-w-0 items-center gap-2">
+                  <FormSelect aria-label={text('Finance transaction type','টাকার লেনদেনের ধরন')}
+                    className="min-w-0 flex-1" value={typeFilter}
+                    onChange={(event) => setTypeFilter(event.target.value)} options={['All transaction types', ...financeTypeOptions]} />
+                  <Button type="button" variant="outline" size="icon"
+                    aria-label={text('Reset filters','ফিল্টার মুছুন')} title={text('Reset all Finance filters','টাকার হিসাবের সব ফিল্টার মুছুন')}
+                    onClick={() => {setQuery('');setTypeFilter('All transaction types');}}
+                    className="size-9 shrink-0 rounded-md text-ink-500">
+                    <RotateCcw className="size-4" aria-hidden="true" />
+                  </Button>
+                </AnimatedAdvancedFilters>
+              </div>
             </div>
 
-            <Table>
+            <Table data-finance-loans-table="" scrollRegionLabel={text('Finance loans and owner transactions','ঋণ ও মালিকের লেনদেন')} className="w-full table-fixed lg:table-auto">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 pl-4 text-xs">{text('Finance transaction','টাকার লেনদেন')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Relationship','সম্পর্ক')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Party','পক্ষ')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Payment','পেমেন্ট')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Account','হিসাব')}</TableHead>
-                  <TableHead className="h-9 text-right text-xs">{text('Amount','টাকা')}</TableHead>
-                  <TableHead className="h-9 text-xs">{text('Status','অবস্থা')}</TableHead>
-                  <TableHead className="sticky right-0 z-10 h-9 w-14 min-w-14 border-l border-border bg-card pr-2 text-right text-xs">{text('Action','কাজ')}</TableHead>
+                  <TableHead className="h-9 min-w-0 pl-3 pr-1 text-xs lg:hidden">{text('Transaction','লেনদেন')}</TableHead>
+                  <TableHead className="hidden h-9 pl-4 text-xs lg:table-cell">{text('Finance transaction','টাকার লেনদেন')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Relationship','সম্পর্ক')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Party','পক্ষ')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Payment','পেমেন্ট')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Account','হিসাব')}</TableHead>
+                  <TableHead className="h-9 w-[112px] pr-1 text-right text-xs sm:w-[128px] lg:w-auto lg:pr-2">{text('Amount','টাকা')}</TableHead>
+                  <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Status','অবস্থা')}</TableHead>
+                  <TableHead className="sticky right-0 z-10 h-9 w-[44px] border-l border-border bg-card px-1 text-right text-xs lg:w-14 lg:pr-2"><span className="sr-only lg:not-sr-only">{text('Action','কাজ')}</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTransactions.map((item) => (
                   <TableRow key={item.id} className="text-[13px]">
-                    <TableCell className="py-2 pl-4">
+                    <TableCell data-finance-loans-identity="" className="min-w-0 py-2 pl-3 pr-1 lg:hidden">
+                      <span data-finance-loans-ref="" className="block break-all text-[12px] font-semibold leading-tight text-teal-700">{item.id}</span>
+                      <span className="mt-0.5 block text-[11px] font-medium leading-tight text-ink">{financeLabel(language,item.type)}</span>
+                      <span className="mt-0.5 block truncate text-[10.5px] text-ink-500">{item.date} · {item.party ?? '—'}</span>
+                    </TableCell>
+                    <TableCell className="hidden py-2 pl-4 lg:table-cell">
                       <p className="font-medium text-ink">{item.type}</p>
                       <p data-table-helper="" className="text-[10.5px] text-ink-400">{item.date} · {item.id}{item.reference ? ` · ${item.reference}` : ''}</p>
                     </TableCell>
-                    <TableCell className="py-2 text-ink-600">{item.relationship ?? '—'}</TableCell>
-                    <TableCell className="py-2 font-medium text-ink">{item.party ?? '—'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{item.paymentAccounts && item.paymentAccounts.length > 1 ? 'Multiple' : item.method ?? 'No money movement'}</TableCell>
-                    <TableCell className="py-2 text-ink-500">{item.paymentAccounts && item.paymentAccounts.length > 1 ? item.paymentAccounts.map((split) => split.account).join(' + ') : item.account ?? '—'}</TableCell>
-                    <TableCell className={`py-2 text-right font-semibold ${
+                    <TableCell className="hidden py-2 text-ink-600 lg:table-cell">{item.relationship ?? '—'}</TableCell>
+                    <TableCell className="hidden py-2 font-medium text-ink lg:table-cell">{item.party ?? '—'}</TableCell>
+                    <TableCell className="hidden py-2 text-ink-500 lg:table-cell">{item.paymentAccounts && item.paymentAccounts.length > 1 ? 'Multiple' : item.method ?? 'No money movement'}</TableCell>
+                    <TableCell className="hidden py-2 text-ink-500 lg:table-cell">{item.paymentAccounts && item.paymentAccounts.length > 1 ? item.paymentAccounts.map((split) => split.account).join(' + ') : item.account ?? '—'}</TableCell>
+                    <TableCell data-finance-loans-amount="" className={`w-[112px] py-2 pr-1 text-right font-semibold sm:w-[128px] lg:w-auto lg:pr-2 ${
                       item.direction === 'in' ? 'text-success' : item.direction === 'out' ? 'text-ink' : 'text-info'
                     }`}>
-                      {item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}
+                      <span className="whitespace-nowrap text-[12px] lg:text-[13px]">{item.direction === 'in' ? '+' : item.direction === 'out' ? '−' : ''}{taka(item.amount)}</span>
+                      <span data-finance-loans-status="" className="mt-0.5 block text-[10.5px] font-normal text-ink-500 lg:hidden">{financeLabel(language,item.status)}</span>
                     </TableCell>
-                    <TableCell className="py-2"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
-                    <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
+                    <TableCell className="hidden py-2 lg:table-cell"><StatusBadge tone={transactionTone(item)} dot>{financeLabel(language,item.status)}</StatusBadge></TableCell>
+                    <TableCell className="sticky right-0 z-10 w-[44px] border-l border-border bg-card px-1 py-1 text-right lg:w-14 lg:py-1.5 lg:pr-2">
                       <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
                         {close => <>
                           <ActionMenuItem icon={Eye} onClick={() => { close(); openTransactionActions(item, 'view'); }}>{text('View transaction','লেনদেন দেখুন')}</ActionMenuItem>
@@ -981,6 +1019,12 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                 ))}
               </TableBody>
             </Table>
+            {filteredTransactions.length === 0 && (
+              <div data-finance-loans-empty="" className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-4">
+                <p className="text-[12px] text-ink-500">{text('No matching finance transactions.','এই ফিল্টারে কোনো লেনদেন পাওয়া যায়নি।')}</p>
+                <Button variant="outline" size="sm" onClick={() => {setQuery('');setTypeFilter('All transaction types');}}>{text('Clear filters','ফিল্টার মুছুন')}</Button>
+              </div>
+            )}
           </>
         )}
 
