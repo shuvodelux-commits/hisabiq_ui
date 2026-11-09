@@ -316,7 +316,7 @@ async function main() {
     await uploadSettings(changedBackup);
     const restoreReview = page.getByRole('dialog', {name:'Review settings restore'});
     await restoreReview.waitFor();
-    await restoreReview.getByText('Business', {exact:true}).waitFor();
+    await restoreReview.getByText('Business profile', {exact:true}).waitFor();
     await restoreReview.getByRole('button', {name:'Cancel'}).click();
     await restoreReview.waitFor({state:'hidden'});
 
