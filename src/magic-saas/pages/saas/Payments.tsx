@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, ShieldCheck, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { RowActions } from '../../components/saas/RowActions';
-import { Button, Tabs } from '../../prototype/Ui';
+import { Tabs } from '../../prototype/Ui';
 import { useSaas } from '../../contexts/SaasContext';
 import { useFirstLoad } from '../../hooks/saas/useFirstLoad';
 import { Badge, Card, Denied, EmptyRow, LoadingList, PageTitle, SummaryStrip, th, td, thAction, tdAction } from '../../components/saas/SaasBits';
