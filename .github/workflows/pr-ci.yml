@@ -62,6 +62,7 @@ jobs:
           }
 
           flag browser '^(src/|scripts/.*browser\.cjs$|\.github/workflows/pr-ci\.yml$)'
+          flag saas '^(src/magic-saas/|scripts/saas-magic-smoke\.cjs$|src/App\.tsx$)'
           flag audit '^(src/components/audit/|scripts/audit-correction-mobile-browser\.cjs$)'
           flag product_form '^(src/components/(Tooltip\.tsx|SearchSelect\.tsx|products/(fields|form)/)|scripts/add-product-(compact-help|inline-master-edit)-browser\.cjs$)'
           flag pos '^(src/(pages/Pos\.tsx|components/pos/|hooks/usePosCart\.ts|bundles/|installments/)|scripts/(pos-|bundle-).*browser\.cjs$)'
@@ -96,6 +97,19 @@ jobs:
       - name: Install Chromium only when necessary
         if: steps.scope.outputs.browser == 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Magic Patterns SaaS route and tenant workflow smoke
+        if: steps.scope.outputs.saas == 'true'
+        run: npm run test:saas-magic
+
+      - name: Upload Magic Patterns SaaS screenshots
+        if: always() && steps.scope.outputs.saas == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: saas-magic-${{ github.sha }}
+          path: .superpowers/saas-magic/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Audit Ledger correction dialog mobile regression
         if: steps.scope.outputs.audit == 'true'
