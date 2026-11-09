@@ -4057,6 +4057,14 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/LiveSettingsSection.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "LiveSettingsSection"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/SaveBar.tsx",
       "kind": "authored-ui",
       "exports": [
@@ -4536,6 +4544,7 @@
       "src/pages/VendorV2.tsx",
       "src/pages/Vendors.tsx",
       "src/settings/magic/GeneralSettingsSection.tsx",
+      "src/settings/magic/LiveSettingsSection.tsx",
       "src/settings/magic/interface/InterfaceSettings.tsx",
       "src/settings/magic/interface/ModuleSelector.tsx",
       "src/settings/magic/security/ActivityPage.tsx"
@@ -4865,6 +4874,7 @@
       "src/components/layout/CashSessionDialog.tsx",
       "src/settings/magic/DataSettings.tsx",
       "src/settings/magic/GeneralSettingsSection.tsx",
+      "src/settings/magic/LiveSettingsSection.tsx",
       "src/settings/magic/TeamSettings.tsx",
       "src/settings/magic/invoice/DesignGallery.tsx",
       "src/settings/magic/invoice/InvoiceStudio.tsx"

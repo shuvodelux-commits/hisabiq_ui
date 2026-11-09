@@ -35,6 +35,7 @@ type PurchaseEditorProps={initialPurchase?:Purchase;onSaveSource?:(purchase:Purc
 export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,lockedSupplierId,embedded=false,active=true,onCompleted,onCancel}:PurchaseEditorProps={}) {
   const navigate = useNavigate();
   const { state: settingsState } = useTenantSettings();
+  const purchaseFields = settingsState.sections.purchases;
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
   const [suppliers, setSuppliers] = useState(() => availableParties().filter((party) => party.roles.includes('Supplier') || party.roles.includes('Vendor')));
   const [supplierId, setSupplierId] = useState(initialPurchase?.supplierId??initialSupplierId??'');
@@ -333,11 +334,13 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
               <span className="block min-h-5 leading-5">Purchase date <span className="text-danger">*</span></span>
               <Input className="h-9 w-full min-w-0" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
+            {purchaseFields.memo && (
             <label data-purchase-reference-field className="flex min-w-0 flex-col gap-1 text-[12px] font-medium text-ink">
               <span className="block min-h-5 leading-5">Reference <span className="font-normal text-ink-500">· optional</span></span>
               <Input className="h-9 w-full min-w-0" value={referenceNo} onChange={(event) => setReferenceNo(event.target.value)}
                 placeholder="Bill / challan no." />
             </label>
+            )}
             {date && date < todayISO() && (
               <label className="block min-w-0 text-[12px] font-medium text-ink sm:col-span-2 lg:col-span-3">
                 Backdate reason <span className="text-danger">*</span>
@@ -378,7 +381,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             hideAction
             additionalDetails={
               <div data-purchase-additional className="min-w-0">
-                <div data-purchase-note-attachment-row className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_176px]">
+                <div data-purchase-note-attachment-row className={'grid min-w-0 grid-cols-1 items-start gap-3 ' + (purchaseFields.attachments ? 'sm:grid-cols-[minmax(0,1fr)_176px]' : '')}>
                   <div className="min-w-0">
                     <label htmlFor="purchase-notes" className="block text-[12px] font-medium leading-5 text-ink">
                       Notes <span className="font-normal text-ink-500">· optional</span>
@@ -388,6 +391,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
                       placeholder="Delivery, discount or other details"
                       className="mt-1 block h-20 w-full min-w-0 resize-none overflow-y-auto rounded-md border border-input bg-card px-3 py-2 text-[13px] font-normal leading-5 text-ink outline-none placeholder:text-ink-400 focus:border-primary focus:ring-2 focus:ring-primary/20" />
                   </div>
+                  {purchaseFields.attachments && (
                   <div data-purchase-receipt className="min-w-0">
                     <p className="text-[12px] font-medium leading-5 text-ink">Add receipt <span className="font-normal text-ink-500">· optional</span></p>
                     <div className="mt-1">
@@ -395,6 +399,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
                         label="Attach supplier bill or receipt" />
                     </div>
                   </div>
+                  )}
                 </div>
               </div>
             }

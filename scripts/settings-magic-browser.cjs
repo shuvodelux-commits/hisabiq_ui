@@ -56,151 +56,130 @@ async function main() {
     await page.getByRole('textbox', { name: 'Search settings', exact: true }).fill('stock');
     assert.equal(await navigation.locator('a[data-settings-section]').count(), 1);
     await page.getByRole('textbox', { name: 'Search settings', exact: true }).fill('');
-    // Phase 1: copy the ORIGINAL Magic GeneralSettingsSection for every generic route.
-    // These are deliberately UI-local drafts, not production writes.
+    // Live Settings controls: existing business preferences, not Magic demo state.
     await select('business');
-    const businessSource = page.locator('[data-settings-magic-general="business"]');
-    await businessSource.waitFor();
-    await page.getByLabel('Business name', { exact: true }).fill('Magic UI only shop');
-    await page.getByLabel('Business mobile', { exact: true }).waitFor();
-    await page.getByLabel('Business address', { exact: true }).waitFor();
-    await page.getByRole('combobox', { name: 'Currency' }).waitFor();
-    await page.getByRole('button', { name: 'Save', exact: true }).click();
-    await businessSource.getByText(/Saving to the business will be connected/).first().waitFor();
-    await page.reload();
-    await businessSource.waitFor();
-    assert.notEqual(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Magic UI only shop', 'Phase 1 does not pretend to persist business data');
-    await page.getByLabel('Business name', { exact: true }).fill('Unsaved preview change');
+    await page.getByLabel('Business name', { exact: true }).waitFor();
     await select('sales');
+    const sales = page.locator('[data-settings-live-section="sales"]');
+    await sales.waitFor();
+    const guardian = sales.getByRole('switch', { name: 'Guardian name field' });
+    assert.ok(await guardian.isVisible(), 'Guardian toggle restored to current Settings UI');
+    const initialGuardian = await guardian.isChecked();
+    await guardian.setChecked(!initialGuardian);
+    const chips = sales.locator('[data-settings-live-sales-preview]');
+    assert.equal(await chips.getByText('Guardian', {exact:true}).count(), initialGuardian ? 0 : 1,
+      'POS preview immediately follows the Guardian Name setting');
+
+    await select('products');
     const leave = page.getByRole('dialog', { name: 'Leave without saving?' });
     await leave.waitFor();
     await leave.getByRole('button', { name: 'Keep editing' }).click();
-    assert.equal(await page.getByLabel('Business name', { exact: true }).inputValue(), 'Unsaved preview change');
-    await select('sales');
-    await leave.getByRole('button', { name: 'Discard preview and continue' }).click();
-    await page.waitForURL(/\/app\/settings\/sales/);
-    const salesSource = page.locator('[data-settings-magic-general="sales"]');
-    await salesSource.waitFor();
-    const printToggle = salesSource.getByRole('switch', { name: /Open print after each sale/ });
-    await printToggle.waitFor();
-    assert.ok(await printToggle.isVisible(), 'On/Off switch is visible in Sales');
-    const switchBounds = await printToggle.boundingBox();
-    assert.ok(switchBounds && switchBounds.width >= 40 && switchBounds.height >= 34,
-      'Compact toggle has a 40px+ track with keyboard/touch target');
-    const initialPrint = await printToggle.isChecked();
-    await printToggle.focus();
-    await page.keyboard.press('Space');
-    assert.equal(await printToggle.isChecked(), !initialPrint, 'Space toggles the native switch');
-    await page.getByRole('combobox', { name: 'Default payment method' }).click();
-    await page.getByRole('option', { name: 'bKash', exact: true }).click();
-    await salesSource.getByRole('button', { name: 'Show advanced options' }).click();
-    await page.getByRole('switch', { name: /Allow selling when stock is zero/ }).check();
-    await page.getByRole('switch', { name: /Let staff change the price at checkout/ }).waitFor();
-    await page.getByRole('spinbutton', { name: 'Biggest discount staff can give (%)' }).fill('10');
-    await page.getByRole('spinbutton', { name: 'Accept returns within (days)' }).waitFor();
-    await page.getByRole('button', { name: 'Discard' }).click();
-    assert.equal(await page.getByRole('combobox', { name: 'Default payment method' }).getAttribute('data-value'), 'Cash', 'UI discard restores draft without tenant write');
-    const genericPages = [
-      ['financialTerminology', 'names', /What you call money owed/],
-      ['products', 'products', /Warn me when stock drops to/],
-      ['purchases', 'purchases', /Ask for supplier receipt photo/],
-      ['money', 'finance', /Cash goes to/],
-      ['notifications', 'notifications', /Send SMS to customers/],
-      ['personal', 'personal', /Interface language/],
-      ['security', 'security', /Lock the screen when idle/],
-    ];
-    for (const [route, id, label] of genericPages) {
+    assert.equal(await guardian.isChecked(), !initialGuardian);
+    await sales.getByRole('button', {name:'Save changes'}).click();
+    await sales.getByText(/Saved for this business on this device/).waitFor();
+    await page.reload();
+    await sales.waitFor();
+    assert.equal(await guardian.isChecked(), !initialGuardian,
+      'Guardian switch survives reload through the existing tenant settings provider');
+
+    // The actual POS checkout must consume a saved visibility switch.
+    await page.goto('http://127.0.0.1:4292/#/app/pos', { waitUntil: 'domcontentloaded' });
+    await page.getByTestId('pos-invoice-details-toggle').click();
+    const checkoutFields = page.locator('[data-pos-customer-fields]');
+    assert.equal(await checkoutFields.getByRole('textbox', {name:/guardian/i}).count(),
+      initialGuardian ? 0 : 1, 'Guardian is hidden or shown in POS after saving');
+
+    await go('sales');
+    await sales.waitFor();
+    await guardian.setChecked(initialGuardian);
+    await sales.getByRole('button', {name:'Save changes'}).click();
+    await sales.getByText(/Saved for this business on this device/).waitFor();
+    await page.reload();
+    await sales.waitFor();
+    assert.equal(await guardian.isChecked(), initialGuardian, 'Restored initial Guardian preference');
+
+    // Other legacy settings are still in their original model and available
+    // in the new compact page, with advanced sections and real Save/Discard.
+    for (const [route, section, field] of [
+      ['products', 'products', 'Low-stock alerts'],
+      ['purchases', 'purchases', 'Supplier memo reference'],
+      ['money', 'money', 'Use cash sessions'],
+      ['notifications', 'notifications', 'Low-stock notifications'],
+    ]) {
       await go(route);
-      await page.locator('[data-settings-magic-general="' + id + '"]').waitFor();
-      await page.getByText(label).first().waitFor();
-      if (id === 'names') {
-        const khata = page.locator('[aria-label="Khata preview"]');
-        await khata.waitFor();
-        await page.getByRole('combobox', { name: 'What you call money owed' }).click();
-        await page.getByRole('option', { name: 'Due', exact: true }).click();
-        await khata.getByText(/Total due/i).waitFor();
-      }
+      const panel = page.locator('[data-settings-live-section="' + section + '"]');
+      await panel.waitFor();
+      if (section === 'money') await panel.getByRole('button', {name:'Show advanced options'}).click();
+      await panel.getByRole('switch', {name:field}).waitFor();
     }
-    // Source GeneralSettingsSection's 'Before you save' dialog is preview-only
-    // but retains the exact warning copy for invoice numbers, lock dates, and cost method.
+    // The legacy purchase receipt preference controls the actual editor.
+    await go('purchases');
+    const purchaseControls = page.locator('[data-settings-live-section="purchases"]');
+    await purchaseControls.waitFor();
+    const receipt = purchaseControls.getByRole('switch', {name:'Receipt attachments'});
+    const originalReceipt = await receipt.isChecked();
+    await receipt.uncheck();
+    if (originalReceipt) {
+      await purchaseControls.getByRole('button', {name:'Save changes'}).click();
+      await purchaseControls.getByText(/Saved for this business on this device/).waitFor();
+    }
+    await page.goto('http://127.0.0.1:4292/#/app/purchases/new', {waitUntil:'domcontentloaded'});
+    await page.locator('[data-purchase-layout]').waitFor();
+    assert.equal(await page.locator('[data-purchase-receipt]').count(), 0,
+      'Turning off receipt attachments hides the real Purchase Editor upload');
+    await go('purchases');
+    await purchaseControls.waitFor();
+    await receipt.setChecked(originalReceipt);
+    if (originalReceipt) {
+      await purchaseControls.getByRole('button', {name:'Save changes'}).click();
+      await purchaseControls.getByText(/Saved for this business on this device/).waitFor();
+    }
+    for (const route of ['financialTerminology', 'personal', 'security']) {
+      await go(route);
+      await page.locator('.erp-settings section').first().waitFor();
+    }
     await go('invoices');
-    const riskNumbering = page.locator('[data-settings-magic-general="invoices"]');
-    await riskNumbering.waitFor();
-    const prefixField = riskNumbering.getByRole('textbox', { name: 'Invoice number prefix' });
-    const originalPrefix = await prefixField.inputValue();
-    const numberingSave = riskNumbering.getByRole('button', { name: 'Save', exact: true });
-    await prefixField.fill('A');
-    await numberingSave.click();
-    await riskNumbering.getByText(/Use 2–12 capital letters/).waitFor();
-    assert.equal(await page.getByRole('dialog', { name: 'Before you save' }).count(), 0,
-      'Invalid invoice prefixes do not open the source confirmation');
-    await prefixField.fill('TEST26');
-    await numberingSave.click();
-    const warningDialog = page.getByRole('dialog', { name: 'Before you save' });
-    await warningDialog.waitFor();
-    await warningDialog.locator('[data-settings-risk-warnings]').getByText(
-      'Old invoices keep their numbers. New invoices will start at TEST26-000001.',
-      { exact: true },
-    ).waitFor();
-    await warningDialog.getByText(/This confirmation will not apply any changes/).waitFor();
-    assert.equal(await warningDialog.getByRole('button', { name: 'Continue preview (no save)' }).count(), 1);
-    await warningDialog.getByRole('button', { name: 'Go back' }).click();
-    await warningDialog.waitFor({ state: 'detached' });
-    assert.equal(await prefixField.inputValue(), 'TEST26', 'Go back leaves the UI-only draft untouched');
-    assert.equal(await numberingSave.evaluate(el => document.activeElement === el), true,
-      'Closing the source risk modal restores focus to the Save trigger');
-    await numberingSave.click();
-    await warningDialog.getByRole('button', { name: 'Continue preview (no save)' }).click();
-    await riskNumbering.getByRole('status').filter({ hasText: /No business settings, historical records or stock costs were saved or changed/ }).waitFor();
-    await page.reload();
-    await riskNumbering.waitFor();
-    assert.equal(await prefixField.inputValue(), originalPrefix,
-      'Confirming the numbering warning does not persist or change invoice numbering');
+    await page.locator('[data-settings-magic-invoice-studio]').waitFor();
+    const liveInvoice = page.locator('[data-settings-live-section="invoices"]');
+    await liveInvoice.waitFor();
+    await liveInvoice.getByRole('switch', {name:'Show business logo'}).waitFor();
 
-    await go('money');
-    const financePreview = page.locator('[data-settings-magic-general="finance"]');
-    await financePreview.waitFor();
-    await financePreview.getByRole('button', { name: 'Show advanced options' }).click();
-    const lockDate = financePreview.getByRole('textbox', { name: 'Lock old entries before' });
-    await lockDate.fill('bad-date');
-    await financePreview.getByRole('button', { name: 'Save', exact: true }).click();
-    await financePreview.getByText(/Write the date as YYYY-MM-DD/).waitFor();
-    assert.equal(await page.getByRole('dialog', { name: 'Before you save' }).count(), 0,
-      'Bad lock dates fail validation before risk review');
-    await lockDate.fill('2026-10-31');
-    await financePreview.getByRole('button', { name: 'Save', exact: true }).click();
-    await warningDialog.waitFor();
-    await warningDialog.locator('[data-settings-risk-warnings]').getByText(
-      'Nobody — including you — will be able to edit sales, purchases or payments dated on or before 2026-10-31.',
-      { exact: true },
-    ).waitFor();
-    await warningDialog.getByRole('button', { name: 'Go back' }).click();
-    await warningDialog.waitFor({ state: 'detached' });
+    // Regression: restoring *visible* invoice preferences must preserve the
+    // separately saved document-numbering prefix and still permit saving.
+    await page.getByRole('button', {name:/Document numbering, ledger & report designs/}).click();
+    const legacyDocuments = page.locator('[data-settings-live-document-controls]');
+    await legacyDocuments.getByRole('tab', {name:/^Document numbering/}).click();
+    const prefixInput = legacyDocuments.getByRole('textbox', {name:/^Prefix/});
+    const previousPrefix = await prefixInput.inputValue();
+    const customPrefix = previousPrefix === 'TST' ? 'TST2' : 'TST';
+    await prefixInput.fill(customPrefix);
+    await legacyDocuments.getByRole('button', {name:'Save changes'}).click();
+    const documentReview = page.getByRole('dialog', {name:'Review settings changes'});
+    await documentReview.getByRole('button', {name:'Confirm save'}).click();
+    await documentReview.waitFor({state:'hidden'});
 
-    await go('products');
-    const costPreview = page.locator('[data-settings-magic-general="products"]');
-    await costPreview.waitFor();
-    await costPreview.getByRole('button', { name: 'Show advanced options' }).click();
-    const costMethod = costPreview.getByRole('combobox', { name: 'How product cost is worked out' });
-    const initialCost = await costMethod.getAttribute('data-value');
-    const alternateCost = initialCost === 'FIFO' ? 'Average' : 'FIFO';
-    await costMethod.click();
-    await page.getByRole('option', { name: alternateCost, exact: true }).click();
-    await costPreview.getByRole('button', { name: 'Save', exact: true }).click();
-    await warningDialog.waitFor();
-    await warningDialog.locator('[data-settings-risk-warnings]').getByText(
-      'Stock you already have keeps its cost. Only new purchases use the new method, so profit reports may shift slightly.',
-      { exact: true },
-    ).waitFor();
-    await page.keyboard.press('Escape');
-    await warningDialog.waitFor({ state: 'detached' });
-    assert.equal(await costMethod.getAttribute('data-value'), alternateCost, 'Escape keeps the preview draft');
+    const invoiceFooter = liveInvoice.getByRole('textbox', {name:/^Invoice footer/});
+    const originalFooter = await invoiceFooter.inputValue();
+    await invoiceFooter.fill(originalFooter === 'Temporary receipt footer' ? 'Other receipt footer' : 'Temporary receipt footer');
+    await liveInvoice.getByRole('button', {name:'Save changes'}).click();
+    await liveInvoice.getByText(/Saved for this business on this device/).waitFor();
+    await liveInvoice.getByRole('button', {name:'Restore defaults'}).click();
+    await liveInvoice.getByRole('button', {name:'Save changes'}).click();
+    await liveInvoice.getByText(/Saved for this business on this device/).waitFor();
     await page.reload();
-    await costPreview.waitFor();
-    await costPreview.getByRole('button', { name: 'Show advanced options' }).click();
-    assert.equal(await costPreview.getByRole('combobox', { name: 'How product cost is worked out' }).getAttribute('data-value'),
-      initialCost, 'Cost method preview cannot change stock accounting or persist to the tenant');
-    // Full Magic Interface & workflows source: scope, searchable modules, grouped controls, advanced and preview.
+    await liveInvoice.waitFor();
+    assert.equal(await invoiceFooter.inputValue(), 'Thank you for your business.',
+      'Visible invoice footer returns to defaults and saves');
+    await page.getByRole('button', {name:/Document numbering, ledger & report designs/}).click();
+    await legacyDocuments.getByRole('tab', {name:/^Document numbering/}).click();
+    assert.equal(await prefixInput.inputValue(), customPrefix,
+      'Restoring visible invoice preferences must not reset saved numbering prefix');
+
+    // Leave the original numbering unchanged for the rest of the browser suite.
+    await prefixInput.fill(previousPrefix);
+    await legacyDocuments.getByRole('button', {name:'Save changes'}).click();
+    await documentReview.getByRole('button', {name:'Confirm save'}).click();
+    await documentReview.waitFor({state:'hidden'});
     await go('interface');
     const interfaceUI = page.locator('[data-settings-magic-interface]');
     await interfaceUI.waitFor();
@@ -608,10 +587,9 @@ async function main() {
     await studio.waitFor();
     assert.equal(await invoiceGallery.getByRole('radio', { name: /Standard/ }).getAttribute('aria-checked'), 'true', 'Invoice Studio does not fake persistence in Phase 1');
     await studio.locator('aside article[aria-label="Invoice preview"]').last().waitFor();
-    const numbering = page.locator('[data-settings-magic-general="invoices"]');
+    const numbering = page.locator('[data-settings-live-section="invoices"]');
     await numbering.waitFor();
-    await numbering.getByLabel('Invoice number prefix').waitFor();
-    await numbering.getByRole('switch', { name: /Offer receipt printing/ }).waitFor();
+    await numbering.getByRole('switch', { name: /Show business logo/ }).waitFor();
     // WCAG AA text contrast regression for source Magic Settings in both modes.
     // Theme token values are measured at their actual rendered element surfaces.
     const ratio = (fore, back) => {
@@ -672,15 +650,15 @@ async function main() {
         fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
         const sourceRoutes = [
           ['home', '', '[data-settings-magic-patterns]'],
-          ['business', 'business', '[data-settings-magic-general="business"]'],
-          ['names', 'financialTerminology', '[data-settings-magic-general="names"]'],
-          ['sales', 'sales', '[data-settings-magic-general="sales"]'],
-          ['products', 'products', '[data-settings-magic-general="products"]'],
-          ['purchases', 'purchases', '[data-settings-magic-general="purchases"]'],
-          ['finance', 'money', '[data-settings-magic-general="finance"]'],
-          ['notifications', 'notifications', '[data-settings-magic-general="notifications"]'],
-          ['personal', 'personal', '[data-settings-magic-general="personal"]'],
-          ['security', 'security', '[data-settings-magic-general="security"]'],
+          ['business', 'business', '[data-field-key=\"name\"]'],
+          ['names', 'financialTerminology', '[data-settings-magic-patterns]'],
+          ['sales', 'sales', '[data-settings-live-section=\"sales\"]'],
+          ['products', 'products', '[data-settings-live-section=\"products\"]'],
+          ['purchases', 'purchases', '[data-settings-live-section=\"purchases\"]'],
+          ['finance', 'money', '[data-settings-live-section=\"money\"]'],
+          ['notifications', 'notifications', '[data-settings-live-section=\"notifications\"]'],
+          ['personal', 'personal', '[data-settings-magic-patterns]'],
+          ['security', 'security', '[data-settings-magic-patterns]'],
           ['invoices', 'invoices', '[data-settings-magic-invoice-studio]'],
           ['interface', 'interface', '[data-settings-magic-interface]'],
           ['support', 'support', '[data-settings-embedded-support]'],
@@ -759,12 +737,12 @@ async function main() {
       assert.equal(formOverflow, false, 'Settings form overflows at ' + width);
       // Source risk-review modal is also readable and contained on small screens.
       await go('money');
-      const financeGeneral = page.locator('[data-settings-magic-general="finance"]');
+      const financeGeneral = page.locator('[data-settings-live-section="money"]');
       await financeGeneral.waitFor();
       await financeGeneral.getByRole('button', { name: 'Show advanced options' }).click();
-      await financeGeneral.getByRole('textbox', { name: 'Lock old entries before' }).fill('2026-10-31');
-      await financeGeneral.getByRole('button', { name: 'Save', exact: true }).click();
-      const riskDialog = page.getByRole('dialog', { name: 'Before you save' });
+      await financeGeneral.getByLabel('Lock posting through date').fill('2026-10-31');
+      await financeGeneral.getByRole('button', { name: 'Save changes' }).click();
+      const riskDialog = page.getByRole('dialog', { name: 'Review business setting changes' });
       await riskDialog.waitFor();
       const riskLayout = await riskDialog.evaluate(el => ({
         width: el.getBoundingClientRect().width,
@@ -781,7 +759,7 @@ async function main() {
           'settings-before-save-' + width + '-dark.png'), fullPage: true});
         await page.evaluate(() => document.documentElement.classList.remove('dark'));
       }
-      await riskDialog.getByRole('button', { name: 'Go back' }).click();
+      await riskDialog.getByRole('button', { name: 'Review again' }).click();
       await riskDialog.waitFor({ state: 'detached' });
       await go('data');
       const dataPage = page.locator('[data-settings-magic-data]');
@@ -906,7 +884,7 @@ async function main() {
       fs.mkdirSync(process.env.SETTINGS_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SETTINGS_SCREENSHOT_DIR, 'settings-magic-1440.png'), fullPage: true });
     }
-    console.log('Magic Patterns Settings: source fields across nine routes, honest preview-only saving, dirty-form navigation, setup, source Invoice Studio and Interface & workflows, Users & roles, Data & backup, and source Logged-in devices, Staff activity and Offline selling previews across five viewports passed.');
+    console.log('HisabIQ Settings: saved business preferences, POS Guardian visibility, Magic UI specialty previews, bilingual navigation, accessibility and five-viewport responsive coverage passed.');
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
