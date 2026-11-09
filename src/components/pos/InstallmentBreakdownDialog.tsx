@@ -1,3 +1,4 @@
+import {posPresentationError} from './presentationCopy';
 import {useEffect,useMemo,useState} from 'react';
 import {Plus,RotateCcw,Scale,Trash2} from 'lucide-react';
 import {Button} from '../Button';
@@ -89,7 +90,7 @@ export function InstallmentBreakdownDialog({open,onClose,rows,onApply,requiredRe
   };
   const save=()=>{if(!canSave)return;onApply(draft.map(row=>({...row})));onClose();};
   return <Dialog open={open} onOpenChange={isOpen=>{if(!isOpen)onClose();}}>
-    <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl scrollbar-thin">
+    <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl scrollbar-thin">
       <DialogHeader>
         <DialogTitle>{text('Installment breakdown','কিস্তির বিস্তারিত')}</DialogTitle>
         <DialogDescription>{text('Edit any due date or amount. The total must match the remaining balance.','প্রতিটি কিস্তির তারিখ ও টাকা বদলাতে পারবেন। মোট বাকি টাকার সঙ্গে মিলতে হবে।')}</DialogDescription>
@@ -142,7 +143,7 @@ export function InstallmentBreakdownDialog({open,onClose,rows,onApply,requiredRe
           </span>
         </div>
         {(message||errors.length>0||invalidAmounts)&&<p role="alert" className="text-xs text-danger">
-          {message||errors[0]||(invalidAmounts?text('Enter a valid positive installment amount.','সঠিক কিস্তির টাকা দিন।'):'')}
+          {posPresentationError(message||errors[0]||(invalidAmounts?text('Enter a valid positive installment amount.','সঠিক কিস্তির টাকা দিন।'):''),text)}
         </p>}
       </div>
       <DialogFooter>

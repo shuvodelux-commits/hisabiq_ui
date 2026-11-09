@@ -1,0 +1,49 @@
+{
+  "sourceCommit": "a510661b84f638e281a12ad73989c59bde08eb0b",
+  "method": "Fresh isolated Assessment A; original checker design rubric and HisabIQ taste/brief. No c4 audit/detector or agent inventory read. Captures reviewed directly, no source edits.",
+  "designScores": {
+    "specificity": 4,
+    "hierarchy": 3,
+    "typography": 3,
+    "color": 3,
+    "composition": 3
+  },
+  "designTotal": 16,
+  "summary": "Approved HisabIQ identity, compact controls, complete routine desktop totals and phone product identities are preserved. Strong theme parity and readable localized dialogs. Dense supported multi-unit desktop carts still push essential columns off the initial view; selected-unit text truncates.",
+  "problems": [
+    {
+      "id": "pos-cart-desktop-clipped-totals",
+      "priority": "P1",
+      "type": "design",
+      "title": "Dense multi-unit desktop cart still hides price/total/remove columns",
+      "location": "src/components/pos/CartTable.tsx:53; src/index.css POS cart grid",
+      "evidence": "T2/T5/T6/T8: round-3-3units-1440-light.png and dark, round-3-4units-1440-light.png and dark show 6-line supported cart at scrollLeft=0 with right edge cutting price header/cells; line totals and remove controls outside initial cart viewport. Routine round-3-main-desktop shots are fixed. Named horizontal scrolling supplies recovery, but the aligned complete desktop-cart brief is only partially met.",
+      "suggestion": "Keep total/remove visible in dense supported desktop states while retaining the joined quantity field and compact original layout."
+    },
+    {
+      "id": "pos-multiunit-selected-unit-truncated",
+      "priority": "P2",
+      "type": "design",
+      "title": "Selected price unit becomes an ambiguous P\u2026 on dense desktop rows",
+      "location": "src/components/pos/CartTable.tsx:294",
+      "evidence": "T2/T5/T6: round-3-4units-1440-light.png and dark show both three/four-unit Price in dropdown values as P\u2026 instead of complete pcs/Pack; 320px counterparts show complete symbols. This obscures the unit governing the adjacent editable price.",
+      "suggestion": "Reserve the full short unit symbol in the selected trigger."
+    }
+  ],
+  "strengths": [
+    "Product-specific Bengali/English counter workflow and blue/teal language remain intact.",
+    "Main 1440px cart exposes totals and remove; phone full main identities and very large payable values remain readable.",
+    "Serial and vendor errors are adjacent, legible and localized; installment adjustment menu matches both themes."
+  ],
+  "coverage": [
+    "All four cmp-round-3 main sheets",
+    "All eight round-0/round-3 main desktop/mobile PNGs, both themes",
+    "Two final light cart section crops",
+    "Large values 320/1440 both themes",
+    "3/4-unit 320/1440 both themes",
+    "Serial/shortage/error/review/receipt representative English/Bangla light/dark states",
+    "Installment adjustment select both themes",
+    "Responsive open search 320x700 and 1024x768 both themes"
+  ],
+  "openQuestions": []
+}

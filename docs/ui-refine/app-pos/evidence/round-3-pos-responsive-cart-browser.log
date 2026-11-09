@@ -1,0 +1,22 @@
+small phone 320x760 light: compact inline rows, stacked checkout
+phone 390x844 light: compact inline rows, stacked checkout
+small tablet portrait 600x960 light: compact inline rows, stacked checkout
+tablet portrait 768x1024 light: desktop table, stacked checkout
+tablet landscape 1024x768 light: desktop table, stacked checkout
+large tablet landscape 1180x820 light: desktop table, stacked checkout
+small laptop 1280x800 light: desktop table, stacked checkout
+laptop 1366x768 light: desktop table, stacked checkout
+desktop 1440x900 light: desktop table, side-by-side
+wide desktop 1600x900 light: desktop table, side-by-side
+wide monitor 1920x1080 light: desktop table, side-by-side
+small phone 320x760 dark: compact inline rows, stacked checkout
+phone 390x844 dark: compact inline rows, stacked checkout
+small tablet portrait 600x960 dark: compact inline rows, stacked checkout
+tablet portrait 768x1024 dark: desktop table, stacked checkout
+tablet landscape 1024x768 dark: desktop table, stacked checkout
+large tablet landscape 1180x820 dark: desktop table, stacked checkout
+small laptop 1280x800 dark: desktop table, stacked checkout
+laptop 1366x768 dark: desktop table, stacked checkout
+desktop 1440x900 dark: desktop table, side-by-side
+wide desktop 1600x900 dark: desktop table, side-by-side
+wide monitor 1920x1080 dark: desktop table, side-by-side

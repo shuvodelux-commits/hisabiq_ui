@@ -1,9 +1,11 @@
+import {posPresentationError} from './presentationCopy';
 import {CalendarDays,ChevronDown,Info,Printer} from 'lucide-react';
 import {toast} from 'sonner';
 import {Button} from '../Button';
 import {Table,TableBody,TableCell,TableHead,TableHeader,TableRow} from '../Table';
 import {taka} from '../../utils/currency';
-import {businessToday,formatDay} from '../../utils/dateRange';
+import {businessToday} from '../../utils/dateRange';
+import {datePickerDayLabel} from '../../i18n/datePickerCopy';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import type {InstallmentPaymentPreviewEvent} from '../../installments/collections';
 import {projectInstallmentLifecycle,type InstallmentLifecycleEvent} from '../../installments/lifecycle';
@@ -18,7 +20,7 @@ export function InstallmentAgreementPreview({agreement,receipts=[],events=[],onR
  onReceive?:()=>void;onReschedule?:()=>void;onReturn?:()=>void;onSettle?:()=>void;
  onReverseReceipt?:(sourceReceiptId:string)=>void;
 }){
- const {text}=useUiCopy();
+ const {text,language}=useUiCopy();
  const summary=projectInstallmentLifecycle(agreement,receipts,events,businessToday());
  const eligibility=returnEligibility(agreement);
  const reversedIds=new Set(events.filter(e=>e.type==='receipt-reversal')
@@ -60,10 +62,10 @@ export function InstallmentAgreementPreview({agreement,receipts=[],events=[],onR
            </TableRow></TableHeader>
            <TableBody>{summary.rows.map((row,index)=><TableRow key={row.id}>
              <TableCell>{index+1}</TableCell>
-             <TableCell>{formatDay(row.dueDate)}</TableCell>
+             <TableCell>{datePickerDayLabel(language,row.dueDate)}</TableCell>
              <TableCell className="text-right">{taka(row.paidPaisa/100)}</TableCell>
              <TableCell className="text-right font-medium">{taka(row.outstandingPaisa/100)}</TableCell>
-             <TableCell><span className={row.status==='Paid'?'text-success':row.status==='Overdue'?'text-danger':'text-ink-500'}>{row.status}</span></TableCell>
+             <TableCell><span className={row.status==='Paid'?'text-success':row.status==='Overdue'?'text-danger':'text-ink-500'}>{text(row.status,({Paid:'পরিশোধিত',Partial:'আংশিক',Upcoming:'আসন্ন',Due:'বাকি',Overdue:'মেয়াদ পার'} as const)[row.status])}</span></TableCell>
            </TableRow>)}</TableBody>
          </Table>
        </div>
@@ -71,7 +73,7 @@ export function InstallmentAgreementPreview({agreement,receipts=[],events=[],onR
          <p className="text-xs font-semibold text-ink">{text('Receipt history','জমার ইতিহাস')} · {receipts.length}</p>
          {receipts.length===0&&<p className="text-xs text-ink-500">{text('No installment collection yet.','এখনও কিস্তির টাকা জমা হয়নি।')}</p>}
          {receipts.map((receipt,index)=><div key={receipt.id} className="flex flex-wrap items-center justify-between gap-2 text-xs">
-           <span className="text-ink-700">{text('Receipt','রসিদ')} #{index+1} · {formatDay(receipt.date)}
+           <span className="text-ink-700">{text('Receipt','রসিদ')} #{index+1} · {datePickerDayLabel(language,receipt.date)}
              {reversedIds.has(receipt.id)&&<span className="ml-1 text-danger">· {text('Reversed','বাতিল')}</span>}
            </span>
            <span className="inline-flex items-center gap-2 font-medium text-ink">
@@ -113,7 +115,7 @@ export function InstallmentAgreementPreview({agreement,receipts=[],events=[],onR
          {text('Edit schedule','সময় বদলান')}
        </Button>}
      {onReturn&&<Button size="sm" variant="outline" onClick={onReturn} disabled={!eligibility.eligible}
-       title={!eligibility.eligible?eligibility.reason:undefined} className="flex-1">
+       title={!eligibility.eligible?posPresentationError(eligibility.reason,text):undefined} className="flex-1">
        {text('Return item','পণ্য ফেরত')}
      </Button>}
      {onSettle&&summary.totalOutstandingPaisa>0&&
@@ -125,7 +127,7 @@ export function InstallmentAgreementPreview({agreement,receipts=[],events=[],onR
      </Button>
    </div>
    {onReturn&&!eligibility.eligible&&<p className="text-[11px] text-ink-500">
-     {eligibility.reason}
+     {posPresentationError(eligibility.reason,text)}
    </p>}
  </div>;
 }

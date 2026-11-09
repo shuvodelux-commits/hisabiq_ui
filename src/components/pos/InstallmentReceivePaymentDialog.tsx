@@ -1,3 +1,4 @@
+import {posPresentationError} from './presentationCopy';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {HandCoins} from 'lucide-react';
 import {Button} from '../Button';
@@ -23,7 +24,7 @@ type Props={open:boolean;agreement:PreviewInstallmentAgreement;receipts:readonly
 const initial=():FinancePaymentDraft[]=>[{id:'cash-1',method:'Cash',accountId:'acc-cash',amount:''}];
 /** Browser-preview collection, not a second financial/Party ledger. */
 export function InstallmentReceivePaymentDialog({open,agreement,receipts,events=[],onClose,onRecorded}:Props){
- const {text}=useUiCopy();
+ const {text,language}=useUiCopy();
  const [date,setDate]=useState(businessToday());
  const [amount,setAmount]=useState('');
  const [splits,setSplits]=useState<FinancePaymentDraft[]>(initial);
@@ -91,7 +92,7 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,events=
    if(splits.length===1)setSplits(previous=>previous.map(row=>({...row,amount:value})));
  };
  return <Dialog open={open} onOpenChange={next=>!next&&onClose()}>
-   <DialogContent className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-2xl"
+   <DialogContent closeLabel={text('Close','বন্ধ করুন')} className="max-h-[92dvh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-2xl"
       aria-label={text('Receive installment payment','কিস্তির টাকা নিন')}>
      <DialogHeader>
        <DialogTitle className="flex items-center gap-2"><HandCoins className="size-4 text-teal-700"/>
@@ -141,7 +142,7 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,events=
            {summary.rows.filter(row=>row.outstandingPaisa>0).map((row,index)=>
              <label key={row.id} className="flex items-center justify-between gap-2 text-xs text-ink">
                <span className="min-w-0 flex-1">#{index+1} · {row.dueDate} · {taka(row.outstandingPaisa/100)}</span>
-               <Input aria-label={'Allocate installment '+(index+1)} inputMode="decimal"
+               <Input aria-label={text('Allocate installment '+(index+1),'কিস্তি '+(index+1)+' এ জমা')} inputMode="decimal"
                  className="h-9 w-[120px] text-right" value={allocations[row.id]??''}
                  onChange={event=>{setAllocations(previous=>({...previous,[row.id]:event.target.value}));setReview(false);setError('');}}/>
              </label>
@@ -151,13 +152,13 @@ export function InstallmentReceivePaymentDialog({open,agreement,receipts,events=
        <p className="text-xs text-ink-500">
          {text('Allocated to this agreement','এই বিক্রিতে জমা')}: <strong>{taka(currentAllocation.reduce((sum,item)=>sum+item.amountPaisa,0)/100)}</strong>
        </p>
-       <AmountInWordsDisplay amount={parsed/100}/>
+       <AmountInWordsDisplay language={language} label={text('In words','কথায়')} amount={parsed/100}/>
        {review && <div role="status" className="rounded-lg border border-teal-200 bg-teal-50 p-3 text-xs text-teal-800">
          <p className="font-semibold">{text('Confirm receipt preview','পেমেন্ট যাচাই করুন')}</p>
          <p>{agreement.customerName} · {taka(parsed/100)} · {date}</p>
          <p>{text('Remaining after','এরপর বাকি')} {taka((summary.totalOutstandingPaisa-parsed)/100)}</p>
        </div>}
-       {error&&<p role="alert" className="text-xs text-danger">{error}</p>}
+       {error&&<p role="alert" className="text-xs text-danger">{posPresentationError(error,text)}</p>}
      </div>
      <DialogFooter>
        <Button variant="outline" onClick={onClose}>{text('Cancel','বাতিল')}</Button>
