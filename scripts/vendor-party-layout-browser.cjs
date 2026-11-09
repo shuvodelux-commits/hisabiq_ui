@@ -41,7 +41,8 @@ async function main(){
      const a=d.getBoundingClientRect(),b=w.getBoundingClientRect();
      return expected>=1024?b.x>=a.right-2:b.y>=a.bottom-2;
    },width);
-   const left=await directory.boundingBox();
+   // The compact phone layout unmounts its desktop directory entirely.
+   const left=(await directory.count()) ? await directory.boundingBox() : null;
    const right=await workspace.boundingBox();
    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
    assert.ok(overflow<=2,`Vendor page must not overflow the ${width}px viewport; overflow=${overflow}px`);
