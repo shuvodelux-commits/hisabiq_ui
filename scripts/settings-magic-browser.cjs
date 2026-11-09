@@ -276,46 +276,73 @@ async function main() {
     await wizard.getByRole('button', { name: 'Continue' }).click();
     await wizard.getByRole('link', { name: /Open Business type/ }).waitFor();
     await wizard.getByRole('button', { name: 'Skip for now' }).click();
-    // Exact Magic Data & backup presentation; source demo flows are local and non-destructive.
+    // Real Settings-only backup/restore within the existing Magic Data shell.
     await go('data');
     const dataUI = page.locator('[data-settings-magic-data]');
     await dataUI.waitFor();
     assert.deepEqual(
       await dataUI.getByRole('tab').allTextContents().then(values => values.map(value => value.trim())),
-      ['Backup & restore', 'Reset demo'],
+      ['Backup & restore', 'Record exports & import preview'],
+      'Data page retains compact tabs while removing the misleading Reset demo flow',
     );
-    assert.equal(await page.getByLabel('Restore settings backup', { exact: true }).count(), 0,
-      'Legacy production restore input must not appear on Phase-1 Magic route');
-    assert.equal(await page.getByLabel('Product CSV preview', { exact: true }).count(), 0,
-      'Legacy CSV import panels must not appear on Phase-1 Magic route');
-    await dataUI.getByRole('button', { name: 'Download', exact: true }).click();
-    await dataUI.getByRole('status').filter({ hasText: /No backup file was created or downloaded/ }).waitFor();
-    await dataUI.getByRole('tab', { name: 'Reset demo' }).click();
-    await dataUI.getByRole('button', { name: 'Reset demo' }).click();
-    const resetDialog = page.getByRole('dialog', { name: 'Reset all demo data?' });
-    await resetDialog.waitFor();
-    await resetDialog.getByRole('button', { name: 'Cancel' }).click();
-    await dataUI.getByRole('button', { name: 'Reset demo' }).click();
-    await resetDialog.getByRole('button', { name: 'Reset', exact: true }).click();
-    await dataUI.getByRole('status').filter({ hasText: /No demo or business data was reset/ }).waitFor();
-    await dataUI.getByRole('tab', { name: 'Backup & restore' }).click();
-    await dataUI.getByLabel('Choose backup file').setInputFiles({
-      name: 'magic-preview-backup.json',
-      mimeType: 'application/json',
-      buffer: Buffer.from(JSON.stringify({
-        sales: [{ id: 'preview-sale' }], expenses: [{ id: 'preview-expense' }],
-        vendorEntries: [], staff: [], settings: {},
-      })),
-    });
-    const restoreDialog = page.getByRole('dialog', { name: 'Replace demo data with this backup?' });
-    await restoreDialog.waitFor();
-    await restoreDialog.getByText(/1 sales and 1 expenses/).waitFor();
-    await restoreDialog.getByRole('button', { name: 'Replace data' }).click();
-    await dataUI.getByRole('status').filter({ hasText: /No demo or business data was restored/ }).waitFor();
+    assert.equal(await dataUI.getByRole('button', {name:'Reset demo'}).count(), 0,
+      'Data & Backup must never offer a fake bulk business-data reset');
+    const [settingsDownload] = await Promise.all([
+      page.waitForEvent('download'),
+      dataUI.getByRole('button', {name:'Download settings backup'}).click(),
+    ]);
+    const originalSettings = JSON.parse(fs.readFileSync(await settingsDownload.path(), 'utf8'));
+    assert.equal(originalSettings.tenantId, 't1');
+    assert.equal(originalSettings.sections.business.name.length > 0, true);
+    assert.equal(Object.prototype.hasOwnProperty.call(originalSettings, 'sales'), false,
+      'The backup is settings-only, not a transaction data backup');
+    assert.equal(Object.prototype.hasOwnProperty.call(originalSettings, 'stock'), false);
+    const restoreInput = dataUI.getByLabel('Restore settings backup', {exact:true});
+    const uploadSettings = async (value, name='hisabiq-settings.json') => {
+      await restoreInput.setInputFiles({name, mimeType:'application/json', buffer:Buffer.from(JSON.stringify(value))});
+    };
+    await uploadSettings({...originalSettings, tenantId:'different-business'});
+    await dataUI.getByRole('alert').getByText(/Invalid backup or a backup from another business/i).waitFor();
+    assert.equal(await page.getByRole('dialog', {name:'Review settings restore'}).count(), 0,
+      'Wrong-tenant backups must never reach confirmation');
+
+    await restoreInput.setInputFiles({name:'malformed.json',mimeType:'application/json',buffer:Buffer.from('{broken')});
+    await dataUI.getByRole('alert').getByText(/Invalid backup or a backup from another business/i).waitFor();
+    await restoreInput.setInputFiles({name:'oversized.json',mimeType:'application/json',buffer:Buffer.alloc(1_000_001, 97)});
+    await dataUI.getByRole('alert').getByText(/smaller than 1 MB/i).waitFor();
+
+    const changedBackup = structuredClone(originalSettings);
+    changedBackup.sections.business.name = 'Backup Review Test Shop';
+    await uploadSettings(changedBackup);
+    const restoreReview = page.getByRole('dialog', {name:'Review settings restore'});
+    await restoreReview.waitFor();
+    await restoreReview.getByText('Business', {exact:true}).waitFor();
+    await restoreReview.getByRole('button', {name:'Cancel'}).click();
+    await restoreReview.waitFor({state:'hidden'});
+
+    await uploadSettings(changedBackup);
+    await restoreReview.getByRole('button', {name:'Restore settings'}).click();
+    await dataUI.getByRole('status').filter({hasText:/Business settings restored/}).waitFor();
     await page.reload();
     await dataUI.waitFor();
-    assert.equal(await page.getByRole('dialog', { name: 'Replace demo data with this backup?' }).count(), 0,
-      'Backup preview must not persist across reload');
+    await go('business');
+    assert.equal(await page.getByLabel('Business name',{exact:true}).inputValue(),
+      'Backup Review Test Shop', 'Restore must persist to the canonical Settings provider');
+    await go('data');
+    await uploadSettings(originalSettings);
+    await restoreReview.getByRole('button',{name:'Restore settings'}).click();
+    await dataUI.getByRole('status').filter({hasText:/Business settings restored/}).waitFor();
+    await page.reload();
+    await go('business');
+    assert.equal(await page.getByLabel('Business name',{exact:true}).inputValue(),
+      originalSettings.sections.business.name, 'Original settings restored after regression test');
+    await go('data');
+    await dataUI.getByRole('heading', {name:/Encrypted SQL backup & recovery/}).waitFor();
+    await dataUI.getByRole('heading', {name:/Recycle Bin/}).waitFor();
+    await dataUI.getByText(/current session.*draft store/i).waitFor();
+    await dataUI.getByRole('tab', {name:'Record exports & import preview'}).click();
+    await dataUI.getByLabel('Product CSV preview').waitFor();
+    await dataUI.getByText(/No records imported/i).waitFor();
     // Original Magic SessionsPage: source summary, all columns, search, risk filters,
     // per-device controls, bulk/PIN protection and nonpersistent preview state.
     await go('sessions');
