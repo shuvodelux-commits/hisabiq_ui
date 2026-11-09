@@ -1,0 +1,55 @@
+{
+  "designScores": {
+    "specificity": 3,
+    "hierarchy": 2,
+    "typography": 3,
+    "color": 3,
+    "composition": 2
+  },
+  "designTotal": 13,
+  "problems": [
+    {
+      "id": "pos-cart-desktop-clipped-totals",
+      "severity": "P0",
+      "type": "responsive",
+      "location": "src/index.css:896",
+      "evidence": "round-0-main-desktop-light.png, round-0-main-desktop-dark.png and round-0-main-desktop-light-s1.png: at 1440px, the cart's right edge cuts through line totals; Total heading and remove controls are outside the initial visible region. The late viewport rule forces at least 888px of row width into the visibly narrower cart. Horizontal scrolling is an available workaround, so this is clipping rather than proven inability to complete a sale. T2, T6 and the brief's complete-price/total priority apply.",
+      "fix": "Reconcile the POS-only column budget with the actual desktop cart width so default two-unit rows show complete prices, line totals and remove actions together. Preserve one-row tablet composition, 36px controls and internal horizontal scrolling where genuinely necessary for three/four units or large values. Keep header, rows and add row aligned."
+    },
+    {
+      "id": "pos-phone-product-identity-truncated",
+      "severity": "P2",
+      "type": "responsive",
+      "location": "src/index.css:337",
+      "evidence": "round-0-main-mobile-light.png, round-0-main-mobile-dark.png and round-0-main-mobile-light-s1.png: at 390px, PVC Pipe 1\" (20 ft) becomes PVC Pipe 1\" (2..., while Wire Mesh Net 3 ft becomes Wire Mesh Ne.... The Bengali/category/stock helper also truncates before stock information. Five grid columns contain both thumbnail and identity, while four are reserved for short totals. CartTable.tsx:186-189 applies unconditional truncation without a full-name title. T2 and T5 apply.",
+      "fix": "Recover identity width within the existing phone row by sizing the total/removal area to its content and allowing the product group the remaining space. Make the complete product name and relevant stock recoverable through an accessible existing pattern; retain compact rows and a safe fallback for large totals."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "severity": "P2",
+      "type": "confusing-copy",
+      "location": "src/index.css:308",
+      "evidence": "round-0-main-mobile-light-s1.png shows Qty, Unit and Price; these labels are hard-coded CSS strings at index.css:308-310, so their language cannot follow useUiCopy. The supplied screenshots show the helper-language state, not a verified Bangla-only state. Source also hard-codes both languages in the page heading at Pos.tsx:762-763 and Quick items heading at Pos.tsx:899-902. T9 and the brief's three-language parity apply.",
+      "fix": "Supply compact cart labels from the existing language-aware copy layer and render them from markup or localized attributes. Respect English, Bangla and English-with-helper preferences in the touched POS heading, quick-items copy and field labels without removing useful bilingual guidance."
+    },
+    {
+      "id": "pos-cart-type-scale-drift",
+      "severity": "P3",
+      "type": "typography",
+      "location": "src/components/pos/CartTable.tsx:149",
+      "evidence": "round-0-main-desktop-light-s1.png: small uppercase column headings use 11px with extra tracking; source sets product names to 13.5px at CartTable.tsx:186. Phone field labels use 10px at index.css:304 and phone totals 11.5px at index.css:338. These diverge from T5's 13px data, 12px headings and 11px helpers.",
+      "fix": "Apply the existing table typography roles consistently within POS: 13px primary data, 12px headings and 11px helpers. Preserve proportional numerals, current weights, compact spacing and 36px controls."
+    }
+  ],
+  "strengths": [
+    "The checkout clearly distinguishes payable, paid, change and due, with a visible customer requirement explaining the disabled terminal action.",
+    "Both captured themes preserve a coherent blue/teal identity and readable Bengali amount words.",
+    "Phone quantity controls remain joined and horizontal, with quantity separated from unit/price controls."
+  ],
+  "openQuestions": [
+    "Verify keyboard selection in an actually open, height-constrained search popup. ProductCombobox.tsx updates active on ArrowUp/ArrowDown but contains no active-option scrolling; the supplied shots do not establish whether the highlighted item remains visible.",
+    "Verify large BDT prices, totals, previous balances and terminal button labels at 320/390/768/1024/1440px. The supplied captures contain only modest amounts, so large-value clipping is not claimed here.",
+    "Capture actual three/four-unit rows and all language preferences before acceptance; the round-0 images demonstrate single/two-unit rows and the helper-language presentation only."
+  ],
+  "reviewNotes": "Assessment A remained isolated: all seven round-0 PNGs were inspected with view_image; target sources were read. No detector, other assessment, browser session, edits or runtime interaction claims were used."
+}

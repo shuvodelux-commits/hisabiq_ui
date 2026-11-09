@@ -39,8 +39,8 @@ async function main() {
     await review.getByRole('button', { name: 'Confirm sale preview' }).click();
     const receipt = page.locator('[data-slot="dialog-content"]').last();
     await receipt.getByText(/Sale preview/).waitFor();
-    const printed = await receipt.locator('ol > li').evaluateAll((nodes) =>
-      nodes.map((node) => node.querySelector('span')?.textContent?.trim()));
+    const printed = await receipt.locator('tbody > tr').evaluateAll((nodes) =>
+      nodes.map((node) => node.querySelector('td:first-child > span')?.textContent?.trim()));
     assert.deepEqual(printed.map((text) => text?.replace(/^\d+\. /, '')), [
       'Wire Mesh Net 3 ft', 'PVC Pipe 1" (20 ft)', 'LED Bulb 12W'
     ], 'invoice print preview follows reordered cart sequence');

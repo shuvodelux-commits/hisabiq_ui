@@ -1,0 +1,93 @@
+{
+  "assessment": "B · isolated",
+  "detectorRan": true,
+  "detectorCommand": ".agents/skills/impeccable/scripts/impeccable detect --json src/components/pos src/pages/Pos.tsx src/components/transactions/MultiUnitQuantityInput.tsx src/index.css",
+  "detectorExitCode": 2,
+  "detectorOutput": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/c1-detector.json",
+  "scores": {
+    "accessibility": 2,
+    "performance": 3,
+    "responsive": 2,
+    "theming": 4,
+    "integrity": 2
+  },
+  "auditTotal": 13,
+  "scopeNotes": "Source-only audit. No screenshots, other assessment, or browser inspected. Rendered contrast, real touch and pixel geometry are not certified. Tablet one-line rows and internal horizontal scrolling are explicitly preserved by index.css:894-912 and are not defects themselves.",
+  "falsePositives": [
+    {
+      "rule": "overused-font",
+      "location": "src/index.css:38",
+      "reason": "Geist is binding product typography in T1/T5 and design guide; changing it would violate the brief."
+    },
+    {
+      "rule": "overused-font",
+      "location": "src/index.css:3",
+      "reason": "Approved Geist font import; same binding typography exception."
+    },
+    {
+      "rule": "overused-font",
+      "location": "src/index.css:5",
+      "reason": "Font import alone does not establish prohibited monetary monospace usage; no verified in-scope monetary font-mono finding."
+    }
+  ],
+  "problems": [
+    {
+      "id": "workflow-vendor-lint",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": ".eslintrc.cjs:11",
+      "evidence": "Actual `npm run lint` exited 1; c1-detector-lint.log reports 314 problems (58 errors, 256 warnings). Errors are no-undef in newly initialized vendor/super-board workflow JS. Existing ignore boundary includes vendor/impeccable/** but not the other pinned external workflow engine. Pre-existing at task base after recursive submodule initialization; blocks required gate, not a POS runtime defect. T10/T14.",
+      "fix": "Add a narrowly documented vendor/super-board/** exclusion matching the existing third-party engine boundary, preserving lint coverage of authored application code and all business behavior; rerun the unfiltered required npm run lint gate."
+    },
+    {
+      "id": "product-search-ime-submit",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/pos/ProductCombobox.tsx:179",
+      "evidence": "onKeyDown handles Arrow/Enter/Escape with preventDefault and Enter choose(results[active]) without checking nativeEvent.isComposing or composition state. Bangla IME Enter used to confirm composition can therefore add a product and clear the query instead. CustomerPicker.tsx:89 also selects on Enter without composition guard. T7/T9; design guide requires preserving composition.",
+      "fix": "Guard composing keyboard events before picker selection/navigation; include the browser-compatible composition Enter guard needed for supported input methods. Preserve ordinary Enter product→quantity flow and customer draft state."
+    },
+    {
+      "id": "product-search-active-scroll",
+      "severity": "P1",
+      "type": "accessibility",
+      "location": "src/components/pos/ProductCombobox.tsx:179",
+      "evidence": "Arrow keys change active and input aria-activedescendant (line 299), but no effect or handler scrolls the corresponding option into view. The list is overflow-y-auto with measured maxHeight (lines 215-220), so keyboard selection can move to an invisible lower result whenever the popup is short. T7 and search readability priority.",
+      "fix": "On open/active change, reveal the active option inside the list scroll container with nearest/block geometry, preserving page scroll and reduced-motion behavior; verify at short viewport/open-up states."
+    },
+    {
+      "id": "checkout-large-amount-fit",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/pos/CheckoutPanel.tsx:357",
+      "evidence": "Primary completion Button concatenates action label, unbounded formatted total and F9 at lines 363-364. Bundled Button has whitespace-nowrap, while this use has w-full and no wrapping override or separate constrained amount layout. At large BDT values and long Bangla action text it has no way to fit a phone/340px checkout. Main payable at line 247 also uses a 29px unbreakable numeric run without a maximum width. Source establishes missing fallback; exact clipping must be corroborated by independent rendered evidence. T5/T6 and explicit complete-large-values brief.",
+      "fix": "Keep the same 48px terminal CTA and calculator/state paths, but provide an amount-safe responsive arrangement using existing tokens and readable proportional digits. Permit deliberate wrapping/separate action and amount regions where necessary and validate full large total at 320/390px and in Bangla."
+    },
+    {
+      "id": "quantity-four-unit-width",
+      "severity": "P1",
+      "type": "edge-cases",
+      "location": "src/components/transactions/MultiUnitQuantityInput.tsx:28",
+      "evidence": "Joined control divides width equally among up to four units, has overflow-hidden, and each segment contains a shrink-0 symbol plus numeric input. At <=639px index.css:199 permanently reserves 26px for each compact stepper; label additionally requires 8px padding + border + up to four symbol characters. At a 320px viewport, the cart's available joined width is below 300px, leaving very little number width per segment; configured Gira/Coil/Pair and custom 4-character symbols are supported. No min readable number width or POS opt-in adaptation exists. Exact rendered digits should be confirmed independently. T5/T6 and brief's readable joined 2–4 unit field.",
+      "fix": "Add a POS-specific opt-in quantity presentation that guarantees readable numeric space for all four segments while retaining one horizontal joined shell, short symbols, 36px height and original conversions. Preserve default shared consumers and existing input/stepper behavior; verify focused/coarse-pointer values and multi-digit entries at 320px."
+    },
+    {
+      "id": "cart-unit-radio-keyboard",
+      "severity": "P2",
+      "type": "accessibility",
+      "location": "src/components/pos/CartTable.tsx:280",
+      "evidence": "Two-unit selector declares radiogroup/radio with aria-checked but every radio remains a normal Tab stop and no Arrow key or roving tabindex behavior is implemented. Checkout discount group repeats this at CheckoutPanel.tsx:216-225. Users can Tab+Space through it, but the declared radio keyboard model is incomplete. T7; shared keyboard/accessibility contract.",
+      "fix": "Implement standard Arrow selection and roving tab focus on these existing compact groups (or use the existing compliant shared radio primitive if geometry remains unchanged). Do not change unit conversion, selected-unit prices or discount calculation."
+    }
+  ],
+  "positives": [
+    "Official detector executed successfully; all deterministic hits were checked and rejected for product-specific reasons.",
+    "Search uses a labelled combobox with active-descendant state, explicit Escape handling, bounded portal position, and intentional reduced-motion alternative.",
+    "Core in-scope colors resolve through existing runtime semantic/ink/teal tokens in both themes.",
+    "Final tablet media override retains aligned single-row quantity/unit/price/total/remove with scrolling confined to cart.",
+    "MultiUnitQuantityInput preserves joined shell, real unit symbols and composition guard on its own Enter navigation."
+  ],
+  "openQuestions": [
+    "POS CartTable.tsx:348 does not pass ProductCombobox.onCreate, so its documented legacy missing product Quick Add remains. Transaction contract names this pre-existing migration debt; decide whether a separate workflow slice is required rather than silently expanding this visual refinement."
+  ]
+}

@@ -1,6 +1,6 @@
 # HisabIQ_UI: `/ui-refine-loop` (GitHub-only refinement)
 
-This repository installs the upstream [EricTechPro/super-board `ui-refine-loop`](https://github.com/EricTechPro/super-board/tree/d0b7d5a6850614ca809477c1af43d5d7da408726/skills/ui-refine-loop), MIT-licensed. **Only the standalone UI refinement skill is installed.** No Super Board autopilot, background agent, merge permission or deployment is enabled.
+This repository exposes two MIT-licensed skills from [EricTechPro/super-board at pinned revision `d0b7d5a6850614ca809477c1af43d5d7da408726`](https://github.com/EricTechPro/super-board/tree/d0b7d5a6850614ca809477c1af43d5d7da408726): the standalone `ui-refine-loop` and the original `super-review` reviewer. `.agents/skills/ui-refine-loop` links to the existing HisabIQ-bound copy in `.claude/skills/ui-refine-loop`; `.agents/skills/super-review` links to the unchanged upstream skill in `vendor/super-board/skills/super-review`. Initialize submodules recursively before using either installation's dependencies. Super Review is read-only unless the owner explicitly authorizes changes; its upstream board-lane merge instructions do not grant merge permission. No Super Board autopilot, background agent, merge permission or deployment is enabled.
 
 ## Operating model
 

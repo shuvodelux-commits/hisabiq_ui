@@ -1,0 +1,90 @@
+{
+  "status": "fixed",
+  "commit": "5bd2aa6",
+  "commands": [
+    "adapt: reconcile POS desktop columns with actual cart width; preserve single-row tablets and wider unit-chain internal scrolling",
+    "harden: opt-in product active-result reveal and IME guards; checkout customer IME guard; unit/discount radio keyboard behavior; narrow vendor lint boundary",
+    "polish: preserve original reorder column budget, align header/rows/add, use layout offsets during existing popup animation; review light/dark evidence"
+  ],
+  "fixed": [
+    "pos-cart-desktop-clipped-totals",
+    "product-search-active-scroll",
+    "product-search-ime-submit",
+    "workflow-vendor-lint",
+    "cart-unit-radio-keyboard"
+  ],
+  "skipped": [
+    {
+      "id": "checkout-large-amount-fit",
+      "reason": "Bounded round2: reproduce supported large-value case before change."
+    },
+    {
+      "id": "quantity-four-unit-width",
+      "reason": "Bounded round2: existing four-unit regression passes six widths; verify actual multi-digit/stepper readability before change."
+    },
+    {
+      "id": "pos-phone-product-identity-truncated",
+      "reason": "Bounded round2 phone identity fit."
+    },
+    {
+      "id": "pos-copy-language-preference-bypassed",
+      "reason": "Bounded round3 language preference parity."
+    },
+    {
+      "id": "pos-cart-type-scale-drift",
+      "reason": "Bounded round3 supporting typography polish."
+    }
+  ],
+  "outOfScope": [
+    {
+      "file": ".eslintrc.cjs",
+      "reason": "Coordinator-authorized exact vendor/super-board/** exclusion for external pinned workflow engine, matching vendor/impeccable; authored application coverage retained."
+    },
+    {
+      "file": "scripts/pos-reorder-browser.cjs",
+      "reason": "Coordinator-authorized stale test selector repair: actual document tbody rows replace obsolete ol > li; original full receipt-order assertion retained. Production receipt unchanged."
+    }
+  ],
+  "exceptions": [
+    "Shared ProductCombobox enhancements default false and are enabled only by POS CartTable; CustomerPicker composition guard defaults false and is enabled only by POS CheckoutPanel.",
+    "Original shoot cart crop replaces stalled checkout crop per coordinator instruction; full original screenshots still include checkout.",
+    "Chromium uses system executable and original shoot launch adapter; physical Android/Safari IME hardware untested."
+  ],
+  "checks": "PASS: five required gates, focused red→green regression, reorder/print, four-unit POS/Purchase all6 widths, fast-counter24/24 journeys, customer templates8/8.",
+  "verificationCommands": [
+    "PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium node scripts/pos-refine-keyboard-browser.cjs (baseline red; round-1-focused-red.log)",
+    "PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium node scripts/pos-refine-keyboard-browser.cjs (inherited total-cell alignment red; round-1-alignment-red.log)",
+    "POS_SHOTS_DIR=../refine-app-pos.run/shots PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium node scripts/pos-refine-keyboard-browser.cjs (final green)",
+    "PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium npm run test:pos-reorder",
+    "PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium npm run test:multi-unit-products",
+    "PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium npm run test:pos-fast-counter",
+    "PLAYWRIGHT_EXECUTABLE_PATH=/usr/bin/chromium npm run test:pos-customer-templates",
+    "bash work/checks.sh round-1",
+    "git diff --check",
+    "NODE_OPTIONS='--require ./work/playwright-system.cjs' node /workspace/hisabiq_ui/.claude/skills/ui-refine-loop/scripts/shoot.mjs --base http://127.0.0.1:4173 --route '/#/app/pos' --out /workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots --label round-1 --compare round-0 --sections '[data-cart-kind=\"sale\"]'"
+  ],
+  "afterShots": [
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-main-desktop-light.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-main-desktop-dark.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-main-mobile-light.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-main-mobile-dark.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-main-desktop-light-s1.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-main-mobile-light-s1.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/cmp-round-1-main-desktop-light.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/cmp-round-1-main-desktop-dark.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/cmp-round-1-main-mobile-light.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/cmp-round-1-main-mobile-dark.png"
+  ],
+  "openSearchShots": [
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-1024-dark-search.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-1024-light-search.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-1440-dark-search.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-1440-light-search.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-320-dark-search.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-320-light-search.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-390-dark-search.png",
+    "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-1-390-light-search.png"
+  ],
+  "visualReview": "Inspected all four original before/after sheets plus desktop crop and short upward dark popup. Desktop total heading, full routine totals and remove controls visible; phone structure, checkout and light/dark tokens preserved.",
+  "openQuestions": []
+}

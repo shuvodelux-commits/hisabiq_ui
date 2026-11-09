@@ -1,0 +1,660 @@
+{
+  "head": "a510661b84f638e281a12ad73989c59bde08eb0b",
+  "capturedAt": "2026-11-07T00:09:31.365Z",
+  "results": [
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "search empty/clear and multiple actual adds",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "serial required count, scan invalid, connected labels/error, select/remove/use",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-en-serial-error.png"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-en-shortage-vendor-error.png"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "price/cost eye, keyboard reorder and remove",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "invoice customer details and quick-add cancel preserve cart",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "payment methods/accounts, split add/remove/remaining/exact, discount error and due customer",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "hold/resume preserves products and split amount",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "review confirmation and receipt preview only",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-en-review.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-en-receipt.png"
+      ]
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "edit source context and display date",
+      "status": "passed",
+      "expected": "1 Oct 2026"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "duplicate source context and display date",
+      "status": "passed",
+      "expected": "7 Nov 2026"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "continue-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "edit-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "duplicate-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "delete held preview draft preserves active cart",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "installment terms, shared adjustment select and callback, schedule invalid/cancel",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-en-installment-adjustment-select.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-en-installment-breakdown.png"
+      ]
+    },
+    {
+      "theme": "light",
+      "language": "English",
+      "action": "no runtime errors",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "search empty/clear and multiple actual adds",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "serial required count, scan invalid, connected labels/error, select/remove/use",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-serial-error.png"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-shortage-vendor-error.png"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "price/cost eye, keyboard reorder and remove",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "invoice customer details and quick-add cancel preserve cart",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "payment methods/accounts, split add/remove/remaining/exact, discount error and due customer",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "hold/resume preserves products and split amount",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "review confirmation and receipt preview only",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-review.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-receipt.png"
+      ]
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "edit source context and display date",
+      "status": "passed",
+      "expected": "১ অক্টো, ২০২৬"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "duplicate source context and display date",
+      "status": "passed",
+      "expected": "৭ নভে, ২০২৬"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "continue-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "edit-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "duplicate-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "delete held preview draft preserves active cart",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "installment terms, shared adjustment select and callback, schedule invalid/cancel",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-installment-adjustment-select.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-bn-installment-breakdown.png"
+      ]
+    },
+    {
+      "theme": "light",
+      "language": "Bangla",
+      "action": "no runtime errors",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "search empty/clear and multiple actual adds",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "serial required count, scan invalid, connected labels/error, select/remove/use",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-both-serial-error.png"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-both-shortage-vendor-error.png"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "price/cost eye, keyboard reorder and remove",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "invoice customer details and quick-add cancel preserve cart",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "payment methods/accounts, split add/remove/remaining/exact, discount error and due customer",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "hold/resume preserves products and split amount",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "review confirmation and receipt preview only",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-both-review.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-both-receipt.png"
+      ]
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "edit source context and display date",
+      "status": "passed",
+      "expected": "1 Oct 2026"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "duplicate source context and display date",
+      "status": "passed",
+      "expected": "7 Nov 2026"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "continue-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "edit-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "duplicate-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "delete held preview draft preserves active cart",
+      "status": "passed"
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "installment terms, shared adjustment select and callback, schedule invalid/cancel",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-both-installment-adjustment-select.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-light-both-installment-breakdown.png"
+      ]
+    },
+    {
+      "theme": "light",
+      "language": "English + Bangla",
+      "action": "no runtime errors",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "search empty/clear and multiple actual adds",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "serial required count, scan invalid, connected labels/error, select/remove/use",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-serial-error.png"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-shortage-vendor-error.png"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "price/cost eye, keyboard reorder and remove",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "invoice customer details and quick-add cancel preserve cart",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "payment methods/accounts, split add/remove/remaining/exact, discount error and due customer",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "hold/resume preserves products and split amount",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "review confirmation and receipt preview only",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-review.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-receipt.png"
+      ]
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "edit source context and display date",
+      "status": "passed",
+      "expected": "1 Oct 2026"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "duplicate source context and display date",
+      "status": "passed",
+      "expected": "7 Nov 2026"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "continue-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "edit-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "duplicate-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "delete held preview draft preserves active cart",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "installment terms, shared adjustment select and callback, schedule invalid/cancel",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-installment-adjustment-select.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-en-installment-breakdown.png"
+      ]
+    },
+    {
+      "theme": "dark",
+      "language": "English",
+      "action": "no runtime errors",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "search empty/clear and multiple actual adds",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "serial required count, scan invalid, connected labels/error, select/remove/use",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-bn-serial-error.png"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-bn-shortage-vendor-error.png"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "price/cost eye, keyboard reorder and remove",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "invoice customer details and quick-add cancel preserve cart",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "payment methods/accounts, split add/remove/remaining/exact, discount error and due customer",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "hold/resume preserves products and split amount",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "review confirmation and receipt preview only",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-bn-review.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-bn-receipt.png"
+      ]
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "edit source context and display date",
+      "status": "passed",
+      "expected": "১ অক্টো, ২০২৬"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "duplicate source context and display date",
+      "status": "passed",
+      "expected": "৭ নভে, ২০২৬"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "continue-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "edit-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "duplicate-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "delete held preview draft preserves active cart",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "installment terms, shared adjustment select and callback, schedule invalid/cancel",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-bn-installment-adjustment-select.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-bn-installment-breakdown.png"
+      ]
+    },
+    {
+      "theme": "dark",
+      "language": "Bangla",
+      "action": "no runtime errors",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "search empty/clear and multiple actual adds",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "serial required count, scan invalid, connected labels/error, select/remove/use",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-both-serial-error.png"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "shortage cancel/Own/Negative/Vendor pending cost, nested quick-add cancel",
+      "status": "passed",
+      "shot": "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-both-shortage-vendor-error.png"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "price/cost eye, keyboard reorder and remove",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "invoice customer details and quick-add cancel preserve cart",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "payment methods/accounts, split add/remove/remaining/exact, discount error and due customer",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "hold/resume preserves products and split amount",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "review confirmation and receipt preview only",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-both-review.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-both-receipt.png"
+      ]
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "edit source context and display date",
+      "status": "passed",
+      "expected": "1 Oct 2026"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "duplicate source context and display date",
+      "status": "passed",
+      "expected": "7 Nov 2026"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "continue-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "edit-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "duplicate-draft context preserves original two-line draft",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "delete held preview draft preserves active cart",
+      "status": "passed"
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "installment terms, shared adjustment select and callback, schedule invalid/cancel",
+      "status": "passed",
+      "shots": [
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-both-installment-adjustment-select.png",
+        "/workspace/hisabiq_ui/.claude/worktrees/refine-app-pos.run/shots/round-3-workflow-dark-both-installment-breakdown.png"
+      ]
+    },
+    {
+      "theme": "dark",
+      "language": "English + Bangla",
+      "action": "no runtime errors",
+      "status": "passed"
+    }
+  ],
+  "limitations": [
+    "All outcomes are browser previews; no real ledger, bank, stock or backend posting certified.",
+    "Missing-product Quick Add remains existing migration debt: no creation action is wired in POS; no workflow was invented.",
+    "Receipt Print button was found; physical printing and browser print dialog were not invoked.",
+    "Genuine three/four unit creation and addition, templates, installment lifecycle, bundle fulfillment, touch reorder and normal/reduced popup motion are covered by their named companion suites."
+  ]
+}

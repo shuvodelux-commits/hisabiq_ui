@@ -9,8 +9,9 @@ on:
       - 'AGENTS.md'
       - 'DESIGN.md'
       - '.gitmodules'
-      - '.agents/skills/impeccable'
+      - '.agents/skills/**'
       - 'vendor/impeccable'
+      - 'vendor/super-board'
       - '.github/workflows/ui-refine-install-check.yml'
   workflow_dispatch:
 
@@ -26,6 +27,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Verify Codex skill links and pinned Super Board
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=d0b7d5a6850614ca809477c1af43d5d7da408726
+          test "$(git rev-parse HEAD:vendor/super-board)" = "$expected"
+          test "$(git -C vendor/super-board rev-parse HEAD)" = "$expected"
+          test -L .agents/skills/ui-refine-loop
+          test -L .agents/skills/super-review
+          test "$(realpath .agents/skills/ui-refine-loop)" = "$(realpath .claude/skills/ui-refine-loop)"
+          test "$(realpath .agents/skills/super-review)" = "$(realpath vendor/super-board/skills/super-review)"
+          for skill in ui-refine-loop super-review; do
+            test -s ".agents/skills/$skill/SKILL.md"
+            test -r ".agents/skills/$skill/SKILL.md"
+          done
       - name: Validate skill structure and syntax
         shell: bash
         run: |
@@ -83,6 +99,7 @@ jobs:
         run: |
           set -euo pipefail
           expected=e89e3ada3e875a89ac2c5d33d11e65ebef6fe285
+          test "$(git rev-parse HEAD:vendor/impeccable)" = "$expected"
           actual="$(git -C vendor/impeccable rev-parse HEAD)"
           test "$actual" = "$expected" || { echo "Unpinned upstream Impeccable: $actual"; exit 1; }
           test -L .agents/skills/impeccable
