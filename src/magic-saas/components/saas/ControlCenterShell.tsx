@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { MOTION_EASE, MOTION_MS } from '../../hisabiq-library/motion/tokens';
@@ -114,7 +114,9 @@ export function ControlCenterShell() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: MOTION_MS.tab / 1000, ease: MOTION_EASE }}
           >
-            <Outlet />
+            <Suspense fallback={<div role="status" aria-live="polite" className="rounded-lg border border-ink-100 bg-card px-4 py-6 text-sm text-ink-500">Loading workspace…</div>}>
+              <Outlet />
+            </Suspense>
           </motion.div>
         </main>
       </div>
