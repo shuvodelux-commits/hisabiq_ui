@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { MOTION_EASE, MOTION_MS } from '../../hisabiq-library/motion/tokens';
@@ -57,7 +57,7 @@ export function ControlCenterShell() {
 
   return (
     <div className="hisabiq-design-preview hisabiq-app min-h-screen w-full bg-background font-sans text-ink">
-      <header className="sticky top-0 z-30 border-b border-ink-100 bg-white">
+      <header className="sticky top-0 z-30 border-b border-ink-100 bg-card">
         <div className="mx-auto flex h-14 max-w-[1480px] items-center gap-3 px-4">
           <Link to="/saas/home" className="flex min-w-0 shrink-0 items-center gap-2.5 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
             <LogoMark size={26} />
@@ -65,13 +65,13 @@ export function ControlCenterShell() {
           </Link>
           <div className="flex flex-1 justify-center"><GlobalSearch /></div>
           <IdentityChip />
-          <Link to="/app/dashboard" title="Back to the merchant ERP" className="ref-action hidden items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 text-[13px] font-medium text-ink-700 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 sm:inline-flex">
+          <Link to="/app/dashboard" title="Back to the merchant ERP" className="ref-action hidden items-center gap-1.5 rounded-lg border border-ink-200 bg-card px-3 text-[13px] font-medium text-ink hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 sm:inline-flex">
             <ArrowLeft className="size-4" />ERP
           </Link>
         </div>
       </header>
       <div className="mx-auto grid max-w-[1480px] gap-4 px-4 py-4 lg:grid-cols-[216px_minmax(0,1fr)]">
-        <nav aria-label="Control Center" className="flex gap-1 overflow-x-auto rounded-xl border border-ink-100 bg-white p-2 lg:sticky lg:top-[72px] lg:block lg:max-h-[calc(100vh-88px)] lg:self-start lg:overflow-y-auto">
+        <nav aria-label="Control Center" className="flex gap-1 overflow-x-auto rounded-xl border border-ink-100 bg-card p-2 lg:sticky lg:top-[72px] lg:block lg:max-h-[calc(100vh-88px)] lg:self-start lg:overflow-y-auto">
           <LayoutGroup id="cc-nav">
           <NavLink to="/saas/home" className={({ isActive }) => linkCls(isActive)}>
             {({ isActive }) => (
@@ -79,7 +79,7 @@ export function ControlCenterShell() {
                 {isActive && <ActivePill reduced={!!reduced} />}
                 <Inbox className={`relative size-4 shrink-0 ${isActive ? 'text-teal-700' : 'text-ink-400'}`} aria-hidden="true" />
                 <span className="relative flex-1 whitespace-nowrap">My work <span className="hidden font-bn text-[10.5px] font-normal text-ink-400 lg:inline">আজকের কাজ</span></span>
-                {myQueue > 0 && <Count value={myQueue} className="rounded bg-teal-600 px-1.5 text-[11px] font-medium tabular-nums text-white" />}
+                {myQueue > 0 && <Count value={myQueue} className="rounded bg-teal-600 px-1.5 text-[11px] font-medium text-white" />}
               </>
             )}
           </NavLink>
@@ -95,7 +95,7 @@ export function ControlCenterShell() {
                         {isActive && <ActivePill reduced={!!reduced} />}
                         <Icon className={`relative size-4 shrink-0 ${isActive ? 'text-teal-700' : 'text-ink-400'}`} aria-hidden="true" />
                         <span className="relative flex-1 whitespace-nowrap">{n.label}</span>
-                        {(counts[n.to] ?? 0) > 0 && <Count value={counts[n.to]} className="rounded bg-warning-bg px-1.5 text-[11px] font-medium tabular-nums text-warning" />}
+                        {(counts[n.to] ?? 0) > 0 && <Count value={counts[n.to]} className="rounded bg-warning-bg px-1.5 text-[11px] font-medium text-warning" />}
                       </>
                     )}
                   </NavLink>
@@ -114,7 +114,9 @@ export function ControlCenterShell() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: MOTION_MS.tab / 1000, ease: MOTION_EASE }}
           >
-            <Outlet />
+            <Suspense fallback={<div role="status" aria-live="polite" className="rounded-lg border border-ink-100 bg-card px-4 py-6 text-sm text-ink-500">Loading workspace…</div>}>
+              <Outlet />
+            </Suspense>
           </motion.div>
         </main>
       </div>

@@ -77,9 +77,9 @@ export function MyWork() {
           {shownTiles.slice(0, 5).map((t) => {
             const active = kinds !== null && kinds.join() === t.kinds.join();
             return (
-              <button key={t.label} type="button" aria-pressed={active} onClick={() => setKinds(active ? null : t.kinds)} className={`rounded-xl border bg-white px-3 py-2.5 text-left shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 ${active ? 'border-teal-600' : 'border-ink-100 hover:border-ink-200'}`}>
+              <button key={t.label} type="button" aria-pressed={active} onClick={() => setKinds(active ? null : t.kinds)} className={`rounded-xl border bg-card px-3 py-2.5 text-left shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600 ${active ? 'border-teal-600' : 'border-ink-100 hover:border-ink-200'}`}>
                 <span className="block text-[11px] text-ink-500">{t.label} <span className="font-bn">· {t.bn}</span></span>
-                <span className={`mt-0.5 block text-lg font-semibold tabular-nums ${t.count ? 'text-ink' : 'text-ink-300'}`}>{t.count}</span>
+                <span className={`mt-0.5 block text-lg font-semibold ${t.count ? 'text-ink' : 'text-ink-300'}`}>{t.count}</span>
               </button>
             );
           })}
@@ -100,10 +100,10 @@ export function MyWork() {
         ) : (
           <ul className="divide-y divide-ink-100">
             {list.map((w) => (
-              <li key={w.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 sm:flex-nowrap">
+              <li key={w.id} className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 sm:flex-nowrap ${w.action.length >= 17 ? 'max-[360px]:grid max-[360px]:grid-cols-[8px_minmax(0,1fr)]' : ''}`}>
                 <span className={`size-2 shrink-0 rounded-full ${w.tone === 'danger' ? 'bg-danger' : w.tone === 'warning' ? 'bg-warning' : 'bg-info'}`} aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{w.title}</p>
+                  <p className="max-sm:line-clamp-2 text-[13px] font-medium text-ink sm:truncate">{w.title}</p>
                   <p className="truncate text-[11px] text-ink-500">
                     <span className="mr-1 rounded bg-ink-50 px-1 text-ink-600">{w.area}</span>
                     {w.detail}
@@ -111,7 +111,7 @@ export function MyWork() {
                   </p>
                 </div>
                 {w.tenantId && w.kind !== 'health' && <Link to={`/saas/tenants/${w.tenantId}`} className="hidden shrink-0 text-xs text-ink-500 hover:text-teal-700 hover:underline md:inline">Business</Link>}
-                <Button kind={w.tone === 'danger' ? 'primary' : 'outline'} onClick={() => act(w)}>{w.action}</Button>
+                <Button kind={w.tone === 'danger' ? 'primary' : 'outline'} className={w.action.length >= 17 ? 'max-[360px]:col-start-2 max-[360px]:justify-self-end' : ''} onClick={() => act(w)}>{w.action}</Button>
               </li>
             ))}
           </ul>

@@ -80,11 +80,11 @@ export function GlobalSearch() {
         aria-controls="cc-search-results"
         aria-label="Search businesses, invoices, TRX ID or tickets"
         placeholder="Search business, invoice, TRX ID…"
-        className="ref-control w-full rounded-lg border border-ink-200 bg-ink-50/60 pl-9 pr-12 text-[13px] focus-visible:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600/40"
+        className="ref-control w-full rounded-lg border border-ink-200 bg-ink-50/60 pl-9 pr-12 text-[13px] focus-visible:bg-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600/40"
       />
-      {!q && <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-ink-200 bg-white px-1.5 text-[10px] text-ink-500 md:block">⌘K</kbd>}
+      {!q && <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-ink-200 bg-card px-1.5 text-[10px] text-ink-500 md:block">⌘K</kbd>}
       {open && q.trim().length >= 2 && (
-        <ul id="cc-search-results" role="listbox" className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-ink-100 bg-white py-1 shadow-pop">
+        <ul id="cc-search-results" role="listbox" className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-ink-100 bg-card py-1 shadow-pop">
           {hits.length === 0 && <li className="px-3 py-3 text-center text-xs text-ink-500">No match in your businesses.</li>}
           {hits.map((h, i) => (
             <li key={`${h.kind}-${h.id}`} role="option" aria-selected={i === active}>

@@ -148,7 +148,7 @@ export function SummaryStrip({ items }: { items: { label: string; value: React.R
 
 export function Denied({ what, role }: { what: string; role: string }) {
   return (
-    <div role="alert" className="flex items-start gap-3 rounded-xl border border-ink-100 bg-white p-4 shadow-card">
+    <div role="alert" className="flex items-start gap-3 rounded-xl border border-ink-100 bg-card p-4 shadow-card">
       <Lock className="mt-0.5 size-4 shrink-0 text-ink-400" aria-hidden="true" />
       <div>
         <p className="text-[13px] font-medium text-ink">You don’t have access to {what}</p>
