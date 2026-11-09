@@ -74,3 +74,14 @@ test("report distinguishes main and unmerged PR 274 rather than assuming parity"
     assert.notEqual(row.main, row.pr, row.id + ": explicit separate main and PR #274 statements are required");
   }
 });
+
+test("the ordinary inventory retains exact English and Bangla field labels", () => {
+  const rows = new Map(readRows().filter(row => row.kind === "ordinary").map(row => [row.id, row]));
+  for (const [section, fields] of Object.entries(settingsFields)) {
+    for (const field of fields ?? []) {
+      const id = section + "." + field.key;
+      assert.equal(rows.get(id)?.enBn, field.label + " / " + field.bn,
+        id + ": the audit should preserve the real bilingual source label");
+    }
+  }
+});
