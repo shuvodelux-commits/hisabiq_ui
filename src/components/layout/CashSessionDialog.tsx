@@ -15,7 +15,7 @@ export function CashSessionDialog() {
   const {
     open, setOpen, sessionOpen, enabled, startSession, saveCount, reopenSession,
     refresh, openingCash, expectedCash: expected, sampleMovements, lastCount,
-    mode, busy, error, dayStatus, activeSession, accounts,
+    mode, busy, error, dayStatus, accounts,
   } = useCashSession();
   const [counts, setCounts] = useState<Record<number, string>>({});
   const [countMode,setCountMode]=useState<'total'|'notes'>('total');
