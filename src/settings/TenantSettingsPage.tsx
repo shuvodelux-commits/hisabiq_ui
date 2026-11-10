@@ -61,7 +61,7 @@ import {
 } from "./model";
 import { useTenantSettings } from "./TenantSettingsProvider";
 import { useCashSession } from '../contexts/CashSessionContext';
-import { fetchCashSettings, hasCashSessionCredentials, saveCashEnabled } from '../services/cashSessionApi';
+import { fetchCashDay, fetchCashSettings, hasCashSessionCredentials, saveCashEnabled } from '../services/cashSessionApi';
 import { sectionNames, settingsFields, type SettingField } from "./fields";
 import {
   Button,
@@ -501,7 +501,17 @@ export function SettingsPageContent({
         const remote = await fetchCashSettings();
         const desired = (draft as SettingsSections['money']).cashSession;
         const current = remote.values['cash_session_enabled'] !== 'off';
-        if (desired !== current) await saveCashEnabled(desired);
+        if (desired !== current) {
+          if (!desired) {
+            // Never strand an unclosed day behind a disabled toggle. The server
+            // should enforce the same rule for all clients (tracked separately).
+            const day = await fetchCashDay();
+            if (day.todaySession?.status === 'OPEN' || day.blockedSession?.status === 'OPEN') {
+              throw new Error('Close the active cash session before switching cash sessions off.');
+            }
+          }
+          await saveCashEnabled(desired);
+        }
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : 'Could not update the cash-session setting.');
         setReviewOpen(false);
