@@ -520,7 +520,12 @@ function TransferDialog({
 export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { counterOnly?: boolean; moneyAccountsOnly?: boolean } = {}) {
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
-  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
+  const {
+    setOpen: setCashDialogOpen, sessionOpen, enabled: cashEnabled,
+    openingCash, expectedCash, lastCount, mode: cashMode,
+    error: cashError, dayStatus: cashDayStatus,
+    activeSession: liveCashSession, history: liveCashHistory,
+  } = useCashSession();
   const [searchParams, setSearchParams] = useSearchParams();
   const routeTab = searchParams.get('tab');
   const financeTabs: Tab[] = ['overview','transactions','cheques','cash'];
@@ -539,6 +544,27 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   }, [routeTab, counterOnly, moneyAccountsOnly, navigate]);
   const { accounts, transactions, people } = useSyncExternalStore(subscribeFinancePreview, getFinancePreviewSnapshot);
   const relationshipSummary = financePreviewRelationshipSummary(transactions);
+  // Finance's other accounts and movements are still UI previews. Only the
+  // Cash Sessions slice switches to authoritative ERP rows in connected mode.
+  const cashSessionRecords: CashSessionRecord[] = cashMode === 'connected'
+    ? liveCashHistory.map((row) => {
+        const current = liveCashSession?.id === row.sessionId ? liveCashSession : null;
+        const close = current?.closes.find(item => item.status === 'ACTIVE');
+        return {
+          id: row.sessionId,
+          date: row.businessDate,
+          openedAt: current?.openedAt ?? '—',
+          ...(close?.closedAt ? { closedAt: close.closedAt } : {}),
+          openingCash: row.openingAmountMinor / 100,
+          expectedCash: (row.expectedClosingMinor ?? current?.expectedClosingMinor ??
+            row.openingAmountMinor + row.cashInMinor - row.cashOutMinor) / 100,
+          ...(row.countedClosingMinor === null ? {} : { countedCash: row.countedClosingMinor / 100 }),
+          ...(row.differenceMinor === null ? {} : { variance: row.differenceMinor / 100 }),
+          status: row.status === 'OPEN' ? 'Open' : 'Closed',
+          ...(row.differenceReason ? { note: row.differenceReason } : {}),
+        };
+      })
+    : cashMode === 'preview' ? cashSessions : [];
   const setAccounts: React.Dispatch<React.SetStateAction<FinanceAccount[]>> = (change) => updateFinancePreview('accounts', change);
   const setTransactions: React.Dispatch<React.SetStateAction<FinanceTransaction[]>> = (change) => updateFinancePreview('transactions', change);
   const setPeople: React.Dispatch<React.SetStateAction<FinancePerson[]>> = (change) => updateFinancePreview('people', change);
@@ -730,7 +756,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const pdcCount = chequeRecords.filter((item) => item.chequeDate > '2026-10-07' && !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status)).length;
   const bouncedCount = chequeRecords.filter((item) => item.status === 'Bounced' || item.status === 'Returned').length;
-  const varianceSessions = cashSessions.filter((item) => item.status === 'Closed' && (item.variance ?? 0) !== 0).length;
+  const varianceSessions = cashSessionRecords.filter((item) => item.status === 'Closed' && (item.variance ?? 0) !== 0).length;
 
   const pendingChequeAmount = chequeRecords
     .filter((item) => !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status))
@@ -1234,10 +1260,28 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                 <StatusBadge tone={sessionOpen ? 'success' : 'neutral'} dot>{sessionOpen ? financeLabel(language,'Open') : financeLabel(language,'Closed')}</StatusBadge>
               </div>
 
-              {sessionOpen ? (
+              {cashMode !== 'preview' && cashError && (
+                <p role="alert" className="mt-3 text-xs text-danger">{cashError}</p>
+              )}
+              {cashMode === 'connected' && (
+                <p className="mt-3 text-xs text-ink-500">
+                  {text('Cash sessions use the real ERP ledger. Other Finance preview totals have not been connected.','ক্যাশ সেশন মূল খাতার তথ্য। ফাইন্যান্সের অন্য নমুনা অঙ্ক এখনো সংযুক্ত নয়।')}
+                </p>
+              )}
+              {!cashEnabled ? (
+                <p className="mt-4 text-xs text-ink-500">
+                  {cashMode === 'loading'
+                    ? text('Checking cash day…','ক্যাশ সেশন যাচাই হচ্ছে…')
+                    : cashMode === 'error'
+                      ? text('Unable to load the cash day. Open the cash control to retry.','ক্যাশ সেশন লোড হয়নি। আবার চেষ্টা করুন।')
+                      : text('Cash sessions are off. Previous records are kept.','ক্যাশ সেশন বন্ধ। আগের হিসাব সংরক্ষিত আছে।')}
+                </p>
+              ) : sessionOpen ? (
                 <>
                   <div className="mt-4 rounded-lg bg-ink-50 p-3">
-                    <p className="text-[11px] text-ink-400">{text('Current preview session · resets on reload','নমুনা ক্যাশ সেশন · পাতা রিলোড করলে রিসেট হবে')}</p>
+                    <p className="text-[11px] text-ink-400">{cashMode === 'connected'
+                      ? text('Live session · stored in ERP','চলমান সেশন · মূল খাতায় সংরক্ষিত')
+                      : text('Current preview session · resets on reload','নমুনা ক্যাশ সেশন · পাতা রিলোড করলে রিসেট হবে')}</p>
                     <div className="mt-2 grid grid-cols-2 gap-3">
                       <div>
                         <p className="text-[10.5px] text-ink-400">{text('Opening cash','শুরুর ক্যাশ')}</p>
@@ -1252,13 +1296,17 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   <Button className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>{text('Count / close cash session','ক্যাশ গুনুন / সেশন বন্ধ করুন')}</Button>
                 </>
               ) : (
-                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>{text('Open cash session','ক্যাশ সেশন খুলুন')}</Button>
+                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>
+                  {cashMode === 'connected' && cashDayStatus?.todaySession?.status === 'CLOSED'
+                    ? text('Review closed cash day','বন্ধ ক্যাশ সেশন দেখুন')
+                    : text('Open cash session','ক্যাশ সেশন খুলুন')}
+                </Button>
               )}
 
               {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">{text('Last count:','শেষ গুনেছেন:')} {taka(lastCount.counted)} · {lastCount.closed?financeLabel(language,'Closed'):text('Saved','সংরক্ষিত')}{lastCount.note?' · '+lastCount.note:''}</p>}
-              <button onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+              {cashEnabled && <button onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
                 <RefreshCw className="size-3.5" /> {text('Cash reconciliation','ক্যাশ মিলানো')}
-              </button>
+              </button>}
             </section>
 
             <section className="min-w-0 rounded-xl border border-border">
@@ -1280,7 +1328,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {cashSessions.map((session) => (
+                  {cashSessionRecords.map((session) => (
                     <TableRow key={session.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">
                         <p className="font-medium text-ink">{session.id}</p>
