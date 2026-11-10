@@ -60,6 +60,8 @@ import {
   type SettingsSections,
 } from "./model";
 import { useTenantSettings } from "./TenantSettingsProvider";
+import { useCashSession } from '../contexts/CashSessionContext';
+import { fetchCashSettings, hasCashSessionCredentials, saveCashEnabled } from '../services/cashSessionApi';
 import { sectionNames, settingsFields, type SettingField } from "./fields";
 import {
   Button,
@@ -324,6 +326,7 @@ export function SettingsPageContent({
       : "business");
   const { state, personal, actorId, setActorId, save, updatePersonal } =
     useTenantSettings();
+  const { enabled: serverCashEnabled, mode: cashMode, refresh: refreshCashDay } = useCashSession();
   const { theme, setTheme } = useTheme();
   const [readingLogo, setReadingLogo] = useState(false);
   const [draft, setDraft] = useState<Draft>(() =>
@@ -403,6 +406,16 @@ export function SettingsPageContent({
     load();
     setNotice("");
   }, [section, actorId]);
+  // The server is authoritative in connected mode. Show its actual switch
+  // state on this existing settings form without rewriting unrelated defaults.
+  useEffect(() => {
+    if (section !== 'money' || cashMode !== 'connected' || dirty) return;
+    setDraft(previous => {
+      const next = { ...previous, cashSession: serverCashEnabled };
+      setBaseline(JSON.stringify(next));
+      return next;
+    });
+  }, [section, cashMode, serverCashEnabled]);
   function requestChange(action: () => void) {
     if (dirty) {
       pending.current = action;
@@ -468,7 +481,7 @@ export function SettingsPageContent({
       document.removeEventListener("click", click, true);
     };
   }, [dirty, navigate]);
-  const commit = (): boolean => {
+  const commit = async (): Promise<boolean> => {
     setError("");
     if (section === "personal") {
       updatePersonal({ ...personalDraft, mode: personal.mode });
@@ -477,6 +490,24 @@ export function SettingsPageContent({
       return true;
     }
     if (section === "data" || section === "security") return false;
+    // A connected cash toggle must be acknowledged by NestSherERP *before*
+    // saving the companion UI settings. Never fake success when API rejects.
+    if (section === 'money' && hasCashSessionCredentials()) {
+      if (!editable || revision !== state.revision) {
+        setError('Settings changed or access was denied. Reload the section and try again.');
+        return false;
+      }
+      try {
+        const remote = await fetchCashSettings();
+        const desired = (draft as SettingsSections['money']).cashSession;
+        const current = remote.values['cash_session_enabled'] !== 'off';
+        if (desired !== current) await saveCashEnabled(desired);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : 'Could not update the cash-session setting.');
+        setReviewOpen(false);
+        return false;
+      }
+    }
     const result = save(section, draft as never, revision);
     if (!result.ok) {
       setError(result.error || "Could not save settings.");
@@ -491,6 +522,9 @@ export function SettingsPageContent({
         : "Business settings saved.",
     );
     setReviewOpen(false);
+    if (section === 'money' && hasCashSessionCredentials()) {
+      void refreshCashDay().catch(() => { /* The Cash status control exposes the server error. */ });
+    }
     return true;
   };
   const changes =
@@ -1448,8 +1482,8 @@ export function SettingsPageContent({
       >
         <div className="flex flex-wrap justify-end gap-2">
           <Button
-            onClick={() => {
-              if (commit()) {
+            onClick={async () => {
+              if (await commit()) {
                 setLeaveOpen(false);
                 pending.current?.();
                 pending.current = null;
