@@ -229,6 +229,10 @@ jobs:
           node scripts/vendor-party-layout-browser.cjs
           node scripts/vendor-refine-browser.cjs
 
+      - name: Connected Cash Session desktop/mobile browser smoke
+        if: steps.scope.outputs.finance == 'true'
+        run: node scripts/cash-session-backend-browser.cjs
+
       - name: Finance counter smoke
         if: steps.scope.outputs.finance == 'true'
         run: npm run test:counter-ux
