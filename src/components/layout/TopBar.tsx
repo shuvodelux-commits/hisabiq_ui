@@ -147,7 +147,7 @@ export function TopBar() {
             </Button>
           )}
 
-          {(cashMode === 'connected' ? cashEnabled : state.sections.money.cashSession) && <button
+          {(cashMode === 'loading' || cashMode === 'error' || (cashMode === 'connected' ? cashEnabled : state.sections.money.cashSession)) && <button
             onClick={() => setOpen(true)}
             className="hidden h-9 items-center gap-2 rounded-lg border border-border px-2.5 text-[13px] text-ink-700 transition-colors hover:bg-ink-50 sm:flex">
             
