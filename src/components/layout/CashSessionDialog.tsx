@@ -95,7 +95,7 @@ export function CashSessionDialog() {
           {error && <p role="alert" className="text-xs text-danger">{error}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>{text('Close','বন্ধ করুন')}</Button>
-            {mode === 'error' && <Button onClick={() => void refresh().catch(() => {})}>{text('Retry','আবার চেষ্টা করুন')}</Button>}
+            {mode === 'error' && <Button onClick={() => void refresh().catch(caught => setActionError(caught instanceof Error ? caught.message : 'Could not load cash day.'))}>{text('Retry','আবার চেষ্টা করুন')}</Button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>
