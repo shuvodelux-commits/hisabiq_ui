@@ -48,7 +48,7 @@ const toneDot = {
 
 export function TopBar() {
   const { text, language } = useUiCopy();
-  const { setOpen, sessionOpen, expectedCash } = useCashSession();
+  const { setOpen, sessionOpen, expectedCash, enabled: cashEnabled, mode: cashMode } = useCashSession();
   const { state,actorId } = useTenantSettings();
   const activeEmployee=state.sections.team.employees.find(employee=>employee.id===actorId&&employee.active);
   const userName=activeEmployee?.name.trim()||text('User','ব্যবহারকারী');
@@ -147,19 +147,22 @@ export function TopBar() {
             </Button>
           )}
 
-          {state.sections.money.cashSession && <button
+          {(cashMode === 'connected' ? cashEnabled : state.sections.money.cashSession) && <button
             onClick={() => setOpen(true)}
             className="hidden h-9 items-center gap-2 rounded-lg border border-border px-2.5 text-[13px] text-ink-700 transition-colors hover:bg-ink-50 sm:flex">
             
             <span className={`size-2 rounded-full ${sessionOpen ? 'bg-success' : 'bg-ink-300'}`} aria-hidden="true" />
             <Wallet className="size-3.5 text-ink-400" aria-hidden="true" />
-            {sessionOpen ?
-            <>
-                <span>{text('Cash','ক্যাশ')}</span>
-                <span className="font-medium tabular-nums text-ink">{taka(expectedCash)}</span>
-              </> :
-
-            <span>{text('Open cash session','ক্যাশ সেশন খুলুন')}</span>
+            {cashMode === 'error'
+              ? <span>{text('Cash unavailable','ক্যাশ সংযোগ নেই')}</span>
+              : cashMode === 'loading'
+                ? <span>{text('Checking cash…','ক্যাশ যাচাই হচ্ছে…')}</span>
+                : sessionOpen
+                  ? <>
+                      <span>{text('Cash','ক্যাশ')}</span>
+                      <span className="font-medium tabular-nums text-ink">{taka(expectedCash)}</span>
+                    </>
+                  : <span>{text('Open cash session','ক্যাশ সেশন খুলুন')}</span>
             }
           </button>}
 
