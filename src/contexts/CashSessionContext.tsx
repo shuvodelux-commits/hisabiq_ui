@@ -90,7 +90,7 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refresh().catch(() => {/* The UI shows the server error and Retry control. */});
     const onStorage = (event: StorageEvent) => {
-      if (event.key === 'shererp_auth_token') void refresh().catch(() => {});
+      if (event.key === 'shererp_auth_token') void refresh().catch(caught => setError(errorMessage(caught)));
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -195,9 +195,10 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       throw new Error('This day cannot be reopened by this account.');
     }
     if (!reason.trim()) throw new Error('Explain why the day should be reopened.');
+    const sessionId = dayStatus.todaySession.id;
     const input = { reason: reason.trim() };
-    await runMutation(`reopen:${dayStatus.todaySession.id}:${JSON.stringify(input)}`,
-      operationId => reopenCashDay(dayStatus.todaySession!.id, { ...input, operationId }));
+    await runMutation(`reopen:${sessionId}:${JSON.stringify(input)}`,
+      operationId => reopenCashDay(sessionId, { ...input, operationId }));
   };
 
   return (
