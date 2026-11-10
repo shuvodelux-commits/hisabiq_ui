@@ -88,7 +88,7 @@ export function CashSessionDialog() {
               {mode === 'loading'
                 ? text('Checking the live cash day…','ক্যাশ সেশন যাচাই হচ্ছে…')
                 : mode === 'error'
-                  ? text('The ERP cash service is unavailable. No cash operation was recorded.','ক্যাশ সার্ভিস পাওয়া যাচ্ছে না। কোনো লেনদেন হয়নি।')
+                  ? text('The current cash status cannot be confirmed. Check the ledger before repeating an operation.','বর্তমান ক্যাশ অবস্থা নিশ্চিত নয়। আবার কাজ করার আগে খাতা যাচাই করুন।')
                   : text('Cash sessions are switched off in settings. Previous records remain available.','সেটিংসে ক্যাশ সেশন বন্ধ আছে। আগের হিসাব থাকবে।')}
             </DialogDescription>
           </DialogHeader>
