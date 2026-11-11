@@ -3,7 +3,7 @@
 Owner approval and work status: https://github.com/shuvodelux-commits/nestshererp/issues/17
 
 Specification: [MOD-000-A](modules/MOD-000-FOUNDATION_EXECUTION_SPEC.md)
-Global rules: [scope and constraints](MOD-000-GLOBAL-RULES.md)
+Global rules: [complete master plan](HISABIQ_NESTSHERERP_MODULE_INTEGRATION_PLAN.md)
 
 Coordinator preparation session: hisabiq-ui/mod-000-a/20261111/root.
 Build worker: UNRESERVED / NOT DISPATCHED.
@@ -21,3 +21,4 @@ F0-02 production path: packages/core-domain/src/auth/credentials.ts. Tests: pack
 Follow spec task allowlists for F0-03–07; do not change provider/contract/index/App.tsx/CI from competing sessions. Record actual command exits, paired SHAs, runner/disposable instance identity, screenshot/manual assertions and independent QA. Draft PR only; no merge/deploy.
 
 This documentation PR publishes approval and reviewable execution instructions; it is not the module implementation or a successful Super Build run.
+

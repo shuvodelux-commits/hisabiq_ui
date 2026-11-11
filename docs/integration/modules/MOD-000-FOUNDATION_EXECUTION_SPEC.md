@@ -1,10 +1,10 @@
-> Owner approved this revision on 2026-11-11. Current dispatch status and original approval provenance: [backend issue #17](https://github.com/shuvodelux-commits/nestshererp/issues/17). The original specification's awaiting-approval status below is retained as part of the reviewed snapshot; issue #17 records the approval and current runner blocker.
-
 # MOD-000-A — integration foundation execution specification
 
-**Revision 3, 2026-11-11. Status: SPECIFIED; awaiting owner approval and execution-environment selection.** No application code or tests implemented/run. This is the first bounded foundation increment; it does not complete Google/signup/recovery, durable browser-device enrollment, business-module integration or the entire ERP blueprint.
+**Revision 3, 2026-11-11. Status: OWNER-APPROVED for GitHub source changes and GitHub Actions with disposable PostgreSQL 16; execution blocked/unreserved.**
 
-This document takes precedence over generic MOD-000 task stubs and earlier FOUNDATION.md choices for its named scope. Global UI, accounting, one-worker and human-merge rules remain in the [increment global rules](../MOD-000-GLOBAL-RULES.md). Historical-opening and optional-cash decisions remain unchanged and are not implemented by this increment.
+Approval provenance and live work status: [backend issue 17](https://github.com/shuvodelux-commits/nestshererp/issues/17). This approval covers only MOD-000-A and its named verification scope; other modules still require their own approved comparison and plan. No application code or tests implemented/run. This is the first bounded foundation increment; it does not complete Google/signup/recovery, durable browser-device enrollment, business-module integration or the entire ERP blueprint.
+
+This document takes precedence over generic MOD-000 task stubs and earlier FOUNDATION.md choices for its named scope. Global UI, accounting, one-worker and human-merge rules remain in the [master](../HISABIQ_NESTSHERERP_MODULE_INTEGRATION_PLAN.md). Historical-opening and optional-cash decisions remain unchanged and are not implemented by this increment.
 
 ## 1. Source baseline and verified seams
 

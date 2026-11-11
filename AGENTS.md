@@ -1,3 +1,32 @@
+# HisabIQ integration entry point
+
+Canonical package: [master plan](docs/integration/HISABIQ_NESTSHERERP_MODULE_INTEGRATION_PLAN.md).
+
+Read in this order:
+
+1. Master plan and [integrate-then-extend sequence](docs/integration/HISABIQ_INTEGRATE_THEN_EXTEND_PLAN.md).
+2. [Review and unmet gates](docs/integration/REVIEW.md), [decision register](docs/integration/DECISIONS.md), then the assigned `docs/integration/modules/MOD-*.md` packet.
+3. Its exact contract/field mappings, source evidence and `tasks/` files. Only approved complete task slices are executable.
+4. For the current increment: [MOD-000-A specification](docs/integration/modules/MOD-000-FOUNDATION_EXECUTION_SPEC.md) and [execution handoff](docs/integration/MOD-000-EXECUTION-CONTRACT.md), linked to [backend issue 17](https://github.com/shuvodelux-commits/nestshererp/issues/17).
+
+The original canonical documentation tree is intentionally preserved. Temporary duplicate MOD-000 global rules were consolidated into this entry point and the full master plan. Keep historical audit/design evidence; do not bulk-delete Markdown just because it is old or unreferenced.
+
+## HisabIQ × NestSherERP integration — owner instructions, 2026-11-11
+
+These scoped instructions govern the HisabIQ React integration. Preserve all existing HisabIQ UI, functionality, routes, compact controls, Bangla/English helpers, carts, drafts and keyboard/touch workflows. Integrate compatible existing Nest APIs/services first; then extend the same backend for verified gaps. Do not replace HisabIQ with the Vue frontend or create a separate ERP engine.
+
+Before each module: compare current frontend actions/fields with backend contracts, classify REUSE / ADAPT / EXTEND / BLOCKED, present a 10–15 sentence overview with exact scope and environment, then obtain approval for that revision. An existing approval remains valid for unchanged scope/environment; do not demand a second START. MOD-000-A is already approved as recorded in backend issue 17; this is not approval of all 23 modules.
+
+Read source code and the critical review before treating a packet as executable. Inventory headings, lexical action counts and planned test vectors do not establish complete behavior or passing tests. Resolve engineering omissions against source rather than asking the owner to invent implementation details. Current explicit owner decisions take precedence over older conflicting drafts.
+
+Historical opening party/customer/supplier/lender/borrower balances are non-cash historical journals against Opening Equity and require no active cash session. Actual tracked-drawer receipts/payments require an eligible open session when the feature is ON; OFF permits ordinary journaled cash without a session. Bank/MFS-only and unpaid/non-cash flows do not require one. Preserve journal/stock integrity, tenant isolation, permissions, idempotency and source-linked corrections.
+
+Keep flexible multilevel units and independent pricing, split/partial payments and purchases, unpaid expenses, bundle versions, installments and COD visible in the gap register; never remove an existing UI capability to fit a narrower API. Reports/Analytics integration is excluded, existing report UI/navigation is preserved, and operational Dashboard remains in scope.
+
+Use one scoped branch/draft PR per approved task, record paired repository SHAs, exact allowed paths and actual verification exits. Current board capacity is one worker; verify live claims before dispatch and never treat a comment as a reservation. No merge, deployment, production data operation or destructive migration follows from plan approval. Documentation-only work does not start the application stack. MOD-000-A approval includes its named automated tests and disposable CI; older blanket no-test wording must not defeat that specific approval. Other modules need an explicit verification scope.
+
+---
+
 # HisabIQ UI — Mandatory Agent Rules
 
 **UI refinement protocol (owner decision 2026-11-05):** Before any visual or motion refinement, read [UI-REFINEMENT-RULES.md](docs/ui/UI-REFINEMENT-RULES.md). The workflow is source-code-first (copy the explicitly approved reference's actual behavior/motion, not invented approximations), one GitHub draft PR per target, Playwright before/after screenshots including open interaction states, official Impeccable detector, bounded three-round review with a closing check, full regression gates and explicit human merge approval. The approved Sabab SIS navigation presentation is a targeted exception to the earlier HisabIQ-only-navigation precedent; **reuse HisabIQ business routes, permissions, UI tokens and real workflows**. This does not authorize other redesigns.

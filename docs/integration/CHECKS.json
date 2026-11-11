@@ -1,0 +1,26 @@
+{
+  "kind": "documentation structural checks, not application tests",
+  "markdownFiles": 102,
+  "modulePackets": 23,
+  "requiredSectionsPerPacket": 18,
+  "badPacketSections": [],
+  "brokenRelativeLinks": [],
+  "brokenPinnedSourcePaths": [],
+  "moduleDependencyGraph": "acyclic",
+  "sourceWorkingTreesClean": {
+    "hisabiq_ui": true,
+    "backend-adoption": true,
+    "nestshererp": true
+  },
+  "applicationSuitesRun": false,
+  "databaseOperationsRun": false,
+  "businessCompleteness": "FAIL \u2014 explicit in REVIEW.md",
+  "independentReview": "not performed",
+  "revision": 3,
+  "ownerCashClassification": "confirmed; historical non-cash openings exempt; actual tracked cash follows ON/OFF",
+  "deliveryOrder": "integrate compatible capabilities, then extend missing UI parity",
+  "sourceRefsRechecked": true,
+  "scopedFoundationExecutionPackets": 1,
+  "foundationStatus": "SPECIFIED; awaiting scope/environment approval; not implemented",
+  "appTestsRun": false
+}
