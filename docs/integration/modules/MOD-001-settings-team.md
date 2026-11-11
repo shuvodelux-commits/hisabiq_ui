@@ -234,7 +234,7 @@ Issue UNASSIGNED except existing cash work explicitly recorded in GitHub snapsho
 
 ## 19. Revision 4 — source-traced MOD-001 owner-approval plan (2026-11-11)
 
-**Status:** DOCUMENTATION REVIEW ONLY; no implementation authorization. This section supersedes the older baseline, active-screen assumptions and incomplete mapping conclusions in §§2–11 where they conflict, without deleting the original evidence. The exact active implementation is the Magic Patterns shell; the legacy content remains a preservation/test scope. This review was performed through GitHub source inspection only: **no shell execution, PostgreSQL verification, React browser run, runner assignment, or independent QA**.
+**Status:** **OWNER-APPROVED MOD-001 SPECIFICATION (2026-11-12), DOCUMENTATION-ONLY; implementation WAITING on MOD-000 acceptance and exclusive coordinator build reservation.** This section supersedes the older baseline, active-screen assumptions and incomplete mapping conclusions in §§2–11 where they conflict, without deleting the original evidence. The exact active implementation is the Magic Patterns shell; the legacy content remains a preservation/test scope. This review was performed through GitHub source inspection only: **no shell execution, PostgreSQL verification, React browser run, runner assignment, or independent QA**.
 
 **Verified immutable source heads:**
 - Frontend shuvodelux-commits/hisabiq_ui, main, **2e16821ba622192c69e5f5cc83aba93f70ec0638**.
@@ -436,4 +436,13 @@ Run exact focused typecheck/lint/unit/integration/browser scripts selected from 
 **Engineering decisions resolved as engineering constraints, not questions for the owner:** name-only Magic staff input cannot create a login; employee profile and login principal differ; backend one-role assignment cannot represent roleIds union; FEFO is not costing method; false/true negative stock cannot round-trip BLOCK/WARN/ALLOW; printed business overrides are not canonical tenant profile; cash-session frontend local toggle is not a backend policy gate; subscription stub means no real plan entitlement; hasLogo is derived on DB read; local personalKey is not user scoped; standard Magic Save is preview only. Each must use source-aware adapter or a complete cross-module contract, never an arbitrary builder guess.
 
 **STOP:** Do not implement before MOD-000 accepted head is available, this module plan has explicit owner approval, coordinator verifies max_workers=1 and reserves a slot, actual overlapping PR disposition is known, and each task has an exact source-compatible write allowlist and evidence/test scope. No migration number or implementation issue is reserved in this document.
+
+
+### 19.11 Owner approval recorded — 2026-11-12
+
+**Approval:** In the HisabIQ_UI project conversation, immediately after the MOD-001 full-source plan and draft PR #287 were presented for review, the owner replied **“Approved”**. This accepts the complete MOD-001 integration **plan revision** including the previously approved **৳149 templates-only** invoice design pack (the five extra templates, excluding custom colors and business-pad printing), Stage A/Stage B split, source-traced mapping, preservation requirements, proposed technical direction and verification criteria. It resolves the packet's **owner-approval gate**, not its engineering/build-readiness gates.
+
+**Approval target:** frontend `shuvodelux-commits/hisabiq_ui` draft PR #287 and the MOD-001 packet at head `3330e89328238e5662052967b97fce9a27f4b876` (immediately before this approval-record amendment). Frontend comparison baseline `2e16821ba622192c69e5f5cc83aba93f70ec0638`; backend adoption baseline `74bb37f2ae6441689b1ee73f0c7ce51e03bcb1f5`. This approval-record amendment changes no implementation requirements.
+
+**Still blocked for implementation:** accepted MOD-000 dependency head and bootstrap contract; source recheck and dispositions for overlapping open PRs; coordinator-validated exclusive worker availability/reservation (`max_workers=1`); issue/task split and exact write allowlists, including exclusive shared-file control; full typed contract/storage/amendment for each Stage B gap; named runner and disposable PostgreSQL, permission/concurrency tests, and independent QA. No coordinator assignment, issue dispatch, application edit, database migration, merge, deployment or production test is authorized or claimed by this approval. Keep this documentation PR in draft for review and human-controlled merge.
 
