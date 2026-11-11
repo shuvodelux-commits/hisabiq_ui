@@ -340,3 +340,69 @@ All amounts are **poisha**, and signs below describe positive journal debit/cred
 - **Required D08 owner sign-off:** canonical relationship identity and borrower account classification; owner capital historical treatment; loan principal vs interest rules and any interest earned account; allowance for advances, overpayment and correction. Architecture agent must first present an explicit proposed accounting chart and test impacts. D05 classification is already confirmed; do **not** ask owner again whether historical openings require sessions.
 - **Coordinator next gate:** reconcile current MOD-000 and MOD-005 PR/issue heads, assign one exact task file allowlist and backend paired SHA, reserve worker and any shared code/schema ownership, attach the approved contract/decision, then allow TDD on disposable DB. This amendment alone **does not** reserve or start a worker.
 - **No UI removal:** retain Accounts/Counter/Finance routes, typography, compact dialogs, bilingual helpers, split editor, invoice selection, cheque statuses, review confirmations, printing, account ledger and cash-session controls. For unavailable connected writes, explain the precise missing contract, preserve draft, and never mutate preview data as if live. No merge/deployment or schema migrations before explicit approval.
+
+
+---
+
+## Revision 4 — MOD-006-T01-R read-only account integration handoff (2026-11-12)
+
+**Status: READY FOR REVIEW, NOT BUILD-APPROVED.** This document-only slice plans GET account list and selected account statement, not account creation/edit/status, cash/finance transactions, Bank Entry or other Accounting screens. It is subordinate to MOD-000 accepted identity/transport, MOD-001 permission/settings reads, the one-worker coordinator rule in `tasks/EXECUTION.md`, and owner approval. It does not reserve capacity. Current inspected source heads: frontend `bd888d1a3dd48cb61370a53a3f6bcdee463302ce` and backend adoption `e2a0a486d6d36cddd51ba58eece83c83c9f2ee69`; revalidate both before dispatch. Tracking: [MOD-006 issue #296](https://github.com/shuvodelux-commits/hisabiq_ui/issues/296), [program queue #294](https://github.com/shuvodelux-commits/hisabiq_ui/issues/294).
+
+### T01-R source chain and exact API
+
+Frontend route `/app/accounts?tab=money-accounts` renders `Finance moneyAccountsOnly` through `src/pages/Accounts.tsx`. `src/pages/Finance.tsx` currently selects accounts from `financePreviewStore`, displays local card balances and passes account + preview transactions/transfers to `FinanceAccountActionDialog`, whose recent ledger can fall back to matching account **names**. This is preview behavior, not live ledger authority. Preserve the Accounts general vouchers, chart, trial, full statements, print and export surfaces: a money-account journal statement is not a universal Accounting report.
+
+- `GET /api/v1/money/accounts` with optional `includeInactive` and `asOf=YYYY-MM-DD` → **direct** `MoneyAccountListResponse` containing `accounts[]` and `totalCashMinor,totalBankMinor,totalMfsMinor,totalLoanMinor`. Backend: `AccountsController.list` → `ManageAccountsService.list` → tenant-scoped repository/journal rollup and permission filtering.
+- `GET /api/v1/money/accounts/:id/statement` with optional `fromDate,toDate,search,kind,cursor,limit` → **direct** `AccountStatementResponse`. `kind` is `ALL|SALE|PURCHASE|EXPENSE|MOVEMENT|OTHER`, `search` max80 chars, `limit` 1..200. Backend: `AccountsController.statement` → `DailyCashService.statement` → journal lines and running balances.
+- No `{data:...}` / `{ok:true}` envelope for either GET. Use approved MOD-000 FND transport/auth, strict validation and tenant epoch, not the legacy bank client. With existing Zod `z.coerce.boolean()`, omit `includeInactive` if false rather than transmitting a truthy string `false`; send true explicitly only when required.
+
+### T01-R field-to-view mapping (no backend schema changes)
+
+| UI account field / behavior | Existing server authority | Translation or nonparity |
+|---|---|---|
+| `id` | `MoneyAccountResponse.id` ULID | Exact persistent account identity; never preview `acc-*` or display-name identity |
+| `name` | `name` | Direct; duplicate names distinguish by actual reference or stable ID |
+| `type` | `CASH/BANK/MFS/LOAN` | Cash→Cash, Bank→Bank, MFS→Mobile Banking. `CASH` cannot distinguish existing UI `Petty Cash`; do not infer a purpose from label. `LOAN` is lender liability, never spendable money |
+| `institution` | **No exact field** | `holderName` means holder, not bank name/provider. Missing metadata remains explicit gap |
+| `number` | `reference` only if semantically approved | Never infer number from account name or silently relabel a reference as a bank number |
+| `balance` | `balanceMinor` | Integer poisha, authoritative server journal; convert exactly at presentation boundary, never update by summing preview rows |
+| `openingBalance` | `openingAmountMinor` nullable, `openingDate` nullable | Preserve null/unknown; no zero fabrication or date default |
+| `status` | `ACTIVE/INACTIVE` | Direct enum translation; permission-filtered missing account is not inactive |
+| `lastActivity` | **No matching account list field** | Only derive from verified statement rows if available; do not show invented “Just now” |
+| Drawer/version | `isDrawer`, `version` | Preserve for future approval-controlled actions; no local permission inference |
+| Liquid totals | `totalCashMinor,totalBankMinor,totalMfsMinor` | Server aggregate; never add `totalLoanMinor` into available cash/bank |
+| Statement header | `accountId,accountName,type,openingBalanceMinor,closingBalanceMinor,totalInMinor,totalOutMinor` | Server totals and ID must match selected current account/session epoch |
+| Statement row | `journalLineId,businessDate,createdAt,sourceType,sourceNumber,sourceId,description,reference,amountMinor,debitMinor,creditMinor,runningBalanceMinor` | Stable journal-line ID, nullable source ID and server running balance; never recompute from paginated subset |
+| Statement page | `page.nextCursor,hasMore` | Server cursor and filtering, no fake full ledger from local preview |
+
+Account card status and selected statement must be identity/epoch scoped. A late response for account A must not appear beneath selected B. Missing or forbidden account must not leak a previous account's rows, total or print/export data. Connected failures cannot silently fall back to preview fixtures; deliberate preview is an independent mode. A valid zero-row statement with historical opening is not an API error. Permission-omitted loan accounts and bank settings must remain omitted in all linked selectors and exports.
+
+### T01-R bounded ownership and excluded writes
+
+| Path | Proposed ownership |
+|---|---|
+| `src/integration/accounts.ts` | **CREATE after approval:** named account-list and account-statement GET adapters consuming existing FND HTTP and session, strict decoders, safe amount formatting and cancellation |
+| `src/pages/Finance.tsx` | **MODIFY after reservation:** only account-card/list read consumption and selected account identity, no transfer, Counter, loan, cheque, cash or modal write behavior |
+| `src/components/finance/FinanceRecordDialogs.tsx` | **MODIFY after reservation:** selected-account recent-ledger read presentation only, no edit/manual/status write changes |
+| `src/pages/Accounts.tsx` | **INSPECT ONLY**, current `Finance moneyAccountsOnly` route likely sufficient; do not modify voucher/trial/general ledger |
+| `src/data/financeAccounts.ts` / `financePreviewStore.ts` | **INSPECT ONLY**; unchanged preview behavior stays preview-only |
+| Shared `src/integration/http.ts`, session, permissions, `src/types/erp.ts`, backend `money` services/contracts, `core-domain/accounting/account.ts`, schema, migrations and CI | **NO WRITES** from this slice; coordinator owns shared changes |
+
+All proposed file modifications are **not an allowed-write manifest** until coordinator assigns exact paths/symbol boundaries. Existing account create form captures opening money but **no opening date** (`Finance.tsx:AccountDialog`), while `createMoneyAccountRequestSchema` requires a date for positive opening; `institution` and `number` also lack exact backend storage. Thus T01 write integration must not silently default historical date to today, encode provider in holderName or drop fields. Preserve Add Account, Edit, Activate/Deactivate, Money in/out, Transfer, Bank Entry, statement and print controls visually and in preview; no connected mutation may falsely report success before its separately approved write source is in place.
+
+### T01-R proposed acceptance vectors (not executed)
+
+| Test | Expected server/frontend assertion |
+|---|---|
+| R01 List identities | Server-direct envelope, real tenant-scoped ULIDs; permission-filtered types; no preview IDs/balances |
+| R02 Duplicate names | Account A and B can display same name, but selecting B opens only B's exact ID and journal |
+| R03 Asynchronous selection | A→B selection before A GET finishes, tenant/session switch, logout: no stale or cross-tenant response or export |
+| R04 Journal totals | Opening BANK 100000 poisha + receipt 25000 − supplier payment 30000 → server closing 95000 and exact source rows; GET makes no new journal |
+| R05 Pagination/filter | `kind`/date/search/cursor filter on server, not only loaded page; running balance stays authoritative |
+| R06 Nulls | Zero-row valid opening, nullable opening amount/source ID, unknown last activity: no synthetic zero, source or date |
+| R07 Access/error | Unauthorized/foreign account, non-Liquid LOAN, malformed envelope, timeout and aborted GET preserve honest live state; no preview fallback |
+| R08 Display regression | Original compact cards, responsive mobile/tablet, bilingual helpers, keyboard, account selection, Bank Entry launch and print affordance preserved |
+| R09 Read-only guarantee | No account create/update/deactivate, no movement, journal, audit or cash session mutation; valid tests use React→Nest→disposable PG16 with authenticated tenants |
+| R10 Query coercion | `includeInactive=true` vs omitted controlled behavior; do not send string `false` expecting false coercion |
+
+**Dispatch gate:** exact paired accepted heads, MOD-000/001 dependencies, per-slice 10–15 sentence owner approval and chosen environment, one verified GitHub Project #2 BUILD worker reservation, exact shared-file allowlist, named tests and disposable PG16. Then only a scoped draft PR with actual verification exits and independent QA, **no automatic merge/deployment**. T01-W account writes and T02..T05 remain separately blocked.
