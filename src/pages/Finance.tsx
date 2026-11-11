@@ -1,6 +1,10 @@
+import {reverseFinancePreview} from '../data/financePreviewStore';
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../deletion/authority';
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownLeft,
@@ -47,7 +51,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { useCashSession } from '../contexts/CashSessionContext';
 import {
   accountTransfers as seedTransfers,
-  cashSessions,
+  cashSessions as sampleCashSessions,
   financePersonOptionLabel,
   financeAccounts as seedAccounts,
   financeTransactions as seedTransactions,
@@ -518,9 +522,10 @@ function TransferDialog({
 }
 
 export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { counterOnly?: boolean; moneyAccountsOnly?: boolean } = {}) {
+  const {currentAuthority}=useTenantSettings();
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
-  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
+  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount, history, canView:canViewCash, canStart:canStartCash, canClose:canCloseCash, enabled:cashEnabled, startBlocked } = useCashSession();
   const [searchParams, setSearchParams] = useSearchParams();
   const routeTab = searchParams.get('tab');
   const financeTabs: Tab[] = ['overview','transactions','cheques','cash'];
@@ -542,6 +547,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const setAccounts: React.Dispatch<React.SetStateAction<FinanceAccount[]>> = (change) => updateFinancePreview('accounts', change);
   const setTransactions: React.Dispatch<React.SetStateAction<FinanceTransaction[]>> = (change) => updateFinancePreview('transactions', change);
   const setPeople: React.Dispatch<React.SetStateAction<FinancePerson[]>> = (change) => updateFinancePreview('people', change);
+  const reversedTransfers=useRef(new Set<string>());
   const [transfers, setTransfers] = useState<AccountTransfer[]>(() => seedTransfers.map((transfer) => ({
     ...transfer,
     fromAccountId: transferAccountId(transfer, 'from', seedAccounts),
@@ -566,7 +572,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const openTransactionActions = (item: FinanceTransaction, mode: 'view' | 'edit' | 'reverse') => { setTransactionActionMode(mode); setTransactionAction(item); };
   const openAccountActions = (item: FinanceAccount, mode: 'ledger' | 'edit' | 'manual' | 'status') => { setAccountActionMode(mode); setAccountAction(item); };
-  const openTransferActions = (item: AccountTransfer, mode: 'view' | 'reverse') => { setTransferActionMode(mode); setTransferAction({ ...item, from: transferAccountLabel(item, 'from', accounts), to: transferAccountLabel(item, 'to', accounts) }); };
+  const openTransferActions = (item: AccountTransfer, mode: 'view' | 'reverse') => { setTransferActionMode(mode); setTransferAction(item); };
   const openChequeActions = (item: ChequeRecord, mode: 'view' | 'edit') => { setChequeActionMode(mode); setChequeAction(item); };
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
@@ -596,11 +602,8 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     toast.success('Finance transaction updated', { description: updated.id });
   };
 
-  const reverseFinanceTransaction = (transaction: FinanceTransaction) => {
-    if (transaction.status === 'Reversed') return;
-    const reversed = { ...transaction, status: 'Reversed' as const };
-    setAccounts((current) => applyTransactionMovement(current, transaction, -1));
-    setTransactions((current) => current.map((item) => item.id === transaction.id ? reversed : item));
+  const reverseFinanceTransaction = (transaction: FinanceTransaction, reason:string) => {
+    const reversed=reverseFinancePreview(transaction.id,JSON.stringify(transaction),reason,currentAuthority());
     setTransactionActionMode('view');
     setTransactionAction(reversed);
     toast.success('Transaction reversed', { description: transaction.id + ' remains in the audit history' });
@@ -694,9 +697,14 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     return true;
   };
 
-  const reverseAccountTransfer = (transfer: AccountTransfer) => {
-    if (transfer.status === 'Reversed') return;
-    const reversed = { ...transfer, status: 'Reversed' as const };
+  const reverseAccountTransfer = (transfer: AccountTransfer, reason:string) => {
+    const audit=sourceDeleteAuthority(currentAuthority(),'money',transfer.id,reason);
+    const live=transfers.find(t=>t.id===transfer.id);
+    if(!live||JSON.stringify(live)!==JSON.stringify(transfer))throw Error('Transfer changed. Reopen source review.');
+    if(!transferAccountId(transfer,'from',accounts)||!transferAccountId(transfer,'to',accounts))throw Error('Both original account identities are required.');
+    if (transfer.status === 'Reversed'||reversedTransfers.current.has(transfer.id))throw Error('Transfer is already reversed.');
+    reversedTransfers.current.add(transfer.id);
+    const reversed = { ...transfer, status: 'Reversed' as const, reversal: audit };
     setTransfers((current) => current.map((item) => item.id === transfer.id ? reversed : item));
     setAccounts((current) => current.map((account) => {
       if (account.id === transferAccountId(transfer, 'from', accounts)) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
@@ -730,6 +738,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const pdcCount = chequeRecords.filter((item) => item.chequeDate > '2026-10-07' && !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status)).length;
   const bouncedCount = chequeRecords.filter((item) => item.status === 'Bounced' || item.status === 'Returned').length;
+  const cashSessions=canViewCash?[...history,...sampleCashSessions]:[];
   const varianceSessions = cashSessions.filter((item) => item.status === 'Closed' && (item.variance ?? 0) !== 0).length;
 
   const pendingChequeAmount = chequeRecords
@@ -1011,7 +1020,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                             <ActionMenuItem icon={Pencil} onClick={() => { close(); openTransactionActions(item, 'edit'); }}>{text('Edit','সংশোধন')}</ActionMenuItem>
                             <ActionMenuDivider />
                             <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransactionActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
-                          </>}
+                          </>}<SourceDeleteAction kind="immutable" onReview={item.status==='Active'?()=>{close();openTransactionActions(item,'reverse');}:undefined}/>
                         </>}
                       </RowActionMenu>
                     </TableCell>
@@ -1104,7 +1113,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <ActionMenuItem icon={ArrowLeftRight} onClick={() => { close(); openTransfer(account); }}>{text('Transfer','টাকা স্থানান্তর')}</ActionMenuItem>
                         {account.type !== 'Cash' && <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>}
                         <ActionMenuDivider />
-                        <ActionMenuItem icon={Power} tone={account.status === 'Active' ? 'destructive' : 'neutral'} onClick={() => { close(); openAccountActions(account, 'status'); }}>{text(account.status === 'Active' ? 'Deactivate' : 'Activate', account.status === 'Active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন')}</ActionMenuItem>
+                        <ActionMenuItem icon={Power} tone={account.status === 'Active' ? 'destructive' : 'neutral'} onClick={() => { close(); openAccountActions(account, 'status'); }}>{text(account.status === 'Active' ? 'Deactivate' : 'Activate', account.status === 'Active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন')}</ActionMenuItem><SourceDeleteAction kind="setup"/>
                       </>}
                     </RowActionMenu>
                   </div>
@@ -1151,7 +1160,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                             {item.status === 'Completed' && <>
                               <ActionMenuDivider />
                               <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransferActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
-                            </>}
+                            </>}<SourceDeleteAction kind="immutable" onReview={item.status==='Completed'?()=>{close();openTransferActions(item,'reverse');}:undefined}/>
                           </>}
                         </RowActionMenu>
                       </TableCell>
@@ -1210,7 +1219,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                           <RowActionMenu label={text('Actions for','কাজ') + ' ' + cheque.id}>
                             {close => <>
                               <ActionMenuItem icon={Eye} onClick={() => { close(); openChequeActions(cheque, 'view'); }}>{text('View cheque','চেক দেখুন')}</ActionMenuItem>
-                              {chequeLifecycleActions(cheque).length > 0 && <ActionMenuItem icon={Pencil} onClick={() => { close(); openChequeActions(cheque, 'edit'); }}>{text('Edit cheque','চেক সংশোধন')}</ActionMenuItem>}
+                              {chequeLifecycleActions(cheque).length > 0 && <ActionMenuItem icon={Pencil} onClick={() => { close(); openChequeActions(cheque, 'edit'); }}>{text('Edit cheque','চেক সংশোধন')}</ActionMenuItem>}<SourceDeleteAction reason="Cheque history is retained. Use the eligible cheque lifecycle correction; deletion is not connected."/>
                             </>}
                           </RowActionMenu>
                         </TableCell>
@@ -1249,14 +1258,15 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       </div>
                     </div>
                   </div>
-                  <Button className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>{text('Count / close cash session','ক্যাশ গুনুন / সেশন বন্ধ করুন')}</Button>
+                  <Button disabled={!canViewCash} className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>{text('Count / close cash session','ক্যাশ গুনুন / সেশন বন্ধ করুন')}</Button>
                 </>
               ) : (
-                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>{text('Open cash session','ক্যাশ সেশন খুলুন')}</Button>
+                <Button disabled={!canStartCash||startBlocked} className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>{text('Start cash session','ক্যাশ সেশন শুরু করুন')}</Button>
               )}
 
+              {(!cashEnabled||!canViewCash||startBlocked||!canCloseCash)&&<p role="status" className="mt-3 text-xs text-warning">{!cashEnabled?text('Cash sessions are disabled in Settings.','সেটিংসে ক্যাশ সেশন বন্ধ রয়েছে।'):!canViewCash?text('Cash session view permission is required.','ক্যাশ সেশন দেখার অনুমতি প্রয়োজন।'):startBlocked?text('This business date is closed; preview cannot reopen it.','এই ব্যবসার দিন বন্ধ; নমুনায় আবার খোলা যাবে না।'):text('Cash count / close permission is required.','ক্যাশ গোনা / বন্ধ করার অনুমতি প্রয়োজন।')}</p>}
               {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">{text('Last count:','শেষ গুনেছেন:')} {taka(lastCount.counted)} · {lastCount.closed?financeLabel(language,'Closed'):text('Saved','সংরক্ষিত')}{lastCount.note?' · '+lastCount.note:''}</p>}
-              <button onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+              <button disabled={!canViewCash} onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
                 <RefreshCw className="size-3.5" /> {text('Cash reconciliation','ক্যাশ মিলানো')}
               </button>
             </section>
@@ -1283,7 +1293,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   {cashSessions.map((session) => (
                     <TableRow key={session.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">
-                        <p className="font-medium text-ink">{session.id}</p>
+                        <p className="font-medium text-ink">{session.id}</p><p className="text-[11px] text-ink-500">{session.preview?text('Current preview','বর্তমান নমুনা'):text('Sample history','নমুনা ইতিহাস')}</p>
                         <p data-table-helper="" className="text-[10.5px] text-ink-400">{session.date}</p>
                       </TableCell>
                       <TableCell className="py-2 text-ink-500">{session.openedAt}{session.closedAt ? ` → ${session.closedAt}` : ' → now'}</TableCell>
@@ -1302,7 +1312,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <RowActionMenu label={text('Actions for','কাজ') + ' ' + session.id}>
                           {close => <>
                             <ActionMenuItem icon={Eye} onClick={() => { close(); setCashSessionAction(session); }}>{text('View cash session','ক্যাশ সেশন দেখুন')}</ActionMenuItem>
-                            <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>
+                            <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem><SourceDeleteAction kind="immutable"/>
                           </>}
                         </RowActionMenu>
                       </TableCell>
@@ -1391,7 +1401,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       />
 
       <CashSessionDetailsDialog
-        session={cashSessionAction}
+        session={canViewCash?cashSessionAction:null}
         onClose={() => setCashSessionAction(null)}
         onReconcile={(session) => navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`)}
       />
@@ -1422,6 +1432,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceTransferActionDialog
         transfer={transferAction}
+        accounts={accounts}
         initialMode={transferActionMode}
         onClose={() => setTransferAction(null)}
         onReverse={reverseAccountTransfer}

@@ -1,3 +1,6 @@
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../deletion/authority';
+import {useRecoveryDelete} from '../recovery/useRecoveryDelete';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -42,6 +45,8 @@ const displayDate=(iso:string)=>new Intl.DateTimeFormat('en-GB',{day:'2-digit',m
   .format(new Date(iso+'T12:00:00Z'));
 
 export function Parties() {
+  const {currentAuthority}=useTenantSettings();
+ const recoveryDelete=useRecoveryDelete();
   const {text:uiText}=useUiCopy();
   const [params,setParams]=useSearchParams();
   const navigate=useNavigate();
@@ -187,10 +192,11 @@ export function Parties() {
     try {
       if(type==='add'&&party)dispatchPartyPreview({type:'add-note',partyId:party.id,relationship,text:idOrText});
       if(type==='edit')dispatchPartyPreview({type:'edit-note',sourceId:idOrText,text:text??''});
-      if(type==='delete')dispatchPartyPreview({type:'delete-note',sourceId:idOrText});
+      if(type==='delete'){const note=state.sources.find(s=>s.id===idOrText);if(note)recoveryDelete.request({kind:'party-note',id:idOrText,label:note.description,revision:JSON.stringify(note)});}
     }catch(error){toast.error(error instanceof Error?error.message:uiText('Note action failed','নোটের কাজ করা যায়নি'));throw error;}
   };
   return <div className="mx-auto min-w-0 max-w-[1440px] space-y-3 sm:space-y-4">
+    {recoveryDelete.dialog}
     <div className="hidden md:block"><PageHeader compact title="Parties & Ledger" titleBn="পার্টি ও খাতা"
       description={`${uiText('Directory receivables','মোট পাওনা')} ${taka(receivable)} · ${uiText('payables','মোট দেনা')} ${taka(payable)}`}
       descriptionContent={<>
@@ -256,7 +262,8 @@ export function Parties() {
           toast.success(uiText('Preview payment corrected; dependent balances recalculated','প্রিভিউতে জমার তথ্য ঠিক হয়েছে। সংশ্লিষ্ট জের আবার হিসাব করা হয়েছে।'));
         }}
         onReverseSource={(sourceId,reason)=>{
-          dispatchPartyPreview({type:'reverse-source',sourceId,reason});
+          const audit=sourceDeleteAuthority(currentAuthority(),relationship==='Supplier'?'purchases':relationship==='Customer'?'sales':'money',sourceId,reason);
+          dispatchPartyPreview({type:'reverse-source',sourceId,reason,actorId:audit.actorId});
           toast.success(uiText('Preview transaction reversed with an audit record','প্রিভিউতে লেনদেন উল্টানো হয়েছে। ইতিহাসে তথ্য রাখা আছে।'));
         }}
         onAddNote={text=>noteAction('add',text)}

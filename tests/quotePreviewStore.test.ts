@@ -34,8 +34,8 @@ test('create edit duplicate and status changes are atomic observable preview cha
  assert.notEqual(copied.id,added.id);assert.equal(copied.discount,30);
  assert.equal(changeQuoteStatus(added.id,'Sent').status,'Sent');
  assert.equal(changeQuoteStatus(added.id,'Accepted').status,'Accepted');
- assert.throws(()=>deleteDraftQuote(added.id),/Only draft/);
- deleteDraftQuote(copied.id);
+ assert.throws(()=>deleteDraftQuote(added.id,{tenantId:'t1',actorId:'owner',view:true,restore:true,purge:true,owner:true,modules:['sales']}),/Only draft/);
+ deleteDraftQuote(copied.id,{tenantId:'t1',actorId:'owner',view:true,restore:true,purge:true,owner:true,modules:['sales']});
  assert.equal(getQuoteSnapshot().quotes.some(q=>q.id===copied.id),false);
  assert.equal(calls,7);
  off();

@@ -1,3 +1,6 @@
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
+import {RowActionMenu} from '../components/layout/RowActionMenu';
+import {useRecoveryDelete} from '../recovery/useRecoveryDelete';
 import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
 import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord } from '../components/sales/SalesMobileLayout';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -8,7 +11,7 @@ import {useEffect,useMemo,useState,useSyncExternalStore} from 'react';
 import {Link,useNavigate,useSearchParams} from 'react-router-dom';
 import {toast} from 'sonner';
 import {ErpNotificationsWorkbench} from './ErpNotifications';
-import {Check,ChevronRight,FileText,Plus,Eye} from 'lucide-react';
+import {Check,ChevronRight,FileText,Plus,Eye,Trash2} from 'lucide-react';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
 import {ActionMenuItem} from '../components/layout/ActionMenu';
@@ -204,6 +207,7 @@ function OrderActionDialog({order,action,onClose}:{order:OnlineOrder;action:Orde
  </DialogContent></Dialog>;
 }
 function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=>void;onEdit:()=>void;onPos:()=>void}){
+ const recoveryDelete=useRecoveryDelete();
   const {language}=useUiCopy();
   const ol=(value:string)=>onlineLabel(language,value);
  const [action,setAction]=useState<OrderAction|null>(null);
@@ -218,6 +222,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
  const nextStage=(s:OrderStage)=>{try{updateOrderStage(order.id,s,note);toast.success(ol('Order stage updated in preview'));setNote('');}
   catch(e){toast.error(e instanceof Error?e.message:String(e));}};
  return <>
+ {recoveryDelete.dialog}
  <Dialog open onOpenChange={v=>!v&&onClose()}><DialogContent role="dialog" aria-label={ol('Online order')+' '+order.number}
   className="sales-mobile-dialog max-h-[94vh] w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-3xl">
   <DialogHeader><DialogTitle>{order.number} <StatusBadge tone={stageTone(order.stage)}>{ol(order.stage)}</StatusBadge></DialogTitle>
@@ -239,7 +244,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
    {clearing.gap>0&&order.stage==='Delivered'&&<p className="sm:col-span-2 text-warning">{ol('Difference between expected and reported COD:')} {taka(clearing.gap)}</p>}
   </div>
   <div className="flex flex-wrap gap-2">
-   {order.stage==='Draft'&&<Button size="sm" variant="outline" onClick={onEdit}>{ol("Edit draft")}</Button>}
+   {order.stage==='Draft'&&<><Button size="sm" variant="outline" onClick={onEdit}>{ol("Edit draft")}</Button></>}
    {['Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={onPos}>{ol('Open in POS V2 (preview)')}</Button>}
    {documentTitles.map(kind=><Button key={kind} size="sm" variant="outline" onClick={()=>setDocumentKind(kind)}>{fulfillmentLabel(language,kind)}</Button>)}
    {['Draft','Confirmed','Packed'].includes(order.stage)&&<Button size="sm" variant="outline" onClick={()=>setAction('courier')}>{ol("Assign courier")}</Button>}
@@ -248,6 +253,7 @@ function OrderDetail({order,onClose,onEdit,onPos}:{order:OnlineOrder;onClose:()=
     <Button size="sm" variant="outline" onClick={()=>setAction('cod')}>{ol("Courier COD report")}</Button>
     {clearing.pending>0&&<Button size="sm" variant="outline" onClick={()=>setAction('payout')}>{ol("Record payout")}</Button>}
    </>}
+   {order.stage!=='Draft'&&<RowActionMenu label={ol('Order actions')} >{()=> <SourceDeleteAction reason="This order has progressed beyond draft. Use its stage cancellation or return; source-safe deletion is not connected."/>}</RowActionMenu>}{order.stage==='Draft'&&<RowActionMenu label={ol('Order actions')} >{close=><ActionMenuItem icon={Trash2} tone="destructive" onClick={()=>{close();recoveryDelete.request({kind:'online-order',id:order.id,label:order.number,revision:JSON.stringify(order),onDeleted:onClose});}}>{ol('Delete draft')}</ActionMenuItem>}</RowActionMenu>}
   </div>
   <label className="space-y-1 text-xs text-ink-500">{ol('Stage note (optional)')}
    <Input aria-label={ol("Order stage note")} placeholder={ol("Handover person, delivery exception...")} value={note} onChange={e=>setNote(e.target.value)}/></label>
@@ -300,6 +306,7 @@ function LeadsTab(){
 }
 function NotificationsTab(){return <ErpNotificationsWorkbench embedded/>;}
 export function OnlineSales(){
+ const recoveryDelete=useRecoveryDelete();
  const isMobile=useMediaQuery('(max-width: 767px)');
   const {language,showHelper}=useUiCopy();
   const ol=(value:string)=>onlineLabel(language,value);
@@ -346,6 +353,7 @@ export function OnlineSales(){
  const onlineSummary=[['Online orders',String(orders.length),'All channels'],['Awaiting shipment',String(orders.filter(o=>['Confirmed','Packed'].includes(o.stage)).length),'Confirmed + packed'],
     ['COD to collect',taka(expected),'Expected gross, not received'],['Courier clearing',taka(pending),'Reported less fee and remittance']];
  return <div className="sales-mobile-page mx-auto max-w-[1440px] space-y-4">
+  {recoveryDelete.dialog}
   <div className="sales-mobile-header"><PageHeader title="Online Sales" titleBn="অনলাইন বিক্রি" description="Social commerce orders, courier COD and follow-ups · manual UI preview only."
    descriptionBn="ফেসবুকসহ অনলাইন অর্ডার, কুরিয়ারের টাকা ও ক্রেতার খোঁজখবর দেখুন · শুধু নমুনা।"
    actions={<>{isMobile ? <SalesMobileMore label={ol('Online sales actions')}>{close=><ActionMenuItem icon={FileText} onClick={()=>{close();navigate('/app/quotations');}}>{ol('Quotations')}</ActionMenuItem>}</SalesMobileMore> : (<Link to="/app/quotations"><Button size="sm" variant="outline"><FileText className="size-4"/> {ol("Quotations")}</Button></Link>)}
@@ -375,12 +383,12 @@ export function OnlineSales(){
        status={<StatusBadge tone={stageTone(o.stage)}>{ol(o.stage)}</StatusBadge>}
        meta={<>{o.channel} · {o.phone}{tab==='Courier & COD'&&<><br/>{o.courier??ol('Not assigned')} · {o.tracking??ol('No tracking')} · {ol('Clearing')} {taka(clearing.pending)}</>}</>}
        amount={<>{ol('Grand total')} <strong className="text-ink">{taka(totals.grand)}</strong></>} balance={<>{ol('COD')} <strong className="text-teal-700">{taka(totals.cod)}</strong></>}
-       onOpen={()=>setSelectedId(o.id)} actions={<SalesMobileMore label={ol('Order actions')+' '+o.number}>{close=><ActionMenuItem icon={Eye} onClick={()=>{close();setSelectedId(o.id);}}>{ol('Open')}</ActionMenuItem>}</SalesMobileMore>} /> : <div key={o.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+       onOpen={()=>setSelectedId(o.id)} actions={<SalesMobileMore label={ol('Order actions')+' '+o.number}>{close=><><ActionMenuItem icon={Eye} onClick={()=>{close();setSelectedId(o.id);}}>{ol('Open')}</ActionMenuItem>{o.stage!=='Draft'&&<SourceDeleteAction reason="This order has progressed beyond draft. Use its lifecycle cancellation or return."/>}{o.stage==='Draft'&&<ActionMenuItem icon={Trash2} tone="destructive" onClick={()=>{close();recoveryDelete.request({kind:'online-order',id:o.id,label:o.number,revision:JSON.stringify(o)});}}>{ol('Delete draft')}</ActionMenuItem>}</>}</SalesMobileMore>} /> : <div key={o.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
        <div className="min-w-[135px] flex-1"><button onClick={()=>setSelectedId(o.id)} className="text-left text-sm font-semibold text-teal-700 hover:underline dark:text-teal-400">{o.number}</button><p className="text-[11px] text-ink-500">{o.channel} · {o.customerName}</p></div>
        <div className="w-[110px] text-xs"><p className="font-semibold text-ink">{taka(totals.grand)}</p><p className="text-ink-500">{ol('COD')} {taka(totals.cod)}</p></div>
        {tab==='Courier & COD'&&<div className="w-36 text-xs"><p>{o.courier??ol('Not assigned')}</p><p className="truncate text-ink-500">{o.tracking??ol('No tracking')}</p><p className="text-teal-700 dark:text-teal-400">{ol('Clearing')} {taka(clearing.pending)}</p></div>}
        <StatusBadge tone={stageTone(o.stage)}>{ol(o.stage)}</StatusBadge>
-       <Button variant="outline" size="sm" onClick={()=>setSelectedId(o.id)}>{ol("Open")} <ChevronRight className="size-3.5"/></Button>
+       <Button variant="outline" size="sm" onClick={()=>setSelectedId(o.id)}>{ol("Open")} <ChevronRight className="size-3.5"/></Button>{o.stage!=='Draft'&&<RowActionMenu label={ol('Order actions')+' '+o.number}>{()=> <SourceDeleteAction reason="This order has progressed beyond draft. Use its lifecycle cancellation or return."/>}</RowActionMenu>}{o.stage==='Draft'&&<RowActionMenu label={ol('Order actions')+' '+o.number}>{close=><ActionMenuItem icon={Trash2} tone="destructive" onClick={()=>{close();recoveryDelete.request({kind:'online-order',id:o.id,label:o.number,revision:JSON.stringify(o)});}}>{ol('Delete draft')}</ActionMenuItem>}</RowActionMenu>}
       </div>})}
       {!filtered.length&&<p className="p-7 text-center text-sm text-ink-500">{ol("No orders match your filters.")}</p>}
      </div>

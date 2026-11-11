@@ -69,6 +69,7 @@ type SettingsContextValue = {
   personal: PersonalSettings;
   warning: string;
   actorId: string;
+  currentAuthority: () => {state:TenantSettings;actorId:string};
   setActorId: (id: string) => void;
   save: <K extends BusinessSection>(
     section: K,
@@ -91,7 +92,12 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
   const [personal, setPersonal] = useState(initial.personal);
   const personalRef = useRef(personal);
   const [warning, setWarning] = useState(initial.warning);
-  const [actorId, setActorId] = useState("mahmud");
+  const [actorId, changeActorId] = useState("mahmud");
+  const actorRef=useRef(actorId);
+  const authorityActive=useRef(true);
+  useEffect(()=>{authorityActive.current=true;return()=>{authorityActive.current=false;};},[]);
+  const setActorId=(id:string)=>{actorRef.current=id;changeActorId(id);};
+  const currentAuthority=()=>{if(!authorityActive.current)throw Error('Recovery permission denied. Settings session is unavailable.');return {state:ref.current,actorId:actorRef.current};};
   useEffect(() => {
     const storage = (event: StorageEvent) => {
       if (event.key !== settingsKey(currentBusinessId) && event.key !== null)
@@ -187,6 +193,7 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
         personal,
         warning,
         actorId,
+        currentAuthority,
         setActorId,
         save,
         updatePersonal,

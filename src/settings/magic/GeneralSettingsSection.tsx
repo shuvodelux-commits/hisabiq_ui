@@ -6,6 +6,9 @@ import { Input, SettingCard, SettingsField } from '../ui';
 import { SaveBar } from './SaveBar';
 import { Button, Modal } from './invoice/Ui';
 import { sourceSettingsFields, type SettingField } from './sourceFields';
+import {useTenantSettings} from '../TenantSettingsProvider';
+import {canManage} from '../model';
+import {useUiCopy} from '../../i18n/useUiCopy';
 import { useMagicSettingsState } from './settingsBridge';
 import type { SettingsSection } from './settingsSections';
 
@@ -41,6 +44,9 @@ export function GeneralSettingsSection({
   section, canEdit, onDirtyChange, footer, renderPreview,
 }: Props) {
   const bridge = useMagicSettingsState();
+  const {state:tenant,currentAuthority,save}=useTenantSettings();
+  const {text}=useUiCopy();
+  const [cashFeedback,setCashFeedback]=useState('');
   const all = sourceSettingsFields[section.id] ?? [];
   const [advanced, setAdvanced] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
@@ -124,6 +130,7 @@ export function GeneralSettingsSection({
     const id = `magic-setting-${section.id}-${field.key}`;
     const error = errors[field.key];
     const disabled = !canEdit;
+    if(section.id==='finance'&&field.key==='cashSession')return <div key={field.key} className="flex min-w-0 items-start justify-between gap-3 sm:col-span-2"><div className="min-w-0"><label htmlFor={id} className="text-[13px] font-medium text-ink">{text('Count the cash drawer at open and close','খোলা ও বন্ধের সময় ড্রয়ারের ক্যাশ গুনুন')}</label><p className="mt-1 text-xs text-ink-500">{text('Live browser setting for this business. Controls Start, count and history; no backend posting.','এই ব্যবসার ব্রাউজার সেটিং। শুরু, গণনা ও ইতিহাস নিয়ন্ত্রণ করে; সার্ভারে লেনদেন হয় না।')}</p>{cashFeedback&&<p role="status" className="mt-1 text-xs text-ink-500">{cashFeedback}</p>}</div><SettingsToggle id={id} aria-label={text('Enable cash sessions','ক্যাশ সেশন চালু করুন')} checked={tenant.sections.money.cashSession} disabled={!canEdit} onCheckedChange={value=>{const current=currentAuthority();if(!canManage(current.state,current.actorId,'money')){setCashFeedback(text('Permission denied.','অনুমতি নেই।'));return;}const result=save('money',{...current.state.sections.money,cashSession:value},current.state.revision);setCashFeedback(result.ok?text('Cash session setting saved in this browser.','ক্যাশ সেশন সেটিং এই ব্রাউজারে সংরক্ষিত।'):result.error??text('Could not save.','সংরক্ষণ হয়নি।'));}}/></div>;
     if (field.kind === 'checkbox') {
       return (
         <div key={field.key} className={`flex min-w-0 items-start justify-between gap-3 ${field.wide ? 'sm:col-span-2' : ''}`}>

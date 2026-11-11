@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  getPurchaseDrafts, savePurchaseDraft, deletePurchaseDraft, subscribePurchaseDrafts,
+  getPurchaseDrafts, savePurchaseDraft, consumePurchaseDraft, subscribePurchaseDrafts,
   type PurchaseDraftInput,
 } from '../src/data/purchaseDraftsPreviewStore.ts';
 
@@ -27,7 +27,7 @@ test('Purchase drafts save without requiring posting validation and update the s
   assert.equal(getPurchaseDrafts()[0].notes, 'Deliver next week');
   assert.equal(getPurchaseDrafts()[0].discount, '15');
   assert.ok(updates >= 2);
-  deletePurchaseDraft(first.id);
+  consumePurchaseDraft(first.id);
   assert.equal(getPurchaseDrafts().length, 0);
   unsubscribe();
 });
@@ -39,7 +39,7 @@ test('Purchase draft snapshots are copied and tenant updates cannot cross busine
   assert.equal(getPurchaseDrafts()[0].photos[0], 'data:image/png;base64,AA==');
   assert.throws(() => savePurchaseDraft(makeDraft('tenant-b'), draft.id), /no longer exists/);
   assert.equal(getPurchaseDrafts().length, 1);
-  deletePurchaseDraft(draft.id);
-  deletePurchaseDraft(draft.id);
+  consumePurchaseDraft(draft.id);
+  consumePurchaseDraft(draft.id);
   assert.equal(getPurchaseDrafts().length, 0);
 });

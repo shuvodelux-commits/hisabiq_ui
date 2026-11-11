@@ -48,7 +48,7 @@ const toneDot = {
 
 export function TopBar() {
   const { text, language } = useUiCopy();
-  const { setOpen, sessionOpen, expectedCash } = useCashSession();
+  const { setOpen, sessionOpen, expectedCash, canView, canStart, startBlocked, sessionDate, businessDate } = useCashSession();
   const { state,actorId } = useTenantSettings();
   const activeEmployee=state.sections.team.employees.find(employee=>employee.id===actorId&&employee.active);
   const userName=activeEmployee?.name.trim()||text('User','ব্যবহারকারী');
@@ -147,19 +147,21 @@ export function TopBar() {
             </Button>
           )}
 
-          {state.sections.money.cashSession && <button
+          {state.sections.money.cashSession && canView && <button
             onClick={() => setOpen(true)}
-            className="hidden h-9 items-center gap-2 rounded-lg border border-border px-2.5 text-[13px] text-ink-700 transition-colors hover:bg-ink-50 sm:flex">
+            disabled={!sessionOpen&&(!canStart||startBlocked)}
+            aria-label={sessionOpen?text("Count / close cash session","ক্যাশ গুনুন / সেশন বন্ধ করুন"):text("Start cash session","ক্যাশ সেশন শুরু করুন")}
+            className="flex h-9 items-center gap-2 rounded-lg border border-border px-2.5 text-[13px] text-ink-700 transition-colors hover:bg-ink-50 disabled:opacity-50">
             
             <span className={`size-2 rounded-full ${sessionOpen ? 'bg-success' : 'bg-ink-300'}`} aria-hidden="true" />
             <Wallet className="size-3.5 text-ink-400" aria-hidden="true" />
             {sessionOpen ?
             <>
-                <span>{text('Cash','ক্যাশ')}</span>
-                <span className="font-medium tabular-nums text-ink">{taka(expectedCash)}</span>
+                <span className="hidden md:inline">{sessionDate!==businessDate?text('Earlier day open','আগের দিন চালু'):text('Cash','ক্যাশ')}</span>
+                <span className="hidden md:inline font-medium text-ink">{taka(expectedCash)}</span>
               </> :
 
-            <span>{text('Open cash session','ক্যাশ সেশন খুলুন')}</span>
+            <span className="hidden md:inline">{text('Start cash session','ক্যাশ সেশন শুরু করুন')}</span>
             }
           </button>}
 

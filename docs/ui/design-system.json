@@ -298,6 +298,51 @@
         "encrypted SQL restore review",
         "three invoice language styles"
       ]
+    },
+    {
+      "id": "recovery",
+      "category": "tables",
+      "title": "Recovery list and owner confirmation",
+      "bn": "উদ্ধার তালিকা ও মালিকের নিশ্চিতকরণ",
+      "wide": true,
+      "status": "existing",
+      "sources": [
+        "src/components/recycle/RecycleBinList.tsx",
+        "src/components/recycle/RecoverySpecimen.tsx",
+        "src/recovery/store.ts"
+      ],
+      "states": [
+        "deleted",
+        "restored",
+        "expired",
+        "purged",
+        "partial failure",
+        "details",
+        "owner confirmation",
+        "keyboard tabs"
+      ]
+    },
+    {
+      "id": "cashSession",
+      "title": "Start cash session",
+      "bn": "ক্যাশ সেশন শুরু করুন",
+      "category": "overlays",
+      "status": "existing",
+      "wide": false,
+      "sources": [
+        "src/components/layout/CashSessionDialog.tsx",
+        "src/contexts/CashSessionContext.tsx",
+        "src/finance/cashSession.ts"
+      ],
+      "states": [
+        "blank opening",
+        "zero and exact decimals",
+        "conditional source / destination",
+        "count notes / total",
+        "immutable close",
+        "current permission",
+        "reload-scoped preview"
+      ]
     }
   ],
   "note": "Generated source inventory, not a conformance certificate. Component-owned behavior and this guide govern use.",
@@ -2178,6 +2223,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/finance/CashSessionSpecimen.tsx",
+      "kind": "component",
+      "exports": [
+        "CashSessionSpecimen"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/finance/ChequeActionDialog.tsx",
       "kind": "component",
       "exports": [
@@ -3052,6 +3105,30 @@
       "reexports": []
     },
     {
+      "file": "src/components/recycle/RecoveryDetails.tsx",
+      "kind": "component",
+      "exports": [
+        "RecoveryDetails"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/recycle/RecoverySpecimen.tsx",
+      "kind": "component",
+      "exports": [
+        "RecoverySpecimen"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/recycle/RecycleBinList.tsx",
+      "kind": "component",
+      "exports": [
+        "RecycleBinList"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/reports/BusinessReview.tsx",
       "kind": "component",
       "exports": [
@@ -3305,6 +3382,14 @@
       "exports": [
         "UserPreferencesProvider",
         "useUserPreferences"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/deletion/SourceDeleteAction.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "SourceDeleteAction"
       ],
       "reexports": []
     },
@@ -4055,6 +4140,14 @@
       "reexports": []
     },
     {
+      "file": "src/pages/RecycleBin.tsx",
+      "kind": "page-or-feature",
+      "exports": [
+        "RecycleBin"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/pages/Reports.tsx",
       "kind": "page-or-feature",
       "exports": [
@@ -4091,6 +4184,14 @@
       "kind": "page-or-feature",
       "exports": [
         "Warranty"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/recovery/useRecoveryDelete.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "useRecoveryDelete"
       ],
       "reexports": []
     },
@@ -5280,6 +5381,7 @@
       "src/components/parties/PartyLedgerRowActions.tsx",
       "src/components/pos/CartTable.tsx",
       "src/components/products/BundleEditor.tsx",
+      "src/components/vendor/VendorTabs.tsx",
       "src/features/auth/AuthFlowPage.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
       "src/magic-saas/pages/saas/PackagesOffers.tsx",
@@ -6033,7 +6135,6 @@
       "src/components/accounts/VoucherDialog.tsx",
       "src/components/audit/AuditDetailsDialog.tsx",
       "src/components/audit/AuditEditDialog.tsx",
-      "src/components/daybook/DaybookActions.tsx",
       "src/components/finance/CounterWorkspace.tsx",
       "src/components/finance/FinancePaymentSplitEditor.tsx",
       "src/components/parties/PartyDetail.tsx",
@@ -6044,7 +6145,6 @@
       "src/components/pos/DraftsMenu.tsx",
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/products/BundleEditor.tsx",
-      "src/components/products/ProductSettings.tsx",
       "src/components/purchases/BillDialog.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
@@ -6052,10 +6152,11 @@
       "src/components/vendor/VendorClearDuePanel.tsx",
       "src/components/vendor/VendorGoodsEditor.tsx",
       "src/components/vendor/VendorV2Cart.tsx",
+      "src/deletion/SourceDeleteAction.tsx",
       "src/magic-saas/pages/saas/admin/Team.tsx",
       "src/pages/AuditLedger.tsx",
+      "src/pages/OnlineSales.tsx",
       "src/pages/Products.tsx",
-      "src/pages/Quotations.tsx",
       "src/pages/Reports.tsx",
       "src/pages/Sales.tsx",
       "src/settings/CommerceSettingsPanels.tsx"

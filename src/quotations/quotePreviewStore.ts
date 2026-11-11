@@ -1,3 +1,7 @@
+import {getPartyPreviewSnapshot} from '../data/partyPreviewStore.ts';
+import {recoveryStore} from '../recovery/store.ts';
+import type {RecoveryContext} from '../recovery/model.ts';
+import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore.ts';
 import {transactionLineTotal} from '../utils/transactionLines.ts';
 import {requireCurrentBundleHandoffs} from '../bundles/bundleHandoff.ts';
 /** In-memory quotation preview; no invoice, payment, or stock posting. */
@@ -98,8 +102,5 @@ export function changeQuoteStatus(id:string,status:QuoteStatus):Quotation{
  const next:Quotation={...original,status,updatedAt:today()};
  publish(snapshot.quotes.map(q=>q.id===id?next:q));return next;
 }
-export function deleteDraftQuote(id:string):void{
- const original=snapshot.quotes.find(q=>q.id===id);if(!original)throw new Error('Quotation not found.');
- if(original.status!=='Draft')throw new Error('Only draft quotations may be deleted.');
- publish(snapshot.quotes.filter(q=>q.id!==id));
-}
+export function deleteDraftQuote(id:string,ctx:RecoveryContext,expectedRevision?:string):void{recoveryStore.delete('quotation',id,ctx,new Date().toISOString(),expectedRevision);}
+recoveryStore.register<Quotation>({kind:'quotation',module:'sales',tenantId:'t1',get:id=>snapshot.quotes.find(q=>q.id===id),label:q=>q.number,revision:JSON.stringify,checkDelete:q=>{if(q.status!=='Draft')throw Error('Only draft quotations may be deleted.');},checkRestore:q=>{if(q.partyId&&!getPartyPreviewSnapshot().parties.some(p=>p.id===q.partyId))throw Error('The original party is unavailable.');if(q.lines.some(l=>!getProductImportPreviewSnapshot().products.some(p=>p.id===l.productId)))throw Error('A source product is unavailable.');},remove:id=>publish(snapshot.quotes.filter(q=>q.id!==id)),restore:q=>publish([q,...snapshot.quotes])});

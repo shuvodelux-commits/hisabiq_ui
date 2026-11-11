@@ -45,6 +45,8 @@ export function CashSessionDetailsDialog({
     <Dialog open={!!session} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader><DialogTitle>{session.id} <StatusBadge tone={session.status === 'Open' ? 'success' : variance ? 'warning' : 'neutral'} dot>{financeLabel(language,session.status)}</StatusBadge></DialogTitle></DialogHeader>
+        <p className="text-xs text-ink-500">{session.preview?text('Current preview · no backend posting; closed history is read-only.','বর্তমান নমুনা · সার্ভারে লেনদেন হয় না; বন্ধ ইতিহাস শুধু দেখা যায়।'):text('Sample history · independent of current drawer.','নমুনা ইতিহাস · বর্তমান ড্রয়ারের সাথে যুক্ত নয়।')}</p>
+        {session.openingSource&&<p className="text-sm">{text('Opening difference','শুরুর পার্থক্য')}: {taka(session.openingDifference??0)} · {session.openingSource} ({session.openingSourceId}){session.openingNote?' · '+session.openingNote:''}</p>}
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           <Detail label="Date">{session.date}</Detail>
           <Detail label="Opened">{session.openedAt}</Detail>

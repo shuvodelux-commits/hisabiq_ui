@@ -1,3 +1,4 @@
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {useSearchParams} from 'react-router-dom';
@@ -567,7 +568,7 @@ export function Reconciliation() {
                     </TableCell>
                     <TableCell className="sticky right-0 z-10 w-14 min-w-14 border-l border-border bg-card py-1.5 pr-2 text-right">
                       <RowActionMenu label={text('Actions for','কাজ') + ' ' + item.id}>
-                        {close => <ActionMenuItem icon={FileText} onClick={() => { close(); setHistoryItem(item); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem>}
+                        {close => <><ActionMenuItem icon={FileText} onClick={() => { close(); setHistoryItem(item); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem><SourceDeleteAction kind="immutable"/></>}
                       </RowActionMenu>
                     </TableCell>
                   </TableRow>

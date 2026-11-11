@@ -240,3 +240,11 @@ export function renameProductClassificationPreview(field:'category'|'brand',prev
  const products=snapshot.products.map(product=>product[field]===previous?{...product,[field]:next}:product);
  publish({...snapshot,revision:snapshot.revision+1,products});
 }
+
+/** Recovery-only write; checks live identity/SKU before restoring the original payload. */
+export function removeProductForRecovery(id:string){publish({...snapshot,revision:snapshot.revision+1,products:snapshot.products.filter(p=>p.id!==id),bundleVersions:snapshot.bundleVersions.filter(v=>v.bundleProductId!==id)});}
+export function restoreProductForRecovery(payload:{product:Product;versions:readonly BundleVersion[]}){
+ if(snapshot.products.some(p=>p.id===payload.product.id||skuKey(p.sku)===skuKey(payload.product.sku)))throw Error('Product identity or SKU already exists.');
+ if(payload.versions.some(v=>v.components.some(c=>!snapshot.products.some(p=>p.id===c.productId))))throw Error('A package component is unavailable.');
+ publish({...snapshot,revision:snapshot.revision+1,products:[payload.product,...snapshot.products],bundleVersions:[...snapshot.bundleVersions,...payload.versions]});
+}

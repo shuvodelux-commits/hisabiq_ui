@@ -7,6 +7,7 @@ import { Download, Lock, Upload } from 'lucide-react';
 import { MotionTabIndicator, MotionTabList } from '../../motion/MotionTabList';
 import { Button, Modal } from './invoice/Ui';
 import { SettingCard } from '../ui';
+import { DraftRecovery } from '../DraftRecovery';
 
 type BackupPreview = { salesCount: number; expensesCount: number; fileName: string };
 const tabs = [
@@ -65,6 +66,7 @@ export function DataSettings({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="min-w-0 max-w-full" data-settings-magic-data>
+      <DraftRecovery />
       <SettingCard
         title="Data & backup"
         titleBn="ডেটা ও ব্যাকআপ"

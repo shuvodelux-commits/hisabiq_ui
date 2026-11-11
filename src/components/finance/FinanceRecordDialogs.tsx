@@ -1,3 +1,4 @@
+import {sourceDeleteErrorCopy} from '../../deletion/errorCopy';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeftRight, BookOpen, Pencil, Plus, Power, Printer, RefreshCw, RotateCcw, Save, UserRoundCog } from 'lucide-react';
 import { toast } from 'sonner';
@@ -69,11 +70,13 @@ export function FinanceTransactionActionDialog({
   people: FinancePerson[];
   onClose: () => void;
   onUpdate: (transaction: FinanceTransaction) => void;
-  onReverse: (transaction: FinanceTransaction) => void;
+  onReverse: (transaction: FinanceTransaction,reason:string) => void;
 }) {
   const {text,language}=useUiCopy();
   const [editing, setEditing] = useState(false);
   const [confirmReverse, setConfirmReverse] = useState(false);
+  const [reverseReason,setReverseReason]=useState('');
+  const [reverseError,setReverseError]=useState('');
   const [type, setType] = useState<FinanceTransactionType>('Lender Credit');
   const [partyId, setPartyId] = useState('');
   const [paymentRows, setPaymentRows] = useState<FinancePaymentDraft[]>([]);
@@ -83,6 +86,7 @@ export function FinanceTransactionActionDialog({
 
   useEffect(() => {
     if (!transaction) return;
+    setReverseReason('');setReverseError('');
     setEditing(initialMode === 'edit' && transaction.status === 'Active');
     setConfirmReverse(initialMode === 'reverse' && transaction.status === 'Active');
     setType(transaction.type);
@@ -204,7 +208,7 @@ export function FinanceTransactionActionDialog({
               <Detail label="Status"><StatusBadge tone={transaction.status === 'Active' ? 'success' : 'neutral'} dot>{financeLabel(language,transaction.status)}</StatusBadge></Detail>
               <Detail label="Reference">{transaction.reference}</Detail>
               <Detail label="Notes">{transaction.note}</Detail>
-              <Detail label="Created by">{transaction.createdBy}</Detail>
+              <Detail label="Created by">{transaction.createdBy}</Detail>{transaction.reversal&&<Detail label="Reversal">{transaction.reversal.actorId} · {transaction.reversal.reason}</Detail>}
             </div>
             {!!transaction.paymentAccounts?.length && transaction.paymentAccounts.length > 1 && (
               <div className="rounded-xl border border-border">
@@ -214,8 +218,8 @@ export function FinanceTransactionActionDialog({
             )}
             {confirmReverse && (
               <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5">
-                <p className="text-[13px] font-medium text-danger">{text('Reverse this transaction?','এই লেনদেন উল্টো করবেন?')}</p>
-                <p className="mt-0.5 text-[11px] text-ink-500">{text('The audit record remains visible and the related money movement is restored.','পরিবর্তনের ইতিহাস থাকবে; সংশ্লিষ্ট টাকার আসা-যাওয়া আগের অবস্থায় ফিরবে।')}</p>
+                <p className="text-[13px] font-medium text-danger">{text('Reverse this transaction?','এই লেনদেন উল্টো করবেন?')}</p><label className="mt-2 block text-[13px]">{text('Reason for reversal','উল্টো করার কারণ')}<Input aria-label={text('Reason for reversal','উল্টো করার কারণ')} value={reverseReason} onChange={e=>setReverseReason(e.target.value)}/></label>{reverseError&&<p role="alert">{reverseError}</p>}
+                <p className="mt-0.5 text-[11px] text-ink-500">{text('The original record and reversal reason remain visible. Account balances change only in this UI preview; no backend posting occurs.','আগের রেকর্ড ও কারণ থাকবে। শুধু এই প্রিভিউতে হিসাবের জের বদলাবে; সার্ভারে কোনো পোস্টিং হবে না।')}</p>
               </div>
             )}
           </>
@@ -227,7 +231,7 @@ export function FinanceTransactionActionDialog({
             <Button onClick={save}><Save className="size-4" /> {text('Save changes','সংশোধন সংরক্ষণ')}</Button>
           </> : confirmReverse ? <>
             <Button variant="outline" onClick={() => setConfirmReverse(false)}>{text('Keep transaction','লেনদেন রাখুন')}</Button>
-            <Button onClick={() => { onReverse(transaction); setConfirmReverse(false); }}><RotateCcw className="size-4" /> {text('Confirm reverse','উল্টো করা নিশ্চিত করুন')}</Button>
+            <Button onClick={() => { try{onReverse(transaction,reverseReason);setConfirmReverse(false);}catch(e){setReverseError(sourceDeleteErrorCopy(e,text));} }}><RotateCcw className="size-4" /> {text('Confirm reverse','উল্টো করা নিশ্চিত করুন')}</Button>
           </> : <>
             <Button variant="outline" onClick={printTransaction}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
             {transaction.status === 'Active' && <>
@@ -464,16 +468,19 @@ export function FinanceAccountActionDialog({
 }
 
 export function FinanceTransferActionDialog({
-  transfer, onClose, onReverse, initialMode = 'view'
+  transfer, accounts, onClose, onReverse, initialMode = 'view'
 }: {
   initialMode?: 'view' | 'reverse';
   transfer: AccountTransfer | null;
+  accounts:FinanceAccount[];
   onClose: () => void;
-  onReverse: (transfer: AccountTransfer) => void;
+  onReverse: (transfer: AccountTransfer,reason:string) => void;
 }) {
   const {text,language}=useUiCopy();
   const [confirmReverse, setConfirmReverse] = useState(false);
-  useEffect(() => setConfirmReverse(initialMode === 'reverse' && transfer?.status === 'Completed'), [transfer, initialMode]);
+  const [reverseReason,setReverseReason]=useState('');
+  const [reverseError,setReverseError]=useState('');
+  useEffect(() => {setConfirmReverse(initialMode === 'reverse' && transfer?.status === 'Completed');setReverseReason('');setReverseError('');}, [transfer, initialMode]);
   if (!transfer) return null;
 
   const printTransfer=()=>{
@@ -492,22 +499,22 @@ export function FinanceTransferActionDialog({
           <DialogDescription>{transfer.id} · {transfer.date}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-2 sm:grid-cols-2">
-          <Detail label="From">{transfer.from}</Detail>
-          <Detail label="To">{transfer.to}</Detail>
+          <Detail label="From">{transferAccountLabel(transfer,'from',accounts)}</Detail>
+          <Detail label="To">{transferAccountLabel(transfer,'to',accounts)}</Detail>
           <Detail label="Amount">{taka(transfer.amount)}</Detail>
           <Detail label="Status"><StatusBadge tone={transfer.status === 'Completed' ? 'success' : 'neutral'} dot>{financeLabel(language,transfer.status)}</StatusBadge></Detail>
-          <div className="sm:col-span-2"><Detail label="Reference">{transfer.reference}</Detail></div>
+          <div className="sm:col-span-2"><Detail label="Reference">{transfer.reference}</Detail></div>{transfer.reversal&&<Detail label="Reversal">{transfer.reversal.actorId} · {transfer.reversal.reason}</Detail>}
         </div>
         {confirmReverse && (
           <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5">
-            <p className="text-[13px] font-medium text-danger">{text('Reverse this transfer?','ট্রান্সফার উল্টো করবেন?')}</p>
-            <p className="mt-0.5 text-[11px] text-ink-500">{text('Both account balances are restored while the audit record stays visible.','দুই হিসাবের জের আগের মতো হবে; পরিবর্তনের ইতিহাস থাকবে।')}</p>
+            <p className="text-[13px] font-medium text-danger">{text('Reverse this transfer?','ট্রান্সফার উল্টো করবেন?')}</p><label className="mt-2 block text-[13px]">{text('Reason for reversal','উল্টো করার কারণ')}<Input aria-label={text('Reason for reversal','উল্টো করার কারণ')} value={reverseReason} onChange={e=>setReverseReason(e.target.value)}/></label>{reverseError&&<p role="alert">{reverseError}</p>}
+            <p className="mt-0.5 text-[11px] text-ink-500">{text('Both account balances change only in this UI preview. Original transfer and reversal reason remain visible; no backend posting occurs.','শুধু এই প্রিভিউতে দুই হিসাবের জের বদলাবে। আগের স্থানান্তর ও কারণ থাকবে; সার্ভারে কোনো পোস্টিং হবে না।')}</p>
           </div>
         )}
         <DialogFooter>
           {confirmReverse ? <>
             <Button variant="outline" onClick={() => setConfirmReverse(false)}>{text('Keep transfer','ট্রান্সফার রাখুন')}</Button>
-            <Button onClick={() => { onReverse(transfer); setConfirmReverse(false); }}><RotateCcw className="size-4" /> {text('Confirm reverse','উল্টো করা নিশ্চিত করুন')}</Button>
+            <Button onClick={() => { try{onReverse(transfer,reverseReason);setConfirmReverse(false);}catch(e){setReverseError(sourceDeleteErrorCopy(e,text));} }}><RotateCcw className="size-4" /> {text('Confirm reverse','উল্টো করা নিশ্চিত করুন')}</Button>
           </> : <>
             <Button variant="outline" onClick={printTransfer}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button>
             {transfer.status === 'Completed' && <Button variant="outline" onClick={() => setConfirmReverse(true)}><RotateCcw className="size-4" /> {text('Reverse','উল্টো করুন')}</Button>}
