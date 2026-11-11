@@ -138,6 +138,7 @@ export function Accounts() {
   const tabs: Array<[Tab, string]> = [
     ['overview', 'Overview'],
     ['money-accounts', 'Money Accounts'],
+    ['bank-entry', 'Bank Entry'],
     ['vouchers', 'Vouchers'],
     ['ledger', 'Ledger'],
     ['trial', 'Trial Balance'],
@@ -216,12 +217,12 @@ export function Accounts() {
               key={id}
               data-accounts-tab={id}
               role="tab"
-              aria-selected={tab === id || (tab === 'bank-entry' && id === 'money-accounts')}
-              tabIndex={tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 0 : -1}
+              aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               onClick={() => chooseTab(id)}
-              className={`flex shrink-0 items-center rounded-sm px-2.5 py-2.5 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 ${tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-center rounded-sm px-2.5 py-2.5 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
-              <MotionTabIndicator active={tab === id || (tab === 'bank-entry' && id === 'money-accounts')} />
+              <MotionTabIndicator active={tab === id} />
             </button>
           ))}
         </MotionTabList>
