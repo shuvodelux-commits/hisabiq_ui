@@ -46,12 +46,15 @@ async function main(){
     await page.waitForFunction(expected=>location.hash==='#'+expected,destinations[1]);
     assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
    }
-   // The Money Accounts card still opens Bank Entry with its selected account and a way back.
+   // Money Accounts card still opens Bank Entry with the selected account; the visible tabs provide navigation.
    await page.goto(base+'/app/accounts?tab=money-accounts',{waitUntil:'domcontentloaded',timeout:15000});
    await page.locator('p').filter({hasText:/^Dutch-Bangla Bank · 4582$/}).first().waitFor();
    await page.getByRole('button',{name:'Bank Entry'}).first().click();
    await page.waitForURL(url => url.hash.startsWith('#/app/accounts?tab=bank-entry&accountId='));
-   await page.getByRole('button',{name:'Back to Money Accounts'}).click();
+   assert.equal(await page.getByRole('tab',{name:'Bank Entry',exact:true}).getAttribute('aria-selected'),'true','Bank Entry tab is selected from Money Accounts card');
+   assert.equal(await page.getByRole('button',{name:'Back to Money Accounts'}).count(),0,'redundant Back to Money Accounts button removed');
+   assert.equal(await page.getByText('UI Preview · Read only',{exact:true}).count(),0,'large preview banner removed from Accounts Bank Entry');
+   await page.getByRole('tab',{name:'Money Accounts',exact:true}).click();
    await page.waitForURL('**/#/app/accounts?tab=money-accounts');
    // Legacy bookmarks navigate to the new canonical module instead of disappearing.
    await page.goto(base+'/app/finance?tab=accounts',{waitUntil:'domcontentloaded',timeout:15000});
