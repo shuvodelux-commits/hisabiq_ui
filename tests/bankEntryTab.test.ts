@@ -75,8 +75,13 @@ test('bank entry is a dedicated Accounts tab without changing the voucher overvi
   const tabs = code.slice(tabsStart, tabsEnd);
   assert.match(tabs, /\['money-accounts', 'Money Accounts'\]/);
   assert.match(tabs, /\['bank-entry', 'Bank Entry'\]/);
-  assert.match(code, /tab === 'bank-entry' && <div>/);
+  assert.match(code, /tab === 'bank-entry' && \(\s*<BankEntryTab initialAccountId=/);
   assert.match(code, /<BankEntryTab initialAccountId=/);
+  assert.doesNotMatch(code, /Back to Money Accounts/);
+  const bankCode = readFileSync('src/components/accounts/BankEntryTab.tsx', 'utf8');
+  assert.match(bankCode, /\{!connected && inCounter && \(/);
+  assert.match(bankCode, /Preview only; no real bank entry can be posted/);
+  assert.match(bankCode, /disabled=\{!connected \|\| saving\}/);
   const overviewStart = code.indexOf("{tab === 'overview' && (");
   const overviewEnd = code.indexOf("{tab === 'vouchers' && (");
   assert.ok(overviewStart > 0 && overviewEnd > overviewStart);
