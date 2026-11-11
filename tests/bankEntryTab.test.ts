@@ -68,13 +68,13 @@ test('adjustment requires a reason and payload trims input', () => {
   });
 });
 
-test('bank entry stays contextual to Money Accounts without changing the voucher overview', () => {
+test('bank entry is a dedicated Accounts tab without changing the voucher overview', () => {
   const code = readFileSync('src/pages/Accounts.tsx', 'utf8');
   const tabsStart = code.indexOf('// Compact English-only tab labels');
   const tabsEnd = code.indexOf('  ];', tabsStart);
   const tabs = code.slice(tabsStart, tabsEnd);
   assert.match(tabs, /\['money-accounts', 'Money Accounts'\]/);
-  assert.doesNotMatch(tabs, /\['bank-entry'/);
+  assert.match(tabs, /\['bank-entry', 'Bank Entry'\]/);
   assert.match(code, /tab === 'bank-entry' && <div>/);
   assert.match(code, /<BankEntryTab initialAccountId=/);
   const overviewStart = code.indexOf("{tab === 'overview' && (");
