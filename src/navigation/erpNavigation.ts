@@ -54,6 +54,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
  {id:'accounts',label:'Accounts',bn:'হিসাব',icon:FileText,landingPath:'/app/accounts',children:[
   {id:'accounts-overview',label:'Overview',bn:'সারাংশ',path:'/app/accounts'},
   {id:'money-accounts',label:'Money Accounts',bn:'টাকার হিসাব',path:'/app/accounts?tab=money-accounts'},
+  {id:'bank-entry',label:'Bank Entry',bn:'ব্যাংক এন্ট্রি',path:'/app/accounts?tab=bank-entry'},
   {id:'accounts-vouchers',label:'Vouchers',bn:'ভাউচার',path:'/app/accounts?tab=vouchers'},
   {id:'accounts-ledger',label:'Ledger',bn:'খাতা',path:'/app/accounts?tab=ledger'},
   {id:'accounts-trial',label:'Trial Balance',bn:'হিসাবের মিল',path:'/app/accounts?tab=trial'},
