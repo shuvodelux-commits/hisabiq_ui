@@ -345,14 +345,9 @@ export function Accounts() {
         {tab === 'trial' && <TrialBalanceView postings={postings} terminologyMode={terminologyMode} />}
         {tab === 'statements' && <StatementsView postings={postings} />}
         {tab === 'chart' && <ChartOfAccountsView terminologyMode={terminologyMode} onOpeningBalance={() => setOpeningOpen(true)} />}
-        {tab === 'bank-entry' && <div>
-          <div className="border-b border-border px-3 py-2">
-            <Button variant="outline" size="sm" onClick={() => chooseTab('money-accounts')}>
-              {text('Back to Money Accounts','টাকার হিসাবে ফিরে যান')}
-            </Button>
-          </div>
+        {tab === 'bank-entry' && (
           <BankEntryTab initialAccountId={params.get('accountId') || undefined} />
-        </div>}
+        )}
       </div>
 
       <VoucherActionDialog
