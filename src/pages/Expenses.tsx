@@ -1,3 +1,9 @@
+import {sourceDeleteErrorCopy} from '../deletion/errorCopy';
+import {useRecoveryDelete} from '../recovery/useRecoveryDelete';
+import {partyDeleteReason} from '../recovery/adapters';
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../deletion/authority';
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { useMemo, useState, useSyncExternalStore } from 'react';
@@ -86,6 +92,8 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
 }
 
 export function Expenses() {
+  const {currentAuthority}=useTenantSettings();
+  const recoveryDelete=useRecoveryDelete();
   const {text,language,showHelper}=useUiCopy();
   const [tab, setTab] = useState<Tab>('expenses');
   const { expenses, audit } = useSyncExternalStore(subscribeExpensePreview, getExpensePreviewSnapshot);
@@ -318,7 +326,7 @@ export function Expenses() {
                               <ActionMenuItem icon={Pencil} disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); openCorrection(expense); }}>{text('Correct','সংশোধন')}</ActionMenuItem>
                               <ActionMenuItem icon={Printer} onClick={() => { close(); printExpenses([expense], expense.ref); }}>{text('Print','প্রিন্ট')}</ActionMenuItem>
                               <ActionMenuDivider />
-                              <ActionMenuItem icon={Ban} tone="destructive" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); setCancelling(expense); setCancelReason(''); setActionError(''); }}>{text('Cancel expense','খরচ বাতিল')}</ActionMenuItem>
+                              <ActionMenuItem icon={Ban} tone="destructive" disabled={expense.recordStatus === 'Deleted'} onClick={() => { close(); setCancelling(expense); setCancelReason(''); setActionError(''); }}>{text('Cancel expense','খরচ বাতিল')}</ActionMenuItem><SourceDeleteAction onReview={expense.recordStatus !== 'Deleted' ? () => {close();setCancelling(expense);setCancelReason('');setActionError('');} : undefined} reason="The expense is already cancelled; its history is retained."/>
                             </ActionMenuList>}
                           </FloatingPanel>
                         </div>
@@ -374,7 +382,7 @@ export function Expenses() {
                           {close => <ActionMenuList>
                             <ActionMenuItem icon={Pencil} onClick={() => { close(); setCategoryEditor({previous: category, name: category}); setActionError(''); }}>{text("Edit","সম্পাদনা")}</ActionMenuItem>
                             <ActionMenuDivider />
-                            <ActionMenuItem icon={active ? Ban : CheckCircle2} tone={active ? 'destructive' : 'neutral'} onClick={() => { close(); setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</ActionMenuItem>
+                            <ActionMenuItem icon={active ? Ban : CheckCircle2} tone={active ? 'destructive' : 'neutral'} onClick={() => { close(); setPreviewExpenseCategoryActive(category, !active); refreshCategories(n => n + 1); }}>{text(active ? 'Deactivate' : 'Activate',active ? 'বন্ধ করুন' : 'চালু করুন')}</ActionMenuItem><SourceDeleteAction kind="setup"/>
                           </ActionMenuList>}
                         </FloatingPanel>
                       </TableCell>
@@ -435,7 +443,7 @@ export function Expenses() {
                             <ActionMenuItem icon={Ban} tone="destructive"
                               disabled={!payee.active || expenses.some(e => e.payeeId === payee.id) || getPartyPreviewSnapshot().sources.some(s => s.partyId === payee.id && s.status === 'Active' && s.kind !== 'note')}
                               title={text("Linked transaction history is retained; linked payees cannot be deactivated.","আগের লেনদেন থাকবে। লেনদেন থাকা প্রাপককে বন্ধ করা যাবে না।")}
-                              onClick={() => { close(); try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</ActionMenuItem>
+                              onClick={() => { close(); try { dispatchPartyPreview({type: 'deactivate-party', id: payee.id}); } catch(e) { toast.error(e instanceof Error ? e.message : text('Could not deactivate payee.','প্রাপক বন্ধ করা যায়নি।')); } }}>{text("Deactivate","বন্ধ করুন")}</ActionMenuItem><SourceDeleteAction module="business" kind="master" reason={partyDeleteReason(payee.id)} onReview={!partyDeleteReason(payee.id)?()=>{close();const p=availableParties().find(p=>p.id===payee.id);if(p)recoveryDelete.request({kind:'party',id:p.id,label:p.name,revision:JSON.stringify(p)});}:undefined}/>
                           </ActionMenuList>}
                         </FloatingPanel>
                       </TableCell>
@@ -538,7 +546,7 @@ export function Expenses() {
         onEdit={selected && selected.recordStatus !== 'Deleted' ? () => openCorrection(selected) : undefined}
         onPay={selected && selected.recordStatus !== 'Deleted' ? () => openCorrection(selected) : undefined}
         onReceiptChange={selected && selected.recordStatus !== 'Deleted' ? receipt => attachPreviewExpenseReceipt(selected.id, receipt) : undefined}
-        history={audit.filter(e => e.expenseId === selectedId).map(e => `${e.action} · ${e.reason || text('New expense','নতুন খরচ')} · ${new Date(e.at).toLocaleString('en-GB', {timeZone: 'Asia/Dhaka'})}`)} />
+        history={audit.filter(e => e.expenseId === selectedId).map(e => `${e.action} · ${e.actorId??''} · ${e.reason || text('New expense','নতুন খরচ')} · ${new Date(e.at).toLocaleString('en-GB', {timeZone: 'Asia/Dhaka'})}`)} />
       <Dialog open={!!categoryEditor} onOpenChange={open => !open && setCategoryEditor(null)}>
         <DialogContent role="dialog" aria-label={text("Expense category editor","খরচের ধরন বদলান")} className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
           <DialogHeader><DialogTitle>{categoryEditor?.previous ? text('Edit category','ধরন বদলান') : text('Add category','ধরন যোগ করুন')}</DialogTitle><DialogDescription>{text('Choose a short name · খরচের ধরন','সহজ ছোট নাম দিন।')}</DialogDescription></DialogHeader>
@@ -549,6 +557,7 @@ export function Expenses() {
           </form>
         </DialogContent>
       </Dialog>
+      {recoveryDelete.dialog}
       <PartyEditorDialog open={!!payeeEditor} party={payeeEditor?.party} defaultRole="Payee" onClose={() => setPayeeEditor(null)} onSave={(party, openings) => {
         if (!party.roles.includes('Payee') && !party.roles.includes('Vendor')) throw new Error(text('Keep the Payee or Vendor relationship for expense entries.','খরচের জন্য প্রাপক বা ভেন্ডর পরিচয় রাখুন।'));
         if (payeeEditor?.party) dispatchPartyPreview({type: 'update-party', id: payeeEditor.party.id, patch: party, openings}); else dispatchPartyPreview({type: 'create-party', party, openings});
@@ -556,10 +565,10 @@ export function Expenses() {
       <Dialog open={!!cancelling} onOpenChange={open => !open && setCancelling(null)}>
         <DialogContent role="dialog" aria-label={text("Cancel expense preview","খরচের প্রিভিউ বাতিল")} className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
           <DialogHeader><DialogTitle>{text('Cancel','বাতিল করবেন')} {cancelling?.ref}?</DialogTitle><DialogDescription>{text('The original preview record stays in history. This does not refund money or reverse backend ledger entries.','আগের প্রিভিউ রেকর্ড ইতিহাসে থাকবে। এতে টাকা ফেরত বা আসল খাতায় উল্টো লেনদেন হবে না।')}</DialogDescription></DialogHeader>
-          <p className="text-sm">{cancelling?.payee} · {taka(cancelling?.amount ?? 0)}</p>
+          <p className="text-sm">{cancelling?.payee} · {taka(cancelling?.amount ?? 0)}</p><p className="text-xs text-ink-600">{text('This source is excluded from active expense totals. Its original paid amount stays in history; no money is refunded.','এই মূল খরচ চালু খরচের মোট থেকে বাদ যাবে। আগের জমার টাকা ইতিহাসে থাকবে; টাকা ফেরত হবে না।')}</p>
           <label className="space-y-1 text-xs font-medium text-ink">{text('Reason · কেন বাতিল','বাতিলের কারণ')}<Input aria-label={text("Expense cancellation reason","খরচ বাতিলের কারণ")} value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label>
           {actionError && <p role="alert" className="text-xs text-danger">{actionError}</p>}
-          <DialogFooter><Button variant="outline" onClick={() => setCancelling(null)}>{text('Keep expense','খরচ রাখুন')}</Button><Button onClick={() => { if (!cancelling) return; try { cancelPreviewExpense(cancelling.id, cancelReason); setCancelling(null); toast.success(text('Expense cancelled in preview','প্রিভিউ খরচ বাতিল হয়েছে')); } catch(e) { setActionError(e instanceof Error ? e.message : text('Cannot cancel expense.','খরচ বাতিল করা যায়নি।')); } }}>{text('Confirm cancellation','বাতিল নিশ্চিত করুন')}</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setCancelling(null)}>{text('Keep expense','খরচ রাখুন')}</Button><Button onClick={() => { if (!cancelling) return; try { const auditActor=sourceDeleteAuthority(currentAuthority(),'money',cancelling.id,cancelReason); cancelPreviewExpense(cancelling.id, cancelReason, auditActor.actorId, JSON.stringify(cancelling)); setCancelling(null); toast.success(text('Expense cancelled in preview','প্রিভিউ খরচ বাতিল হয়েছে')); } catch(e) { setActionError(sourceDeleteErrorCopy(e,text)); } }}>{text('Confirm cancellation','বাতিল নিশ্চিত করুন')}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

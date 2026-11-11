@@ -1,6 +1,7 @@
-import { Copy, ExternalLink, Eye, Pencil, Printer, Trash2 } from 'lucide-react';
+import {SourceDeleteAction} from '../../deletion/SourceDeleteAction';
+import { Copy, ExternalLink, Eye, Pencil, Printer } from 'lucide-react';
 import { FloatingPanel } from '../layout/FloatingPanel';
-import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } from '../layout/ActionMenu';
+import { ActionMenuList, ActionMenuItem, ActionMenuTrigger } from '../layout/ActionMenu';
 import type { UnifiedTransaction } from '../../types/transactions';
 import { daybookActionAvailability, demoPermissions } from '../../utils/permissions';
 import { daybookContextActions } from '../../utils/moduleUiActions';
@@ -10,7 +11,7 @@ export function DaybookActions({
   transaction,
   onOpen,
   onEdit,
-  onDelete,
+  onDelete: _onDelete,
   onGoToSource,
   onPrint,
   onDuplicate
@@ -44,11 +45,7 @@ export function DaybookActions({
           {extra.includes('print') && <ActionMenuItem icon={Printer} onClick={() => { close(); onPrint(transaction); }}>{text('Print','প্রিন্ট')}</ActionMenuItem>}
           {extra.includes('duplicate') && transaction.status !== 'Deleted' && <ActionMenuItem icon={Copy} onClick={() => { close(); onDuplicate(transaction); }}>{text('Duplicate','নকল তৈরি')}</ActionMenuItem>}
           {extra.includes('go-source') && canOpen && <ActionMenuItem icon={ExternalLink} onClick={() => { close(); onGoToSource(transaction); }}>{text('Go to source','মূল লেনদেনে যান')}</ActionMenuItem>}
-          {availability.delete && transaction.status !== 'Deleted' && <>
-            <ActionMenuDivider />
-            <ActionMenuItem icon={Trash2} tone="destructive" onClick={() => { close(); onDelete(transaction); }}>{text('Review reversal','বাতিল যাচাই')}</ActionMenuItem>
-          </>}
-        </ActionMenuList>
+        <SourceDeleteAction kind="projection"/></ActionMenuList>
       )}
     </FloatingPanel>
   );

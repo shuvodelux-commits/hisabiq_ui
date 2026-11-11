@@ -1,3 +1,6 @@
+import {recoveryRestriction} from '../../recovery/copy';
+import {useRecoveryDelete} from '../../recovery/useRecoveryDelete';
+import {partyDeleteReason} from '../../recovery/adapters';
 import { usePartyContentTabs } from './usePartyContentTabs';
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { PartyActionSheet } from './PartyActionSheet';
@@ -85,6 +88,7 @@ export function PartyDetailResponsive({
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
   const {text}=useUiCopy();
+ const recoveryDelete=useRecoveryDelete();
   const [tab, setTab] = useState<Tab>('ledger');
   const reduceMotion=useReducedMotion();
   const [mobileActionsOpen,setMobileActionsOpen] = useState(false);
@@ -167,6 +171,7 @@ export function PartyDetailResponsive({
     id: string; icon: LucideIcon; label: string; helper: string;
     run: () => void; disabledReason?: string;
   }> = [
+
     {
       id: 'opening', icon: BookOpen,
       label: text('Opening balance', 'শুরুর জের'), helper: text('Set or edit opening balance', 'প্রারম্ভিক জের'),
@@ -210,7 +215,8 @@ export function PartyDetailResponsive({
       helper: text('Send via SMS when connected', 'SMS-এর মাধ্যমে পাঠান'),
       run: () => toast(text('SMS service is not connected to the UI preview', 'এই প্রিভিউতে SMS চালু নেই')),
       disabledReason: text('SMS service is not connected to the UI preview', 'এই প্রিভিউতে SMS চালু নেই')
-    }
+    },
+    {id:'delete',icon:Trash2,label:text('Delete party','পার্টি মুছুন'),helper:recoveryRestriction(partyDeleteReason(party.id),text)??text('Recoverable for 30 days','৩০ দিন পর্যন্ত উদ্ধারযোগ্য'),disabledReason:recoveryRestriction(partyDeleteReason(party.id),text),run:()=>recoveryDelete.request({kind:'party',id:party.id,label:party.name,revision:JSON.stringify(party)})},
   ];
 
   const menuItem = (item: typeof menuActions[number], close: () => void, variant: 'menu' | 'sheet') => {
@@ -561,6 +567,7 @@ export function PartyDetailResponsive({
       {vendorProfile && vendorSettlementMode && <VendorQuickSettlementDialog
         open partyId={party.id} partyName={party.name} mode={vendorSettlementMode}
         onClose={()=>setVendorSettlementMode(null)}/>}
+      {recoveryDelete.dialog}
       <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={shownStatement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}

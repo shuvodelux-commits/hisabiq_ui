@@ -1,0 +1,74 @@
+[
+  {
+    "width": 390,
+    "theme": "light",
+    "language": "en",
+    "status": "passed"
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "language": "bn",
+    "status": "passed"
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "language": "en",
+    "status": "passed"
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "language": "bn",
+    "status": "passed"
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "language": "en",
+    "status": "passed"
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "language": "bn",
+    "status": "passed"
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "language": "en",
+    "status": "passed"
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "language": "bn",
+    "status": "passed"
+  },
+  {
+    "width": 1440,
+    "theme": "light",
+    "language": "en",
+    "status": "passed"
+  },
+  {
+    "width": 1440,
+    "theme": "light",
+    "language": "bn",
+    "status": "passed"
+  },
+  {
+    "width": 1440,
+    "theme": "dark",
+    "language": "en",
+    "status": "passed"
+  },
+  {
+    "width": 1440,
+    "theme": "dark",
+    "language": "bn",
+    "status": "passed"
+  }
+]

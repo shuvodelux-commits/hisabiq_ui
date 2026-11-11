@@ -1,3 +1,6 @@
+import {getPartyPreviewSnapshot} from '../data/partyPreviewStore.ts';
+import {recoveryStore} from '../recovery/store.ts';
+import {getProductImportPreviewSnapshot} from '../data/productImportPreviewStore.ts';
 import {transactionLineTotal} from '../utils/transactionLines.ts';
 import {requireCurrentBundleHandoffs,reviewBundleHandoffs} from '../bundles/bundleHandoff.ts';
 import type {Product} from '../types/erp.ts';
@@ -241,3 +244,5 @@ export function acknowledgeOrderBundleChanges(id:string):OnlineOrder{
   timeline:[...original.timeline,stamp('Package recipe reviewed','Preview user',
    'Current package components explicitly accepted for POS preview; order price and quantity unchanged.')]});
 }
+
+recoveryStore.register<OnlineOrder>({kind:'online-order',module:'sales',tenantId:'t1',get:id=>state.orders.find(o=>o.id===id),label:o=>o.number,revision:JSON.stringify,checkDelete:o=>{if(o.stage!=='Draft'||o.prepaid>0||o.courierReportedCod||o.courierFee||o.courierRemitted||o.timeline.some(t=>!['Created','Draft revised','Package recipe reviewed'].includes(t.action)))throw Error('Only unused, unpaid draft orders may be recovered. Use the lifecycle action for progressed orders.');},checkRestore:o=>{if(o.partyId&&!getPartyPreviewSnapshot().parties.some(p=>p.id===o.partyId))throw Error('The original party is unavailable.');if(o.lines.some(l=>!getProductImportPreviewSnapshot().products.some(p=>p.id===l.productId)))throw Error('A source product is unavailable.');},remove:id=>{state={...state,revision:state.revision+1,orders:state.orders.filter(o=>o.id!==id)};listeners.forEach(f=>f());},restore:o=>{publishOrder(o);}});

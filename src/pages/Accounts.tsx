@@ -1,3 +1,7 @@
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../deletion/authority';
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
+import {isManualAccountingSource} from '../utils/moduleUiActions';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import '../utils/accountingLabels'; // Keep existing module initialization.
 import { useEffect, useMemo, useState } from 'react';
@@ -77,6 +81,8 @@ function rowBalance(postings: Posting[], accountId: string) {
 }
 
 export function Accounts() {
+  const {currentAuthority}=useTenantSettings();
+  const [entryMode,setEntryMode]=useState<'view'|'delete'>('view');
   const {text}=useUiCopy();
   const navigate = useNavigate();
   const { terminologyMode, setTerminologyMode, entryDateView } = useUserPreferences();
@@ -322,7 +328,8 @@ export function Accounts() {
                           label={`Actions for ${source.reference}`}
                           width={180}
                           trigger={({ toggle, open }) => <ActionMenuTrigger label={`Actions for ${source.reference}`} expanded={open} onClick={toggle} />}>
-                          {(close) => <ActionMenuList><ActionMenuItem icon={Eye} onClick={() => { close(); setEntryActionId(source.id); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem></ActionMenuList>}
+                          {(close) => <ActionMenuList><ActionMenuItem icon={Eye} onClick={() => { close(); setEntryMode('view');setEntryActionId(source.id); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem><SourceDeleteAction kind="projection" onReview={isManualAccountingSource(source.source)&&source.recordStatus!=='Deleted'?()=>{close();setEntryMode('delete');setEntryActionId(source.id);}:undefined}/></ActionMenuList>}
+
                         </FloatingPanel>
                       </TableCell>
                     </TableRow>
@@ -349,6 +356,7 @@ export function Accounts() {
 
       <VoucherActionDialog
         source={entryAction}
+        initialMode={entryMode}
         posting={entryPosting}
         onClose={() => setEntryActionId(null)}
         onUpdate={(updated) => {
@@ -356,7 +364,11 @@ export function Accounts() {
           toast.success('Voucher corrected', { description: updated.reference });
         }}
         onDelete={(source, reason) => {
-          setSources((current) => current.map((item) => item.id === source.id ? { ...item, recordStatus: 'Deleted', deletedAt: '2026-10-07T16:25:00+06:00', deletedBy: 'Shuvo', deleteReason: reason } : item));
+          const audit=sourceDeleteAuthority(currentAuthority(),'money',source.id,reason);
+          if(!isManualAccountingSource(source.source)||source.recordStatus==='Deleted')throw Error('Only an active original manual voucher can be deleted here.');
+          const live=sources.find(s=>s.id===source.id);
+          if(!live||JSON.stringify(live)!==JSON.stringify(source))throw Error('Source changed. Reopen review.');
+          setSources((current) => current.map((item) => item.id === source.id ? { ...item, recordStatus: 'Deleted', deletedAt: audit.at, deletedBy: audit.actorId, deleteReason: audit.reason } : item));
           toast.success('Voucher deleted safely', { description: source.reference + ' remains in history' });
         }}
         onDuplicate={(source) => {

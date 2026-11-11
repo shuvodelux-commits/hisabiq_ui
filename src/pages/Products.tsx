@@ -1,3 +1,6 @@
+import {recoveryRestriction} from '../recovery/copy';
+import {useRecoveryDelete} from '../recovery/useRecoveryDelete';
+import {productDeleteReason} from '../recovery/adapters';
 import {useModuleColumns} from '../settings/useModuleColumns';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
@@ -22,7 +25,7 @@ import { ActionMenuList, ActionMenuItem, ActionMenuDivider } from '../components
 import { ProductSettings } from '../components/products/ProductSettings';
 import { availableProducts, availableProductCategories, availableStockLots, availableStockMovements } from '../data/erpDemoStore';
 import {planProductImport,resolveProductDecisions} from '../import/productImport.ts';
-import {commitProductImportPreview,getProductImportPreviewSnapshot,upsertProductPreview,upsertBundlePreview,getBundleVersion,canDeleteBundlePreview,deleteBundlePreview,subscribeProductImportPreview} from '../data/productImportPreviewStore.ts';
+import {commitProductImportPreview,getProductImportPreviewSnapshot,upsertProductPreview,upsertBundlePreview,getBundleVersion,deleteBundlePreview,subscribeProductImportPreview} from '../data/productImportPreviewStore.ts';
 import {getBundleProjection,bundleInventoryValue} from '../bundles/bundleProjection';
 import { productOffers as seedOffers } from '../data/productOffers';
 import { salesInvoices } from '../data/sales';
@@ -153,7 +156,7 @@ function ProductActions({
   onToggle: () => void;
   onDelete?: () => void;
 }) {
-  const {language}=useUiCopy();
+  const {language,text}=useUiCopy();
   const pl=(english:string)=>productLabel(language,english);
 
   return (
@@ -191,9 +194,10 @@ function ProductActions({
           <ActionMenuItem icon={Power} tone={product.active ? 'destructive' : 'neutral'} onClick={() => { close(); onToggle(); }}>
             {pl(product.active ? 'Deactivate' : 'Activate')}
           </ActionMenuItem>
-          {product.kind === 'Bundle' && onDelete && <>
+          {onDelete && <>
             <ActionMenuDivider />
-            <ActionMenuItem icon={Trash2} tone="destructive" onClick={() => { close(); onDelete(); }}>{pl('Delete package')}</ActionMenuItem>
+            <ActionMenuItem icon={Trash2} tone="destructive" disabled={!!recoveryRestriction(productDeleteReason(product.id),text)} onClick={() => { close(); onDelete(); }}>{pl('Delete')}</ActionMenuItem>
+            {recoveryRestriction(productDeleteReason(product.id),text)&&<p className="px-3 py-2 text-xs text-helper">{recoveryRestriction(productDeleteReason(product.id),text)}</p>}
           </>}
         </ActionMenuList>
       )}
@@ -204,6 +208,7 @@ function ProductActions({
 type ProductView = 'list' | 'lots' | 'history' | 'settings';
 
 export function Products() {
+ const recoveryDelete=useRecoveryDelete();
   const {language,showHelper}=useUiCopy();
   const pl=(english:string)=>productLabel(language,english);
   const [searchParams,setSearchParams] = useSearchParams();
@@ -228,6 +233,7 @@ export function Products() {
   const [bundleEditorProduct,setBundleEditorProduct] = useState<Product|null>(null);
   const [deleteBundleTarget,setDeleteBundleTarget] = useState<Product|null>(null);
   const previewSnapshot=useSyncExternalStore(subscribeProductImportPreview,getProductImportPreviewSnapshot);
+  useEffect(()=>{setList(availableProducts());},[previewSnapshot]);
   const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
   const [adjustProduct, setAdjustProduct] = useState<Product | null>(null);
   const [lotProduct, setLotProduct] = useState<Product | null>(null);
@@ -664,8 +670,7 @@ export function Products() {
                         toast.success(`${p.name} ${pl('duplicated')}`, { description: pl('Product settings copied with zero opening stock.') });
                       }}
                       onToggle={() => setList((items) => items.map((item) => item.id === p.id ? { ...item, active: !item.active } : item))}
-                      onDelete={p.kind==='Bundle' && canDeleteBundlePreview(p.id) && !previewSnapshot.bundleSaleReferences.some(ref=>ref.bundleProductId===p.id)
-                        ?()=>setDeleteBundleTarget(p):undefined}
+                      onDelete={()=>recoveryDelete.request({kind:'product',id:p.id,label:p.name,revision:JSON.stringify({id:p.id,product:getProductImportPreviewSnapshot().products.find(item=>item.id===p.id),versions:getProductImportPreviewSnapshot().bundleVersions.filter(v=>v.bundleProductId===p.id)}),onDeleted:()=>setList(availableProducts())})}
                     />
                   </TableCell>
                 </TableRow>);
@@ -764,7 +769,8 @@ export function Products() {
             <DialogTitle>{pl('Delete package')}</DialogTitle>
             <DialogDescription>{pl('Delete unsold package? This cannot be undone.')}</DialogDescription>
           </DialogHeader>
-          {deleteBundleTarget && <p className="text-sm font-medium text-ink">{deleteBundleTarget.name} · {deleteBundleTarget.sku}</p>}
+          {recoveryDelete.dialog}
+      {deleteBundleTarget && <p className="text-sm font-medium text-ink">{deleteBundleTarget.name} · {deleteBundleTarget.sku}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={()=>setDeleteBundleTarget(null)}>{pl('Cancel')}</Button>
             <Button onClick={()=>{

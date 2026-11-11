@@ -293,5 +293,50 @@
       "encrypted SQL restore review",
       "three invoice language styles"
     ]
+  },
+  {
+    "id": "recovery",
+    "category": "tables",
+    "title": "Recovery list and owner confirmation",
+    "bn": "উদ্ধার তালিকা ও মালিকের নিশ্চিতকরণ",
+    "wide": true,
+    "status": "existing",
+    "sources": [
+      "src/components/recycle/RecycleBinList.tsx",
+      "src/components/recycle/RecoverySpecimen.tsx",
+      "src/recovery/store.ts"
+    ],
+    "states": [
+      "deleted",
+      "restored",
+      "expired",
+      "purged",
+      "partial failure",
+      "details",
+      "owner confirmation",
+      "keyboard tabs"
+    ]
+  },
+  {
+    "id": "cashSession",
+    "title": "Start cash session",
+    "bn": "ক্যাশ সেশন শুরু করুন",
+    "category": "overlays",
+    "status": "existing",
+    "wide": false,
+    "sources": [
+      "src/components/layout/CashSessionDialog.tsx",
+      "src/contexts/CashSessionContext.tsx",
+      "src/finance/cashSession.ts"
+    ],
+    "states": [
+      "blank opening",
+      "zero and exact decimals",
+      "conditional source / destination",
+      "count notes / total",
+      "immutable close",
+      "current permission",
+      "reload-scoped preview"
+    ]
   }
 ]

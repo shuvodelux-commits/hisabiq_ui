@@ -1,3 +1,5 @@
+import {sourceDeleteAuthority} from '../deletion/authority.ts';
+import type {CurrentAuthority} from '../recovery/authority.ts';
 import type { SetStateAction } from 'react';
 import {
   financeAccounts as seedAccounts,
@@ -83,4 +85,22 @@ export function financePreviewRelationshipSummary(transactions: readonly Finance
     borrowerReceivable: seedRelationshipSummary.borrowerReceivable
       + change('Borrower Debit', 'Borrower Credit', 'Opening Borrower Loan')
   };
+}
+
+/** Reverse one original finance source and its preview accounts in one notification. */
+export function reverseFinancePreview(id:string,expectedRevision:string,reason:string,current:CurrentAuthority):FinanceTransaction {
+ const audit=sourceDeleteAuthority(current,'money',id,reason);
+ const source=state.transactions.find(t=>t.id===id);
+ if(!source||source.status!=='Active'||JSON.stringify(source)!==expectedRevision)throw Error('Transaction changed or reversed. Reopen source review.');
+ if(source.type==='Transfer')throw Error('Use the original two-account transfer review.');
+ const splits=source.paymentAccounts?.length?source.paymentAccounts:source.accountId?[{accountId:source.accountId,amount:source.amount}]:[];
+ if(source.direction!=='none'&&(!splits.length||splits.some(s=>!state.accounts.some(a=>a.id===s.accountId)||!Number.isFinite(s.amount)||s.amount<=0)||Math.abs(splits.reduce((n,s)=>n+s.amount,0)-source.amount)>0.001))throw Error('Complete original payment account identities and amounts are required.');
+ const reversed={...source,status:'Reversed' as const,reversal:audit};
+ const accounts=state.accounts.map(account=>{
+  const amount=splits.filter(s=>s.accountId===account.id).reduce((n,s)=>n+s.amount,0);
+  return amount&&source.direction!=='none'?{...account,balance:account.balance+(source.direction==='in'?-amount:amount),lastActivity:'Just now'}:account;
+ });
+ state={...state,accounts,transactions:state.transactions.map(t=>t.id===id?reversed:t)};
+ listeners.forEach(fn=>fn());
+ return reversed;
 }

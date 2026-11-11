@@ -33,7 +33,7 @@ test('Expense records, payment methods, filters and CSV machine headers retain o
     "['Reference', 'Date', 'Category', 'Payee', 'Details', 'Amount', 'Paid', 'Due', 'Status']",
     "savePreviewExpense(expense)",
     "savePreviewExpense(expense, reason)",
-    "cancelPreviewExpense(cancelling.id, cancelReason)",
+    "cancelPreviewExpense(cancelling.id, cancelReason, auditActor.actorId, JSON.stringify(cancelling))",
     "dispatchPartyPreview({type: 'deactivate-party', id: payee.id})",
     "setPreviewExpenseCategoryActive(category, !active)",
     "refreshCategories(n => n + 1)"

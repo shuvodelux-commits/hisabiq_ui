@@ -72,6 +72,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
    label:item.label,bn:item.bn,path:`/app/settings/${section}`,
    permission:({team:'team',data:'export',money:'money'} as Record<string,string>)[section]
   })),
+  {id:'recycle-bin',label:'Recycle Bin',bn:'রিসাইকেল বিন',path:'/app/recycle-bin'},
   {id:'notifications',label:'Notifications & SMS',bn:'এসএমএস ও বার্তা',path:'/app/notifications',feature:'notifications',permission:'notifications'},
   {id:'subscription',label:'Subscription & Billing',bn:'সাবস্ক্রিপশন',path:'/app/subscription',permission:'owner'}
  ]}
@@ -84,6 +85,6 @@ export const erpRoutePaths=new Set([
  '/app/warranty','/app/reports','/app/settings/business','/app/settings/team',
  '/app/settings/data','/app/settings/personal','/app/settings/security','/app/notifications','/app/subscription',
  ...Object.keys(sectionNames).map(section=>`/app/settings/${section}`),
- '/app/support'
+ '/app/recycle-bin','/app/support'
 ]);
 export const erpFeatureIds=new Set(['quotations','online-sales','notifications']);

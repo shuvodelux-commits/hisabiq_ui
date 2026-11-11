@@ -1,3 +1,4 @@
+import {useRecoveryDelete} from '../recovery/useRecoveryDelete';
 import {businessToday} from '../utils/dateRange';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +12,7 @@ import { PhotoUploader } from '../components/products/PhotoUploader';
 import { AddProductDialog, type ProductOpeningMeta } from '../components/products/AddProductDialog';
 import { PurchaseCart } from '../components/purchases/PurchaseCart';
 import { PurchaseDraftsMenu } from '../components/purchases/PurchaseDraftsMenu';
-import { getPurchaseDrafts, subscribePurchaseDrafts, savePurchaseDraft, deletePurchaseDraft, type PurchaseDraft, type PurchaseDraftInput } from '../data/purchaseDraftsPreviewStore';
+import { getPurchaseDrafts, subscribePurchaseDrafts, savePurchaseDraft, consumePurchaseDraft, type PurchaseDraft, type PurchaseDraftInput } from '../data/purchaseDraftsPreviewStore';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/Dialog';
 import { TransactionReviewDialog } from '../components/TransactionReviewDialog';
 import { PurchasePaymentPanel, makePurchasePaymentRow, type PurchasePaymentRow } from '../components/purchases/PurchasePaymentPanel';
@@ -34,6 +35,7 @@ const todayISO = businessToday;
 type PurchaseEditorProps={initialPurchase?:Purchase;onSaveSource?:(purchase:Purchase)=>void;initialSupplierId?:string;lockedSupplierId?:string;embedded?:boolean;active?:boolean;onCompleted?:(purchase:Purchase)=>void;onCancel?:()=>void};
 export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,lockedSupplierId,embedded=false,active=true,onCompleted,onCancel}:PurchaseEditorProps={}) {
   const navigate = useNavigate();
+  const recoveryDelete=useRecoveryDelete();
   const { state: settingsState } = useTenantSettings();
   const [products, setProducts] = useState(() => availableProducts().filter((product) => product.kind !== 'Service'));
   const [suppliers, setSuppliers] = useState(() => availableParties().filter((party) => party.roles.includes('Supplier') || party.roles.includes('Vendor')));
@@ -245,7 +247,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
     };
     if(onSaveSource){onSaveSource(purchase);return;}
     try{createPreviewPurchase(purchase);}catch(e){setError(e instanceof Error?e.message:"Invalid purchase.");return;}
-    if (activeDraftId) deletePurchaseDraft(activeDraftId);
+    if (activeDraftId) consumePurchaseDraft(activeDraftId);
     savedSignature.current = draftSignature;
     toast.success(purchase.ref + ' saved', { description: due > 0 ? taka(due) + ' payable to ' + supplier.name : 'Fully paid' });
     if(onCompleted)onCompleted(purchase);
@@ -283,6 +285,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
 
   return (
     <div data-purchase-workspace className="purchase-workspace mx-auto max-w-[1440px] min-w-0 space-y-3 pb-8">
+      {recoveryDelete.dialog}
       {!embedded && <PageHeader
         compact
         title="New purchase" titleBn="নতুন ক্রয়"
@@ -295,7 +298,7 @@ export function PurchaseEditor({initialPurchase,onSaveSource,initialSupplierId,l
             ))}
           </div>
           {draftEnabled && <PurchaseDraftsMenu drafts={drafts} onResume={resumeDraft}
-            onDelete={id => { deletePurchaseDraft(id); if (activeDraftId === id) { setActiveDraftId(null); savedSignature.current = ''; } }} />}
+            onDelete={id => { const draft=getPurchaseDrafts().find(d=>d.id===id); if(draft)recoveryDelete.request({kind:'purchase-draft',id,label:draft.referenceNo||draft.supplierName,revision:JSON.stringify(draft),onDeleted:()=>{if(activeDraftId===id){setActiveDraftId(null);savedSignature.current='';}}}); }} />}
           <Button type="button" variant="outline" size="sm" onClick={requestExit}>
             <ArrowLeft className="size-4" /> Purchases
           </Button>

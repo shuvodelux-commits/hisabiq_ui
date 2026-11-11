@@ -27,7 +27,7 @@ export type PartyPreviewCommand =
   | {type:'record-finance'; payload:PartyFinancePayload}
   | {type:'refund-credit'; payload:PartyRefundPayload}
   | {type:'edit-source-payment'; sourceId:string; reason:string; payload:PartyPaymentPayload}
-  | {type:'reverse-source'; sourceId:string; reason:string};
+  | {type:'reverse-source'; sourceId:string; reason:string;actorId?:string};
 
 const listeners = new Set<()=>void>();
 const importedSessions=new Map<string,ImportResult>();
@@ -409,9 +409,15 @@ export function dispatchPartyPreview(command:PartyPreviewCommand,accounts:readon
   }
   const updated:PartyPreviewState={parties,sources,revision:state.revision+1,
     audit:[...state.audit,{id:'audit-preview-'+(++counter),partyId:targetPartyId,sourceId,
-      action:command.type,before,after,actor:'Preview user',at:new Date().toISOString(),
+      action:command.type,before,after,actor:command.type==='reverse-source'?(command.actorId??'Preview user'):'Preview user',at:new Date().toISOString(),
       reason:command.type==='set-opening'?command.payload.note:undefined}]};
   state=updated;
   listeners.forEach(listener=>listener());
   return updated;
 }
+
+/** Recovery does not create ledger events or change financial source history. */
+export function removePartyForRecovery(id:string){state={...state,revision:state.revision+1,parties:state.parties.filter(p=>p.id!==id)};listeners.forEach(f=>f());}
+export function restorePartyForRecovery(party:Party){if(state.parties.some(p=>p.id===party.id||party.phone&&p.phone.replace(/\D/g,'')===party.phone.replace(/\D/g,'')))throw Error('Party identity or phone already exists.');state={...state,revision:state.revision+1,parties:[party,...state.parties]};listeners.forEach(f=>f());}
+export function removeNoteForRecovery(id:string){state={...state,revision:state.revision+1,sources:state.sources.filter(s=>s.id!==id)};listeners.forEach(f=>f());}
+export function restoreNoteForRecovery(note:PartySourceRecord){if(!state.parties.some(p=>p.id===note.partyId))throw Error('The original party is unavailable.');if(state.sources.some(s=>s.id===note.id))throw Error('Note identity already exists.');state={...state,revision:state.revision+1,sources:[...state.sources,note]};listeners.forEach(f=>f());}

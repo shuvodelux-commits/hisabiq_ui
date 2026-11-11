@@ -1,8 +1,9 @@
+import {SourceDeleteAction} from '../../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import React, { useState } from 'react';
-import { MoreHorizontal, Plus, Ruler, Settings2, Tags, Pencil, Power, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Plus, Ruler, Settings2, Tags, Pencil, Power } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   availableProductCategories, availableProductBrands, availableProductUnits,
@@ -67,13 +68,11 @@ function SettingActions({
   active,
   onToggle,
   onEdit,
-  onDelete
 }: {
   label: string;
   active: boolean;
   onToggle: () => void;
   onEdit: () => void;
-  onDelete: () => void;
 }) {
   const {language}=useUiCopy();
   const pl=(english:string)=>productFormLabel(language,english);
@@ -97,8 +96,7 @@ function SettingActions({
           <ActionMenuItem icon={Power} tone={active ? 'destructive' : 'neutral'} onClick={() => { close(); onToggle(); }}>
             {pl(active ? 'Deactivate' : 'Activate')}
           </ActionMenuItem>
-          <ActionMenuDivider />
-          <ActionMenuItem icon={Trash2} tone="destructive" onClick={() => { close(); onDelete(); }}>{pl('Delete')}</ActionMenuItem>
+          <SourceDeleteAction kind="setup"/>
         </ActionMenuList>
       )}
     </FloatingPanel>
@@ -282,7 +280,6 @@ export function ProductSettings() {
                     active={item.active}
                     onEdit={() => openEdit('categories',item)}
                     onToggle={() => setCategories((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
-                    onDelete={() => item.usage > 0 ? toast.error(pl('Category is used by products')) : setCategories((items) => items.filter((value) => value.id !== item.id))}
                   />
                 </TableCell>
               </TableRow>
@@ -319,7 +316,6 @@ export function ProductSettings() {
                     active={item.active}
                     onEdit={() => openEdit('units',item)}
                     onToggle={() => setUnits((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
-                    onDelete={() => item.usage > 0 ? toast.error(pl('Unit is used by products')) : setUnits((items) => items.filter((value) => value.id !== item.id))}
                   />
                 </TableCell>
               </TableRow>
@@ -352,7 +348,6 @@ export function ProductSettings() {
                     active={item.active}
                     onEdit={() => openEdit('brands',item)}
                     onToggle={() => setBrands((items) => items.map((value) => value.id === item.id ? { ...value, active: !value.active } : value))}
-                    onDelete={() => item.usage > 0 ? toast.error(pl('Brand is used by products')) : setBrands((items) => items.filter((value) => value.id !== item.id))}
                   />
                 </TableCell>
               </TableRow>

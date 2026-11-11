@@ -70,6 +70,12 @@ export const permissionCatalogue = [
     detail:
       "Read who changed settings and what changed. Audit cannot be edited.",
   },
+  {code:'cash.daily.view',group:'Cash',label:'View cash sessions',detail:'See drawer status and cash session history.'},
+  {code:'cash.session.start',group:'Cash',label:'Start cash session',detail:'Declare counted opening and its source or destination.'},
+  {code:'cash.session.close',group:'Cash',label:'Count and close cash session',detail:'Save drawer counts and freeze closing history.'},
+  {code:'recovery.view',group:'Recovery',label:'View Recycle Bin',detail:'See deleted preview records for permitted modules.'},
+  {code:'recovery.restore',group:'Recovery',label:'Restore deleted records',detail:'Restore eligible original identities without financial posting.'},
+  {code:'recovery.purge',group:'Recovery',label:'Permanently delete recovery payload',detail:'Owner only; retain minimal recovery audit metadata.'},
 ] as const;
 export type RbacPermission = (typeof permissionCatalogue)[number]["code"];
 export const systemRoleIds = [

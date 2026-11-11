@@ -1,4 +1,5 @@
 import './settings/navigationGuard';
+import './recovery/adapters';
 import { lazy } from 'react';
 import { PageBoundary } from './components/layout/PageBoundary';
 import { MagicSaasEntry } from './magic-saas/MagicSaasEntry';
@@ -20,6 +21,7 @@ const SignupPreviewPage = lazy(() => import('./features/auth/AuthFlowPage').then
 const RecoveryPreviewPage = lazy(() => import('./features/auth/AuthFlowPage').then(module => ({ default: module.RecoveryPreviewPage })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const Pos = lazy(() => import('./pages/Pos').then(module => ({ default: module.Pos })));
+const RecycleBin = lazy(() => import('./pages/RecycleBin').then(module=>({default:module.RecycleBin})));
 const Sales = lazy(() => import('./pages/Sales').then(module => ({ default: module.Sales })));
 const OnlineSales = lazy(() => import('./pages/OnlineSales').then(module => ({ default: module.OnlineSales })));
 const ErpNotifications = lazy(() => import('./pages/ErpNotifications').then(module => ({ default: module.ErpNotifications })));
@@ -113,7 +115,8 @@ export function App() {
           <Route path="search" element={<GlobalSearch />} />
           <Route path="pos" element={<Pos />} />
           <Route path="counter" element={<Finance counterOnly />} />
-          <Route path="sales" element={<Sales />} />
+          <Route path="recycle-bin" element={<RecycleBin />} />
+              <Route path="sales" element={<Sales />} />
           <Route path="quotations" element={<Quotations />} />
           <Route path="online-sales" element={<OnlineSales />} />
           <Route path="notifications" element={<ErpNotifications />} />

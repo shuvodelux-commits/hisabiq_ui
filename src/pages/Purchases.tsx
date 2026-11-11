@@ -1,3 +1,5 @@
+import {RowActionMenu} from '../components/layout/RowActionMenu';
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/Dialog';
@@ -291,7 +293,7 @@ export function Purchases() {
                               <ActionMenuDivider />
                               <ActionMenuItem icon={Banknote} disabled={!sourceEditable(p)||position(p).due<=0} title={pl('Payment needs a complete source bill with supplier due')} onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>{text('Pay due','বাকি দিন')}</ActionMenuItem>
                               <ActionMenuItem icon={CornerUpLeft} onClick={() => {close();reviewReturn(p);}}>{text('Review return','ফেরত যাচাই')}</ActionMenuItem>
-                              <ActionMenuItem icon={History} onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</ActionMenuItem>
+                              <ActionMenuItem icon={History} onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</ActionMenuItem><SourceDeleteAction reason="Purchase cancellation is not connected. Payment allocations, returns and stock lots need a source-owned reversal." reasonBn="ক্রয় বাতিল সংযুক্ত নয়। পেমেন্ট, ফেরত ও স্টক লট একসাথে মূল লেনদেনে উল্টো করতে হবে।"/>
                             </ActionMenuList>}
                           </FloatingPanel>
                         </div>
@@ -404,7 +406,7 @@ export function Purchases() {
                   <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
                   <TableHead className="h-9 text-xs">{pl('Returned items')}</TableHead>
                   <TableHead className="h-9 text-xs">{pl('Refund method')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{pl('Amount')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">{pl('Amount')}</TableHead><TableHead>{text('Actions','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -420,7 +422,7 @@ export function Purchases() {
                     <TableCell className="py-2">
                       <StatusBadge tone={item.method === 'Cash refund' ? 'success' : 'neutral'}>{purchaseReturnMethod(language,item.method)}</StatusBadge>
                     </TableCell>
-                    <TableCell className="py-2 pr-4 text-right font-medium">{taka(item.amount)}</TableCell>
+                    <TableCell className="py-2 pr-4 text-right font-medium">{taka(item.amount)}</TableCell><TableCell><RowActionMenu label={text('Actions for','কাজ')+' '+item.id}>{()=> <SourceDeleteAction reason="Purchase return reversal is not connected. Supplier credit/refund allocations and stock must be reviewed together."/>}</RowActionMenu></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
