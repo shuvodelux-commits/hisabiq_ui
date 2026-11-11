@@ -15,7 +15,7 @@ async function main(){
   ['/app/purchases',['Purchases','Purchase return','Return history']],
   ['/app/products',['Product list','Stock lots','Stock history','Product settings']],
   ['/app/finance',['Overview','Loans & Owners','Cheques','Cash Sessions']],
-  ['/app/accounts',['Overview','Money Accounts','Vouchers','Ledger','Trial Balance','Statements','Chart of Accounts']]
+  ['/app/accounts',['Overview','Money Accounts','Bank Entry','Vouchers','Ledger','Trial Balance','Statements','Chart of Accounts']]
  ];
  try{
   for(const width of [1440,768,390]){
@@ -46,7 +46,7 @@ async function main(){
     await page.waitForFunction(expected=>location.hash==='#'+expected,destinations[1]);
     assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
    }
-   // The Accounts card keeps Bank Entry contextual, with a reversible way back.
+   // The Money Accounts card still opens Bank Entry with its selected account and a way back.
    await page.goto(base+'/app/accounts?tab=money-accounts',{waitUntil:'domcontentloaded',timeout:15000});
    await page.locator('p').filter({hasText:/^Dutch-Bangla Bank · 4582$/}).first().waitFor();
    await page.getByRole('button',{name:'Bank Entry'}).first().click();
