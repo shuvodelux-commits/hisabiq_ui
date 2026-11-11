@@ -376,4 +376,98 @@ The API must carry the selected mode, ordered quantity components `{unitId,qtyDe
 - **Dispatch order:** source/decision review → owner signs off proposed pricing/precision/compatibility directions → coordinator finishes concrete endpoint/storage amendments and reserves migration ownership → MOD-000/MOD-001 dependency SHAs accepted → coordinator checks Project active capacity=1, creates real issue, allocates precise files/session/runner → one failing test slice → paired backend additive draft PR → frontend draft PR against pinned backend head → disposable DB/full focused QA + independent review → human merge approval. No worker, database, implementation or merge operation is authorized by this documentation PR.
 
 **Current status: PROPOSED FOR REVIEW / BUILD BLOCKED.** This document changes neither application source nor the number of approved build slots.
+---
 
+## 20. Revision 5: advance-work contract and dependency-gated execution handoff — DRAFT (2026-11-12)
+
+**Owner status.** The owner approved revision 4's architectural direction in the HisabIQ_UI conversation, recorded in merged [PR #289](https://github.com/shuvodelux-commits/hisabiq_ui/pull/289). The owner then instructed: proceed with any safe forward work now, and complete the remaining MOD-002 work after MOD-000 and MOD-001 finish. This section is the **documentation-only preparation** resulting from that instruction. It does not invent a reservation, close dependencies, authorize a migration, or declare a newly chosen HTTP contract approved. Any concrete cross-module API/schema choice materially changing revision 4 still requires review under AGENTS.md.
+
+**Evidence pair at this preparation baseline:** frontend main \`8f052f3a2fc56929f741ebc0d1eb31f46bab2763\` (merges PR #289); backend adoption branch \`74bb37f2ae6441689b1ee73f0c7ce51e03bcb1f5\`. Re-fetch both at dispatch. The existing stage-A controller schemas are strict Zod; \`POST /api/v1/products\` requires a 26-character \`Idempotency-Key\`; \`PATCH /api/v1/products/:id\` requires optimistic \`version\` plus the complete legacy save body; \`ProductResponse.purchasePriceMinor\` and \`stockValueMinor\` are absent for unauthorized cost viewers. The legacy API cannot accept the advanced shape by simply adding undeclared keys. Source: \`packages/core-contracts/src/{products,catalog}.ts\`, \`apps/api/src/catalog/products.controller.ts\` and the §19 source map.
+
+### 20.1. Dependency watch and authority table
+
+| Gate | Evidence required before a product build starts | Current observation at preparation | Owner |
+|---|---|---|---|
+| MOD-000 foundation/auth | Accepted frontend/backend SHA pair and completed auth/tenant/transport/operation IDs; connected pages never fall back to preview writes | Backend [issue #17](https://github.com/shuvodelux-commits/nestshererp/issues/17) and scoped [F0-01 issue #19](https://github.com/shuvodelux-commits/nestshererp/issues/19) are open; do not treat one closed subtask as whole MOD-000 completion | Foundation owner and coordinator |
+| MOD-001 settings/team | Accepted settings/feature/permission bootstrap, cost-view entitlement and product feature gates; exact dependent artifact SHA | No accepted MOD-001 artifact or dispatch issue was established by this preparation check; seek affirmative evidence, not an absent-label guess | Settings owner and coordinator |
+| MOD-002 architecture | Owner-approved revision 4, unchanged product/UI behavior | APPROVED as design direction; merged documentation PR #289 | Product owner |
+| Advanced HTTP/storage readiness | Concrete strict DTOs, negotiation choice, migration/locking/RLS plan and sale/purchase/return owning contracts | PENDING design/coordination, **not executable** | Contract + schema coordinator |
+| Runtime + worker | Live Project #2 review, one free BUILD slot, explicit coordinator claim, named authorized runtime, disposable DB, exact allowed files and paired SHAs | UNRESERVED; no test or CI run here | Coordinator |
+| QA/merge | Scoped tests, independent head-pinned QA and human PR review | NOT RUN / NOT GRANTED | QA and owner |
+
+**Order:** MOD-000 accepted → MOD-001 accepted (or its owner explicitly proves the minimal settings dependency already accepted) → coordinator reserves MOD-002 task slice → linked draft PRs → independent QA → human merge. This document is ready for that handoff but **cannot itself initiate** the later build. Any automation checking these gates must re-read live status and never regard elapsed time, an issue comment, or a completed child issue as permission to claim worker capacity.
+
+### 20.2. Proposed contract freeze sheet (API decision record still OPEN)
+
+The default option for implementation review is **an explicit opt-in advanced representation while leaving existing endpoints and legacy strict DTOs byte-for-byte compatible**. Select **one** negotiation mechanism before coding: A) a dedicated advanced-version route, or B) a registered version/media-type header with separate strict Zod parsing. Both options are **proposals only**, not deployed routes. Record the chosen route/headers, cache/Vary behavior, 404/406/415 cases, DTO export names and rejection semantics in a coordinator-owned approved contract before starting task T02B. Do not accept additional keys into the legacy \`saveProductRequestSchema\` through passthrough.
+
+Proposed **advanced read response payload** (fields are illustrative of shape; names become normative only in the approved shared contract):
+
+\`\`\`ts
+type AdvancedProductReadV1 = {
+  contractVersion: 'unit-profile-v1';
+  productId: ULID;
+  productVersion: number;                // optimistic lock
+  kind: 'Stock' | 'Service' | 'Bundle'; // Service/Bundle posting still gated
+  name: string; nameBn: string | null;
+  unitProfile: UnitProfileV1;           // section 19.5
+  serialTrackingMode: 'Off' | 'Optional' | 'Required';
+  warranty: {enabled:boolean; durationDecimal:string|null;
+    durationUnit:'Days'|'Months'|'Years'|null;
+    type:'Seller'|'Manufacturer'|'Service'|'Replacement'|null;
+    terms:string|null};
+  expiry: {enabled:boolean; dateRequired:boolean;
+    warningDays:number|null; allocationMethod:'FIFO'|'FEFO'};
+  useDefaultPriceForAllLots: boolean;
+  offers: readonly ProductOfferV1[];
+  images: readonly {assetId:ULID; isCover:boolean}[];
+  // The authenticated response must omit cost values entirely without permission,
+  // including purchase unit rates and inventory valuation; never substitute zero.
+};
+\`\`\`
+
+Proposed **advanced save command envelope**: \`contractVersion\`, complete advanced product data, \`expectedProductVersion\` on update, and \`unitProfile.expectedRevision\` on profile mutation. Retain existing header operation intent semantics; require a stable intent key for advanced creates and any separately approved write commands, and define replay-body mismatch behavior. Do not allow ambiguous omitted-vs-null updates: absent optional metadata on PATCH means *preserve* if explicit patch semantics are chosen; \`null\` means *clear* only where a nullable field is permitted; full replacement semantics must be a different declared command. Existing legacy full-body PATCH **remains full-body**. A lost response must be retried only with the **same** operation ID when the operation is idempotent; version conflicts retain the draft and request a re-read/review.
+
+**Catalog metadata**: the only proven currently available write is name-based. For future opt-in requests, category/brand \`nameBn\`, unit \`nameBn\`/\`symbol\`, returned stable ULIDs and explicit edit fields are a separate EXT-02 amendment. Existing \`POST/PATCH /api/v1/catalog/... \` routes remain usable for legacy name-only actions. \`remove\` remains archive-or-delete, not an active/inactive reactivation toggle.
+
+**Advanced transactions** are *not* Product API writes: the sale, purchase and return owners will approve a versioned \`EnteredUnitLineV1\` containing: \`pricingMode\`, \`unitProfileRevision\`, ordered \`{unitId, qtyDecimal, unitRateTaka4?}\` items, \`selectedUnitId\` + selected-rate for compound mode, \`lotAllocationIds\` where applicable, offer/override provenance, and \`serverQuoteRevision\` or equivalent review token. The server—not browser—resolves current feature/price/stock/authorization and publishes the frozen snapshot. Product save must not independently adjust stock, allocate lots, create serial instances, write journals or post a sale.
+
+**Validation and error codes (proposed, exact status/envelope mapping still to be frozen):** \`ADVANCED_PRODUCT_REQUIRES_V1\`, \`UNIT_QUANTITY_PRECISION_UNSUPPORTED\`, \`UNIT_PROFILE_VERSION_CONFLICT\`, \`UNIT_PRICE_REVIEW_REQUIRED\`, \`UNIT_CONVERSION_INVALID\`, \`OFFER_SCHEDULE_OVERLAP\`, \`LOT_PRICE_SPLIT_REVIEW_REQUIRED\`. Use existing \`AppError/ErrorCode\` transport semantics and standard 409 for approved conflicts; do **not** unilaterally add error enum members or imply currently deployed codes. Unknown write results never produce local preview-success feedback.
+
+### 20.3. Exact arithmetic/reference decisions to carry into tests
+
+- \`Taka4\` strings encode 10,000 units per BDT; 1 poisha = 100 \`Taka4\`. Product legacy minor prices backfill as \`String(poisha * 100)\` with checked widening; never pre-round a 4-decimal rate to poisha. Money posting remains integer poisha.
+- \`qtyDecimal\` strings accept 0–4 fractional digits; parse to scaled integer with explicit max magnitude and no exponent/NaN/Infinity. Adjacent unit factors are positive reduced rational integers and factor-to-base is derived, not client-trusted. Reject any \`sum(qtyScaled4 * factorToBase / 10)\` whose reduced denominator does not divide evenly into the base scale3 integer. Use checked bounds at every multiplication/aggregation.
+- \`COMPOUND_SELECTED_RATE\` computes **one rational line gross** from primary selected unit + prorated base remainder, then rounds half-up **once** to poisha; \`UNIT_COMPONENT_RATES\` uses independent per-unit rates, rounds each consolidated unit component to poisha half-up, then sums. For both, preserve the original entered text/components and selected pricing mode in posted snapshot. The browser's current Number/Math.round preview is not posting authority; if it disagrees with the server, show the existing review UI.
+- Canonicalize repeated unit IDs in the same component-rate command before rounding: group by stable unitId while preserving the earliest display order; sum quantities exactly and require the same rate and offer/lot allocation context within the group, otherwise reject/split with review. This removes split-component rounding arbitrage; **this grouping rule is a proposed API policy**, not a claim current frontend already implements it.
+- Base quantity must fit the current stock scale3 **exactly**. Example \`0.0001 Pcs\` is rejected; \`1 Carton + 2 Box + 3 Pcs\` with \`12 Box/Carton\` and \`20 Pcs/Box\` yields 283 base Pcs. A \`Taka4="1"\` rate × 10,000 Pcs must post 100 poisha, not zero.
+- \`UNIT_COMPONENT_RATES\`: Carton 950 BDT + 2 Box × 85 BDT + 3 Pcs × 5 BDT = 1,135 BDT. \`COMPOUND_SELECTED_RATE\`: 1 Box at 100 poisha with 1 Pcs remainder and 3 Pcs/Box gives 133 poisha after one final rounding.
+- Percentage discounts, tax, invoice rounding, discount distributions and final partial returns are **owned by posting modules**, not defined by this Product packet. The posting contracts must specify operation order and distribute rounding remainders so total source and cumulative returns reconcile exactly. No second rounding pass is permitted in a product adapter.
+
+### 20.4. Persistence and concurrency checklist (no migration assigned)
+
+1. Schema owner identifies exact existing \`products\`, \`units\`, \`brands\`, \`categories\`, \`product_unit_conversions\`, \`inventory_lots\`, sale/purchase source-line and audit/outbox tables before selecting add/alter operations. Names in §19.6 are **proposed additions**, not proof those tables already exist.
+2. Add tenant-scoped unique keys for product profile revisions and (tenant, product, revision, order/unitId); database-representable exact numerator/denominator and rates; immutable revisioned rows referenced by posting sources. Define \`CHECK\`/FK and actual RLS policies so cross-tenant IDs cannot be linked by a privileged write.
+3. Approve deterministic transaction/lock order across product version, profile, offer, stock lot/serial, source document, idempotency and outbox. Recheck stock availability while locked; source version/quote is stale after a conflicting price or offer change. No assertion of serializability or safe last-stock races without concurrent PostgreSQL tests.
+4. Store frozen bilingual labels, symbol, ordered component quantities, per-component rate, exact unit factors, applied discount/offer, lot allocations, gross/net poisha and snapshot schema version on each **posted** source line. Later catalog rename, profile change or lot price change cannot mutate old line snapshots or posted print.
+5. Legacy simple products keep existing \`sellingPriceMinor\`, \`purchasePriceMinor\`, \`minStockQty\` and old one-alt projection; backfill exactly to profile revision 1 when migration is authorized. Any advanced product must block a lossy legacy update with a documented typed conflict, not silently clear metadata. Never synthesize old posted snapshots from today's product records.
+6. Lot selling price is distinct from purchase cost and uses product default override policy from §19.7 for new sales. A line spanning differing rates requires split/review. Opening-stock entries are owned by MOD-003; receiving provenance and corrected lot prices by purchasing, not a Product create.
+7. Image gallery: choose authenticated asset storage, ownership, content-type/size limit and delete retention before implementation. Keep the existing private legacy thumbnail working. A gallery entry ID is not a public permanent URL.
+8. Backward/forward rollout order: additive storage → exact read capability and safe legacy projection → authorized profile backfill with reconciliation counts → advanced writer gate → owning posting integration → UI activation → QA. A rollback disables new advanced writes while preserving posted history; destructive down-migrations are forbidden.
+
+### 20.5. Bounded task queue after dependencies
+
+| Slice | Can prepare now? | Can implement now? | Build-entry test gate and intended owner |
+|---|---|---|---|
+| T00 contract/field source reconciliation | Yes: documentation, schemas **as proposed examples only**, evidence, test tables and owner gates | No source changes | Coordinator confirms baseline and chooses negotiation; Product architect |
+| T01A read-only product/catalog adapter | Yes: read mapping, auth/cost omission, pagination fixtures | No; needs accepted MOD-000/001 and slot | 200/401/403, cross-tenant, no preview fallback; product frontend worker |
+| T01B basic master/product writes | Yes: existing DTO path + preserving draft, operation/409 tests | No; needs T01A and slot | Returned ID selection, idempotent create, 409 draft retention, delete/archive differences; product frontend/backend |
+| T02A catalog bilingual/symbol metadata | Yes: additive DTO + schema proposal, existing-row compatibility matrix | No; needs approved contract + migration slot | Name/symbol edits preserve stable ULID, old clients, old posted labels; catalog backend owner |
+| T02B unit profiles, independent rates, cost protection | Yes: exact numeric and normalization fixtures in §19.9/§20.3 | No; needs approved shared schema/provider slots and MOD-003/posting handshake | Cross-tenant RLS, two pricing modes, precision rejection, concurrent 409, legacy projection; coordinated backend owner |
+| T03 serial/warranty/expiry and product kinds | Yes: active UI field/state inventory and ownership matrix | No; product kinds require accounting owners | Optional serial, calendar terms, FEFO, expiry policy; owner of receiving/warranty |
+| T04 offers, gallery and lot policy | Yes: scheduling/overlap and effective-price vectors | No; requires persisted policy and source owners | Nonoverlap, cost omission, private images, mixed-lot review, immutable old sale; coordinated owners |
+| Downstream integration | Yes: contract review; do not guess module numbers | No; requires actual owner approval and posting/return lock strategy | Sales/purchase/return source-line and reversal tests, independent QA |
+
+**Readiness packet the coordinator must fill before dispatch** (none are placeholders that count as proof): exact artifact for MOD-000 acceptance; exact artifact for MOD-001 acceptance; current main/adoption SHAs and review of intervening diffs; live Project #2 status and sole worker claim/session; exact issue, task, branch/worktree and per-file allowlist; names of shared contract/migration owners; selected advanced API negotiation and published strict DTO/error schemas; selected PostgreSQL migration number and disposable CI DB identity; precise test authorization and commands; independent QA reviewer; rollback and PR merge policy. If any field is not verifiable, label the task BLOCKED. If a new decision conflicts with approved revision 4, return a scoped approval overview instead of silently changing the contract.
+
+**No activity claimed from this documentation step:** no TypeScript/frontend/backend edit; no issue or worker claimed solely by this packet; no checkout/runtime, CI, browser screenshot, database migration, acceptance-suite or independent QA executed; no merge or production operation.
