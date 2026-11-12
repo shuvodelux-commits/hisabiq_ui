@@ -210,16 +210,16 @@ function ConnectedLoginScreen({ view }: { view: View }) {
     event.preventDefault();
     if (pending || snapshot.status === 'authenticating') return;
     setFailure('');
-    const normalized = digits(phone).trim().replace(/[\\s-]/g, '').replace(/^\\+?880/, '0');
+    const normalized = digits(phone).trim().replace(/[\s-]/g, '').replace(/^\+?880/, '0');
     if (view === 'pin') {
-      if (!/^\\d{6}$/.test(pin)) {
+      if (!/^\d{6}$/.test(pin)) {
         setFailure(text('Enter all 6 digits of your PIN.', 'পিনের ৬টি সংখ্যা লিখুন।'));
         pinRef.current?.focus();
         return;
       }
-    } else if (!/^01[3-9]\\d{8}$/.test(normalized) || !password) {
+    } else if (!/^01[3-9]\d{8}$/.test(normalized) || !password) {
       setFailure(text('Enter a valid mobile number and password.', 'সঠিক মোবাইল নম্বর ও পাসওয়ার্ড লিখুন।'));
-      (!/^01[3-9]\\d{8}$/.test(normalized) ? phoneRef : passwordRef).current?.focus();
+      (!/^01[3-9]\d{8}$/.test(normalized) ? phoneRef : passwordRef).current?.focus();
       return;
     }
     setPending(true);
@@ -268,7 +268,7 @@ function ConnectedLoginScreen({ view }: { view: View }) {
             <Input ref={pinRef} id="auth-pin" name="quick-pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6}
               className="auth-pin-input" value={pin} aria-invalid={!!failure} aria-describedby={failure ? 'auth-pin-error' : undefined}
               onSelect={event => setPinCursor(Math.min(event.currentTarget.selectionStart ?? 0, 5))}
-              onChange={event => { setPin(digits(event.target.value).replace(/\\D/g, '').slice(0, 6)); setFailure(''); }} />
+              onChange={event => { setPin(digits(event.target.value).replace(/\D/g, '').slice(0, 6)); setFailure(''); }} />
             <div aria-hidden="true" className="auth-pin-slots">{Array.from({ length: 6 }, (_, index) => <span key={index} data-current={pinCursor === index}>{pin[index] ? '•' : ''}</span>)}</div>
           </div>
           {failure && <p id="auth-pin-error" className="auth-error" role="alert">{failure}</p>}
@@ -279,7 +279,7 @@ function ConnectedLoginScreen({ view }: { view: View }) {
           <div className="auth-input-icon">
             <Phone className="auth-leading-icon" aria-hidden="true" />
             <Input ref={phoneRef} id="auth-phone" name="mobile" type="tel" inputMode="tel" autoComplete="username" placeholder="01XXXXXXXXX"
-              value={phone} aria-invalid={!!failure && !/^01[3-9]\\d{8}$/.test(digits(phone).replace(/[\\s-]/g, '').replace(/^\\+?880/, '0'))}
+              value={phone} aria-invalid={!!failure && !/^01[3-9]\d{8}$/.test(digits(phone).replace(/[\s-]/g, '').replace(/^\+?880/, '0'))}
               onChange={event => { setPhone(event.target.value); setFailure(''); }} className="pl-9" />
           </div>
         </div>
