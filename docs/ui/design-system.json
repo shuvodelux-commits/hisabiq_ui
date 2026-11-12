@@ -4825,6 +4825,15 @@
       "reexports": []
     },
     {
+      "file": "src/settings/magic/invoice/ConnectedInvoiceLogoActions.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "createConnectedInvoiceLogoActionsController",
+        "ConnectedInvoiceLogoActions"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/settings/magic/invoice/DesignGallery.tsx",
       "kind": "authored-ui",
       "exports": [
