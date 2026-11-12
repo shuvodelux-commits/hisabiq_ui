@@ -43,7 +43,7 @@ test('authenticated identity is unique by tenant/user/epoch/token, preview and l
  assert.equal(verifiedInvoiceEditorIdentity('connected',session(tenantA,'mahmud')),null);
 });
 test('one-field draft and cancel: no-op resets; a second field cannot silently overwrite first',()=>{
- let chosen=stageInvoiceChoice(saved,null,'language','BN');
+ const chosen=stageInvoiceChoice(saved,null,'language','BN');
  assert.deepEqual(chosen,{field:'language',value:'BN'});
  assert.deepEqual(stageInvoiceChoice(saved,chosen,'showDue',false),chosen);
  assert.deepEqual(stageInvoiceChoice(saved,chosen,'language','BN'),chosen);
