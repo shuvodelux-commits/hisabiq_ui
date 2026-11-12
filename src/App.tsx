@@ -67,7 +67,7 @@ const MagicPlatformSettings = lazy(() => import('./magic-saas/pages/saas/admin/P
 
 export function App() {
   const { resolvedTheme } = useTheme();
-  const integrationMode = readIntegrationMode(import.meta.env.VITE_HISABIQ_INTEGRATION_MODE);
+  const integrationMode = readIntegrationMode((import.meta as ImportMeta & { env?: { VITE_HISABIQ_INTEGRATION_MODE?: string } }).env?.VITE_HISABIQ_INTEGRATION_MODE);
   return (
     <SaasProvider><HashRouter><SessionProvider mode={integrationMode}>
       <Toaster theme={resolvedTheme} position="bottom-right" toastOptions={{ style: { fontFamily: 'Geist' } }} />
