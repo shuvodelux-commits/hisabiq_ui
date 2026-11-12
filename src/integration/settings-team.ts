@@ -356,7 +356,7 @@ export async function setTenantUserDisabled(
   try {
     return await requestJson({
       method: 'POST',
-      path: \`/api/v1/users/\${verifiedUser.id}/disabled\`,
+      path: `/api/v1/users/${verifiedUser.id}/disabled`,
       accessToken,
       body: { disabled, confirmPassword },
       signal: controller.signal,
