@@ -7,11 +7,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 async function main() {
-  const { createServer } = await import('vite');
-  const server = await createServer({
-    server: { host: '127.0.0.1', port: 4292, strictPort: true },
+  // Chromium intermittently returns net::ERR_INSUFFICIENT_RESOURCES after
+  // reloading the large Vite development-module graph, leaving React unmounted.
+  // Build and serve the exact candidate as static preview assets instead.
+  // Always rebuild: stale dist content could make this test pass on old UI.
+  const { build, preview } = await import('vite');
+  await build({ logLevel: 'error' });
+  const server = await preview({
+    preview: { host: '127.0.0.1', port: 4292, strictPort: true },
   });
-  await server.listen();
   let browser;
   try {
     browser = await chromium.launch({
@@ -910,7 +914,9 @@ async function main() {
   } finally {
     await browser?.close();
     server.httpServer?.closeAllConnections();
-    await server.close();
+    await new Promise((resolve, reject) =>
+      server.httpServer.close(error => error ? reject(error) : resolve())
+    );
   }
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
