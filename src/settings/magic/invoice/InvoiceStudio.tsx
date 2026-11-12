@@ -21,6 +21,7 @@ import {
 } from './connectedInvoiceDraft.ts';
 import { ApiError } from '../../../integration/errors.ts';
 import { ConnectedInvoiceLogo } from './ConnectedInvoiceLogo';
+import { ConnectedInvoiceLogoActions } from './ConnectedInvoiceLogoActions';
 
 type Props = { canEdit: boolean; onDirtyChange: (dirty: boolean) => void };
 
@@ -117,11 +118,15 @@ function ConnectedInvoiceEditor({
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [logoRefresh, setLogoRefresh] = useState(0);
   const [writeDenied, setWriteDenied] = useState(false);
+  const [logoSelected, setLogoSelected] = useState(false);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoUnknown, setLogoUnknown] = useState(false);
+  const logoBusyRef = useRef(false);
   const [feedback, setFeedback] = useState('Choose one supported option, then Save. · একটি সেটিং পরিবর্তন করুন।');
   const activeIdentity = useRef(identityKey);
   const activeOperation = useRef<AbortController | null>(null);
   const mounted = useRef(true);
-  const dirty = pending !== null;
+  const dirty = pending !== null || logoSelected;
 
   useEffect(() => {
     mounted.current = true;
@@ -133,7 +138,7 @@ function ConnectedInvoiceEditor({
   }, [onDirtyChange]);
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
 
-  const allowEdits = canEdit && !writeDenied && !needsRefresh && busy === 'idle';
+  const allowEdits = canEdit && !writeDenied && !needsRefresh && !logoSelected && !logoBusy && !logoUnknown && busy === 'idle';
   const selectValue = (field: ServerInvoicePreferenceField) =>
     pending?.field === field ? pending.value : saved[field];
   const inputDisabled = (field: ServerInvoicePreferenceField) =>
@@ -144,14 +149,14 @@ function ConnectedInvoiceEditor({
     setFeedback('Change not yet saved. · পরিবর্তন এখনো সংরক্ষিত হয়নি।');
   };
   const discard = () => {
-    if (busy !== 'idle') return;
+    if (busy !== 'idle' || logoBusyRef.current) return;
     setPending(null);
     setFeedback(needsRefresh
       ? 'Earlier save outcome is unknown. Refresh from server before editing again. · পুনরায় লোড করুন।'
       : 'Draft discarded. Server settings unchanged. · পরিবর্তন বাতিল হয়েছে।');
   };
   const save = async () => {
-    if (!canSaveInvoiceChoice(pending, canEdit && !writeDenied, busy !== 'idle', needsRefresh) ||
+    if (!canSaveInvoiceChoice(pending, canEdit && !writeDenied && !logoSelected && !logoBusy && !logoUnknown, busy !== 'idle' || logoBusyRef.current, needsRefresh) ||
         pending === null) return;
     const choice = pending;
     const requestIdentity = identityKey;
@@ -191,7 +196,7 @@ function ConnectedInvoiceEditor({
     }
   };
   const refresh = async () => {
-    if (busy !== 'idle') return;
+    if (busy !== 'idle' || logoBusyRef.current || (logoSelected && !logoUnknown)) return;
     const requestIdentity = identityKey;
     const operation = new AbortController();
     activeOperation.current = operation;
@@ -205,6 +210,7 @@ function ConnectedInvoiceEditor({
       setPending(current => current && Object.is(response.data[current.field], current.value)
         ? null : current);
       setNeedsRefresh(false);
+      setLogoUnknown(false);
       setFeedback(writeDenied
         ? 'Latest server values loaded. Editing remains blocked until a new verified session.'
         : 'Latest server values loaded. Review your draft before saving. · নতুন তথ্য লোড হয়েছে।');
@@ -241,13 +247,31 @@ function ConnectedInvoiceEditor({
           <p className="text-[12px] text-ink-500">View only: business settings edit permission is required. · সম্পাদনার অনুমতি নেই।</p>
         )}
         <p className="text-[12px] text-ink-500">
-          Save or Discard one change before editing another. The invoice logo upload and six visual designs are not connected.
+          Save or Discard one preference change before editing another. Logo upload is a separate confirmed action; the six visual designs remain preview only.
         </p>
         <ConnectedInvoiceLogo
           identityKey={identityKey}
           accessToken={accessToken}
           hasLogo={saved.hasLogo}
           refreshKey={logoRefresh}
+        />
+        <ConnectedInvoiceLogoActions
+          identityKey={identityKey}
+          accessToken={accessToken}
+          hasLogo={saved.hasLogo}
+          refreshKey={logoRefresh}
+          canEdit={canEdit && !writeDenied}
+          blocked={pending !== null || busy !== 'idle' || needsRefresh || logoUnknown}
+          onSelectedChange={setLogoSelected}
+          onBusyChange={value => { logoBusyRef.current = value; setLogoBusy(value); }}
+          onUnknownChange={setLogoUnknown}
+          onDenied={() => setWriteDenied(true)}
+          onConfirmed={confirmed => {
+            if (!mounted.current || activeIdentity.current !== identityKey) return;
+            setSaved(confirmed);
+            setLogoRefresh(value => value + 1);
+            onConfirmed(identityKey, confirmed);
+          }}
         />
         <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
           {enumControls.map(item => (
@@ -282,20 +306,20 @@ function ConnectedInvoiceEditor({
           ))}
         </div>
         <div className="mt-3 flex flex-wrap justify-end">
-          <Button kind="outline" disabled={busy !== 'idle'} onClick={() => void refresh()}>
+          <Button kind="outline" disabled={busy !== 'idle' || logoBusy || (logoSelected && !logoUnknown)} onClick={() => void refresh()}>
             {busy === 'refreshing' ? 'Refreshing…' : 'Refresh from server'}
           </Button>
         </div>
       </SettingCard>
       <SaveBar
-        dirty={dirty}
+        dirty={pending !== null}
         saving={busy !== 'idle'}
         status={feedback}
         dirtyLabel={feedback}
         error={needsRefresh || writeDenied ? feedback : undefined}
         onSave={() => void save()}
         onDiscard={discard}
-        saveDisabled={!canSaveInvoiceChoice(pending, canEdit && !writeDenied, busy !== 'idle', needsRefresh)}
+        saveDisabled={!canSaveInvoiceChoice(pending, canEdit && !writeDenied && !logoSelected && !logoBusy && !logoUnknown, busy !== 'idle' || logoBusyRef.current, needsRefresh)}
         saveLabel="Save change"
         // A denied save still permits the local draft to be discarded.
         readOnly={!canEdit}
