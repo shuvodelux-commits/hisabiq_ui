@@ -2,7 +2,7 @@ import { ApiError } from './errors.ts';
 import { requestJson } from './http.ts';
 
 /** NestSherERP packages/core-contracts/src/settings.ts, pinned adoption SHA.
- * This resource intentionally has no mutable settings methods in T01-R. */
+ * T01-R is GET-only. T01-W/P1 adds only the server-profile PATCH. */
 export interface ServerSettingDescriptor {
   key: string;
   group: string;
@@ -95,6 +95,47 @@ export async function readTenantSettings(
       method: 'GET',
       path: '/api/v1/settings',
       accessToken,
+      signal: controller.signal,
+    }, decodeServerSettings);
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
+
+
+/** MOD-001 T01-W/P1: persist only the verified business profile. The Nest API
+ * requires name + timezone together. The timezone MUST come from the last
+ * authenticated GET; callers cannot substitute a browser-local zone. No
+ * generic SettingKey POST, retries, optimistic-concurrency claims or cache.
+ * Unknown network outcomes are surfaced so the UI keeps the draft. */
+export async function updateBusinessProfile(
+  accessToken: string,
+  lastVerified: ServerSettings,
+  businessName: string,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<ServerSettingsEnvelope> {
+  if (typeof businessName !== 'string' || !Number.isSafeInteger(timeoutMs) ||
+      timeoutMs < 1 || timeoutMs > 120_000) return invalid();
+  const name = businessName.trim();
+  if (name.length < 2 || name.length > 120 ||
+      !record(lastVerified) || !timezone(lastVerified.timezone) ||
+      !Array.isArray(lastVerified.supportedTimezones) ||
+      !lastVerified.supportedTimezones.every(timezone) ||
+      !lastVerified.supportedTimezones.includes(lastVerified.timezone)) return invalid();
+
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    return await requestJson({
+      method: 'PATCH',
+      path: '/api/v1/settings/business',
+      accessToken,
+      body: { businessName: name, timezone: lastVerified.timezone },
       signal: controller.signal,
     }, decodeServerSettings);
   } finally {

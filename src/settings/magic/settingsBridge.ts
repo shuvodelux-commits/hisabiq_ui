@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTenantSettings } from '../TenantSettingsProvider';
 import { useSession } from '../../integration/SessionProvider.tsx';
 import { readTenantSettings, type ServerSettings } from '../../integration/settings-team.ts';
@@ -12,7 +12,7 @@ export type ServerSettingsRead =
  * Never use TenantSettingsProvider's browser fixture as live authorization.
  * A switch between tenants clears the rendered server data synchronously
  * before the prior request has time to settle or React's cleanup runs. */
-export function useServerSettingsRead(): ServerSettingsRead {
+export function useServerSettingsRead(): ServerSettingsRead & { acceptWrite: (data: ServerSettings) => boolean } {
   const { mode, snapshot } = useSession();
   const [last, setLast] = useState<{ key: string; state: ServerSettingsRead } | null>(null);
   const key = mode === 'connected' && snapshot.status === 'authenticated'
@@ -20,6 +20,19 @@ export function useServerSettingsRead(): ServerSettingsRead {
     : `${mode}:${snapshot.status}:${snapshot.epoch}`;
   const liveIdentity = useRef(key);
   liveIdentity.current = key;
+
+  // A completed PATCH may replace the entire *verified* server snapshot, but
+  // never after a credential/tenant/epoch change or a permission revocation.
+  // The callback closes over the current identity; stale callbacks cannot
+  // commit writes from the previous tenant or an abandoned navigation.
+  const acceptWrite = useCallback((data: ServerSettings): boolean => {
+    if (mode !== 'connected' || snapshot.status !== 'authenticated' ||
+        !snapshot.permissions.includes('settings.setting.view') ||
+        liveIdentity.current !== key) return false;
+    setLast({ key, state: { status: 'ready', data } });
+    return true;
+  }, [mode, key, snapshot.status === 'authenticated'
+    ? snapshot.permissions.includes('settings.setting.view') : false]);
 
   useEffect(() => {
     if (mode !== 'connected' || snapshot.status !== 'authenticated') return;
@@ -43,11 +56,11 @@ export function useServerSettingsRead(): ServerSettingsRead {
     };
   }, [mode, key, snapshot.status === 'authenticated' ? snapshot.permissions.includes('settings.setting.view') : false]);
 
-  if (mode === 'preview') return { status: 'preview', data: null };
-  if (snapshot.status === 'locked') return { status: 'locked', data: null };
-  if (snapshot.status !== 'authenticated') return { status: 'waiting', data: null };
-  if (!snapshot.permissions.includes('settings.setting.view')) return { status: 'denied', data: null };
-  return last?.key === key ? last.state : { status: 'loading', data: null };
+  if (mode === 'preview') return { status: 'preview', data: null, acceptWrite };
+  if (snapshot.status === 'locked') return { status: 'locked', data: null, acceptWrite };
+  if (snapshot.status !== 'authenticated') return { status: 'waiting', data: null, acceptWrite };
+  if (!snapshot.permissions.includes('settings.setting.view')) return { status: 'denied', data: null, acceptWrite };
+  return { ...(last?.key === key ? last.state : { status: 'loading' as const, data: null }), acceptWrite };
 }
 
 /** Preserve the exact existing Magic preview state. Connected mode has no

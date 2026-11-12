@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ApiError } from '../src/integration/errors.ts';
-import { readTenantSettings } from '../src/integration/settings-team.ts';
+import { readTenantSettings, updateBusinessProfile, type ServerSettings } from '../src/integration/settings-team.ts';
 
 const origin = 'https://hisabiq.test';
 const descriptor = {
@@ -212,4 +212,125 @@ test('redirect cannot silently switch origins or leak authorization', async () =
       return true;
     });
   });
+});
+
+
+// MOD-001 T01-W/P1: source-matched profile PATCH only. These are intentionally
+// red until the approved adapter exists; no cash or generic SettingKey writes.
+test('profile PATCH sends only server-verified name/timezone and replaces the complete snapshot', async () => {
+  let calls = 0;
+  await withFetch((async (url, init) => {
+    calls++;
+    assert.equal(String(url), origin + '/api/v1/settings/business');
+    assert.equal(init?.method, 'PATCH');
+    assert.equal(init?.redirect, 'error');
+    assert.equal(init?.credentials, 'omit');
+    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer verified-A');
+    assert.deepEqual(JSON.parse(String(init?.body)), {
+      businessName: 'Updated Electrical House',
+      timezone: 'Asia/Dhaka',
+    });
+    return json({ data: { ...resultA.data, businessName: 'Updated Electrical House' } });
+  }) as typeof fetch, async () => {
+    const saved = await updateBusinessProfile(
+      'verified-A', resultA.data as ServerSettings, '  Updated Electrical House  ',
+    );
+    assert.equal(saved.data.businessName, 'Updated Electrical House');
+    assert.deepEqual(saved.data.catalogue, resultA.data.catalogue);
+    assert.deepEqual(saved.data.values, resultA.data.values);
+  });
+  assert.equal(calls, 1);
+});
+
+test('profile PATCH refuses invalid names/timezones before making any HTTP request', async () => {
+  let calls = 0;
+  await withFetch((async () => { calls++; return json(resultA); }) as typeof fetch, async () => {
+    for (const name of ['', ' ', 'x', 'x'.repeat(121)]) {
+      await assert.rejects(updateBusinessProfile('valid-token', resultA.data as ServerSettings, name));
+    }
+    const forged = { ...resultA.data, timezone: 'Europe/Paris' } as ServerSettings;
+    await assert.rejects(updateBusinessProfile('valid-token', forged, 'Valid Shop'));
+    const unsupported = { ...resultA.data, supportedTimezones: ['Europe/Paris'] } as ServerSettings;
+    await assert.rejects(updateBusinessProfile('valid-token', unsupported, 'Valid Shop'));
+  });
+  assert.equal(calls, 0);
+});
+
+test('profile PATCH returns errors without retries, fake success or mutated input', async () => {
+  for (const status of [401, 403, 422, 500]) {
+    let calls = 0;
+    await withFetch((async (_url, init) => {
+      calls++;
+      assert.equal(init?.method, 'PATCH');
+      return json({
+        error: { code: 'REFUSED', message: 'Save failed', details: {}, traceId: 'save-error' },
+      }, status);
+    }) as typeof fetch, async () => {
+      await assert.rejects(
+        updateBusinessProfile('token-A', resultA.data as ServerSettings, 'Valid Business'),
+        (error: unknown) => {
+          assert.ok(error instanceof ApiError);
+          assert.equal(error.kind, 'http');
+          assert.equal(error.status, status);
+          return true;
+        },
+      );
+    });
+    assert.equal(calls, 1);
+    assert.equal(resultA.data.businessName, 'Tenant A Electrical');
+  }
+});
+
+test('profile PATCH rejects malformed success and keeps original server snapshot intact', async () => {
+  for (const response of [{ data: { ...resultA.data, values: { cash_session_enabled: false } } },
+    { data: { ...resultA.data, timezone: 'bad' } }, { message: 'saved' }]) {
+    await withFetch((async () => json(response)) as typeof fetch, async () => {
+      await assert.rejects(updateBusinessProfile('token-A', resultA.data as ServerSettings, 'New Name'),
+        (error: unknown) => error instanceof ApiError && error.kind === 'protocol');
+    });
+  }
+  assert.equal(resultA.data.businessName, 'Tenant A Electrical');
+});
+
+test('aborted or timed out profile PATCH remains a single unknown-outcome request', async () => {
+  for (const reason of ['abort', 'timeout']) {
+    let calls = 0;
+    const aborter = new AbortController();
+    await withFetch((async (_url, init) => {
+      calls++;
+      assert.equal(init?.method, 'PATCH');
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+        if (reason === 'abort') aborter.abort();
+      });
+    }) as typeof fetch, async () => {
+      await assert.rejects(
+        updateBusinessProfile('token-A', resultA.data as ServerSettings, 'Name Valid', aborter.signal, 5),
+        (error: unknown) => error instanceof ApiError && error.kind === 'network',
+      );
+    });
+    assert.equal(calls, 1);
+  }
+});
+
+test('distinct verified tenant tokens PATCH independently; no POST or fixture fallback', async () => {
+  const writes: Record<string, string> = {};
+  await withFetch((async (url, init) => {
+    assert.equal(String(url), origin + '/api/v1/settings/business');
+    assert.equal(init?.method, 'PATCH');
+    const token = new Headers(init?.headers).get('Authorization');
+    assert.ok(token === 'Bearer token-A' || token === 'Bearer token-B');
+    const name = JSON.parse(String(init?.body)).businessName as string;
+    writes[token!] = name;
+    const base = token === 'Bearer token-A' ? resultA.data : resultB.data;
+    return json({ data: { ...base, businessName: name } });
+  }) as typeof fetch, async () => {
+    const a = await updateBusinessProfile('token-A', resultA.data as ServerSettings, 'Shop A New');
+    const b = await updateBusinessProfile('token-B', resultB.data as ServerSettings, 'Shop B New');
+    assert.equal(a.data.businessName, 'Shop A New');
+    assert.equal(b.data.businessName, 'Shop B New');
+    assert.equal(a.data.values.cash_session_enabled, 'off');
+    assert.equal(b.data.values.cash_session_enabled, 'on');
+  });
+  assert.deepEqual(writes, { 'Bearer token-A': 'Shop A New', 'Bearer token-B': 'Shop B New' });
 });
