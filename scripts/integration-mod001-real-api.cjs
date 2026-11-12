@@ -199,7 +199,7 @@ async function exerciseRealMod001(frontend) {
   assert.ok(usersA.data.roles.some(role => role.id === ownerA.roleId));
   assert.ok(rolesA.data.roles.some(role => role.id === ownerA.roleId));
   assert.ok(rolesB.data.roles.some(role => role.id === ownerB.roleId));
-  assert.equal(Object.hasOwn(rolesA.data.roles[0], 'cashRefundPerDayMinor'), false);
+  assert.equal(Object.hasOwn(rolesA.data.roles[0], 'cashRefundPerDayMinor'), true, 'Adoption backend role caps are required');
   console.log('T02-R PASS: real user and role GET, server ULIDs, two separate role catalogues');
 
   const oldRole = ownerA.roleId;
