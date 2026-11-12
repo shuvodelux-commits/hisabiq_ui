@@ -158,7 +158,7 @@ function ConnectedInvoiceEditor({
     setBusy('saving');
     try {
       const response = await updateServerInvoicePreference(
-        accessToken, saved, choice.field, choice.value, operation.signal,
+        accessToken, saved, choice.field, choice.value as ServerInvoiceSettings[ServerInvoicePreferenceField], operation.signal,
       );
       if (!mounted.current || operation.signal.aborted ||
           activeIdentity.current !== requestIdentity) return;
@@ -273,7 +273,7 @@ function ConnectedInvoiceEditor({
           ))}
         </div>
         <div className="mt-3 flex flex-wrap justify-end">
-          <Button size="sm" variant="outline" disabled={busy !== 'idle'} onClick={() => void refresh()}>
+          <Button kind="outline" disabled={busy !== 'idle'} onClick={() => void refresh()}>
             {busy === 'refreshing' ? 'Refreshing…' : 'Refresh from server'}
           </Button>
         </div>
