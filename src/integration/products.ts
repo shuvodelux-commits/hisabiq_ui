@@ -271,3 +271,76 @@ export function readProduct(
   if (!validId(productId)) return Promise.reject(new ApiError('protocol', 'Invalid product ID'));
   return read(accessToken, `/api/v1/products/${productId}`, decodeProduct, signal, timeoutMs);
 }
+
+
+/**
+ * MOD-002 T01B/P2: safe transport for the backend's existing Product actions.
+ * These do NOT activate connected Products UI or translate rich form drafts into
+ * the legacy SaveProductRequest. Both POSTs may have an ambiguous outcome on
+ * transport failure and must never be automatically retried.
+ */
+export interface ServerGeneratedBarcodeEnvelope {
+  data: { barcode: string };
+}
+
+function decodeGeneratedBarcode(raw: unknown): ServerGeneratedBarcodeEnvelope {
+  if (!record(raw) || !exactKeys(raw, ['data']) ||
+      !record(raw.data) || !exactKeys(raw.data, ['barcode']) ||
+      typeof raw.data.barcode !== 'string') return invalid();
+  return raw as unknown as ServerGeneratedBarcodeEnvelope;
+}
+
+async function productAction<T>(
+  accessToken: string,
+  productId: string,
+  action: 'status' | 'barcode',
+  body: unknown,
+  decode: (raw: unknown) => T,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<T> {
+  if (!validId(productId) || !Number.isSafeInteger(timeoutMs) ||
+      timeoutMs < 1 || timeoutMs > 120_000) return invalid();
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    // No Idempotency-Key is invented for these legacy endpoints, no cache,
+    // retry, in-memory preview write or client-controlled tenant header.
+    return await requestJson({
+      method: 'POST',
+      path: ('/api/v1/products/' + productId + '/' + action) as Parameters<typeof requestJson>[0]['path'],
+      accessToken,
+      ...(body === undefined ? {} : { body }),
+      signal: controller.signal,
+    }, decode);
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
+
+/** A standalone server status command, NOT a generic full-product PATCH. */
+export async function setProductStatus(
+  accessToken: string,
+  productId: string,
+  status: ServerProductStatus,
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<ServerProductEnvelope> {
+  if (status !== 'ACTIVE' && status !== 'INACTIVE') return invalid();
+  return productAction(accessToken, productId, 'status', { status }, decodeProduct, signal, timeoutMs);
+}
+
+/** Backend owns barcode numbering; a lost response is not safe to auto-retry. */
+export async function generateProductBarcode(
+  accessToken: string,
+  productId: string,
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<ServerGeneratedBarcodeEnvelope> {
+  return productAction(accessToken, productId, 'barcode', undefined,
+    decodeGeneratedBarcode, signal, timeoutMs);
+}
