@@ -54,7 +54,8 @@ function fakeClock() {
     }
     throw new Error('Timer loop did not settle');
   }
-  return { clock, advance };
+  function elapseWithoutTimers(ms: number) { now += ms; }
+  return { clock, advance, elapseWithoutTimers };
 }
 function auth(overrides: Record<string, unknown> = {}) {
   const calls = { login: 0, pin: 0, refresh: 0, me: 0, logout: [] as string[] };
@@ -368,5 +369,19 @@ test('missing server profile during refresh is a hard sign-out, not a reusable o
   await assert.rejects(store.refresh(), (e: unknown) => e instanceof ApiError && e.status === 404);
   assert.equal(store.getSnapshot().status, 'signed-out');
   assert.equal(storage.getItem(SESSION_STORAGE_KEY), null);
+  store.dispose();
+});
+
+test('returning activity after a background-tab timer delay locks before resetting idle', async () => {
+  const { api } = auth();
+  const { clock, elapseWithoutTimers } = fakeClock();
+  const store = make(api, memoryStorage(), clock);
+  await store.loginWithPassword('phone', 'password');
+  elapseWithoutTimers(30 * 60_000 + 1);
+  store.recordActivity();
+  const snapshot = store.getSnapshot();
+  assert.equal(snapshot.status, 'locked');
+  assert.equal('accessToken' in snapshot, false);
+  assert.equal('permissions' in snapshot, false);
   store.dispose();
 });

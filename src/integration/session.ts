@@ -239,7 +239,14 @@ export class SessionStore {
 
   recordActivity(): void {
     if (this.snapshot.status !== 'authenticated') return;
-    this.lastActivity = this.clock.now();
+    // Browser timers can be suspended or throttled in background tabs.
+    // Never allow the first returning input to bypass an expired idle limit.
+    const now = this.clock.now();
+    if (now - this.lastActivity >= this.inactivityMs) {
+      this.lock();
+      return;
+    }
+    this.lastActivity = now;
     this.scheduleIdle();
   }
 
