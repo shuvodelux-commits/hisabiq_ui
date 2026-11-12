@@ -34,6 +34,12 @@ function ulid(value: unknown): value is string {
   return typeof value === 'string' && ulidPattern.test(value);
 }
 
+// Existing Nest JWT and rotating refresh credentials are ASCII token strings.
+// Reject whitespace/control-bearing tokens before the future SessionStore sees them.
+function validToken(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9._-]+$/.test(value);
+}
+
 function invalidResponse(): never {
   throw new ApiError('protocol', 'Invalid API response');
 }
@@ -41,13 +47,15 @@ function invalidResponse(): never {
 function decodeLogin(raw: unknown): LoginResponse {
   if (!record(raw) || !record(raw.data)) return invalidResponse();
   const data = raw.data;
-  if (!nonblank(data.accessToken) || !nonblank(data.refreshToken) || !record(data.user) ||
+  if (!validToken(data.accessToken) || !validToken(data.refreshToken) || !record(data.user) ||
       !ulid(data.user.id) || !nonblank(data.user.username)) return invalidResponse();
   return raw as unknown as LoginResponse;
 }
 
 function validTimezone(value: unknown): value is string {
   if (!nonblank(value)) return false;
+  // Match the backend /me schema rather than accepting unrelated Intl aliases.
+  if (value !== 'UTC' && !/^[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)+$/.test(value)) return false;
   try {
     new Intl.DateTimeFormat('en', { timeZone: value });
     return true;

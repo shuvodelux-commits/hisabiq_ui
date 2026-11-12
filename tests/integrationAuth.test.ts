@@ -120,6 +120,9 @@ test('malformed login envelope, tokens and user ULID are protocol errors before 
     { data: null },
     { data: { ...loginEnvelope.data, accessToken: '' } },
     { data: { ...loginEnvelope.data, accessToken: '   ' } },
+    { data: { ...loginEnvelope.data, accessToken: 'access token' } },
+    { data: { ...loginEnvelope.data, accessToken: 'abc\n123' } },
+    { data: { ...loginEnvelope.data, refreshToken: 'refresh\tbad' } },
     { data: { ...loginEnvelope.data, refreshToken: '' } },
     { data: { ...loginEnvelope.data, user: { ...loginEnvelope.data.user, id: 'not-a-ulid' } } },
     { data: { ...loginEnvelope.data, user: { ...loginEnvelope.data.user, id: '8' + userId.slice(1) } } },
@@ -168,7 +171,7 @@ test('/me accepts real IANA timezone and rejects unknown timezone', async () => 
   await withFetch((async () => json({ data: { ...accessEnvelope.data, timezone: 'America/New_York' } })) as typeof fetch, async () => {
     assert.equal((await readMyAccess('access')).data.timezone, 'America/New_York');
   });
-  for (const timezone of ['', 'Mars/Olympus', 'Asia/Not_Dhaka', 6]) {
+  for (const timezone of ['', 'GMT', 'Mars/Olympus', 'Asia/Not_Dhaka', 6]) {
     await withFetch((async () => json({ data: { ...accessEnvelope.data, timezone } })) as typeof fetch, async () => {
       await assert.rejects(readMyAccess('access'), (error: unknown) => error instanceof ApiError && error.kind === 'protocol');
     });
