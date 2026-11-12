@@ -11,7 +11,14 @@ import { SettingCard } from '../../ui';
 import { SaveBar } from '../SaveBar';
 import { DesignGallery } from './DesignGallery';
 import { useSession } from '../../../integration/SessionProvider.tsx';
-import { readInvoiceSettings, type ServerInvoiceSettings } from '../../../integration/invoice-settings.ts';
+import {
+  readInvoiceSettings, updateServerInvoicePreference,
+  type ServerInvoiceSettings, type ServerInvoicePreferenceField,
+} from '../../../integration/invoice-settings.ts';
+import {
+  stageInvoiceChoice, confirmInvoiceChoice, canSaveInvoiceChoice,
+  verifiedInvoiceEditorIdentity, editableBooleanFields, type InvoiceChoice,
+} from './connectedInvoiceDraft.ts';
 import { ApiError } from '../../../integration/errors.ts';
 
 type Props = { canEdit: boolean; onDirtyChange: (dirty: boolean) => void };
@@ -24,22 +31,39 @@ const langOptions = [
 
 type InvoiceReadStatus = 'waiting' | 'loading' | 'ready' | 'denied' | 'error' | 'locked';
 type InvoiceRead = { status: InvoiceReadStatus; data: ServerInvoiceSettings | null };
+type LiveInvoiceRead = InvoiceRead & {
+  connected: boolean;
+  identityKey: string | null;
+  accessToken: string | null;
+  canWrite: boolean;
+  acceptConfirmed: (identity: string, data: ServerInvoiceSettings) => void;
+};
 /** Current tenant's invoice settings must be read using the actual /me session.
  * A refresh or tenant switch hides the previous record *during render*, before
  * effect cleanup. No browser-preview invoice data is a connected fallback. */
-function useVerifiedInvoiceRead(): InvoiceRead & { connected: boolean } {
+function useVerifiedInvoiceRead(): LiveInvoiceRead {
   const { mode, snapshot } = useSession();
   const connected = mode === 'connected';
-  const key = connected && snapshot.status === 'authenticated'
-    ? `${snapshot.tenantId}:${snapshot.userId}:${snapshot.epoch}:${snapshot.accessToken}`
-    : `${mode}:${snapshot.status}:${snapshot.epoch}`;
+  const identityKey = verifiedInvoiceEditorIdentity(mode, snapshot);
+  const key = identityKey ?? `${mode}:${snapshot.status}:${snapshot.epoch}`;
   const identity = useRef(key);
   identity.current = key;
   const [record, setRecord] = useState<{
     key: string; status: 'loading' | 'ready' | 'denied' | 'error'; data: ServerInvoiceSettings | null;
   } | null>(null);
-  const canRead = connected && snapshot.status === 'authenticated' &&
+  const canRead = connected && identityKey !== null &&
+    snapshot.status === 'authenticated' &&
     snapshot.permissions.includes('sale.invoice.view');
+  const canWrite = canRead && snapshot.status === 'authenticated' &&
+    snapshot.permissions.includes('settings.setting.edit');
+  const accessToken = canRead && snapshot.status === 'authenticated'
+    ? snapshot.accessToken : null;
+  const acceptConfirmed = (requestIdentity: string, data: ServerInvoiceSettings) => {
+    if (identity.current === requestIdentity) {
+      setRecord({ key: requestIdentity, status: 'ready', data });
+    }
+  };
+  const extra = { identityKey, canWrite, accessToken, acceptConfirmed };
 
   useEffect(() => {
     if (!canRead || snapshot.status !== 'authenticated') return;
@@ -58,11 +82,217 @@ function useVerifiedInvoiceRead(): InvoiceRead & { connected: boolean } {
     return () => controller.abort();
   }, [canRead, key]);
 
-  if (!connected) return { connected, status: 'waiting', data: null };
-  if (snapshot.status === 'locked') return { connected, status: 'locked', data: null };
-  if (snapshot.status !== 'authenticated') return { connected, status: 'waiting', data: null };
-  if (!canRead) return { connected, status: 'denied', data: null };
-  return { connected, ...(record?.key === key ? record : { status: 'loading' as const, data: null }) };
+  if (!connected) return { connected, status: 'waiting', data: null, ...extra };
+  if (snapshot.status === 'locked') return { connected, status: 'locked', data: null, ...extra };
+  if (snapshot.status !== 'authenticated') return { connected, status: 'waiting', data: null, ...extra };
+  if (!canRead) return { connected, status: 'denied', data: null, ...extra };
+  return { connected, ...extra, ...(record?.key === key ? record : { status: 'loading' as const, data: null }) };
+}
+
+type ConnectedInvoiceEditorProps = {
+  identityKey: string;
+  accessToken: string;
+  initialSaved: ServerInvoiceSettings;
+  canEdit: boolean;
+  onDirtyChange: (dirty: boolean) => void;
+  onConfirmed: (identityKey: string, data: ServerInvoiceSettings) => void;
+};
+const connectedBoolLabels: Record<(typeof editableBooleanFields)[number], string> = {
+  showLogo: 'Show existing logo · লোগো দেখান',
+  showCustomerBlock: 'Show customer · ক্রেতার তথ্য',
+  showDiscount: 'Show discount · ছাড়',
+  showPaymentBreakdown: 'Show payments · পরিশোধ',
+  showDue: 'Show due · বাকি',
+  showAmountInWords: 'Amount in words · কথায় টাকা',
+};
+
+/** Verified server-only controls. No preview design, fake plan or sample invoice. */
+function ConnectedInvoiceEditor({
+  identityKey, accessToken, initialSaved, canEdit, onDirtyChange, onConfirmed,
+}: ConnectedInvoiceEditorProps) {
+  const [saved, setSaved] = useState(initialSaved);
+  const [pending, setPending] = useState<InvoiceChoice | null>(null);
+  const [busy, setBusy] = useState<'idle' | 'saving' | 'refreshing'>('idle');
+  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [writeDenied, setWriteDenied] = useState(false);
+  const [feedback, setFeedback] = useState('Choose one supported option, then Save. · একটি সেটিং পরিবর্তন করুন।');
+  const activeIdentity = useRef(identityKey);
+  const activeOperation = useRef<AbortController | null>(null);
+  const mounted = useRef(true);
+  const dirty = pending !== null;
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      activeOperation.current?.abort();
+      onDirtyChange(false);
+    };
+  }, [onDirtyChange]);
+  useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
+
+  const allowEdits = canEdit && !writeDenied && !needsRefresh && busy === 'idle';
+  const selectValue = (field: ServerInvoicePreferenceField) =>
+    pending?.field === field ? pending.value : saved[field];
+  const inputDisabled = (field: ServerInvoicePreferenceField) =>
+    !allowEdits || (pending !== null && pending.field !== field);
+  const stage = (field: ServerInvoicePreferenceField, value: string | boolean) => {
+    if (!allowEdits) return;
+    setPending(current => stageInvoiceChoice(saved, current, field, value));
+    setFeedback('Change not yet saved. · পরিবর্তন এখনো সংরক্ষিত হয়নি।');
+  };
+  const discard = () => {
+    if (busy !== 'idle') return;
+    setPending(null);
+    setFeedback(needsRefresh
+      ? 'Earlier save outcome is unknown. Refresh from server before editing again. · পুনরায় লোড করুন।'
+      : 'Draft discarded. Server settings unchanged. · পরিবর্তন বাতিল হয়েছে।');
+  };
+  const save = async () => {
+    if (!canSaveInvoiceChoice(pending, canEdit && !writeDenied, busy !== 'idle', needsRefresh) ||
+        pending === null) return;
+    const choice = pending;
+    const requestIdentity = identityKey;
+    const operation = new AbortController();
+    activeOperation.current = operation;
+    setBusy('saving');
+    try {
+      const response = await updateServerInvoicePreference(
+        accessToken, saved, choice.field, choice.value as ServerInvoiceSettings[ServerInvoicePreferenceField], operation.signal,
+      );
+      if (!mounted.current || operation.signal.aborted ||
+          activeIdentity.current !== requestIdentity) return;
+      const confirmed = confirmInvoiceChoice(
+        activeIdentity.current, requestIdentity, choice, response.data,
+      );
+      if (confirmed === null) throw Error('Server confirmation does not match the draft');
+      setSaved(confirmed);
+      setPending(null);
+      setNeedsRefresh(false);
+      setFeedback('Saved to your business. · ব্যবসার সেটিং সংরক্ষিত হয়েছে।');
+      onConfirmed(requestIdentity, confirmed);
+    } catch (error: unknown) {
+      if (!mounted.current || operation.signal.aborted ||
+          activeIdentity.current !== requestIdentity) return;
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+        setWriteDenied(true);
+        setFeedback('Permission denied. Sign in again before changing invoice settings. · অনুমতি নেই।');
+      } else {
+        setFeedback('Save NOT confirmed. Your draft remains. Refresh from server before another Save. · সংরক্ষণ নিশ্চিত নয়।');
+      }
+      // The first PUT might have committed even if its response failed.
+      // Never retry blindly: a fresh GET is mandatory.
+      setNeedsRefresh(true);
+    } finally {
+      if (activeOperation.current === operation) activeOperation.current = null;
+      if (mounted.current && activeIdentity.current === requestIdentity) setBusy('idle');
+    }
+  };
+  const refresh = async () => {
+    if (busy !== 'idle') return;
+    const requestIdentity = identityKey;
+    const operation = new AbortController();
+    activeOperation.current = operation;
+    setBusy('refreshing');
+    try {
+      const response = await readInvoiceSettings(accessToken, operation.signal);
+      if (!mounted.current || operation.signal.aborted ||
+          activeIdentity.current !== requestIdentity) return;
+      setSaved(response.data);
+      setPending(current => current && Object.is(response.data[current.field], current.value)
+        ? null : current);
+      setNeedsRefresh(false);
+      setFeedback(writeDenied
+        ? 'Latest server values loaded. Editing remains blocked until a new verified session.'
+        : 'Latest server values loaded. Review your draft before saving. · নতুন তথ্য লোড হয়েছে।');
+      onConfirmed(requestIdentity, response.data);
+    } catch (error: unknown) {
+      if (!mounted.current || operation.signal.aborted ||
+          activeIdentity.current !== requestIdentity) return;
+      setNeedsRefresh(true);
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+        setWriteDenied(true);
+      }
+      setFeedback('Refresh failed. Server state is not confirmed. · নতুন তথ্য পাওয়া যায়নি।');
+    } finally {
+      if (activeOperation.current === operation) activeOperation.current = null;
+      if (mounted.current && activeIdentity.current === requestIdentity) setBusy('idle');
+    }
+  };
+
+  const enumControls = [
+    { field: 'language' as const, label: 'Document language · ভাষা',
+      values: [{ id: 'EN', label: 'English' }, { id: 'BN', label: 'বাংলা' }] },
+    { field: 'defaultTemplate' as const, label: 'Paper template · কাগজের ধরন',
+      values: [{ id: 'A4', label: 'A4' }, { id: 'THERMAL_80', label: 'Thermal receipt' }] },
+    { field: 'thermalPaper' as const, label: 'Thermal width · রোলের মাপ',
+      values: [{ id: '58mm', label: '58 mm' }, { id: '80mm', label: '80 mm' }] },
+  ];
+  return (
+    <div className="space-y-3" data-settings-live-invoice-editor>
+      <SettingCard
+        title="Edit supported options" titleBn="সমর্থিত সেটিং পরিবর্তন"
+        description="Saved to this business only after server confirmation. Other design options remain in preview."
+      >
+        {!canEdit && (
+          <p className="text-[12px] text-ink-500">View only: business settings edit permission is required. · সম্পাদনার অনুমতি নেই।</p>
+        )}
+        <p className="text-[12px] text-ink-500">
+          Save or Discard one change before editing another. The invoice logo upload and six visual designs are not connected.
+        </p>
+        <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
+          {enumControls.map(item => (
+            <label key={item.field} className="block min-w-0 text-[12px] font-medium text-ink-700">
+              {item.label}
+              <select
+                aria-label={item.label}
+                value={String(selectValue(item.field))}
+                disabled={inputDisabled(item.field)}
+                onChange={e => stage(item.field, e.target.value)}
+                className="mt-1 block h-9 w-full rounded-md border border-input bg-card px-2 text-[13px] text-ink focus-visible:border-teal-600 focus-visible:outline-none"
+              >
+                {item.values.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+              </select>
+            </label>
+          ))}
+        </div>
+        <div className="mt-3 grid gap-x-4 gap-y-1 sm:grid-cols-2">
+          {editableBooleanFields.map(field => (
+            <div key={field} className="flex min-h-9 items-center justify-between gap-3 rounded-md px-1 hover:bg-ink-50">
+              <label htmlFor={'invoice-live-' + field} className="min-w-0 text-[12px] text-ink-700">
+                {connectedBoolLabels[field]}
+              </label>
+              <SettingsToggle
+                id={'invoice-live-' + field}
+                aria-label={connectedBoolLabels[field]}
+                checked={Boolean(selectValue(field))}
+                disabled={inputDisabled(field)}
+                onCheckedChange={checked => stage(field, checked)}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap justify-end">
+          <Button kind="outline" disabled={busy !== 'idle'} onClick={() => void refresh()}>
+            {busy === 'refreshing' ? 'Refreshing…' : 'Refresh from server'}
+          </Button>
+        </div>
+      </SettingCard>
+      <SaveBar
+        dirty={dirty}
+        saving={busy !== 'idle'}
+        status={feedback}
+        dirtyLabel={feedback}
+        error={needsRefresh || writeDenied ? feedback : undefined}
+        onSave={() => void save()}
+        onDiscard={discard}
+        saveDisabled={!canSaveInvoiceChoice(pending, canEdit && !writeDenied, busy !== 'idle', needsRefresh)}
+        saveLabel="Save change"
+        // A denied save still permits the local draft to be discarded.
+        readOnly={!canEdit}
+      />
+    </div>
+  );
 }
 
 /** Invoices & printing → Invoice design: gallery, paper, language, color, content and a sticky live preview. */
@@ -122,7 +352,7 @@ export function InvoiceStudio({ canEdit: previewCanEdit, onDirtyChange }: Props)
   if (connected) {
     const server = verified.data;
     const message = verified.status === 'ready'
-      ? 'Verified invoice preferences loaded. Editing and printing remain disabled until server-backed design controls are approved. · সার্ভারের চালানের সেটিংস যাচাই হয়েছে।'
+      ? 'Verified invoice preferences loaded. Supported options can be edited below where permitted. · চালানের তথ্য যাচাই হয়েছে।'
       : verified.status === 'loading' ? 'Loading verified invoice settings… · চালানের তথ্য লোড হচ্ছে…'
         : verified.status === 'denied' ? 'Invoice viewing permission is not granted. · চালান দেখার অনুমতি নেই।'
           : verified.status === 'locked' ? 'Unlock your session to view invoice settings. · সেশন আনলক করুন।'
@@ -150,6 +380,17 @@ export function InvoiceStudio({ canEdit: previewCanEdit, onDirtyChange }: Props)
             </dl>
           )}
         </SettingCard>
+        {verified.status === 'ready' && server && verified.identityKey && verified.accessToken && (
+          <ConnectedInvoiceEditor
+            key={verified.identityKey}
+            identityKey={verified.identityKey}
+            accessToken={verified.accessToken}
+            initialSaved={server}
+            canEdit={verified.canWrite}
+            onDirtyChange={onDirtyChange}
+            onConfirmed={verified.acceptConfirmed}
+          />
+        )}
       </div>
     );
   }
