@@ -170,6 +170,9 @@ export interface ServerRole {
   isSystem: boolean;
   locked: boolean;
   permissions: string[];
+  /** Exact backend adoption role caps in minor currency units. Null = unlimited; 0 = no cash refund. */
+  cashRefundPerReturnMinor: number | null;
+  cashRefundPerDayMinor: number | null;
   userCount: number;
 }
 export interface ServerPermissionDescriptor {
@@ -192,6 +195,10 @@ function id(value: unknown): value is string {
 function nullableText(value: unknown): value is string | null {
   return value === null || typeof value === 'string';
 }
+/** Role refund caps are amounts, not privileges or UI toggles. */
+function refundLimit(value: unknown): value is number | null {
+  return value === null || (Number.isSafeInteger(value) && (value as number) >= 0);
+}
 function serverUser(value: unknown): value is ServerUser {
   return record(value) &&
     exactKeys(value, ['id','username','displayName','email','phone','roleId','roleName','disabled','hasPassword']) &&
@@ -206,10 +213,11 @@ function roleSummary(value: unknown): value is ServerRoleSummary {
 }
 function roleDetail(value: unknown): value is ServerRole {
   return record(value) &&
-    exactKeys(value, ['id','code','name','isSystem','locked','permissions','userCount']) &&
+    exactKeys(value, ['id','code','name','isSystem','locked','permissions','cashRefundPerReturnMinor','cashRefundPerDayMinor','userCount']) &&
     id(value.id) && nonblank(value.code) && nonblank(value.name) &&
     typeof value.isSystem === 'boolean' && typeof value.locked === 'boolean' &&
     Array.isArray(value.permissions) && value.permissions.every(nonblank) &&
+    refundLimit(value.cashRefundPerReturnMinor) && refundLimit(value.cashRefundPerDayMinor) &&
     Number.isSafeInteger(value.userCount) && (value.userCount as number) >= 0;
 }
 function permissionDescriptor(value: unknown): value is ServerPermissionDescriptor {
