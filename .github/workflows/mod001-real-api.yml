@@ -1,0 +1,116 @@
+name: MOD-001 Real Settings and Team API Acceptance
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/mod001-real-api.yml'
+      - 'scripts/integration-mod001-real-api.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mod001-real-api-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pg16-settings-team:
+    name: Actual Nest/PG16 Settings and Team roundtrips
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mod001_test_only
+          POSTGRES_DB: hisabiq_mod001_acceptance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d hisabiq_mod001_acceptance_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      ADMIN_DATABASE_URL: postgres://postgres:mod001_test_only@127.0.0.1:5432/hisabiq_mod001_acceptance_test
+      DATABASE_URL: postgres://sher_app:sher_app_test@127.0.0.1:5432/hisabiq_mod001_acceptance_test
+      JWT_SECRET: hisabiq_mod001_ci_only_secret_do_not_reuse_1234567890
+      PORT: '3000'
+      WEB_ORIGIN: http://127.0.0.1:5173
+      IDENTITY_VERIFIER: dev
+      SINGLE_TENANT_MODE: 'false'
+      ENTITLEMENT_SOURCE: subscription
+      APPROVED_BACKEND_SHA: 2005609f4e367ceabd1e2ac4a9aee18444c9314a
+      APPROVED_FRONTEND_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout immutable frontend candidate
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+          ref: ${{ env.APPROVED_FRONTEND_SHA }}
+          persist-credentials: false
+      - name: Verify frontend checkout and backend pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$APPROVED_FRONTEND_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$APPROVED_BACKEND_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C frontend rev-parse HEAD)" = "$APPROVED_FRONTEND_SHA"
+      - name: Checkout approved backend commit — no moving branches
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/nestshererp
+          ref: ${{ env.APPROVED_BACKEND_SHA }}
+          path: backend
+          persist-credentials: false
+      - name: Set up backend Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Set up pinned pnpm 9.15.9
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+      - name: Frozen backend installation and API compilation
+        working-directory: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$APPROVED_BACKEND_SHA"
+          pnpm install --frozen-lockfile
+          pnpm --filter "@sher/api..." build
+          echo "BACKEND_NODE_BIN=$(command -v node)" >> "$GITHUB_ENV"
+      - name: Set up frontend Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frozen frontend install and focused adapters
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          node --experimental-strip-types --test tests/integration-settings-team.test.ts tests/integration-team-read.test.ts tests/integration-user-rename.test.ts
+          npx tsc --noEmit
+      - name: Execute real two-tenant Settings and Team acceptance on disposable PostgreSQL16
+        working-directory: frontend
+        env:
+          BACKEND_ROOT: ${{ github.workspace }}/backend
+          FRONTEND_ROOT: ${{ github.workspace }}/frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-strip-types scripts/integration-mod001-real-api.cjs
+      - name: Check both checkouts remain unmodified
+        if: always()
+        shell: bash
+        run: |
+          git -C frontend status --short
+          git -C backend status --short
