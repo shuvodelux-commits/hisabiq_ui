@@ -1,5 +1,5 @@
 import { SettingsToggle } from '../SettingsToggle';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Crown, Lock, Printer } from 'lucide-react';
@@ -10,6 +10,9 @@ import { InvoiceDocument } from './InvoiceDocument';
 import { SettingCard } from '../../ui';
 import { SaveBar } from '../SaveBar';
 import { DesignGallery } from './DesignGallery';
+import { useSession } from '../../../integration/SessionProvider.tsx';
+import { readInvoiceSettings, type ServerInvoiceSettings } from '../../../integration/invoice-settings.ts';
+import { ApiError } from '../../../integration/errors.ts';
 
 type Props = { canEdit: boolean; onDirtyChange: (dirty: boolean) => void };
 
@@ -19,8 +22,54 @@ const langOptions = [
   { id: 'bn', label: 'সম্পূর্ণ বাংলা' },
 ];
 
+type InvoiceReadStatus = 'waiting' | 'loading' | 'ready' | 'denied' | 'error' | 'locked';
+type InvoiceRead = { status: InvoiceReadStatus; data: ServerInvoiceSettings | null };
+/** Current tenant's invoice settings must be read using the actual /me session.
+ * A refresh or tenant switch hides the previous record *during render*, before
+ * effect cleanup. No browser-preview invoice data is a connected fallback. */
+function useVerifiedInvoiceRead(): InvoiceRead & { connected: boolean } {
+  const { mode, snapshot } = useSession();
+  const connected = mode === 'connected';
+  const key = connected && snapshot.status === 'authenticated'
+    ? `${snapshot.tenantId}:${snapshot.userId}:${snapshot.epoch}:${snapshot.accessToken}`
+    : `${mode}:${snapshot.status}:${snapshot.epoch}`;
+  const identity = useRef(key);
+  identity.current = key;
+  const [record, setRecord] = useState<{
+    key: string; status: 'loading' | 'ready' | 'denied' | 'error'; data: ServerInvoiceSettings | null;
+  } | null>(null);
+  const canRead = connected && snapshot.status === 'authenticated' &&
+    snapshot.permissions.includes('sale.invoice.view');
+
+  useEffect(() => {
+    if (!canRead || snapshot.status !== 'authenticated') return;
+    const controller = new AbortController();
+    const requestKey = key;
+    setRecord({ key: requestKey, status: 'loading', data: null });
+    void readInvoiceSettings(snapshot.accessToken, controller.signal).then(response => {
+      if (!controller.signal.aborted && identity.current === requestKey) {
+        setRecord({ key: requestKey, status: 'ready', data: response.data });
+      }
+    }).catch((error: unknown) => {
+      if (controller.signal.aborted || identity.current !== requestKey) return;
+      const denied = error instanceof ApiError && (error.status === 401 || error.status === 403);
+      setRecord({ key: requestKey, status: denied ? 'denied' : 'error', data: null });
+    });
+    return () => controller.abort();
+  }, [canRead, key]);
+
+  if (!connected) return { connected, status: 'waiting', data: null };
+  if (snapshot.status === 'locked') return { connected, status: 'locked', data: null };
+  if (snapshot.status !== 'authenticated') return { connected, status: 'waiting', data: null };
+  if (!canRead) return { connected, status: 'denied', data: null };
+  return { connected, ...(record?.key === key ? record : { status: 'loading' as const, data: null }) };
+}
+
 /** Invoices & printing → Invoice design: gallery, paper, language, color, content and a sticky live preview. */
-export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
+export function InvoiceStudio({ canEdit: previewCanEdit, onDirtyChange }: Props) {
+  const verified = useVerifiedInvoiceRead();
+  const connected = verified.connected;
+  const canEdit = !connected && previewCanEdit;
   const navigate = useNavigate();
   const reduced = useReducedMotion();
   // In Phase 1 this visual preview uses the source's Free-plan gallery state.
@@ -43,7 +92,7 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
     if (contentToggles.some((t) => draft.content[t.key] !== saved.content[t.key])) list.push('what to show');
     return list;
   }, [draft, saved]);
-  const dirty = changes.length > 0;
+  const dirty = !connected && changes.length > 0;
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
   useEffect(() => { if (!dirty) setCompare(false); }, [dirty]);
@@ -66,6 +115,44 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
 
   const shown = compare ? saved : draft;
   const zoom = shown.paper === 'a4' || shown.paper === 'pad' ? 0.78 : 1;
+
+  // Do NOT present the six-design demo, prefilled sample invoice, or preview-only
+  // plan claims as server facts. The server has EN/BN and an A4/thermal
+  // renderer, not the Magic six-design/brand-colour/MIXED feature contract.
+  if (connected) {
+    const server = verified.data;
+    const message = verified.status === 'ready'
+      ? 'Verified invoice preferences loaded. Editing and printing remain disabled until server-backed design controls are approved. · সার্ভারের চালানের সেটিংস যাচাই হয়েছে।'
+      : verified.status === 'loading' ? 'Loading verified invoice settings… · চালানের তথ্য লোড হচ্ছে…'
+        : verified.status === 'denied' ? 'Invoice viewing permission is not granted. · চালান দেখার অনুমতি নেই।'
+          : verified.status === 'locked' ? 'Unlock your session to view invoice settings. · সেশন আনলক করুন।'
+            : verified.status === 'error' ? 'Invoice settings unavailable. No sample data shown. · চালানের তথ্য পাওয়া যায়নি।'
+              : 'Verified session required before invoice settings can be viewed. · যাচাইকৃত সেশন প্রয়োজন।';
+    return (
+      <div className="space-y-4" data-settings-magic-invoice-studio data-settings-live-invoice-read>
+        <SettingCard
+          title="Invoice settings" titleBn="চালানের সেটিংস"
+          description="Server-owned invoice options · সার্ভারে সংরক্ষিত চালানের তথ্য"
+        >
+          <p role="status" aria-live="polite" className="text-[13px] text-ink-600">{message}</p>
+          {verified.status === 'ready' && server && (
+            <dl className="mt-4 grid min-w-0 gap-x-5 gap-y-3 text-[13px] sm:grid-cols-2">
+              <div><dt className="text-ink-500">Document language · ভাষা</dt><dd className="font-medium text-ink">{server.language === 'BN' ? 'বাংলা' : 'English'}</dd></div>
+              <div><dt className="text-ink-500">Paper · কাগজ</dt><dd className="font-medium text-ink">{server.defaultTemplate === 'A4' ? 'A4' : server.thermalPaper + ' thermal'}</dd></div>
+              <div><dt className="text-ink-500">Logo · লোগো</dt><dd className="font-medium text-ink">{server.hasLogo ? 'Uploaded' : 'Not uploaded'} · {server.showLogo ? 'Show on invoice' : 'Hidden'}</dd></div>
+              <div><dt className="text-ink-500">Business information</dt><dd className="font-medium text-ink">{server.showBusinessBlock ? 'Shown' : 'Hidden'}</dd></div>
+              <div><dt className="text-ink-500">Customer information</dt><dd className="font-medium text-ink">{server.showCustomerBlock ? 'Shown' : 'Hidden'}</dd></div>
+              <div><dt className="text-ink-500">Discount and payments</dt><dd className="font-medium text-ink">{server.showDiscount ? 'Discount shown' : 'Discount hidden'} · {server.showPaymentBreakdown ? 'Payment breakdown shown' : 'Payment breakdown hidden'}</dd></div>
+              <div><dt className="text-ink-500">Due and amount in words</dt><dd className="font-medium text-ink">{server.showDue ? 'Due shown' : 'Due hidden'} · {server.showAmountInWords ? 'Amount in words shown' : 'Amount in words hidden'}</dd></div>
+              <div><dt className="text-ink-500">Thank-you/footer line</dt><dd className="font-medium text-ink">{server.footerText ?? 'Localized default'}</dd></div>
+              <div><dt className="text-ink-500">Business-pad printing</dt><dd className="font-medium text-ink">{server.businessPadEnabled ? 'Enabled' : 'Disabled'}</dd></div>
+              <div><dt className="text-ink-500">Terms lines</dt><dd className="font-medium text-ink">{server.terms.length} configured</dd></div>
+            </dl>
+          )}
+        </SettingCard>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4" data-settings-magic-invoice-studio>
