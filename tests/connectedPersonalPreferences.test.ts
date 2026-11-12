@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { personalDefaults, personalKey } from '../src/settings/model.ts';
 import type { SessionSnapshot } from '../src/integration/session.ts';
+import type { ConnectedPersonalScope } from '../src/settings/connectedPersonalPreferences.ts';
 import {
   connectedPersonalScope, personalStorageKey,
   readConnectedPersonal, writeConnectedPersonal,
@@ -16,6 +17,11 @@ function verified(tenantId = tenantA, userId = userA, epoch = 1): SessionSnapsho
     username: 'test', displayName: 'Test', roleName: 'Owner', businessName: 'Test business',
     timezone: 'Asia/Dhaka', permissions: ['settings.setting.view'],
     features: [], persistence: 'memory' };
+}
+function requireScope(snapshot: SessionSnapshot): ConnectedPersonalScope {
+  const scope = connectedPersonalScope(snapshot);
+  assert.ok(scope, 'real verified ULID identity required');
+  return scope;
 }
 class FakeStorage {
   readonly data = new Map<string,string>();
@@ -35,12 +41,12 @@ test('scope is authenticated and server-identity-only, never preview, locked or 
   assert.equal(connectedPersonalScope(verified(tenantA,'mahmud')),null);
 });
 test('keys are unique across actual tenant and user, but stable across a token epoch', () => {
-  const a = connectedPersonalScope(verified())!;
+  const a = requireScope(verified());
   const key = personalStorageKey(a);
   assert.equal(key,'hisabiq-erp-personal-v2:'+tenantA+':'+userA);
-  assert.notEqual(key,personalStorageKey(connectedPersonalScope(verified(tenantB,userA))!));
-  assert.notEqual(key,personalStorageKey(connectedPersonalScope(verified(tenantA,userB))!));
-  assert.equal(key,personalStorageKey(connectedPersonalScope(verified(tenantA,userA,18))!));
+  assert.notEqual(key,personalStorageKey(requireScope(verified(tenantB,userA))));
+  assert.notEqual(key,personalStorageKey(requireScope(verified(tenantA,userB))));
+  assert.equal(key,personalStorageKey(requireScope(verified(tenantA,userA,18))));
   assert.notEqual(key,personalKey);
   assert.throws(()=>personalStorageKey({tenantId:'t1',userId:userA,epoch:1}));
 });
@@ -49,15 +55,15 @@ test('connected read never falls back to global preview personal or terminology 
   storage.data.set(personalKey, JSON.stringify({...personalDefaults,language:'Bangla'}));
   storage.data.set('hisabiq-terminology-mode','accounting');
   storage.data.set('hisabiq-entry-date-view','created');
-  assert.deepEqual(readConnectedPersonal(storage,connectedPersonalScope(verified())!),personalDefaults);
-  assert.deepEqual(storage.reads,[personalStorageKey(connectedPersonalScope(verified())!)]);
+  assert.deepEqual(readConnectedPersonal(storage,requireScope(verified())),personalDefaults);
+  assert.deepEqual(storage.reads,[personalStorageKey(requireScope(verified()))]);
   assert.deepEqual(storage.writes,[]);
 });
 test('two tenants and two users preserve distinct validated local preferences', () => {
   const storage = new FakeStorage();
-  const a = connectedPersonalScope(verified())!;
-  const otherTenant = connectedPersonalScope(verified(tenantB,userA))!;
-  const otherUser = connectedPersonalScope(verified(tenantA,userB))!;
+  const a = requireScope(verified());
+  const otherTenant = requireScope(verified(tenantB,userA));
+  const otherUser = requireScope(verified(tenantA,userB));
   const first = {...personalDefaults,language:'Bangla' as const,terminology:'accounting' as const};
   const second = {...personalDefaults,dateView:'created' as const};
   assert.equal(writeConnectedPersonal(storage,a,first),true);
@@ -71,17 +77,19 @@ test('two tenants and two users preserve distinct validated local preferences', 
 });
 test('invalid JSON or invalid personal payload yields defaults, never another identity', () => {
   const storage = new FakeStorage();
-  const scope = connectedPersonalScope(verified())!;
+  const scope = requireScope(verified());
   const key = personalStorageKey(scope);
-  for(const broken of ['{', 'null', '"hi"', JSON.stringify({...personalDefaults,mode:'SUPER'})]) {
+  for(const broken of ['{', 'null', '"hi"', JSON.stringify({...personalDefaults,mode:'SUPER'}),
+    JSON.stringify({...personalDefaults, extraPrivilege:true})]) {
     storage.data.set(key,broken);
     assert.deepEqual(readConnectedPersonal(storage,scope),personalDefaults);
   }
   assert.equal(writeConnectedPersonal(storage,scope,{...personalDefaults,mode:'SUPER'} as any),false);
-  assert.equal(storage.data.get(key),JSON.stringify({...personalDefaults,mode:'SUPER'}));
+  assert.equal(writeConnectedPersonal(storage,scope,{...personalDefaults, extraPrivilege:true} as any),false);
+  assert.equal(storage.data.get(key),JSON.stringify({...personalDefaults,extraPrivilege:true}));
 });
 test('blocked storage fails closed without leaking legacy preferences or throwing', () => {
-  const scope = connectedPersonalScope(verified())!;
+  const scope = requireScope(verified());
   assert.deepEqual(readConnectedPersonal(null,scope),personalDefaults);
   assert.equal(writeConnectedPersonal(null,scope,personalDefaults),false);
   const denied = {getItem:(_k:string):string|null=>{throw Error('denied')},
