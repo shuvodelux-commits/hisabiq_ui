@@ -175,6 +175,9 @@ async function exerciseRealBrowser(createServer, chromium, frontendRoot, tenantA
     browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
+    // Virtual browser time verifies the real mounted SessionProvider idle-lock
+    // path without waiting thirty wall-clock minutes or changing backend time.
+    await page.clock.install();
     const runtimeErrors = [];
     page.on('pageerror', error => runtimeErrors.push(error.message));
 
@@ -202,6 +205,12 @@ async function exerciseRealBrowser(createServer, chromium, frontendRoot, tenantA
     const credential2 = await page.evaluate(key => JSON.parse(sessionStorage.getItem(key) || 'null'), SESSION_KEY);
     assert.equal(credential2?.schema, 1);
     assert.notEqual(credential2.refreshToken, credential1.refreshToken, 'reload must rotate refresh');
+
+    await page.clock.fastForward(30 * 60_000 + 1);
+    await page.getByText('Session locked.', { exact: false }).waitFor({ timeout: 12_000 });
+    const lockedCredential = await page.evaluate(key => JSON.parse(sessionStorage.getItem(key) || 'null'), SESSION_KEY);
+    assert.equal(lockedCredential.refreshToken, credential2.refreshToken, 'idle lock retains private PIN-unlock credential');
+    assert.equal(await page.locator('[data-erp-table]').count(), 0, 'idle-locked workspace never mounts demo ERP');
 
     await page.goto(CONNECTED_ORIGIN + '/#/login/accounts?account=nusrat');
     await page.getByRole('heading', { name: /Choose account/i }).waitFor();
