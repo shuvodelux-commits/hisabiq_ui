@@ -51,7 +51,11 @@ async function main(){
    await page.locator('p').filter({hasText:/^Dutch-Bangla Bank · 4582$/}).first().waitFor();
    await page.getByRole('button',{name:'Bank Entry'}).first().click();
    await page.waitForURL(url => url.hash.startsWith('#/app/accounts?tab=bank-entry&accountId='));
-   assert.equal(await page.getByRole('tab',{name:'Bank Entry',exact:true}).getAttribute('aria-selected'),'true','Bank Entry tab is selected from Money Accounts card');
+   // The URL and React commit are separate asynchronous steps. Await the exact
+   // selected UI state rather than sampling aria-selected before its render.
+   const selectedBankEntry = page.getByRole('tab',{name:'Bank Entry',exact:true});
+   await selectedBankEntry.and(page.locator('[aria-selected="true"]')).waitFor();
+   assert.equal(await selectedBankEntry.getAttribute('aria-selected'),'true','Bank Entry tab is selected from Money Accounts card');
    assert.equal(await page.getByRole('button',{name:'Back to Money Accounts'}).count(),0,'redundant Back to Money Accounts button removed');
    assert.equal(await page.getByText('UI Preview · Read only',{exact:true}).count(),0,'large preview banner removed from Accounts Bank Entry');
    await page.getByRole('tab',{name:'Money Accounts',exact:true}).click();
