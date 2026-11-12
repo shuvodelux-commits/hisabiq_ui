@@ -32,8 +32,8 @@ async function main() {
     let expectedRefresh = '';
     const loginBody = () => ({
       data: {
-        accessToken: 'verified.access.' + (rotations + 1),
-        refreshToken: 'verified.refresh.' + (rotations + 1),
+        accessToken: 'verified.access.' + rotations,
+        refreshToken: 'verified.refresh.' + rotations,
         user: { id: USER, username: 'rahim' },
       },
     });
