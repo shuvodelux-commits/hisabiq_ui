@@ -253,7 +253,7 @@ async function read<T>(
 }
 
 /** No in-memory cache; each call is scoped to the caller's verified access token. */
-export function readProducts(
+export async function readProducts(
   accessToken: string,
   query: ServerProductQuery = {},
   signal?: AbortSignal,
