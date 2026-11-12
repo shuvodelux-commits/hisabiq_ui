@@ -51,10 +51,12 @@ jobs:
       ENTITLEMENT_SOURCE: subscription
       VITE_HISABIQ_INTEGRATION_MODE: connected
       APPROVED_BACKEND_SHA: ${{ inputs.backend_sha || '2005609f4e367ceabd1e2ac4a9aee18444c9314a' }}
+      APPROVED_FRONTEND_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Checkout exact frontend PR candidate
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.APPROVED_FRONTEND_SHA }}
           path: frontend
           persist-credentials: false
 
@@ -64,7 +66,9 @@ jobs:
           set -euo pipefail
           test "${#APPROVED_BACKEND_SHA}" = 40
           [[ "$APPROVED_BACKEND_SHA" =~ ^[0-9a-f]{40}$ ]]
-          echo "Frontend candidate SHA: ${{ github.sha }}"
+          [[ "$APPROVED_FRONTEND_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C frontend rev-parse HEAD)" = "$APPROVED_FRONTEND_SHA"
+          echo "Frontend candidate SHA: $APPROVED_FRONTEND_SHA"
           echo "Approved backend SHA: $APPROVED_BACKEND_SHA"
 
       - name: Checkout approved NestSherERP commit (not moving branch)
