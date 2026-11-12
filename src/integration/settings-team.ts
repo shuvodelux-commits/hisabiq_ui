@@ -184,7 +184,7 @@ export interface ServerRolesEnvelope {
 
 const teamUlid = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 function exactKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
-  return Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+  return Object.keys(value).length === keys.length && keys.every(key => Object.prototype.hasOwnProperty.call(value, key));
 }
 function id(value: unknown): value is string {
   return typeof value === 'string' && teamUlid.test(value);
