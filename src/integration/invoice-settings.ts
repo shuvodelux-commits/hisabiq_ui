@@ -129,3 +129,69 @@ export async function readInvoiceSettings(
     signal?.removeEventListener('abort',abort);
   }
 }
+
+
+/**
+ * T04-W/P1 — one source-supported invoice preference per authenticated PUT.
+ * Backend updateInvoiceSettingsRequestSchema is a strict partial of the GET
+ * schema, but hasLogo is DERIVED and six-design/MIXED UI fields are unsupported.
+ *
+ * This adapter has no role authority, tenant cache, retry or optimistic state.
+ * Callers must adopt only the full confirmed server response. Unknown outcomes
+ * require a fresh GET before any subsequent user-confirmed change.
+ */
+export type ServerInvoicePreferenceField =
+  | 'language' | 'defaultTemplate' | 'thermalPaper' | 'showLogo'
+  | 'showCustomerBlock' | 'showDiscount' | 'showPaymentBreakdown'
+  | 'showDue' | 'showAmountInWords';
+
+const writableBool = [
+  'showLogo', 'showCustomerBlock', 'showDiscount',
+  'showPaymentBreakdown', 'showDue', 'showAmountInWords',
+] as const;
+
+function supportedPreference(field: unknown, value: unknown): field is ServerInvoicePreferenceField {
+  if (field === 'language') return value === 'EN' || value === 'BN';
+  if (field === 'defaultTemplate') return value === 'A4' || value === 'THERMAL_80';
+  if (field === 'thermalPaper') return value === '58mm' || value === '80mm';
+  return typeof field === 'string' &&
+    (writableBool as readonly string[]).includes(field) &&
+    typeof value === 'boolean';
+}
+
+export async function updateServerInvoicePreference<K extends ServerInvoicePreferenceField>(
+  accessToken: string,
+  previousVerifiedSettings: ServerInvoiceSettings,
+  field: K,
+  value: ServerInvoiceSettings[K],
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<ServerInvoiceSettingsEnvelope> {
+  // Even a TypeScript caller can provide a forged/unverified runtime snapshot.
+  // We require the exact current server read schema before constructing a PUT.
+  decodeInvoiceSettings({ data: previousVerifiedSettings });
+  if (!supportedPreference(field, value) ||
+      Object.is(previousVerifiedSettings[field], value) ||
+      !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) return invalid();
+
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    const result = await requestJson({
+      method: 'PUT',
+      path: '/api/v1/sales/invoice-settings',
+      accessToken,
+      // Send only the actual one-property delta; never overwrite 30+ fields.
+      body: { [field]: value },
+      signal: controller.signal,
+    }, decodeInvoiceSettings);
+    if (!Object.is(result.data[field], value)) return invalid();
+    return result;
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
