@@ -93,6 +93,7 @@ jobs:
           set -euo pipefail
           pnpm install --frozen-lockfile
           pnpm --filter "@sher/api..." build
+          echo "BACKEND_NODE_BIN=$(command -v node)" >> "$GITHUB_ENV"
 
       - name: Setup frontend Node 24
         uses: actions/setup-node@v4
