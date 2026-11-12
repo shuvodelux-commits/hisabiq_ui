@@ -54,9 +54,17 @@ export function GeneralSettingsSection({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
   const [reviewWarnings, setReviewWarnings] = useState<string[] | null>(null);
+  // T01-R uses only the verified server business identity. In connected mode
+  // never show preview names/accounts/defaults as if they came from the server.
+  const readOnlyDraft: Draft = Object.fromEntries(all.map(f => [
+    f.key,
+    f.key === 'businessName' && bridge.server.status === 'ready' ? bridge.server.data.businessName
+      : f.kind === 'checkbox' ? false : '',
+  ]));
+  const shown = bridge.connected ? readOnlyDraft : draft;
   const fields = all.filter(f => advanced || !f.advanced);
   const hiddenCount = all.length - fields.length;
-  const changed = all.filter(f => draft[f.key] !== baseline[f.key]);
+  const changed = bridge.connected ? [] : all.filter(f => draft[f.key] !== baseline[f.key]);
   const dirty = changed.length > 0;
 
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
@@ -81,6 +89,8 @@ export function GeneralSettingsSection({
     setFeedback('Preview changes discarded; business settings were never changed.');
   };
   const reviewSave = () => {
+    // Defense in depth; connected SaveBar controls are already absent.
+    if (bridge.connected) return;
     const next: Record<string, string> = {};
     for (const f of all) {
       const v = draft[f.key];
@@ -117,7 +127,7 @@ export function GeneralSettingsSection({
       <span className={error ? 'text-danger' : 'text-ink-500'} role={error ? 'alert' : undefined}>
         {error || field.helper}
       </span>
-      {field.seenIn && draft[field.key] !== baseline[field.key] && (
+      {!bridge.connected && field.seenIn && draft[field.key] !== baseline[field.key] && (
         <span className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-teal-700">
           <Eye className="size-3" aria-hidden="true" />
           Where you'll see this: {field.seenIn} (after reconnection)
@@ -129,8 +139,8 @@ export function GeneralSettingsSection({
   const renderField = (field: SettingField) => {
     const id = `magic-setting-${section.id}-${field.key}`;
     const error = errors[field.key];
-    const disabled = !canEdit;
-    if(section.id==='finance'&&field.key==='cashSession')return <div key={field.key} className="flex min-w-0 items-start justify-between gap-3 sm:col-span-2"><div className="min-w-0"><label htmlFor={id} className="text-[13px] font-medium text-ink">{text('Count the cash drawer at open and close','খোলা ও বন্ধের সময় ড্রয়ারের ক্যাশ গুনুন')}</label><p className="mt-1 text-xs text-ink-500">{text('Live browser setting for this business. Controls Start, count and history; no backend posting.','এই ব্যবসার ব্রাউজার সেটিং। শুরু, গণনা ও ইতিহাস নিয়ন্ত্রণ করে; সার্ভারে লেনদেন হয় না।')}</p>{cashFeedback&&<p role="status" className="mt-1 text-xs text-ink-500">{cashFeedback}</p>}</div><SettingsToggle id={id} aria-label={text('Enable cash sessions','ক্যাশ সেশন চালু করুন')} checked={tenant.sections.money.cashSession} disabled={!canEdit} onCheckedChange={value=>{const current=currentAuthority();if(!canManage(current.state,current.actorId,'money')){setCashFeedback(text('Permission denied.','অনুমতি নেই।'));return;}const result=save('money',{...current.state.sections.money,cashSession:value},current.state.revision);setCashFeedback(result.ok?text('Cash session setting saved in this browser.','ক্যাশ সেশন সেটিং এই ব্রাউজারে সংরক্ষিত।'):result.error??text('Could not save.','সংরক্ষণ হয়নি।'));}}/></div>;
+    const disabled = bridge.connected || !canEdit;
+    if(section.id==='finance'&&field.key==='cashSession')return <div key={field.key} className="flex min-w-0 items-start justify-between gap-3 sm:col-span-2"><div className="min-w-0"><label htmlFor={id} className="text-[13px] font-medium text-ink">{text('Count the cash drawer at open and close','খোলা ও বন্ধের সময় ড্রয়ারের ক্যাশ গুনুন')}</label><p className="mt-1 text-xs text-ink-500">{text('Live browser setting for this business. Controls Start, count and history; no backend posting.','এই ব্যবসার ব্রাউজার সেটিং। শুরু, গণনা ও ইতিহাস নিয়ন্ত্রণ করে; সার্ভারে লেনদেন হয় না।')}</p>{cashFeedback&&<p role="status" className="mt-1 text-xs text-ink-500">{cashFeedback}</p>}</div><SettingsToggle id={id} aria-label={text('Enable cash sessions','ক্যাশ সেশন চালু করুন')} checked={bridge.connected?false:tenant.sections.money.cashSession} disabled={bridge.connected||!canEdit} onCheckedChange={value=>{if(bridge.connected)return;const current=currentAuthority();if(!canManage(current.state,current.actorId,'money')){setCashFeedback(text('Permission denied.','অনুমতি নেই।'));return;}const result=save('money',{...current.state.sections.money,cashSession:value},current.state.revision);setCashFeedback(result.ok?text('Cash session setting saved in this browser.','ক্যাশ সেশন সেটিং এই ব্রাউজারে সংরক্ষিত।'):result.error??text('Could not save.','সংরক্ষণ হয়নি।'));}}/></div>;
     if (field.kind === 'checkbox') {
       return (
         <div key={field.key} className={`flex min-w-0 items-start justify-between gap-3 ${field.wide ? 'sm:col-span-2' : ''}`}>
@@ -143,7 +153,7 @@ export function GeneralSettingsSection({
           </div>
           <SettingsToggle
             id={id}
-            checked={Boolean(draft[field.key])}
+            checked={Boolean(shown[field.key])}
             onCheckedChange={value => set(field.key, value)}
             disabled={disabled}
             aria-label={field.label}
@@ -156,18 +166,18 @@ export function GeneralSettingsSection({
         <SettingsField label={field.label} bn={field.bn ?? field.label} language="English">
           {(generatedId, descriptionId) => field.kind === 'select' ? (
             <AppSelect id={generatedId} describedBy={descriptionId} label={field.label}
-              value={String(draft[field.key] ?? '')}
+              value={String(shown[field.key] ?? '')}
               onChange={v => set(field.key, v)} options={field.options ?? []} disabled={disabled} />
           ) : field.kind === 'textarea' ? (
             <textarea id={generatedId} aria-label={field.label} aria-describedby={descriptionId}
               rows={3} className="block w-full rounded-md border border-input bg-card px-3 py-2 text-[13px] text-ink disabled:opacity-70"
-              value={String(draft[field.key] ?? '')} onChange={e => set(field.key, e.target.value)}
+              value={String(shown[field.key] ?? '')} onChange={e => set(field.key, e.target.value)}
               disabled={disabled} />
           ) : (
             <Input id={generatedId} aria-label={field.label} aria-describedby={descriptionId}
               type={field.kind === 'number' ? 'number' : 'text'}
               min={field.min} max={field.max}
-              value={String(draft[field.key] ?? '')}
+              value={String(shown[field.key] ?? '')}
               onChange={e => set(field.key,
                 field.kind === 'number' ? (e.target.value === '' ? NaN : Number(e.target.value)) :
                 field.key === 'invoicePrefix' ? e.target.value.toUpperCase() : e.target.value)}
@@ -182,6 +192,14 @@ export function GeneralSettingsSection({
 
   return (
     <div className="min-w-0 space-y-3" data-settings-magic-general={section.id}>
+      {bridge.connected && <p role="status" aria-live="polite" className="rounded-md border border-ink-100 bg-ink-50 px-3 py-2 text-xs text-ink-600">
+        {bridge.server.status === 'ready'
+          ? `Verified live settings: ${bridge.server.data.businessName} · ${bridge.server.data.timezone}. Business name is server-owned. All other controls are preview-only and read-only here; nothing can be saved. · সার্ভার থেকে ব্যবসার তথ্য যাচাই হয়েছে। অন্য নিয়ন্ত্রণগুলো প্রিভিউ, সংরক্ষণ করা যাবে না।`
+          : bridge.server.status === 'loading' ? 'Loading verified business settings… · সার্ভার সেটিংস লোড হচ্ছে…'
+          : bridge.server.status === 'denied' ? 'You do not have permission to view live settings. · সার্ভার সেটিংস দেখার অনুমতি নেই।'
+          : bridge.server.status === 'locked' ? 'Session locked. Unlock before viewing settings. · সেটিংস দেখতে সেশন আনলক করুন।'
+          : 'Live settings are unavailable. No preview business data is substituted. · লাইভ সেটিংস পাওয়া যায়নি; নমুনা ডেটা দেখানো হয়নি।'}
+      </p>}
       <div className={renderPreview ? 'grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]' : ''}>
         <SettingCard
           title={section.label}
@@ -215,16 +233,19 @@ export function GeneralSettingsSection({
           )}
           {footer}
         </SettingCard>
-        {renderPreview && <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">{renderPreview(draft)}</aside>}
+        {renderPreview && <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">{renderPreview(shown)}</aside>}
       </div>
       <SaveBar
         dirty={dirty} saving={false}
         error={Object.keys(errors).length ? `Fix ${Object.keys(errors).length} field(s) before previewing.` : undefined}
-        status={feedback || 'UI preview · business settings are not changed.'}
+        status={bridge.connected
+          ? bridge.server.status === 'ready' ? 'Verified server settings loaded (read-only). No changes can be saved.'
+            : 'Live settings are not available for editing; no browser preview is a server save.'
+          : feedback || 'UI preview · business settings are not changed.'}
         dirtyLabel={feedback || `${changed.length} unsaved UI preview change(s) · not applied to business`}
         onSave={reviewSave} onDiscard={discard} onRestore={restoreDefaults}
         saveLabel="Save"
-        readOnly={!canEdit}
+        readOnly={bridge.connected || !canEdit}
       />
       {reviewWarnings && (
         <Modal
