@@ -3433,6 +3433,23 @@
       "reexports": []
     },
     {
+      "file": "src/integration/ConnectedWorkspaceGate.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ConnectedWorkspaceGate"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/integration/SessionProvider.tsx",
+      "kind": "provider-or-context",
+      "exports": [
+        "SessionProvider",
+        "useSession"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/magic-saas/MagicSaasEntry.tsx",
       "kind": "authored-ui",
       "exports": [
