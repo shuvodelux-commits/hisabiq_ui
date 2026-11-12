@@ -18,7 +18,8 @@ const userEnvelope = (id: string, roleId: string, name: string) => ({
 const roleEnvelope = (id: string) => ({
   data: {
     roles: [{ id, code: 'OWNER', name: 'Owner', isSystem: true, locked: true,
-      permissions: ['user.account.view', 'user.role.view'], userCount: 1 }],
+      permissions: ['user.account.view', 'user.role.view'],
+      cashRefundPerReturnMinor: null, cashRefundPerDayMinor: null, userCount: 1 }],
     catalogue: [{ code: 'user.account.view', group: 'Users', label: 'View users',
       detail: 'See tenant users' }],
   },
@@ -106,7 +107,7 @@ test('401/403/500 deny either resource with no retries and no preview fixture', 
   }
 });
 
-test('strict schema rejects malformed envelopes and invented privilege fields', async () => {
+test('strict schema rejects malformed envelopes and invalid refund cap fields', async () => {
   const badUsers = [
     {}, { data: {} },
     { data: { ...aUsers.data, users: [{ ...aUsers.data.users[0], id: 'fake' }] } },
@@ -119,7 +120,12 @@ test('strict schema rejects malformed envelopes and invented privilege fields', 
     { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], permissions: ['valid', 42] }] } },
     { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], userCount: 1.5 }] } },
     { data: { ...aRoles.data, catalogue: [{ ...aRoles.data.catalogue[0], secret: true }] } },
-    { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], cashRefundPerDayMinor: 500 }] } },
+    { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], cashRefundPerDayMinor: undefined }] } },
+    { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], cashRefundPerReturnMinor: -1 }] } },
+    { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], cashRefundPerDayMinor: 4.5 }] } },
+    { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], cashRefundPerReturnMinor: '500' }] } },
+    { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], cashRefundPerReturnMinor: Number.MAX_SAFE_INTEGER + 1 }] } },
+    { data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], extraPrivilege: true }] } },
   ];
   for (const [method, invalid] of [[readTenantUsers, badUsers], [readTenantRoles, badRoles]] as const) {
     for (const candidate of invalid) {
@@ -173,5 +179,24 @@ test('HTML success, unexpected cross-origin redirect or invalid token never retu
         err instanceof ApiError && err.kind === 'protocol');
     });
     assert.equal(calls, 0);
+  }
+});
+
+
+test('pinned backend cash refund cap fields roundtrip exactly: null unlimited, zero blocked, integer cap', async () => {
+  const valid = [
+    { cashRefundPerReturnMinor: null, cashRefundPerDayMinor: null },
+    { cashRefundPerReturnMinor: 0, cashRefundPerDayMinor: 0 },
+    { cashRefundPerReturnMinor: 50000, cashRefundPerDayMinor: 500000 },
+  ];
+  for (const caps of valid) {
+    const envelope = {
+      data: { ...aRoles.data, roles: [{ ...aRoles.data.roles[0], ...caps }] },
+    };
+    await withFetch((async () => json(envelope)) as typeof fetch, async () => {
+      const response = await readTenantRoles('tenant-A-token');
+      assert.deepEqual(response.data.roles[0]?.cashRefundPerReturnMinor, caps.cashRefundPerReturnMinor);
+      assert.deepEqual(response.data.roles[0]?.cashRefundPerDayMinor, caps.cashRefundPerDayMinor);
+    });
   }
 });
