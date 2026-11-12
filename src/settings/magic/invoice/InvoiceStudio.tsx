@@ -288,7 +288,8 @@ function ConnectedInvoiceEditor({
         onDiscard={discard}
         saveDisabled={!canSaveInvoiceChoice(pending, canEdit && !writeDenied, busy !== 'idle', needsRefresh)}
         saveLabel="Save change"
-        readOnly={!canEdit || writeDenied}
+        // A denied save still permits the local draft to be discarded.
+        readOnly={!canEdit}
       />
     </div>
   );
