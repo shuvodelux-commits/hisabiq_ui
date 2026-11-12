@@ -6,6 +6,12 @@ import { SettingCard } from '../ui';
 import { Button, Modal } from './invoice/Ui';
 import { useTenantSettings } from '../TenantSettingsProvider';
 import { SettingsToggle } from './SettingsToggle';
+import { useSession } from '../../integration/SessionProvider.tsx';
+import {
+  readTenantUsers, readTenantRoles,
+  type ServerUsersEnvelope, type ServerRolesEnvelope,
+} from '../../integration/settings-team.ts';
+import { ApiError } from '../../integration/errors.ts';
 
 /** Phase 1 design data is local-only. Server-side authorization remains unchanged. */
 type Staff = { id: string; name: string; role: string; active: boolean };
@@ -43,15 +49,88 @@ const roles: { role: string; can: string }[] = [
 
 const th = 'h-9 px-4 text-left text-xs font-medium text-ink-500';
 
+type TeamReadState<T> = {
+  status: 'waiting' | 'loading' | 'ready' | 'denied' | 'error' | 'locked';
+  data: T | null;
+};
+type TeamReadRecord<T> = TeamReadState<T> & { key: string };
+const emptyTeamRead = <T,>(status: TeamReadState<T>['status']): TeamReadState<T> =>
+  ({ status, data: null });
+
+/** Source-pinned T02-R: separate Nest permissions for users and role details.
+ * A session epoch/tenant change synchronously invalidates old data, even
+ * before effect cleanup. No local employees are used in connected mode. */
+function useVerifiedTeamReads() {
+  const { mode, snapshot } = useSession();
+  const [userRecord, setUserRecord] = useState<TeamReadRecord<ServerUsersEnvelope['data']> | null>(null);
+  const [roleRecord, setRoleRecord] = useState<TeamReadRecord<ServerRolesEnvelope['data']> | null>(null);
+  const key = mode === 'connected' && snapshot.status === 'authenticated'
+    ? `${snapshot.tenantId}:${snapshot.userId}:${snapshot.epoch}:${snapshot.accessToken}`
+    : `${mode}:${snapshot.status}:${snapshot.epoch}`;
+  const liveIdentity = useRef(key);
+  liveIdentity.current = key;
+  const canReadUsers = mode === 'connected' && snapshot.status === 'authenticated' &&
+    snapshot.permissions.includes('user.account.view');
+  const canReadRoles = mode === 'connected' && snapshot.status === 'authenticated' &&
+    snapshot.permissions.includes('user.role.view');
+
+  useEffect(() => {
+    if (mode !== 'connected' || snapshot.status !== 'authenticated') return;
+    const activeKey = key;
+    const token = snapshot.accessToken;
+    let active = true;
+    const controllers: AbortController[] = [];
+    const read = <T,>(
+      authorized: boolean,
+      setter: React.Dispatch<React.SetStateAction<TeamReadRecord<T> | null>>,
+      request: (token: string, signal?: AbortSignal) => Promise<{ data: T }>,
+    ) => {
+      if (!authorized) return;
+      const controller = new AbortController();
+      controllers.push(controller);
+      setter({ key: activeKey, status: 'loading', data: null });
+      void request(token, controller.signal).then(response => {
+        if (!active || liveIdentity.current !== activeKey || controller.signal.aborted) return;
+        setter({ key: activeKey, status: 'ready', data: response.data });
+      }).catch((error: unknown) => {
+        if (!active || liveIdentity.current !== activeKey || controller.signal.aborted) return;
+        const denied = error instanceof ApiError && (error.status === 401 || error.status === 403);
+        setter({ key: activeKey, status: denied ? 'denied' : 'error', data: null });
+      });
+    };
+    read(canReadUsers, setUserRecord, readTenantUsers);
+    read(canReadRoles, setRoleRecord, readTenantRoles);
+    return () => {
+      active = false;
+      for (const controller of controllers) controller.abort();
+    };
+  }, [mode, key, canReadUsers, canReadRoles]);
+
+  const status = (allowed: boolean) => snapshot.status === 'locked'
+    ? 'locked' as const : allowed ? 'loading' as const : 'denied' as const;
+  const users: TeamReadState<ServerUsersEnvelope['data']> = mode !== 'connected'
+    ? emptyTeamRead('waiting')
+    : snapshot.status !== 'authenticated' ? emptyTeamRead(snapshot.status === 'locked' ? 'locked' : 'waiting')
+    : !canReadUsers ? emptyTeamRead('denied')
+    : userRecord?.key === key ? userRecord : emptyTeamRead(status(canReadUsers));
+  const roleDetails: TeamReadState<ServerRolesEnvelope['data']> = mode !== 'connected'
+    ? emptyTeamRead('waiting')
+    : snapshot.status !== 'authenticated' ? emptyTeamRead(snapshot.status === 'locked' ? 'locked' : 'waiting')
+    : !canReadRoles ? emptyTeamRead('denied')
+    : roleRecord?.key === key ? roleRecord : emptyTeamRead(status(canReadRoles));
+  return { connected: mode === 'connected', snapshot, users, roleDetails };
+}
+
 export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onDirtyChange: (dirty: boolean) => void }) {
   const { state, actorId } = useTenantSettings();
+  const live = useVerifiedTeamReads();
   const source = state.sections.team;
   const actor = source.employees.find(person => person.id === actorId);
   const actorRoleLabel = actor?.roleIds.map(id => source.roles.find(role => role.id === id)?.name ?? id).join(' · ') ?? 'Team member';
   const [staff, setStaff] = useState<Staff[]>(() => localPreviewStaff(source.roles, source.employees));
   const [initialStaff] = useState<Staff[]>(() => localPreviewStaff(source.roles, source.employees));
   const [feedback, setFeedback] = useState('');
-  const dirty = JSON.stringify(staff) !== JSON.stringify(initialStaff);
+  const dirty = !live.connected && JSON.stringify(staff) !== JSON.stringify(initialStaff);
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
   const [editor, setEditor] = useState<Staff | null>(null);
@@ -71,6 +150,21 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
   };
   const isNew = editor ? !staff.some((s) => s.id === editor.id) : false;
   const owners = staff.filter((s) => s.role === 'Owner' && s.active).length;
+  const visibleStaff: Staff[] = live.connected
+    ? live.users.status === 'ready' && live.users.data !== null
+      ? live.users.data.users.map(user => ({
+          id: user.id, name: user.displayName, role: user.roleName, active: !user.disabled,
+        })) : []
+    : staff;
+  const roleDescriptions = live.connected
+    ? live.roleDetails.status === 'ready' && live.roleDetails.data !== null
+      ? live.roleDetails.data.roles.map(role => ({
+          role: role.name,
+          can: role.permissions.map(code =>
+            live.roleDetails.data?.catalogue.find(entry => entry.code === code)?.label || code
+          ).join(' · ') || 'No permissions assigned',
+        })) : []
+    : roles;
 
   const save = () => {
     if (!editor) return;
@@ -91,10 +185,14 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
       <SettingCard
         title="Users & roles"
         titleBn="ব্যবহারকারী ও ভূমিকা"
-        description={`Signed in as ${actor?.name ?? 'HisabIQ user'} · ${actorRoleLabel}`}
+        description={live.connected
+          ? (live.snapshot.status === 'authenticated'
+            ? `Signed in as ${live.snapshot.displayName} · ${live.snapshot.roleName}`
+            : 'Verified session required · যাচাইকৃত সেশন প্রয়োজন')
+          : `Signed in as ${actor?.name ?? 'HisabIQ user'} · ${actorRoleLabel}`}
         bodyClassName=""
         actions={
-          canEdit ? (
+          !live.connected && canEdit ? (
             <Button
               kind="primary"
               onClick={() => {
@@ -108,13 +206,24 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
           ) : undefined
         }
       >
-        {!canEdit && (
+        {!live.connected && !canEdit && (
           <p className="mx-4 mt-4 flex items-center gap-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
             <Lock className="size-3.5" aria-hidden="true" />
             Only the owner can add or change team members.
           </p>
         )}
-        <p className="mx-4 mt-3 text-[11px] text-ink-500">UI preview · changes here are not saved, and no invitation or account action will be sent.</p>
+        {live.connected ? (
+          <p role="status" aria-live="polite" className="mx-4 mt-3 text-[11px] text-ink-500">
+            {live.users.status === 'ready'
+              ? 'Verified team accounts loaded from your business. Viewing only; account changes are not enabled. · যাচাইকৃত ব্যবহারকারী, শুধু দেখার জন্য।'
+              : live.users.status === 'loading' ? 'Loading team accounts… · ব্যবহারকারী লোড হচ্ছে…'
+              : live.users.status === 'denied' ? 'You do not have permission to view team accounts. · ব্যবহারকারী দেখার অনুমতি নেই।'
+              : live.users.status === 'locked' ? 'Unlock your session to view team accounts. · সেশন আনলক করুন।'
+              : 'Live team accounts are unavailable. No sample staff shown. · সার্ভার তথ্য পাওয়া যায়নি; নমুনা কর্মী দেখানো হয়নি।'}
+          </p>
+        ) : (
+          <p className="mx-4 mt-3 text-[11px] text-ink-500">UI preview · changes here are not saved, and no invitation or account action will be sent.</p>
+        )}
         {feedback && <p role="status" className="mx-4 mt-2 text-xs text-teal-700">{feedback}</p>}
         <div className="min-w-0 max-w-full w-full overflow-x-auto" style={{ contain: 'layout paint' }}>
           <table data-erp-table data-settings-team-table className="w-full min-w-[520px] text-[13px]">
@@ -129,7 +238,7 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
               </tr>
             </thead>
             <tbody>
-              {staff.map((s) => (
+              {visibleStaff.map((s) => (
                 <tr key={s.id} className="border-b border-ink-100 last:border-0">
                   <td className="px-4 py-2 font-medium text-ink">{s.name}</td>
                   <td className="px-4 py-2 text-ink-600">{s.role}</td>
@@ -137,7 +246,7 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
                     <Tag color={s.active ? 'success' : 'neutral'}>{s.active ? 'Active' : 'Disabled'}</Tag>
                   </td>
                   <td className="px-4 py-2 text-right">
-                    {canEdit && (
+                    {!live.connected && canEdit && (
                       <Button
                         kind="ghost"
                         onClick={() => {
@@ -157,18 +266,24 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
         <div className="border-t border-ink-100 px-4 py-3">
           <h3 className="text-xs font-medium text-ink-500">What each role can do</h3>
           <dl className="mt-2 grid gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-2">
-            {roles.map((r) => (
+            {roleDescriptions.map((r) => (
               <div key={r.role}>
                 <dt className="font-medium text-ink">{r.role}</dt>
                 <dd className="text-xs text-ink-500">{r.can}</dd>
               </div>
             ))}
           </dl>
-          <p className="mt-3 text-[11px] text-ink-500">UI preview only: role explanations illustrate the approved design. Actual permissions are enforced separately; nothing here changes access.</p>
+          <p className="mt-3 text-[11px] text-ink-500">
+            {live.connected
+              ? live.roleDetails.status === 'ready'
+                ? 'Live server role permissions shown; all account and role changes remain disabled. · সার্ভারের ভূমিকা ও অনুমতি দেখানো হয়েছে।'
+                : 'Role permissions are unavailable or not authorized; no preview grants are displayed. · ভূমিকার অনুমতি পাওয়া যায়নি।'
+              : 'UI preview only: role explanations illustrate the approved design. Actual permissions are enforced separately; nothing here changes access.'}
+          </p>
         </div>
       </SettingCard>
 
-      {editor && (
+      {!live.connected && editor && (
         <Modal
           title={isNew ? 'Add team member' : `Edit ${editor.name || 'team member'}`}
           onClose={() => setEditor(null)}
