@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, Eye, Lock } from 'lucide-react';
 import { SettingsToggle } from './SettingsToggle';
 import { AppSelect } from '../../components/AppSelect';
@@ -10,6 +10,9 @@ import {useTenantSettings} from '../TenantSettingsProvider';
 import {canManage} from '../model';
 import {useUiCopy} from '../../i18n/useUiCopy';
 import { useMagicSettingsState } from './settingsBridge';
+import { useSession } from '../../integration/SessionProvider.tsx';
+import { updateBusinessProfile } from '../../integration/settings-team.ts';
+import { ApiError } from '../../integration/errors.ts';
 import type { SettingsSection } from './settingsSections';
 
 type Value = string | number | boolean;
@@ -35,8 +38,8 @@ type Props = {
 /**
  * Source-faithful Magic Patterns GeneralSettingsSection presentation.
  *
- * PHASE 1: This is a UI-local draft, NOT a tenant settings mutation.
- * The real permission, data and save adapters belong in Phase 2.
+ * Preview fields retain their UI-local drafts. MOD-001 T01-W/P1 enables only
+ * the verified business-name PATCH with the unchanged server timezone.
  * Retains every source field and interactive control, including those that do
  * not have an equivalent in the old HisabIQ settings schema.
  */
@@ -46,6 +49,7 @@ export function GeneralSettingsSection({
   const bridge = useMagicSettingsState();
   const {state:tenant,currentAuthority,save}=useTenantSettings();
   const {text}=useUiCopy();
+  const {mode, snapshot}=useSession();
   const [cashFeedback,setCashFeedback]=useState('');
   const all = sourceSettingsFields[section.id] ?? [];
   const [advanced, setAdvanced] = useState(false);
@@ -53,44 +57,127 @@ export function GeneralSettingsSection({
   const [baseline] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
+
   const [reviewWarnings, setReviewWarnings] = useState<string[] | null>(null);
-  // T01-R uses only the verified server business identity. In connected mode
-  // never show preview names/accounts/defaults as if they came from the server.
+  const [liveNameDraft, setLiveNameDraft] = useState<{
+    identity: string; original: string; value: string;
+  } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const pendingWrite = useRef<AbortController | null>(null);
+  const identity = mode === 'connected' && snapshot.status === 'authenticated'
+    ? `${snapshot.tenantId}:${snapshot.userId}:${snapshot.epoch}:${snapshot.accessToken}`
+    : `${mode}:${snapshot.status}:${snapshot.epoch}`;
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
+  const verified = bridge.server.status === 'ready' ? bridge.server.data : null;
+  const canWriteBusiness = bridge.connected && section.id === 'business' && verified !== null &&
+    snapshot.status === 'authenticated' &&
+    snapshot.permissions.includes('settings.setting.view') &&
+    snapshot.permissions.includes('settings.setting.edit');
+  // Never let a draft from a previous tenant, user, or token epoch appear as
+  // this session's data. Do not initialize from the browser demo store.
+  const liveName = verified === null ? '' :
+    liveNameDraft?.identity === identity && liveNameDraft.original === verified.businessName
+      ? liveNameDraft.value : verified.businessName;
+  const liveDirty = canWriteBusiness && verified !== null &&
+    liveName !== verified.businessName;
   const readOnlyDraft: Draft = Object.fromEntries(all.map(f => [
     f.key,
-    f.key === 'businessName' && bridge.server.status === 'ready' ? bridge.server.data.businessName
-      : f.kind === 'checkbox' ? false : '',
+    f.key === 'businessName' ? liveName : f.kind === 'checkbox' ? false : '',
   ]));
   const shown = bridge.connected ? readOnlyDraft : draft;
   const fields = all.filter(f => advanced || !f.advanced);
   const hiddenCount = all.length - fields.length;
   const changed = bridge.connected ? [] : all.filter(f => draft[f.key] !== baseline[f.key]);
-  const dirty = changed.length > 0;
+  const dirty = bridge.connected ? liveDirty : changed.length > 0;
+
+  useEffect(() => {
+    // The previous identity's in-flight write is no longer authorized.
+    setSaving(false);
+    setFeedback('');
+    setErrors({});
+    return () => pendingWrite.current?.abort();
+  }, [identity]);
 
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
 
+
   const set = (key: string, value: Value) => {
     setReviewWarnings(null);
-    setDraft(prev => ({ ...prev, [key]: value }));
+    if (bridge.connected) {
+      if (!canWriteBusiness || key !== 'businessName' || verified === null || saving) return;
+      setLiveNameDraft({ identity, original: verified.businessName, value: String(value) });
+    } else {
+      setDraft(prev => ({ ...prev, [key]: value }));
+    }
     setFeedback('');
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: '' }));
   };
+
   const restoreDefaults = () => {
     setReviewWarnings(null);
+    if (bridge.connected) {
+      setLiveNameDraft(null);
+      setErrors({});
+      setFeedback('Verified server value restored. No settings were changed.');
+      return;
+    }
     setDraft(initialDraft(all, {}));
     setErrors({});
     setFeedback('Source defaults loaded into this preview. They have not changed business settings.');
   };
   const discard = () => {
     setReviewWarnings(null);
+    if (bridge.connected) {
+      setLiveNameDraft(null);
+      setErrors({});
+      setFeedback('Unsaved change discarded; server settings were not changed.');
+      return;
+    }
     setDraft({ ...baseline });
     setErrors({});
     setFeedback('Preview changes discarded; business settings were never changed.');
   };
+
+  const saveBusiness = async () => {
+    if (!canWriteBusiness || verified === null || snapshot.status !== 'authenticated' ||
+        !liveDirty || saving || pendingWrite.current !== null) return;
+    const name = liveName.trim();
+    if (name.length < 2 || name.length > 120) {
+      setErrors({ businessName: 'Enter a business name between 2 and 120 characters.' });
+      return;
+    }
+    const controller = new AbortController();
+    pendingWrite.current = controller;
+    const requestIdentity = identity;
+    const token = snapshot.accessToken;
+    setSaving(true);
+    setFeedback('');
+    setErrors({});
+    try {
+      // One PATCH only. Never retry unknown outcomes or invent a revision/CAS.
+      const response = await updateBusinessProfile(token, verified, name, controller.signal);
+      if (controller.signal.aborted || identityRef.current !== requestIdentity) return;
+      if (!bridge.server.acceptWrite(response.data)) return;
+      setLiveNameDraft(null);
+      setFeedback('Business name saved and verified by the server. · ব্যবসার নাম সার্ভারে সংরক্ষিত হয়েছে।');
+    } catch (error: unknown) {
+      if (controller.signal.aborted || identityRef.current !== requestIdentity) return;
+      const denied = error instanceof ApiError && (error.status === 401 || error.status === 403);
+      setFeedback(denied
+        ? 'Permission denied or session expired. Your unsaved business name is retained. · অনুমতি নেই; খসড়া রাখা হয়েছে।'
+        : 'Save not confirmed. Keep this draft and verify the server value before retrying. · সংরক্ষণ নিশ্চিত নয়; যাচাই করে আবার চেষ্টা করুন।');
+    } finally {
+      if (pendingWrite.current === controller) pendingWrite.current = null;
+      if (identityRef.current === requestIdentity) setSaving(false);
+    }
+  };
   const reviewSave = () => {
-    // Defense in depth; connected SaveBar controls are already absent.
-    if (bridge.connected) return;
+    if (bridge.connected) {
+      void saveBusiness();
+      return;
+    }
     const next: Record<string, string> = {};
     for (const f of all) {
       const v = draft[f.key];
@@ -139,7 +226,9 @@ export function GeneralSettingsSection({
   const renderField = (field: SettingField) => {
     const id = `magic-setting-${section.id}-${field.key}`;
     const error = errors[field.key];
-    const disabled = bridge.connected || !canEdit;
+    const disabled = bridge.connected
+      ? !(canWriteBusiness && field.key === 'businessName') || saving
+      : !canEdit;
     if(section.id==='finance'&&field.key==='cashSession')return <div key={field.key} className="flex min-w-0 items-start justify-between gap-3 sm:col-span-2"><div className="min-w-0"><label htmlFor={id} className="text-[13px] font-medium text-ink">{text('Count the cash drawer at open and close','খোলা ও বন্ধের সময় ড্রয়ারের ক্যাশ গুনুন')}</label><p className="mt-1 text-xs text-ink-500">{text('Live browser setting for this business. Controls Start, count and history; no backend posting.','এই ব্যবসার ব্রাউজার সেটিং। শুরু, গণনা ও ইতিহাস নিয়ন্ত্রণ করে; সার্ভারে লেনদেন হয় না।')}</p>{cashFeedback&&<p role="status" className="mt-1 text-xs text-ink-500">{cashFeedback}</p>}</div><SettingsToggle id={id} aria-label={text('Enable cash sessions','ক্যাশ সেশন চালু করুন')} checked={bridge.connected?false:tenant.sections.money.cashSession} disabled={bridge.connected||!canEdit} onCheckedChange={value=>{if(bridge.connected)return;const current=currentAuthority();if(!canManage(current.state,current.actorId,'money')){setCashFeedback(text('Permission denied.','অনুমতি নেই।'));return;}const result=save('money',{...current.state.sections.money,cashSession:value},current.state.revision);setCashFeedback(result.ok?text('Cash session setting saved in this browser.','ক্যাশ সেশন সেটিং এই ব্রাউজারে সংরক্ষিত।'):result.error??text('Could not save.','সংরক্ষণ হয়নি।'));}}/></div>;
     if (field.kind === 'checkbox') {
       return (
@@ -194,7 +283,7 @@ export function GeneralSettingsSection({
     <div className="min-w-0 space-y-3" data-settings-magic-general={section.id}>
       {bridge.connected && <p role="status" aria-live="polite" className="rounded-md border border-ink-100 bg-ink-50 px-3 py-2 text-xs text-ink-600">
         {bridge.server.status === 'ready'
-          ? `Verified live settings: ${bridge.server.data.businessName} · ${bridge.server.data.timezone}. Business name is server-owned. All other controls are preview-only and read-only here; nothing can be saved. · সার্ভার থেকে ব্যবসার তথ্য যাচাই হয়েছে। অন্য নিয়ন্ত্রণগুলো প্রিভিউ, সংরক্ষণ করা যাবে না।`
+          ? `Verified live settings: ${bridge.server.data.businessName} · ${bridge.server.data.timezone}. ${canWriteBusiness ? 'Business name can be saved with your server permission.' : 'Business profile is read-only for this account.'} All other controls remain read-only. · ব্যবসার তথ্য সার্ভারে যাচাই হয়েছে; অন্য নিয়ন্ত্রণগুলো অপরিবর্তিত।`
           : bridge.server.status === 'loading' ? 'Loading verified business settings… · সার্ভার সেটিংস লোড হচ্ছে…'
           : bridge.server.status === 'denied' ? 'You do not have permission to view live settings. · সার্ভার সেটিংস দেখার অনুমতি নেই।'
           : bridge.server.status === 'locked' ? 'Session locked. Unlock before viewing settings. · সেটিংস দেখতে সেশন আনলক করুন।'
@@ -218,7 +307,7 @@ export function GeneralSettingsSection({
             </button>
           ) : undefined}
         >
-          {!canEdit && (
+          {!(bridge.connected ? canWriteBusiness : canEdit) && (
             <p className="flex items-center gap-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
               <Lock className="size-3.5 shrink-0" aria-hidden="true" />
               Only an authorized business user can change these.
@@ -235,17 +324,23 @@ export function GeneralSettingsSection({
         </SettingCard>
         {renderPreview && <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">{renderPreview(shown)}</aside>}
       </div>
+
       <SaveBar
-        dirty={dirty} saving={false}
-        error={Object.keys(errors).length ? `Fix ${Object.keys(errors).length} field(s) before previewing.` : undefined}
+        dirty={dirty} saving={saving}
+        error={Object.keys(errors).filter(key => errors[key]).length
+          ? 'Fix the business-name validation error before saving.' : undefined}
         status={bridge.connected
-          ? bridge.server.status === 'ready' ? 'Verified server settings loaded (read-only). No changes can be saved.'
-            : 'Live settings are not available for editing; no browser preview is a server save.'
+          ? feedback || (canWriteBusiness
+            ? 'Verified server settings loaded. Only the business name is editable.'
+            : 'Live settings are read-only or unavailable; no browser preview is a server save.')
           : feedback || 'UI preview · business settings are not changed.'}
-        dirtyLabel={feedback || `${changed.length} unsaved UI preview change(s) · not applied to business`}
+        dirtyLabel={bridge.connected
+          ? feedback || 'Business name changed but not saved to the server.'
+          : feedback || `${changed.length} unsaved UI preview change(s) · not applied to business`}
         onSave={reviewSave} onDiscard={discard} onRestore={restoreDefaults}
+        restoreLabel={bridge.connected ? 'Restore server value' : 'Restore defaults'}
         saveLabel="Save"
-        readOnly={bridge.connected || !canEdit}
+        readOnly={bridge.connected ? !canWriteBusiness : !canEdit}
       />
       {reviewWarnings && (
         <Modal
