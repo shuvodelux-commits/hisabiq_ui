@@ -131,9 +131,11 @@ test('network failure, abort, and timeout are errors without retries or fake dat
     const controller = new AbortController();
     await withFetch((async (_url, init) => {
       calls++;
-      assert.equal(init?.signal, controller.signal);
+      assert.ok(init?.signal instanceof AbortSignal);
+      assert.equal(init.signal.aborted, false);
       if (reason === 'abort') {
         controller.abort();
+        assert.equal(init.signal.aborted, true, 'caller cancellation reaches network transport');
         throw new DOMException('Abort', 'AbortError');
       }
       throw new TypeError('Network unavailable');
@@ -146,6 +148,26 @@ test('network failure, abort, and timeout are errors without retries or fake dat
     });
     assert.equal(calls, 1);
   }
+});
+
+test('bounded offline timeout aborts the one real GET rather than retrying', async () => {
+  let requests = 0;
+  await withFetch((async (_url, init) => {
+    requests++;
+    assert.ok(init?.signal instanceof AbortSignal);
+    return await new Promise<Response>((_resolve, reject) => {
+      init.signal.addEventListener('abort', () => {
+        reject(new DOMException('Timeout/cancellation', 'AbortError'));
+      }, { once: true });
+    });
+  }) as typeof fetch, async () => {
+    await assert.rejects(readTenantSettings('tenant-token', undefined, 5), (error: unknown) => {
+      assert.ok(error instanceof ApiError);
+      assert.equal(error.kind, 'network');
+      return true;
+    });
+  });
+  assert.equal(requests, 1);
 });
 
 test('malformed success envelope, bad catalogue/values, unsupported timezone and HTML fail closed', async () => {
