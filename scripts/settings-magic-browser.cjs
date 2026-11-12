@@ -223,7 +223,7 @@ async function main() {
     await interfaceUI.locator('[data-capability="sales.columns.paymentBreakdown"]').waitFor();
     // Source selector supports module search and changes the visible capability set.
     await interfaceUI.locator('button[aria-haspopup="listbox"]').first().click();
-    await interfaceUI.getByRole('textbox', { name: 'Search modules' }).fill('Products');
+    await interfaceUI.getByRole('combobox', { name: 'Search modules' }).fill('Products');
     await interfaceUI.getByRole('listbox', { name: 'Modules' }).getByRole('button', { name: /Products & stock/ }).click();
     await interfaceUI.locator('[data-capability="products.columns.stockValue"]').waitFor();
     assert.equal(await interfaceUI.locator('[data-capability="sales.columns.paymentMethod"]').count(), 0);
@@ -710,7 +710,7 @@ async function main() {
                   'settings-interface-module-open-' + width + '-' + theme + '.png'),
                 fullPage: true, animations: 'disabled',
               });
-              await page.getByRole('textbox', { name: 'Search modules' }).press('Escape');
+              await page.getByRole('combobox', { name: 'Search modules' }).press('Escape');
               await page.getByRole('listbox', { name: 'Modules' }).waitFor({ state: 'detached' });
             }
           }

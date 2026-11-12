@@ -1595,7 +1595,7 @@ export function TenantSettingsPage() {
           </p>
         </div>
         {canManage(state, actorId, 'export') && (
-          <Button onClick={() => downloadSettings('hisabiq-settings.json', JSON.stringify(state, null, 2))} title="Download settings JSON only; not a full ERP data backup">
+          <Button variant="outline" onClick={() => downloadSettings('hisabiq-settings.json', JSON.stringify(state, null, 2))} title="Download settings JSON only; not a full ERP data backup">
             <Save className="size-4" /> Settings backup
           </Button>
         )}

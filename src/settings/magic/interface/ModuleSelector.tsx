@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { experienceModules } from './experienceCatalog';
 import { Input } from '../../../components/Input';
@@ -12,6 +12,9 @@ type ModuleSelectorProps = {
 
 /** One searchable module selector instead of a long row of module tabs (KISS §3). */
 export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps) {
+  const listId = useId();
+  const trigger = useRef<HTMLButtonElement>(null);
+  const options = useRef<HTMLUListElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -28,9 +31,25 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  useEffect(() => {
+    const listbox = options.current;
+    const option = listbox?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!open || !listbox || !option) return;
+    const item = option.getBoundingClientRect();
+    const bounds = listbox.getBoundingClientRect();
+    // Reveal the active option inside its list without moving the Settings page.
+    if (item.top < bounds.top) listbox.scrollTop += item.top - bounds.top;
+    else if (item.bottom > bounds.bottom) listbox.scrollTop += item.bottom - bounds.bottom;
+  }, [active, open, query]);
+
+  const close = () => {
+    setOpen(false);
+    trigger.current?.focus();
+  };
+
   const choose = (id: string) => {
     onChange(id);
-    setOpen(false);
+    close();
     setQuery('');
   };
 
@@ -38,7 +57,9 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
     <div ref={wrap} className="relative w-full sm:w-72">
       <span className="mb-1 block text-[12px] font-medium text-ink-700">Module</span>
       <button
+        ref={trigger}
         type="button"
+        aria-controls={open ? listId : undefined}
         aria-label="Module"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -53,8 +74,13 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
       {open && (
         <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-card p-1.5 shadow-pop">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+            <Search className="pointer-events-none absolute z-10 left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
             <Input
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={open}
+              aria-controls={listId}
+              aria-activedescendant={list[active] ? `${listId}-${list[active].id}` : undefined}
               autoFocus
               value={query}
               onChange={(e) => {
@@ -64,27 +90,28 @@ export function ModuleSelector({ value, onChange, counts }: ModuleSelectorProps)
               onKeyDown={(e) => {
                 if (e.key === 'ArrowDown') {
                   e.preventDefault();
-                  setActive((a) => Math.min(list.length - 1, a + 1));
+                  setActive((a) => Math.max(0, Math.min(list.length - 1, a + 1)));
                 } else if (e.key === 'ArrowUp') {
                   e.preventDefault();
                   setActive((a) => Math.max(0, a - 1));
                 } else if (e.key === 'Enter' && list[active]) {
                   e.preventDefault();
                   choose(list[active].id);
-                } else if (e.key === 'Escape') setOpen(false);
+                } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
               }}
               placeholder="Search modules"
               aria-label="Search modules"
               className="ref-control w-full rounded-md border border-ink-100 bg-card pl-8 pr-2 text-[13px]"
             />
           </div>
-          <ul role="listbox" aria-label="Modules" className="mt-1 max-h-64 overflow-y-auto">
+          <ul ref={options} id={listId} role="listbox" aria-label="Modules" className="mt-1 max-h-64 overflow-y-auto">
             {list.map((m, i) => {
               const n = counts[m.id] ?? 0;
               return (
-                <li key={m.id} role="option" aria-selected={m.id === value}>
+                <li key={m.id} id={`${listId}-${m.id}`} data-active={i === active} role="option" aria-selected={m.id === value}>
                   <button
                     type="button"
+                    tabIndex={-1}
                     onMouseEnter={() => setActive(i)}
                     onClick={() => choose(m.id)}
                     className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[13px] ${i === active ? 'bg-ink-50' : ''}`}

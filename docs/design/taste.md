@@ -15,6 +15,16 @@ This is the HisabIQ-specific taste file consumed by `/ui-refine-loop`. It extend
 
 ### Target-specific direction
 
+### #/app/settings — existing Settings shell and navigation refinement (2026-11-09)
+
+- **Goal:** Polish the existing Magic Patterns Settings home, left navigation and shared Settings presentation for a compact, professional, human-friendly experience.
+- **Direction:** Same UI, cleaner and calmer. Subtract clutter, preserve information hierarchy and existing actions. This is a three-round refinement, not a redesign.
+- **Scope:** `src/settings/TenantSettingsPage.tsx` (presentation only), `src/settings/magic/` shared Settings presentation components, and targeted browser tests. Only change other shared components with an explicit compatibility justification.
+- **Keep:** All current Settings sections and routes, existing Magic Patterns shell, business/role/security/save/restore semantics, draft state and keyboard navigation, the 36px control standard and 0.375rem control radius, Bangla/English helpers, light/dark tokens, search and accessibility.
+- **Avoid:** Connecting demo-only actions, changing accounting/stock/auth/permission/data persistence, replacing Settings layouts, introducing new libraries/colors, new fake backend workflows, or changing unrelated modules. PR #274 and #277 remain separate pending functional work.
+- **Evidence:** Real baseline and after screenshots at 1440/390 and supplemental 320/768/1024, both themes; focused interactive Settings browser checks, independent Impeccable critiques/audits, all configured checks, and GitHub draft PR only. No merge or deployment.
+
+
 ### #/app/audit-ledger — compact and touch-friendly refinement (2026-11-01)
 
 - **Goal:** Make audit records, their source, status and actions easier to find on phones without extra scrolling or accidental taps.

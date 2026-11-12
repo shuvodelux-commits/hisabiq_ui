@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Crown, Lock, Printer } from 'lucide-react';
-import { Button, Modal, Segmented } from './Ui';
+import { Button, Modal, Segmented, radioGroupKeyDown } from './Ui';
 import { brandColors, contentToggles, invoiceDesigns, paperOptions, type InvoiceDesignId, type PaperSize } from './invoiceDesigns';
 import { defaultInvoiceDesign, type InvoiceDesignSettings } from './invoiceState';
 import { InvoiceDocument } from './InvoiceDocument';
@@ -76,7 +76,7 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
           </SettingCard>
 
           <SettingCard title="Paper & language" titleBn="কাগজ ও ভাষা" description="Pick the printer you use. Language changes every label, number and date on the printed page.">
-            <div role="radiogroup" aria-label="Paper size" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div role="radiogroup" aria-label="Paper size" onKeyDown={radioGroupKeyDown} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {paperOptions.map((p) => {
                 const supported = design.papers.includes(p.id);
                 const active = draft.paper === p.id;
@@ -87,6 +87,7 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
                     role="radio"
                     aria-checked={active}
                     disabled={!canEdit || !supported}
+                    tabIndex={canEdit && supported && (active || (!design.papers.includes(draft.paper) && p.id === design.papers[0])) ? 0 : -1}
                     title={supported ? undefined : `${design.name} doesn’t print on this paper`}
                     onClick={() => pickPaper(p.id)}
                     className={`rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 disabled:cursor-not-allowed disabled:opacity-40 ${active ? 'border-teal-600 bg-teal-50/60' : 'border-ink-100 hover:border-ink-200'}`}
@@ -109,7 +110,7 @@ export function InvoiceStudio({ canEdit, onDirtyChange }: Props) {
             )}
             <div className="space-y-1.5">
               <p className="text-[12px] font-medium text-ink-700">Document language <span className="font-bn font-normal text-ink-400">চালানের ভাষা</span></p>
-              <Segmented label="Document language" options={langOptions} value={draft.lang} onChange={(id) => canEdit && set({ lang: id as InvoiceDesignSettings['lang'] })} />
+              <Segmented disabled={!canEdit} label="Document language" options={langOptions} value={draft.lang} onChange={(id) => canEdit && set({ lang: id as InvoiceDesignSettings['lang'] })} />
               <p className="ref-helper">
                 {draft.lang === 'bn'
                   ? 'সব লেখা, সংখ্যা (০–৯), তারিখ ও কথায় টাকা বাংলায় ছাপা হবে। Free on every plan.'
