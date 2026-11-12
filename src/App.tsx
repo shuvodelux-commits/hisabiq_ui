@@ -11,6 +11,9 @@ import { useTheme } from './contexts/ThemeContext';
 import { Toaster } from 'sonner';
 
 import { AppShell } from './components/layout/AppShell';
+import { readIntegrationMode } from './integration/config.ts';
+import { SessionProvider } from './integration/SessionProvider.tsx';
+import { ConnectedWorkspaceGate } from './integration/ConnectedWorkspaceGate.tsx';
 
 const TenantSettingsPage = lazy(() => import('./settings/TenantSettingsPage').then(module => ({ default: module.TenantSettingsPage })));
 const TenantSubscription = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSubscription })));
@@ -64,8 +67,9 @@ const MagicPlatformSettings = lazy(() => import('./magic-saas/pages/saas/admin/P
 
 export function App() {
   const { resolvedTheme } = useTheme();
+  const integrationMode = readIntegrationMode((import.meta as ImportMeta & { env?: { VITE_HISABIQ_INTEGRATION_MODE?: string } }).env?.VITE_HISABIQ_INTEGRATION_MODE);
   return (
-    <SaasProvider><HashRouter>
+    <SaasProvider><HashRouter><SessionProvider mode={integrationMode}>
       <Toaster theme={resolvedTheme} position="bottom-right" toastOptions={{ style: { fontFamily: 'Geist' } }} />
       <Routes>
         <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
@@ -73,13 +77,13 @@ export function App() {
         <Route path="/login" element={<PageBoundary><LoginPreviewPage view="password" /></PageBoundary>} />
         <Route path="/login/pin" element={<PageBoundary><LoginPreviewPage view="pin" /></PageBoundary>} />
         <Route path="/login/accounts" element={<PageBoundary><LoginPreviewPage view="accounts" /></PageBoundary>} />
-        <Route path="/signup" element={<PageBoundary><SignupPreviewPage /></PageBoundary>} />
+        <Route path="/signup" element={<ConnectedWorkspaceGate><PageBoundary><SignupPreviewPage /></PageBoundary></ConnectedWorkspaceGate>} />
         <Route path="/register" element={<Navigate to="/signup" replace />} />
         <Route path="/login/signup" element={<Navigate to="/signup" replace />} />
-        <Route path="/recovery" element={<PageBoundary><RecoveryPreviewPage /></PageBoundary>} />
+        <Route path="/recovery" element={<ConnectedWorkspaceGate><PageBoundary><RecoveryPreviewPage /></PageBoundary></ConnectedWorkspaceGate>} />
         <Route path="/forgot-password" element={<Navigate to="/recovery" replace />} />
         <Route path="/login/recovery" element={<Navigate to="/recovery" replace />} />
-        <Route path="/saas" element={<MagicSaasEntry />}>
+        <Route path="/saas" element={<ConnectedWorkspaceGate><MagicSaasEntry /></ConnectedWorkspaceGate>}>
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<MagicMyWork />} />
           <Route path="tenants" element={<MagicBusinesses />} />
@@ -105,7 +109,7 @@ export function App() {
           <Route path="settings" element={<MagicPlatformSettings />} />
           <Route path="*" element={<Navigate to="/saas/home" replace />} />
         </Route>
-        <Route path="/app" element={<AppShell />}>
+        <Route path="/app" element={<ConnectedWorkspaceGate><AppShell /></ConnectedWorkspaceGate>}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="subscription" element={<TenantSubscription />} /><Route path="support" element={<TenantSupport />} /><Route path="support/:id" element={<TenantSupport detail />} />
           <Route path="settings" element={<TenantSettingsPage />} />
@@ -137,7 +141,7 @@ export function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </HashRouter></SaasProvider>
+    </SessionProvider></HashRouter></SaasProvider>
   );
 }
 
