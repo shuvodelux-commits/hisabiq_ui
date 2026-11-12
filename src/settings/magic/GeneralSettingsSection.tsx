@@ -327,8 +327,9 @@ export function GeneralSettingsSection({
 
       <SaveBar
         dirty={dirty} saving={saving}
-        error={Object.keys(errors).filter(key => errors[key]).length
-          ? 'Fix the business-name validation error before saving.' : undefined}
+        error={bridge.connected
+          ? (errors.businessName ? 'Fix the business-name validation error before saving.' : undefined)
+          : (Object.keys(errors).length ? `Fix ${Object.keys(errors).length} field(s) before previewing.` : undefined)}
         status={bridge.connected
           ? feedback || (canWriteBusiness
             ? 'Verified server settings loaded. Only the business name is editable.'
