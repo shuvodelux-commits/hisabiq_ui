@@ -1,0 +1,133 @@
+name: MOD-000 Foundation Real Auth
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/integration-foundation.yml'
+      - 'scripts/integration-foundation-fixture.cjs'
+  workflow_dispatch:
+    inputs:
+      backend_sha:
+        description: 'Approved immutable NestSherERP adoption commit SHA'
+        required: true
+        default: '2005609f4e367ceabd1e2ac4a9aee18444c9314a'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mod000-real-auth-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  real-auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: foundation_test_only
+          POSTGRES_DB: hisabiq_foundation_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d hisabiq_foundation_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      ADMIN_DATABASE_URL: postgres://postgres:foundation_test_only@127.0.0.1:5432/hisabiq_foundation_test
+      DATABASE_URL: postgres://sher_app:sher_app_test@127.0.0.1:5432/hisabiq_foundation_test
+      JWT_SECRET: 'hisabiq_mod000_test_only_random_value_2026_minimum_48'
+      PORT: '3000'
+      WEB_ORIGIN: http://127.0.0.1:5173
+      IDENTITY_VERIFIER: dev
+      SINGLE_TENANT_MODE: 'false'
+      ENTITLEMENT_SOURCE: subscription
+      VITE_HISABIQ_INTEGRATION_MODE: connected
+      APPROVED_BACKEND_SHA: ${{ inputs.backend_sha || '2005609f4e367ceabd1e2ac4a9aee18444c9314a' }}
+    steps:
+      - name: Checkout exact frontend PR candidate
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+          persist-credentials: false
+
+      - name: Confirm approved immutable Git SHAs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${#APPROVED_BACKEND_SHA}" = 40
+          [[ "$APPROVED_BACKEND_SHA" =~ ^[0-9a-f]{40}$ ]]
+          echo "Frontend candidate SHA: ${{ github.sha }}"
+          echo "Approved backend SHA: $APPROVED_BACKEND_SHA"
+
+      - name: Checkout approved NestSherERP commit (not moving branch)
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/nestshererp
+          ref: ${{ env.APPROVED_BACKEND_SHA }}
+          path: backend
+          persist-credentials: false
+
+      - name: Setup backend Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pinned pnpm 9.15.9
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+
+      - name: Frozen backend install and focused compile
+        working-directory: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm --filter "@sher/api..." build
+
+      - name: Setup frontend Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frozen frontend install and integration unit contracts
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          node --experimental-strip-types --test tests/integrationHttp.test.ts tests/integrationAuth.test.ts tests/integrationSession.test.ts tests/integrationDecimal.test.ts tests/integrationOperation.test.ts
+          npx tsc --noEmit
+          npm run check:ui-contract
+
+      - name: Install Chromium for real auth browser acceptance
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run disposable real Nest/React auth fixture
+        working-directory: frontend
+        shell: bash
+        env:
+          BACKEND_ROOT: ${{ github.workspace }}/backend
+          FRONTEND_ROOT: ${{ github.workspace }}/frontend
+        run: |
+          set -euo pipefail
+          node scripts/integration-foundation-fixture.cjs
+
+      - name: Confirm no generated frontend or backend edits
+        if: always()
+        shell: bash
+        run: |
+          git -C frontend status --short
+          git -C backend status --short
