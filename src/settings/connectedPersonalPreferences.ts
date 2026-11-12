@@ -19,6 +19,10 @@ export interface PersonalLocalStorage {
   setItem(key: string, value: string): void;
 }
 const serverUlid = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
+const personalKeys = new Set(Object.keys(personalDefaults));
+function strictPersonal(value: unknown): value is PersonalSettings {
+  return validPersonal(value) && Object.keys(value).every(key => personalKeys.has(key));
+}
 
 function isServerId(value: unknown): value is string {
   return typeof value === 'string' && serverUlid.test(value);
@@ -51,7 +55,7 @@ export function readConnectedPersonal(
     const raw = storage?.getItem(key);
     if (raw) {
       const parsed: unknown = JSON.parse(raw);
-      if (validPersonal(parsed)) return { ...personalDefaults, ...parsed };
+      if (strictPersonal(parsed)) return { ...personalDefaults, ...parsed };
     }
   } catch { /* Storage is optional; never fall back across identities. */ }
   return { ...personalDefaults };
@@ -64,7 +68,7 @@ export function writeConnectedPersonal(
   value: PersonalSettings,
 ): boolean {
   const key = personalStorageKey(scope);
-  if (!validPersonal(value)) return false;
+  if (!strictPersonal(value)) return false;
   try {
     if (!storage) return false;
     storage.setItem(key, JSON.stringify(value));
