@@ -165,6 +165,28 @@ async function exerciseRealMod001(frontend) {
   assert.equal((await api.readTenantSettings(tokenA)).data.businessName, newBusinessName);
   console.log('T01-W/P1 PASS: actual PATCH business → GET persistence, timezone preserved, tenant B isolated, invalid write denied');
 
+  // Fail-closed contract triage: keys and primitive *types* only, never IDs,
+  // names, phone, bearer or OTP, to identify any source-to-wire skew.
+  const [wireUsers, wireRoles] = await Promise.all([
+    request('GET', '/api/v1/users', undefined, tokenA),
+    request('GET', '/api/v1/roles', undefined, tokenA),
+  ]);
+  const shape = (response, arrayKey) => {
+    const data = response.data && typeof response.data === 'object' ? response.data : {};
+    const array = Array.isArray(data[arrayKey]) ? data[arrayKey] : [];
+    const row = array[0] && typeof array[0] === 'object' ? array[0] : {};
+    return {
+      status: response.status,
+      dataFields: Object.keys(data).sort(),
+      count: array.length,
+      firstRowFields: Object.keys(row).sort(),
+      firstRowTypes: Object.fromEntries(Object.entries(row).map(([key, value]) => [
+        key, value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value,
+      ])),
+    };
+  };
+  console.log('T02-R safe wire shape USERS:', JSON.stringify(shape(wireUsers, 'users')));
+  console.log('T02-R safe wire shape ROLES:', JSON.stringify(shape(wireRoles, 'roles')));
   const [usersA, usersB, rolesA, rolesB] = await Promise.all([
     api.readTenantUsers(tokenA), api.readTenantUsers(tokenB),
     api.readTenantRoles(tokenA), api.readTenantRoles(tokenB),
