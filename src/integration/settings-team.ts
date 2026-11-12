@@ -75,14 +75,30 @@ function decodeServerSettings(raw: unknown): ServerSettingsEnvelope {
 
 /** Caller must supply the *currently verified* session access token; there is
  * no tenant parameter, fixture fallback, client cache, automatic retry or POST. */
-export function readTenantSettings(
+export async function readTenantSettings(
   accessToken: string,
   signal?: AbortSignal,
+  timeoutMs = 12_000,
 ): Promise<ServerSettingsEnvelope> {
-  return requestJson({
-    method: 'GET',
-    path: '/api/v1/settings',
-    accessToken,
-    signal,
-  }, decodeServerSettings);
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) {
+    throw new ApiError('protocol', 'Invalid settings request timeout');
+  }
+  // Use one controller for both tenant-switch cancellation and bounded offline
+  // wait. Supported by older browsers without AbortSignal.any/timeout support.
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    return await requestJson({
+      method: 'GET',
+      path: '/api/v1/settings',
+      accessToken,
+      signal: controller.signal,
+    }, decodeServerSettings);
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
 }
