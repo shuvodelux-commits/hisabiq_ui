@@ -119,3 +119,119 @@ export async function removeServerInvoiceLogo(
 ): Promise<ServerInvoiceSettingsEnvelope> {
   return logoMutation(accessToken,'DELETE',undefined,false,signal,timeoutMs);
 }
+
+
+/** A private, read-only logo value. No object URL or tenant-wide browser cache. */
+export interface ServerInvoiceLogo {
+  readonly mime: InvoiceLogoMime;
+  readonly bytes: Uint8Array;
+}
+
+/**
+ * Read the NestSherERP raw binary logo under the caller's verified Bearer.
+ * The source controller streams bytes rather than JSON. Never use requestJson
+ * here, nor place a private /invoice-logo endpoint directly in an img src.
+ */
+export async function readServerInvoiceLogo(
+  accessToken: string,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<ServerInvoiceLogo> {
+  validateControls(accessToken, timeoutMs, signal);
+  let url: URL;
+  try {
+    const origin = globalThis.window?.location.origin ?? globalThis.location?.origin;
+    if (typeof origin !== 'string' || !origin) return invalid();
+    const source = new URL(origin);
+    if ((source.protocol !== 'https:' && source.protocol !== 'http:') ||
+        source.origin !== origin || source.username || source.password ||
+        source.pathname !== '/' || source.search || source.hash) return invalid();
+    url = new URL('/api/v1/sales/invoice-logo', origin);
+    if (url.origin !== origin || url.pathname !== '/api/v1/sales/invoice-logo') return invalid();
+  } catch {
+    return invalid();
+  }
+
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    let response: Response;
+    try {
+      response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          Authorization: 'Bearer ' + accessToken,
+          Accept: 'image/png, image/jpeg, image/webp, image/gif',
+        },
+        signal: controller.signal,
+        credentials: 'omit',
+        redirect: 'error',
+        cache: 'no-store',
+      });
+    } catch {
+      throw new ApiError('network', 'Invoice logo request failed');
+    }
+    if (!response.ok) {
+      throw new ApiError('http', 'Invoice logo request failed (HTTP ' + response.status + ')', {
+        status: response.status,
+      });
+    }
+    if (response.status !== 200 || response.redirected) return invalid();
+
+    const mime = response.headers.get('Content-Type');
+    if (!mime || !mimeTypes.has(mime as InvoiceLogoMime)) return invalid();
+
+    const length = response.headers.get('Content-Length');
+    let declaredLength: number | null = null;
+    if (length !== null) {
+      // Reject invalid/zero/oversized declarations before allocating bytes.
+      if (!/^[1-9][0-9]*$/.test(length)) return invalid();
+      declaredLength = Number(length);
+      if (!Number.isSafeInteger(declaredLength) || declaredLength > maximumDecodedBytes) return invalid();
+    }
+    if (!response.body) return invalid();
+
+    const reader = response.body.getReader();
+    const parts: Uint8Array[] = [];
+    let count = 0;
+    let exhausted = false;
+    try {
+      for (;;) {
+        const piece = await reader.read();
+        if (piece.done) {
+          exhausted = true;
+          break;
+        }
+        if (!(piece.value instanceof Uint8Array)) return invalid();
+        count += piece.value.byteLength;
+        if (count > maximumDecodedBytes) return invalid();
+        // Copy chunks; underlying reader buffers may be reused by producers.
+        parts.push(new Uint8Array(piece.value));
+      }
+    } catch (error: unknown) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError('network', 'Invoice logo download interrupted');
+    } finally {
+      if (!exhausted) {
+        try { await reader.cancel(); } catch { /* already aborted */ }
+      }
+      reader.releaseLock();
+    }
+    if (count === 0 || (declaredLength !== null && declaredLength !== count)) return invalid();
+    const bytes = new Uint8Array(count);
+    let cursor = 0;
+    for (const part of parts) {
+      bytes.set(part, cursor);
+      cursor += part.byteLength;
+    }
+    // Signatures are source-supported MIME sanity checks, not full decoding.
+    const prefix = String.fromCharCode(...bytes.subarray(0, 16));
+    if (!signedImageMatches(mime as InvoiceLogoMime, prefix)) return invalid();
+    return { mime: mime as InvoiceLogoMime, bytes };
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
