@@ -6,6 +6,7 @@ import { Input } from '../../components/Input';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '../../components/Dialog';
 import { showBanglaHelper, uiText, type UiLanguage } from '../../i18n/uiCopy';
 import { AuthLayout } from './AuthLayout';
+import { useSession } from '../../integration/SessionProvider.tsx';
 
 type View = 'password' | 'pin' | 'accounts';
 type Info = 'google';
@@ -18,7 +19,9 @@ const sampleAccounts = [
 const digits = (value: string) => value.replace(/[০-৯]/g, digit => String('০১২৩৪৫৬৭৮৯'.indexOf(digit)));
 
 export function LoginPreviewPage({ view }: { view: View }) {
+  const { mode } = useSession();
   const [params] = useSearchParams();
+  if (mode === 'connected') return <ConnectedLoginScreen view={view} />;
   const account = sampleAccounts.find(item => item.id === params.get('account')) ?? sampleAccounts[0];
   // Remount the whole form when identity changes, including query-only navigation.
   return <LoginPreviewScreen key={view + ':' + account.id} view={view} account={account} />;
@@ -162,6 +165,158 @@ function LoginPreviewScreen({ view, account }: { view: View; account: typeof sam
           {text('Google sign-in is not connected in this UI preview. No Google account will be linked.', 'এই UI প্রিভিউতে Google সাইন ইন চালু নেই। কোনো Google অ্যাকাউন্ট যুক্ত হবে না.')}
         </DialogDescription>
         <Button type="button" className="mt-4 w-full" onClick={() => setInfo(null)}>{text('Back to sign in', 'সাইন ইনে ফিরুন')}</Button>
+      </DialogContent>
+    </Dialog>
+  </AuthLayout>;
+}
+
+
+/**
+ * Only rendered for explicit connected mode. The existing preview component above
+ * and its visual/fixture behaviors remain untouched and testable.
+ * This screen never reads sampleAccounts or a query parameter as live identity.
+ */
+function ConnectedLoginScreen({ view }: { view: View }) {
+  const { snapshot, store } = useSession();
+  const [language, setLanguage] = useState<UiLanguage>(() => {
+    try {
+      const saved = localStorage.getItem(languageKey);
+      if (saved === 'English' || saved === 'Bangla' || saved === 'English + Bangla') return saved;
+    } catch { /* language preference is optional */ }
+    return 'English + Bangla';
+  });
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [pin, setPin] = useState('');
+  const [pinCursor, setPinCursor] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [failure, setFailure] = useState('');
+  const [info, setInfo] = useState(false);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const pinRef = useRef<HTMLInputElement>(null);
+  const text = (en: string, bn: string) => uiText(language, en, bn);
+  const helper = showBanglaHelper(language);
+  const verified = (snapshot.status === 'authenticated' || snapshot.status === 'locked') && snapshot.userId
+    ? snapshot : null;
+  const knownName = verified?.displayName || verified?.username || '';
+  const changeLanguage = (value: UiLanguage) => {
+    setLanguage(value);
+    setFailure('');
+    try { localStorage.setItem(languageKey, value); } catch { /* optional preference */ }
+  };
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (pending || snapshot.status === 'authenticating') return;
+    setFailure('');
+    const normalized = digits(phone).trim().replace(/[\\s-]/g, '').replace(/^\\+?880/, '0');
+    if (view === 'pin') {
+      if (!/^\\d{6}$/.test(pin)) {
+        setFailure(text('Enter all 6 digits of your PIN.', 'পিনের ৬টি সংখ্যা লিখুন।'));
+        pinRef.current?.focus();
+        return;
+      }
+    } else if (!/^01[3-9]\\d{8}$/.test(normalized) || !password) {
+      setFailure(text('Enter a valid mobile number and password.', 'সঠিক মোবাইল নম্বর ও পাসওয়ার্ড লিখুন।'));
+      (!/^01[3-9]\\d{8}$/.test(normalized) ? phoneRef : passwordRef).current?.focus();
+      return;
+    }
+    setPending(true);
+    try {
+      if (view === 'pin') await store.loginWithPin(pin);
+      else await store.loginWithPassword(normalized, password);
+      if (view !== 'pin') setPhone(normalized);
+    } catch {
+      setFailure(view === 'pin'
+        ? text('Unable to verify PIN. Use password sign in if needed.', 'পিন যাচাই হয়নি। প্রয়োজনে পাসওয়ার্ড দিয়ে সাইন ইন করুন।')
+        : text('Unable to verify sign in. Check your credentials or connection.', 'সাইন ইন যাচাই হয়নি। তথ্য বা সংযোগ পরীক্ষা করুন।'));
+      (view === 'pin' ? pinRef : passwordRef).current?.focus();
+    } finally {
+      setPassword('');
+      setPin('');
+      setVisible(false);
+      setPending(false);
+    }
+  };
+  const busy = pending || snapshot.status === 'authenticating';
+  return <AuthLayout language={language} onLanguageChange={changeLanguage}>
+    <style>{'.auth-preview > .auth-preview-content > .auth-preview-footer { display: none; }'}</style>
+    <h1 id="auth-title" className="auth-title">{view === 'accounts' ? text('Choose account', 'অ্যাকাউন্ট বাছুন') : view === 'pin' ? text('Welcome back', 'আবার স্বাগতম') : text('Sign in', 'সাইন ইন')}</h1>
+    {view === 'password' && <p className="auth-subtitle">{text('Welcome back.', 'আবার স্বাগতম।')}{helper && <span lang="bn" className="font-bn"> আবার স্বাগতম।</span>}</p>}
+    {view === 'accounts' ? <>
+      <p className="auth-subtitle">{text('Only the verified account in this tab can use quick PIN.', 'শুধু এই ট্যাবের যাচাইকৃত অ্যাকাউন্ট কুইক পিন ব্যবহার করতে পারবে।')}</p>
+      <div className="auth-account-list">
+        {verified ? <Link className="auth-account-row" to="/login/pin">
+          <span aria-hidden="true" className="auth-avatar">{knownName.charAt(0)}</span>
+          <span className="auth-account-copy"><strong>{knownName}</strong></span>
+          <ChevronRight className="size-4 shrink-0 text-ink-400" aria-hidden="true" />
+        </Link> : <p className="auth-caption" role="status">{text('No verified account in this tab.', 'এই ট্যাবে যাচাইকৃত অ্যাকাউন্ট নেই।')}</p>}
+      </div>
+      <Link className="auth-secondary-link" to="/login">{text('Use password sign in', 'পাসওয়ার্ড দিয়ে সাইন ইন করুন')}</Link>
+    </> : <form noValidate onSubmit={submit} className="auth-form" aria-busy={busy}>
+      {view === 'pin' ? <>
+        {verified && <div className="auth-identity">
+          <span aria-hidden="true" className="auth-avatar">{knownName.charAt(0)}</span>
+          <span className="auth-account-copy"><strong>{knownName}</strong></span>
+          <Link className="auth-text-link" to="/login/accounts">{text('Switch account', 'অ্যাকাউন্ট বদলান')}</Link>
+        </div>}
+        <div className="auth-field">
+          <label htmlFor="auth-pin">{text('Enter your 6-digit PIN', 'আপনার ৬ সংখ্যার পিন দিন')}</label>
+          {helper && <p lang="bn" className="auth-field-helper font-bn">আপনার ৬ সংখ্যার পিন দিন</p>}
+          <div className="auth-pin-field">
+            <Input ref={pinRef} id="auth-pin" name="quick-pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6}
+              className="auth-pin-input" value={pin} aria-invalid={!!failure} aria-describedby={failure ? 'auth-pin-error' : undefined}
+              onSelect={event => setPinCursor(Math.min(event.currentTarget.selectionStart ?? 0, 5))}
+              onChange={event => { setPin(digits(event.target.value).replace(/\\D/g, '').slice(0, 6)); setFailure(''); }} />
+            <div aria-hidden="true" className="auth-pin-slots">{Array.from({ length: 6 }, (_, index) => <span key={index} data-current={pinCursor === index}>{pin[index] ? '•' : ''}</span>)}</div>
+          </div>
+          {failure && <p id="auth-pin-error" className="auth-error" role="alert">{failure}</p>}
+        </div>
+      </> : <>
+        <div className="auth-field">
+          <label htmlFor="auth-phone">{text('Mobile number', 'মোবাইল নম্বর')}</label>
+          <div className="auth-input-icon">
+            <Phone className="auth-leading-icon" aria-hidden="true" />
+            <Input ref={phoneRef} id="auth-phone" name="mobile" type="tel" inputMode="tel" autoComplete="username" placeholder="01XXXXXXXXX"
+              value={phone} aria-invalid={!!failure && !/^01[3-9]\\d{8}$/.test(digits(phone).replace(/[\\s-]/g, '').replace(/^\\+?880/, '0'))}
+              onChange={event => { setPhone(event.target.value); setFailure(''); }} className="pl-9" />
+          </div>
+        </div>
+        <div className="auth-field">
+          <label htmlFor="auth-password">{text('Password', 'পাসওয়ার্ড')}</label>
+          <div className="auth-input-icon">
+            <LockKeyhole className="auth-leading-icon" aria-hidden="true" />
+            <Input ref={passwordRef} id="auth-password" name="password" type={visible ? 'text' : 'password'} autoComplete="current-password"
+              placeholder={text('Enter your password', 'আপনার পাসওয়ার্ড লিখুন')} value={password}
+              aria-invalid={!!failure} aria-describedby={failure ? 'auth-password-error' : undefined}
+              onChange={event => { setPassword(event.target.value); setFailure(''); }} className="pl-9 pr-12" />
+            <Button type="button" variant="ghost" size="icon" className="auth-password-eye"
+              aria-label={visible ? text('Hide password', 'পাসওয়ার্ড লুকান') : text('Show password', 'পাসওয়ার্ড দেখুন')}
+              aria-pressed={visible} onMouseDown={event => event.preventDefault()} onClick={() => setVisible(state => !state)}>
+              {visible ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
+            </Button>
+          </div>
+          {failure && <p id="auth-password-error" className="auth-error" role="alert">{failure}</p>}
+        </div>
+        <div className="auth-forgot"><Link className="auth-text-link" to="/login">{text('Password recovery is not available yet', 'পাসওয়ার্ড পুনরুদ্ধার এখনো চালু হয়নি')}</Link></div>
+      </>}
+      <Button type="submit" className="auth-submit w-full" disabled={busy} aria-busy={busy}>{text('Sign in', 'সাইন ইন')}</Button>
+      {snapshot.status === 'authenticated' && <p role="status" className="auth-notice">{text('Workspace access pending. Your identity is verified, but the live ERP workspace is not connected yet.', 'ওয়ার্কস্পেস চালু করা বাকি। পরিচয় যাচাই হয়েছে, কিন্তু লাইভ ERP এখনো সংযুক্ত হয়নি।')}</p>}
+      {snapshot.status === 'locked' && <p role="status" className="auth-notice">{text('Session locked. Enter your six-digit PIN or sign in with password.', 'সেশন লক হয়েছে। ছয় সংখ্যার পিন বা পাসওয়ার্ড দিন।')}</p>}
+      {view === 'pin' ? <Link className="auth-pin-fallback auth-text-link" to="/login">{text('Use password sign in', 'পাসওয়ার্ড দিয়ে সাইন ইন করুন')}</Link> : <>
+        <div className="auth-divider"><span>{text('or', 'অথবা')}</span></div>
+        <Button type="button" variant="outline" className="auth-google w-full" onClick={() => setInfo(true)}>
+          {text('Continue with Google', 'Google দিয়ে চালিয়ে যান')}
+        </Button>
+        <p className="auth-create">{text('New to HisabIQ? Registration is not connected yet.', 'HisabIQ-এ নতুন? নিবন্ধন এখনো সংযুক্ত হয়নি।')}</p>
+      </>}
+    </form>}
+    <Dialog open={info} onOpenChange={setInfo}>
+      <DialogContent className="max-w-sm">
+        <DialogTitle>{text('Continue with Google', 'Google দিয়ে চালিয়ে যান')}</DialogTitle>
+        <DialogDescription className="mt-2">{text('Google sign-in is not available in connected mode yet.', 'সংযুক্ত মোডে Google সাইন ইন এখনো চালু হয়নি।')}</DialogDescription>
+        <Button type="button" className="mt-4 w-full" onClick={() => setInfo(false)}>{text('Back to sign in', 'সাইন ইনে ফিরুন')}</Button>
       </DialogContent>
     </Dialog>
   </AuthLayout>;
