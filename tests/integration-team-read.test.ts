@@ -156,8 +156,7 @@ test('network loss, caller abort and timeout produce one failed read', async () 
 
 test('HTML success, unexpected cross-origin redirect or invalid token never return teams', async () => {
   for (const resource of [readTenantUsers, readTenantRoles]) {
-    await withFetch((async () => new Response('<html/>', { headers: { 'content-type': 'text/html' } }))
-      as typeof fetch, async () => {
+    await withFetch((async () => new Response('<html/>', { headers: { 'content-type': 'text/html' } })) as typeof fetch, async () => {
         await assert.rejects(resource('valid-token'), (err: unknown) =>
           err instanceof ApiError && err.kind === 'protocol');
       });
