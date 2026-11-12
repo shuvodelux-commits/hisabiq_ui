@@ -4,7 +4,7 @@ import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import {isManualAccountingSource} from '../utils/moduleUiActions';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import '../utils/accountingLabels'; // Keep existing module initialization.
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowDownToLine, BookOpen, FileText, Landmark, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
@@ -88,9 +88,18 @@ export function Accounts() {
   const { terminologyMode, setTerminologyMode, entryDateView } = useUserPreferences();
   const [params,setParams] = useSearchParams();
   const requestedTab = params.get('tab');
-  const [tab, setTab] = useState<Tab>(() => validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview');
-   useEffect(() => { setTab(validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview'); }, [requestedTab]);
-  const chooseTab = (nextTab: Tab) => { setTab(nextTab); setParams(current => { const next = new URLSearchParams(current); if (nextTab === 'overview') next.delete('tab'); else next.set('tab',nextTab); if(nextTab!=='bank-entry')next.delete('accountId'); return next; }, {replace:true}); };
+  // Keep the route as the only source of tab selection. A second local state,
+  // synchronized in useEffect, can briefly show an old tab after the URL changes.
+  const tab: Tab = validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview';
+  const chooseTab = (nextTab: Tab) => {
+    setParams(current => {
+      const next = new URLSearchParams(current);
+      if (nextTab === 'overview') next.delete('tab');
+      else next.set('tab', nextTab);
+      if (nextTab !== 'bank-entry') next.delete('accountId');
+      return next;
+    }, { replace: true });
+  };
   const [sources, setSources] = useState<AccountingSourceTransaction[]>(seedSources);
   const [voucherOpen, setVoucherOpen] = useState(false);
   const [voucherType, setVoucherType] = useState<VoucherType>('receipt');
