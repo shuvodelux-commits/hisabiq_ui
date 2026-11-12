@@ -309,3 +309,64 @@ test('subscribe observes real state changes; dispose aborts stale sign-in', asyn
   assert.ok(notifications > 0);
   unsubscribe();
 });
+
+test('offline reload restore remains locked without inventing a verified identity', async () => {
+  const storage = memoryStorage(JSON.stringify({ schema: 1, refreshToken: 'saved-tab-refresh' }));
+  const { api } = auth({
+    refreshSession: async () => { throw new ApiError('network', 'offline'); },
+    readMyAccess: async () => { throw new Error('must not bootstrap when refresh fails'); },
+  });
+  const store = make(api, storage);
+  await store.restore();
+  const snapshot = store.getSnapshot();
+  assert.equal(snapshot.status, 'locked');
+  assert.equal('accessToken' in snapshot, false);
+  assert.equal('permissions' in snapshot, false);
+  assert.equal('userId' in snapshot, false);
+  assert.deepEqual(JSON.parse(storage.getItem(SESSION_STORAGE_KEY)!), {
+    schema: 1, refreshToken: 'saved-tab-refresh',
+  });
+  store.dispose();
+});
+
+test('new refresh credential survives a temporary /me network failure after server rotation', async () => {
+  const requested: string[] = [];
+  let seenMe = 0;
+  const { api } = auth({
+    refreshSession: async (refresh: string) => {
+      requested.push(refresh);
+      return token(A, requested.length + 1);
+    },
+    readMyAccess: async () => {
+      seenMe += 1;
+      if (seenMe === 2) throw new ApiError('network', 'offline bootstrap');
+      return who();
+    },
+  });
+  const storage = memoryStorage(); const store = make(api, storage);
+  await store.loginWithPassword('phone', 'password');
+  await assert.rejects(store.refresh(), (e: unknown) => e instanceof ApiError && e.kind === 'network');
+  assert.equal(store.getSnapshot().status, 'locked');
+  assert.equal(JSON.parse(storage.getItem(SESSION_STORAGE_KEY)!).refreshToken, token(A, 2).data.refreshToken);
+  await store.refresh();
+  assert.deepEqual(requested, [token().data.refreshToken, token(A, 2).data.refreshToken]);
+  assert.equal(store.getSnapshot().status, 'authenticated');
+  store.dispose();
+});
+
+test('missing server profile during refresh is a hard sign-out, not a reusable offline lock', async () => {
+  let readCount = 0;
+  const { api } = auth({
+    readMyAccess: async () => {
+      readCount += 1;
+      if (readCount > 1) throw new ApiError('http', 'Business profile not found', { status: 404, code: 'NOT_FOUND' });
+      return who();
+    },
+  });
+  const storage = memoryStorage(); const store = make(api, storage);
+  await store.loginWithPassword('phone', 'password');
+  await assert.rejects(store.refresh(), (e: unknown) => e instanceof ApiError && e.status === 404);
+  assert.equal(store.getSnapshot().status, 'signed-out');
+  assert.equal(storage.getItem(SESSION_STORAGE_KEY), null);
+  store.dispose();
+});
