@@ -114,7 +114,7 @@ async function main() {
 
     await go('/app/dashboard');
     await page.getByText('Workspace access pending', { exact: false }).waitFor();
-    assert.equal(await page.getByText('Sample accounts', { exact: false }).count(), 0);
+    assert.equal(await page.locator('.auth-preview-footer').isVisible(), false, 'Preview-only sample footer must be hidden in connected mode');
     assert.equal(await page.locator('[data-erp-table]').count(), 0, 'No preview ERP tables in connected mode');
 
     await page.reload();
@@ -134,7 +134,7 @@ async function main() {
     // No tested route may switch to a preview business workspace.
     await go('/app/settings');
     await page.getByText('Workspace access pending', { exact: false }).waitFor();
-    assert.equal(await page.getByText('Sample accounts', { exact: false }).count(), 0);
+    assert.equal(await page.locator('.auth-preview-footer').isVisible(), false, 'Preview-only sample footer must be hidden in connected mode');
     assert.deepEqual(errors, []);
     console.log('F0-06 connected auth browser passed: no preview workspace, login, /me, restore, PIN and tenant isolation');
   } finally {
