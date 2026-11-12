@@ -95,7 +95,15 @@ async function main() {
     await page.getByLabel('Mobile number').fill('০১৭১১-০০০২৪৫');
     await page.getByLabel('Password', { exact: true }).fill('correct-password');
     await page.getByRole('button', { name: /^Sign in$/ }).click();
-    await page.getByText('Workspace access pending', { exact: false }).waitFor({ timeout: 10_000 });
+    try {
+      await page.getByText('Workspace access pending', { exact: false }).waitFor({ timeout: 10_000 });
+    } catch (error) {
+      console.error('F0-06 login diagnostic', JSON.stringify({
+        requests, loginCalls, meCalls, pinCalls, errors,
+        main: await page.locator('main').innerText().catch(() => 'main unavailable'),
+      }));
+      throw error;
+    }
     assert.equal(loginCalls, 1);
     assert.equal(meCalls, 1);
 
