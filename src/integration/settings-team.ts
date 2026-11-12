@@ -300,7 +300,7 @@ export async function updateTenantUserDisplayName(
   try {
     return await requestJson({
       method: 'PATCH',
-      path: '/api/v1/users/' + verifiedUser.id,
+      path: `/api/v1/users/${verifiedUser.id}`,
       accessToken,
       body: { displayName, roleId: verifiedUser.roleId },
       signal: controller.signal,
