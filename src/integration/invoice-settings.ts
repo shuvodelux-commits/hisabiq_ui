@@ -88,7 +88,7 @@ function validNumberPair(value: unknown): value is ServerInvoicePhone {
     typeof value.label === 'string' && value.label.length <= 40 &&
     typeof value.number === 'string' && value.number.length <= 40;
 }
-function decodeInvoiceSettings(raw: unknown): ServerInvoiceSettingsEnvelope {
+export function decodeInvoiceSettings(raw: unknown): ServerInvoiceSettingsEnvelope {
   if (!record(raw) || !exactKeys(raw,['data']) || !record(raw.data)) return invalid();
   const d = raw.data;
   if (!exactKeys(d,expectedKeys) ||
