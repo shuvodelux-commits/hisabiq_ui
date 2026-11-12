@@ -20,6 +20,7 @@ import {
   verifiedInvoiceEditorIdentity, editableBooleanFields, type InvoiceChoice,
 } from './connectedInvoiceDraft.ts';
 import { ApiError } from '../../../integration/errors.ts';
+import { ConnectedInvoiceLogo } from './ConnectedInvoiceLogo';
 
 type Props = { canEdit: boolean; onDirtyChange: (dirty: boolean) => void };
 
@@ -114,6 +115,7 @@ function ConnectedInvoiceEditor({
   const [pending, setPending] = useState<InvoiceChoice | null>(null);
   const [busy, setBusy] = useState<'idle' | 'saving' | 'refreshing'>('idle');
   const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [logoRefresh, setLogoRefresh] = useState(0);
   const [writeDenied, setWriteDenied] = useState(false);
   const [feedback, setFeedback] = useState('Choose one supported option, then Save. · একটি সেটিং পরিবর্তন করুন।');
   const activeIdentity = useRef(identityKey);
@@ -199,6 +201,7 @@ function ConnectedInvoiceEditor({
       if (!mounted.current || operation.signal.aborted ||
           activeIdentity.current !== requestIdentity) return;
       setSaved(response.data);
+      setLogoRefresh(value => value + 1);
       setPending(current => current && Object.is(response.data[current.field], current.value)
         ? null : current);
       setNeedsRefresh(false);
@@ -240,6 +243,12 @@ function ConnectedInvoiceEditor({
         <p className="text-[12px] text-ink-500">
           Save or Discard one change before editing another. The invoice logo upload and six visual designs are not connected.
         </p>
+        <ConnectedInvoiceLogo
+          identityKey={identityKey}
+          accessToken={accessToken}
+          hasLogo={saved.hasLogo}
+          refreshKey={logoRefresh}
+        />
         <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
           {enumControls.map(item => (
             <label key={item.field} className="block min-w-0 text-[12px] font-medium text-ink-700">
