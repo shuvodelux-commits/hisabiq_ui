@@ -57,7 +57,7 @@ function descriptor(raw: unknown): raw is ServerSettingDescriptor {
     typeof raw.defaultValue !== 'string' || !strings(raw.requires) ||
     typeof raw.stepUp !== 'boolean' || typeof raw.consumedBy !== 'string' ||
     typeof raw.inEffect !== 'boolean') return false;
-  return Object.keys(raw).length === 10;
+  return Object.keys(raw).length === 11;
 }
 function decodeServerSettings(raw: unknown): ServerSettingsEnvelope {
   if (!record(raw) || !record(raw.data) || Object.keys(raw).length !== 1) return invalid();
