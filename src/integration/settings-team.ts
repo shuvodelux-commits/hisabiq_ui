@@ -270,3 +270,49 @@ export function readTenantRoles(
 ): Promise<ServerRolesEnvelope> {
   return readTeamResource('/api/v1/roles', accessToken, decodeRoles, signal, timeoutMs);
 }
+
+
+/** T02-W/P1: rename only a previously verified existing Nest login principal.
+ * PATCH needs the current server roleId even for an unchanged role; NEVER
+ * derive it from Magic "Sales" or send confirmPassword/disabled/permissions.
+ * If another editor changed the role since GET, Nest requires step-up and
+ * refuses this password-free request rather than silently re-privileging.
+ * There is no idempotency or CAS contract: unknown PATCH outcomes are not
+ * retried and must leave the UI draft visible until independently verified.
+ */
+export async function updateTenantUserDisplayName(
+  accessToken: string,
+  verifiedUser: ServerUser,
+  requestedName: string,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<{ data: ServerUser }> {
+  if (!serverUser(verifiedUser) || typeof requestedName !== 'string' ||
+      !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) return invalid();
+  const displayName = requestedName.trim();
+  if (displayName.length < 1 || displayName.length > 120) return invalid();
+
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    return await requestJson({
+      method: 'PATCH',
+      path: `/api/v1/users/${verifiedUser.id}`,
+      accessToken,
+      body: { displayName, roleId: verifiedUser.roleId },
+      signal: controller.signal,
+    }, (raw: unknown) => {
+      if (!record(raw) || !exactKeys(raw, ['data']) || !serverUser(raw.data)) return invalid();
+      const returned = raw.data;
+      if (returned.id !== verifiedUser.id || returned.roleId !== verifiedUser.roleId ||
+          returned.displayName !== displayName) return invalid();
+      return { data: returned };
+    });
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
