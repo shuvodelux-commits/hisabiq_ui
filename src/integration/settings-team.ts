@@ -324,3 +324,52 @@ export async function updateTenantUserDisplayName(
     signal?.removeEventListener('abort', abort);
   }
 }
+
+
+/**
+ * T02-W/P2: enable/disable a verified login principal through the backend's
+ * dedicated status endpoint. The caller must supply THEIR OWN step-up password.
+ *
+ * The server (not the preview Team checkbox) decides permissions, last-Owner
+ * protection, self-disable, cross-tenant access, audit and session revocation.
+ * Do not cache credentials or retry a POST with an unknown outcome.
+ */
+export async function setTenantUserDisabled(
+  accessToken: string,
+  verifiedUser: ServerUser,
+  disabled: boolean,
+  confirmPassword: string,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<{ data: ServerUser }> {
+  if (!serverUser(verifiedUser) || typeof disabled !== 'boolean' ||
+      disabled === verifiedUser.disabled ||
+      typeof confirmPassword !== 'string' ||
+      confirmPassword.length < 1 || confirmPassword.length > 200 ||
+      !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) return invalid();
+
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    return await requestJson({
+      method: 'POST',
+      path: \`/api/v1/users/\${verifiedUser.id}/disabled\`,
+      accessToken,
+      body: { disabled, confirmPassword },
+      signal: controller.signal,
+    }, (raw: unknown) => {
+      if (!record(raw) || !exactKeys(raw, ['data']) || !serverUser(raw.data)) return invalid();
+      // Other user fields may legitimately be edited by another administrator
+      // concurrently; only the operated principal and requested status must
+      // match the server's authoritative result.
+      if (raw.data.id !== verifiedUser.id || raw.data.disabled !== disabled) return invalid();
+      return { data: raw.data };
+    });
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
