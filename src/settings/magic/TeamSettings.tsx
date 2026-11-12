@@ -166,6 +166,8 @@ export function TeamSettings({ canEdit, onDirtyChange }: { canEdit: boolean; onD
     ? Boolean(activeLiveEditor && activeLiveEditor.name !== activeLiveEditor.user.displayName)
     : JSON.stringify(staff) !== JSON.stringify(initialStaff);
   useEffect(() => {
+    // Drop the old tenant's edit draft on identity change, not only its DOM.
+    setLiveEditor(null);
     setLiveSaving(false);
     setLiveError('');
     setLiveFeedback('');
