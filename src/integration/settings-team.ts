@@ -143,3 +143,130 @@ export async function updateBusinessProfile(
     signal?.removeEventListener('abort', abort);
   }
 }
+
+
+// MOD-001 T02-R: NestSherERP user/role listing contracts from immutable adoption.
+// Roles and user lists are independently permission-guarded resources. Neither
+// carries employee-profile multi-role semantics, credentials or a write action.
+export interface ServerUser {
+  id: string;
+  username: string;
+  displayName: string;
+  email: string | null;
+  phone: string | null;
+  roleId: string;
+  roleName: string;
+  disabled: boolean;
+  hasPassword: boolean;
+}
+export interface ServerRoleSummary { id: string; code: string; name: string }
+export interface ServerUsersEnvelope {
+  data: { users: ServerUser[]; roles: ServerRoleSummary[] };
+}
+export interface ServerRole {
+  id: string;
+  code: string;
+  name: string;
+  isSystem: boolean;
+  locked: boolean;
+  permissions: string[];
+  userCount: number;
+}
+export interface ServerPermissionDescriptor {
+  code: string;
+  group: string;
+  label: string;
+  detail: string;
+}
+export interface ServerRolesEnvelope {
+  data: { roles: ServerRole[]; catalogue: ServerPermissionDescriptor[] };
+}
+
+const teamUlid = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
+function exactKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+  return Object.keys(value).length === keys.length && keys.every(key => Object.prototype.hasOwnProperty.call(value, key));
+}
+function id(value: unknown): value is string {
+  return typeof value === 'string' && teamUlid.test(value);
+}
+function nullableText(value: unknown): value is string | null {
+  return value === null || typeof value === 'string';
+}
+function serverUser(value: unknown): value is ServerUser {
+  return record(value) &&
+    exactKeys(value, ['id','username','displayName','email','phone','roleId','roleName','disabled','hasPassword']) &&
+    id(value.id) && nonblank(value.username) && nonblank(value.displayName) &&
+    nullableText(value.email) && nullableText(value.phone) &&
+    id(value.roleId) && nonblank(value.roleName) &&
+    typeof value.disabled === 'boolean' && typeof value.hasPassword === 'boolean';
+}
+function roleSummary(value: unknown): value is ServerRoleSummary {
+  return record(value) && exactKeys(value, ['id','code','name']) &&
+    id(value.id) && nonblank(value.code) && nonblank(value.name);
+}
+function roleDetail(value: unknown): value is ServerRole {
+  return record(value) &&
+    exactKeys(value, ['id','code','name','isSystem','locked','permissions','userCount']) &&
+    id(value.id) && nonblank(value.code) && nonblank(value.name) &&
+    typeof value.isSystem === 'boolean' && typeof value.locked === 'boolean' &&
+    Array.isArray(value.permissions) && value.permissions.every(nonblank) &&
+    Number.isSafeInteger(value.userCount) && (value.userCount as number) >= 0;
+}
+function permissionDescriptor(value: unknown): value is ServerPermissionDescriptor {
+  return record(value) && exactKeys(value, ['code','group','label','detail']) &&
+    nonblank(value.code) && typeof value.group === 'string' &&
+    typeof value.label === 'string' && typeof value.detail === 'string';
+}
+function uniqueStrings(items: readonly string[]): boolean {
+  return new Set(items).size === items.length;
+}
+function decodeUsers(raw: unknown): ServerUsersEnvelope {
+  if (!record(raw) || !exactKeys(raw, ['data']) || !record(raw.data) ||
+      !exactKeys(raw.data, ['users','roles']) ||
+      !Array.isArray(raw.data.users) || !raw.data.users.every(serverUser) ||
+      !Array.isArray(raw.data.roles) || !raw.data.roles.every(roleSummary) ||
+      !uniqueStrings(raw.data.users.map((x: ServerUser) => x.id)) ||
+      !uniqueStrings(raw.data.roles.map((x: ServerRoleSummary) => x.id))) return invalid();
+  return raw as unknown as ServerUsersEnvelope;
+}
+function decodeRoles(raw: unknown): ServerRolesEnvelope {
+  if (!record(raw) || !exactKeys(raw, ['data']) || !record(raw.data) ||
+      !exactKeys(raw.data, ['roles','catalogue']) ||
+      !Array.isArray(raw.data.roles) || !raw.data.roles.every(roleDetail) ||
+      !Array.isArray(raw.data.catalogue) || !raw.data.catalogue.every(permissionDescriptor) ||
+      !uniqueStrings(raw.data.roles.map((x: ServerRole) => x.id)) ||
+      !uniqueStrings(raw.data.catalogue.map((x: ServerPermissionDescriptor) => x.code))) return invalid();
+  return raw as unknown as ServerRolesEnvelope;
+}
+async function readTeamResource<T>(
+  path: '/api/v1/users' | '/api/v1/roles',
+  accessToken: string,
+  decode: (raw: unknown) => T,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<T> {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) return invalid();
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    return await requestJson({ method: 'GET', path, accessToken, signal: controller.signal }, decode);
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
+/** Verified session bearer is mandatory; no tenant ID, cache, fallback or retry. */
+export function readTenantUsers(
+  accessToken: string, signal?: AbortSignal, timeoutMs?: number,
+): Promise<ServerUsersEnvelope> {
+  return readTeamResource('/api/v1/users', accessToken, decodeUsers, signal, timeoutMs);
+}
+/** Separately guarded by user.role.view, not implied by user.account.view. */
+export function readTenantRoles(
+  accessToken: string, signal?: AbortSignal, timeoutMs?: number,
+): Promise<ServerRolesEnvelope> {
+  return readTeamResource('/api/v1/roles', accessToken, decodeRoles, signal, timeoutMs);
+}
