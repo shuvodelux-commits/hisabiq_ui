@@ -348,3 +348,68 @@ The smallest possible later candidate is a **read-only adapter** for single sale
 - Update future acceptance vectors V09-01/03/04/10 with the accepted backend fixes as **regression obligations** rather than requests to reimplement them. Add V09-21: 3 poisha over 5 one-unit returns -> [1,0,1,0,1]; V09-22: positive qty with zero money and zero cost -> return document/stock/audit/outbox only, no phantom ledger; V09-23: current connected Purchase return tab vs preview dialog -> UI remains discoverable and is not simulated as a real mutation; V09-24: historical overcredited source -> fail closed and log only authorized review, no automatic monetary repair.
 - No adjustment to any MOD-002, MOD-007, MOD-008, MOD-005, common execution or shared file is authorized by this continuation. This branch remains a single-file documentation proposal; a future coordinator must accept fresh paired heads, inspect Project #2, handle exclusive shared ownership, then reserve any implementation task.
 - GitHub draft PR review is not a live accounting transaction. A Cloudflare **preview deployment was reported by an automatic repository bot** for the documentation PR; no manual deploy command was issued in this work. This automatic preview does not authorize production rollout or any ERP backend deployment.
+
+
+---
+
+## 21. Proposed first implementation slice — MOD-009 R09-GET-01 (2026-11-13)
+
+**Status: documentation/specification only.** The parent PR #384 was checked against live GitHub before this section was written: its REST status was **open, draft, not merged**; frontend main's MOD-009 packet did not include §19–20. The owner's conversational "merged and continue" is recorded as a continuation request, but does not override contradictory GitHub merge evidence or reserve a worker. Once the parent packet is actually merged, the coordinator can approve and reserve this narrowly defined slice; **do not treat this section as build authorization**.
+
+### 21.1 Exact source pairing and scope
+
+- Fresh frontend main: \`073d2c2797f521ff6113806ddd04fb157fed6c4b\`. Fresh backend adoption branch: \`b21fce003eb82fd5f647e05ed91d6e3ae75f3c8d\`. Recheck before coding.
+- Existing frontend: \`src/integration/http.ts::requestJson\` (strict own-origin \`/api/v1/\`, bearer-token, JSON, AbortSignal, typed ApiError) and GET-only \`src/integration/purchases.ts\` are the patterns to REUSE. \`src/integration/returns.ts\` and \`tests/integration-returns-corrections.test.ts\` did not exist on current main at review. Do not use the legacy Vue return dialogs.
+- Existing backend: \`SalesReturnsController.returnable\` → \`SalesReturnQueryService.returnable\` and \`PurchaseReturnsController.returnable\` → \`PurchaseReturnQueryService.returnable\`. Both produce exactly \`{data: ReturnableX}\`. Both query methods currently require **SALES_RETURN_CREATE/PURCHASE_RETURN_CREATE respectively**, not merely VIEW. A user with only view access cannot use these GETs; never bypass/relabel this permission. Any future read-only-role access is a separate backend authorization decision, outside this slice.
+- Connected Purchases is a separate \`ConnectedPurchasesRead\` React component guarded by connected session and permissions, and explicitly shows "Purchase returns are not connected" on return tabs. Sales \`src/pages/Sales.tsx\` still reads \`salesPreviewStore\` directly, including multi-invoice selection and customer-credit preview. The global ConnectedWorkspaceGate is separately blocking connected workspace activation. **No UI mounting, posting, preview fallback, or live-return claim is in this first slice.**
+
+**Proposed feature-only frontend write allowlist** (requires separate coordinator acceptance):
+1. CREATE \`src/integration/returns.ts\` — two pure GET resource functions and matching precise decoders/types; no local storage, cache, posting or UI.
+2. CREATE \`tests/integration-returns-corrections.test.ts\` — node-level decoder/request tests with fetch mocks and exact negative cases; use existing test runner and naming once accepted.
+
+**READ ONLY:** frontend \`src/integration/{http,purchases,sales}.ts\`, \`src/integration/errors.ts\`, \`src/pages/{Sales,Purchases}.tsx\`, \`src/integration/SessionProvider.tsx\`, \`tests/integration-purchases-connected.test.ts\`, backend GET controllers/query services/contracts/repositories and AGENTS. **Explicitly no writes** to these READ files, UI screens/components, \`src/types/erp.ts\`, backend code, shared transport, migrations, package manifests, global CI or other module packets. If the coordinator discovers a live branch already owns either proposed file, pause and reassign.
+
+### 21.2 Strict typed read contract — no speculative fields
+
+| GET adapter function (proposed) | Request | Mandatory decoded output | Failure/invariant |
+|---|---|---|---|
+| \`readReturnableSale(accessToken, saleId, signal?, timeoutMs?)\` | GET \`/api/v1/sales-returns/returnable/:saleId\`, \`:saleId\` strict canonical ULID, authenticated bearer | **Exact \`{data}\` envelope**: saleId ULID matching requested ID, number, businessDate, customer snapshots, partyId ULID, isWalkIn, grandTotalMinor/dueMinor integer poisha, \`refundLimit\` nullable perReturn/perDay cap plus usedTodayMinor; each line saleLineId/productId ULID, productName/unitName, qtySold/qtyReturned/qtyReturnable integer scale3, valueReturnedMinor and netAmountMinor integer poisha, unitPriceMinor, returnable, tracksSerial, serials with sourceType OWNED/VENDOR and optional vendorPartyId. | Invalid ULID, bad JSON/envelope, unexpected shape/unsafe numeric, mismatch ID, duplicate source line/serial IDs or inconsistent returned qty => protocol error; HTTP auth/permission/network error propagated without preview fallback. |
+| \`readReturnablePurchase(accessToken, purchaseId, signal?, timeoutMs?)\` | GET \`/api/v1/purchase-returns/returnable/:purchaseId\`, \`:purchaseId\` strict canonical ULID, authenticated bearer | **Exact \`{data}\` envelope**: purchaseId matching requested ID, number/businessDate, supplierName/supplierPartyId, grandTotalMinor/outstandingMinor; lines purchaseLineId/productId/lotId ULIDs, productName/unitName, qtyReceived/qtyReturned/qtyReturnable and qtyRemainingInLot integer scale3, valueReturnedMinor/costReturnedMinor/billedNetMinor integer poisha, actualUnitCost integer scale4. | Reject invalid line identity, duplicate original source lines, mismatched ID, impossible quantity arithmetic, non-safe integer, negative stock/previous money, malformed response; no purchase return POST or local sample-data fallback. |
+
+Decoder policy: respect the backend \`packages/core-contracts/src/returns.ts\` real strict Zod keys/defaults while adding only source-integrity checks that are safe for a read. For sale lines verify \`qtyReturned + qtyReturnable === qtySold\`, \`0 <= valueReturnedMinor <= netAmountMinor\`, all IDs canonical and serial unit IDs unique within the document; do not infer a historical composite selected unit from \`unitName\`. For purchase lines verify \`qtyReturned + qtyReturnable === qtyReceived\`, billed returned value <= billed net, lot stock >= 0, and original qty positive. **Do not reject a legitimate sale or purchase returnable line only because its next incremental monetary value is zero** (approved Option A). Do not compute or fabricate original COGS, unit-price conversion, bundle recipe/components, net refunds or balance reallocations in this GET adapter. If an older source has truly inconsistent posted history, fail closed and surface a reviewable protocol error rather than hiding it.
+
+The precise source of truth for user permissions is the **server**, not a guessed React role string; test that a VIEW-only caller gets the server denial. The frontend eventual caller must key in-flight reads to verified \`tenantId/userId/session epoch + sourceId\`, abort on identity change and never render a stale tenant/source result. This identity-bound state is a separate future mounting task; pure adapter results must be caller-owned and noncached.
+
+### 21.3 Required focused test vectors (proposed, not run)
+
+| ID | Given | Expected |
+|---|---|---|
+| R09G-01 | Valid canonical saleId and exact \`{data: ReturnableInvoiceResponse}\` | GET once with bearer, no Idempotency-Key/body and full typed decoded source including refund caps. |
+| R09G-02 | Valid purchaseId and exact \`{data: ReturnableBillResponse}\` | GET once with bearer, correct purchase lot qty and independently booked \`valueReturnedMinor/costReturnedMinor\`. |
+| R09G-03 | 10000 poisha across three original units, earlier returned qty1000 and posted value3333 | Adapter retains 3333 as posted history, never recomputes from current price. |
+| R09G-04 | Sale/purchase line has qty available but next incremental value zero | Valid read, no phantom poisha and no disabled state fabricated by adapter. |
+| R09G-05 | Wrong envelope, extra unknown field, missing required field, noninteger/unsafe amount, float qty, bad ULID | Fail closed with protocol error, no value mapped. |
+| R09G-06 | Correctly shaped server response for source B returned on requested source A | Fail closed; no unrelated source displayed. |
+| R09G-07 | Same sourceLineId appears twice, duplicate sale serial unit ID, impossible original-vs-returned qty, purchase negative lot remaining | Fail closed; no preview value substituted. |
+| R09G-08 | HTTP 401/403, foreign-tenant 404, malformed 200, network drop, timeout/abort | Preserve existing typed error semantics; no reauth guessing, no success toast, no preview fallback. |
+| R09G-09 | In-flight GET resolves after session/tenant/source switch | Pure function permits signal abort; future caller must discard identity-mismatched result. |
+| R09G-10 | Inspect all changed-file paths and request methods | Only the two allowlisted frontend files changed, only GET transport emitted, no UI/POST/finance/DB operations. |
+
+The eventual runner should record actual \`pnpm\`/project test command and exact output, TypeScript checks, ESLint/boundary and source diff, with Node/runner versions, after coordinator approval. A GitHub diff review **is not** proof that these tests passed. If source contracts drift before implementation, revalidate both pinned refs and update tests/dispatch record rather than introducing permissive decoder workarounds.
+
+### 21.4 Twelve-sentence owner/coordinator overview
+
+1. MOD-009 will reuse the established NestSherERP returnable-source GET endpoints rather than introduce new return posting logic.
+2. This first slice is a strict, unmounted, read-only React adapter with no financial mutation.
+3. Its two requests are distinct sale and purchase contracts, not a generic ledger resource.
+4. Each request uses a verified original ULID and the authenticated same-origin HTTP transport.
+5. The server currently authorizes those GETs with the respective RETURN_CREATE permission, which the frontend must not circumvent.
+6. Decoding preserves original source IDs, posted returned values, remaining base quantities, supplier lot values, serial provenance and refund caps.
+7. The existing backend accounting fixes for rounding, duplicate source lines and lot locking remain unchanged.
+8. A zero-poisha positive-quantity return remains a valid read and does not trigger an invented credit or refund.
+9. Unexpected response shape, stale source identity and corrupt historical totals fail closed instead of consulting the preview store.
+10. Existing Sales and Purchases layouts, dialogs, Bengali labels, tabs, selected compound units and all preview interactions stay untouched.
+11. Actual customer refunds, supplier receipts, cash-session ON/OFF handling, source corrections and multi-invoice/bundle posting remain separate gated tasks.
+12. The coordinator must first reconcile the unmerged parent documentation PR, accepted frontend/backend SHAs, current worker claims and exact allowlist, and obtain per-slice owner/build approval before dispatching any code or tests.
+
+**Dispatch gate:** PENDING — parent PR #384 actual merge + coordinator reservation + accepted SHAs + owner approval of this exact slice. Do not record a fictional issue number or claim runtime verification.
