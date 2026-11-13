@@ -148,6 +148,8 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
     } catch (caught) {
       if (activeIdentity.current === identity && !signal?.aborted &&
         readGeneration.current === generation) {
+        if (caught instanceof ApiError && caught.kind === 'http' &&
+          [401, 403].includes(caught.status ?? 0)) setServer(null);
         setError(message(caught));
       }
       throw caught;
@@ -272,7 +274,11 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       if (caught instanceof ApiError && caught.kind === 'http' &&
         [400, 401, 403, 404, 409, 422].includes(caught.status ?? 0) &&
         activeIdentity.current === identity) pendingOperation.current = null;
-      if (activeIdentity.current === identity) setError(message(caught));
+      if (activeIdentity.current === identity) {
+        if (caught instanceof ApiError && caught.kind === 'http' &&
+          [401, 403].includes(caught.status ?? 0)) setServer(null);
+        setError(message(caught));
+      }
       throw caught;
     } finally {
       if (mutationAbort.current === controller) {
