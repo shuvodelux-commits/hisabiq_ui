@@ -3074,6 +3074,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/purchases/ConnectedPurchaseDraftsPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedPurchaseDraftsPanel"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/purchases/PurchaseCart.tsx",
       "kind": "component",
       "exports": [
@@ -5450,6 +5458,7 @@
     ],
     "FileClock": [
       "src/components/pos/DraftsMenu.tsx",
+      "src/components/purchases/ConnectedPurchaseDraftsPanel.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/pages/Pos.tsx",
       "src/pages/Sales.tsx"
@@ -5951,6 +5960,7 @@
       "src/components/accounts/BankEntryTab.tsx",
       "src/components/finance/CashSessionDetailsDialog.tsx",
       "src/components/finance/FinanceRecordDialogs.tsx",
+      "src/components/purchases/ConnectedPurchaseDraftsPanel.tsx",
       "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/pages/Finance.tsx",
       "src/pages/Reports.tsx",
@@ -5968,6 +5978,7 @@
       "src/components/pos/InstallmentAdjustmentDialog.tsx",
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
+      "src/components/purchases/ConnectedPurchaseDraftsPanel.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
       "src/magic-saas/pages/saas/SmsAdmin.tsx",
       "src/pages/Expenses.tsx",
@@ -6182,6 +6193,7 @@
       "src/components/pos/InstallmentBreakdownDialog.tsx",
       "src/components/products/BundleEditor.tsx",
       "src/components/purchases/BillDialog.tsx",
+      "src/components/purchases/ConnectedPurchaseDraftsPanel.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/purchases/PurchaseDraftsMenu.tsx",
       "src/components/purchases/PurchasePaymentPanel.tsx",
