@@ -62,8 +62,18 @@ export function ConnectedPurchaseDraftsPanel() {
     (filter === 'active' ? 'recycle' : 'restore') ? target : null;
   const error = actionError?.key === identity ? actionError.message : null;
 
-  // Context changes revoke UI state and in-flight mutation observation.
+  // Identity changes close the old panel, revoke the rendered rows and abort
+  // in-flight mutations. An unrelated tenant must not inherit a modal.
+  const previousIdentityRef = useRef(identity);
   useEffect(() => {
+    if (previousIdentityRef.current !== identity) {
+      previousIdentityRef.current = identity;
+      setOpen(false);
+      setList(null);
+      setTarget(null);
+      setActionError(null);
+      setFilter('active');
+    }
     return () => {
       mutationRef.current?.abort();
     };
@@ -96,7 +106,7 @@ export function ConnectedPurchaseDraftsPanel() {
   }
 
   async function performAction() {
-    if (!token || !confirmation || busy || !rows) return;
+    if (!token || !confirmation || busy || !rows || error) return;
     const row = rows.find(item =>
       item.id === confirmation.id && item.version === confirmation.version);
     if (!row) return;
@@ -220,9 +230,8 @@ export function ConnectedPurchaseDraftsPanel() {
                     <div className="shrink-0 space-y-1 text-right">
                       <p className="text-[13px] font-medium text-ink">{purchaseMoney(row.grandTotalMinor)}</p>
                       <Button type="button" variant="outline" size="sm"
-                        disabled={busy || (filter === 'deleted' && expired)}
+                        disabled={busy || Boolean(error) || (filter === 'deleted' && expired)}
                         onClick={() => {
-                          setActionError(null);
                           setTarget({ key: identity, id: row.id, version: row.version, label: row.label,
                             action: filter === 'active' ? 'recycle' : 'restore' });
                         }}>
