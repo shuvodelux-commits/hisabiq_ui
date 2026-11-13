@@ -27,6 +27,7 @@ const cart = {
   discount: '2.5',
   photos: [],
 };
+const operationId = '01ARZ3NDEKTSV4RRFFQ69G5FB0';
 const payload = {
   label: 'Incomplete supplier invoice',
   supplierName: 'Rahman Traders',
@@ -34,6 +35,7 @@ const payload = {
   grandTotalMinor: 20050,
   cart,
 };
+const createPayload = { ...payload, operationId };
 const draft = {
   ...payload,
   id,
@@ -103,10 +105,10 @@ test('create transmits opaque multi-unit/cart/payment snapshot exactly, no previ
     assert.equal(init?.method, 'POST');
     assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer user1');
     assert.equal(new Headers(init?.headers).has('Idempotency-Key'), false);
-    assert.deepEqual(JSON.parse(String(init?.body)), payload);
+    assert.deepEqual(JSON.parse(String(init?.body)), createPayload);
     return json({ data: draft }, 201);
   }) as typeof fetch, async () => {
-    const returned = await createPurchaseDraft('user1', payload);
+    const returned = await createPurchaseDraft('user1', createPayload);
     assert.deepEqual(returned.data, draft);
     assert.deepEqual(returned.data.cart.lines, cart.lines);
     assert.deepEqual(returned.data.cart.payments, cart.payments);
@@ -159,7 +161,7 @@ test('rejected permissions and offline first-create are not retried', async () =
       const status = kind === 'forbidden' ? 403 : 401;
       return json({ error: { code: 'PERMISSION_DENIED', message: 'Not allowed', details: {}, traceId: 't-1' } }, status);
     }) as typeof fetch, async () => {
-      await assert.rejects(createPurchaseDraft('T', payload),
+      await assert.rejects(createPurchaseDraft('T', createPayload),
         (error: unknown) => error instanceof ApiError && (
           error.kind === 'network' || error.kind === 'http'));
     });
@@ -172,18 +174,22 @@ test('unspecified or unsafe fields, inline attachment bytes and lossy JSON rejec
   await withFetch((async () => { calls++; return json({ data: draft }); }) as typeof fetch, async () => {
     const circular: any = {}; circular.self = circular;
     for (const input of [
-      { ...payload, tenantId: 'other-tenant' },
-      { ...payload, grandTotalMinor: 200.5 },
-      { ...payload, label: '' },
-      { ...payload, itemCount: 501 },
-      { ...payload, supplierName: ' a ' },
-      { ...payload, cart: { photos: ['data:image/png;base64,AAAA'] } },
-      { ...payload, cart: { lines: [{ id: 'l', price: undefined }] } },
-      { ...payload, cart: { something: BigInt(5) } },
-      { ...payload, cart: circular },
-      { ...payload, cart: { lines: [{ something: () => 'oops' }] } },
-      { ...payload, cart: Object.fromEntries([['__proto__', { isAdmin: true }]]) },
-      { ...payload, cart: { notes: 'a'.repeat(120_001) } },
+      { ...createPayload, tenantId: 'other-tenant' },
+      { ...createPayload, operationId: '' },
+      { ...createPayload, operationId: 'preview-operation' },
+      { ...createPayload, operationId: 'A'.repeat(26) },
+      { ...payload },
+      { ...createPayload, grandTotalMinor: 200.5 },
+      { ...createPayload, label: '' },
+      { ...createPayload, itemCount: 501 },
+      { ...createPayload, supplierName: ' a ' },
+      { ...createPayload, cart: { photos: ['data:image/png;base64,AAAA'] } },
+      { ...createPayload, cart: { lines: [{ id: 'l', price: undefined }] } },
+      { ...createPayload, cart: { something: BigInt(5) } },
+      { ...createPayload, cart: circular },
+      { ...createPayload, cart: { lines: [{ something: () => 'oops' }] } },
+      { ...createPayload, cart: Object.fromEntries([['__proto__', { isAdmin: true }]]) },
+      { ...createPayload, cart: { notes: 'a'.repeat(120_001) } },
     ]) await assert.rejects(createPurchaseDraft('T', input as any), protocol);
 
     for (const action of [
@@ -192,8 +198,8 @@ test('unspecified or unsafe fields, inline attachment bytes and lossy JSON rejec
       () => updatePurchaseDraft('T', id, { ...payload, expectedVersion: 0 }),
       () => recyclePurchaseDraft('T', id, { expectedVersion: -1 }),
       () => restorePurchaseDraft('T', '../wrong', { expectedVersion: 1 }),
-      () => createPurchaseDraft('', payload),
-      () => createPurchaseDraft('T', payload, undefined, 0),
+      () => createPurchaseDraft('', createPayload),
+      () => createPurchaseDraft('T', createPayload, undefined, 0),
     ]) await assert.rejects(action(), protocol);
   });
   assert.equal(calls, 0);
@@ -234,4 +240,29 @@ test('aborting a pending read propagates once and does not fall back to preview 
       (error: unknown) => error instanceof ApiError && error.kind === 'network');
   });
   assert.equal(calls, 1);
+});
+
+
+test('stable create operation is transmitted in body on each explicit retry; 409 does not retry itself', async () => {
+  const sent: unknown[] = [];
+  await withFetch((async (_url, init) => {
+    sent.push(JSON.parse(String(init?.body)));
+    if (sent.length === 1) throw new TypeError('Lost response after possible server commit');
+    if (sent.length === 2) return json({ data: draft }, 201);
+    return json({ error: { code: 'IDEMPOTENCY_KEY_REUSED',
+      message: 'Operation key used for a different create request', details: {}, traceId: 'trace' } }, 409);
+  }) as typeof fetch, async () => {
+    await assert.rejects(createPurchaseDraft('user1', createPayload),
+      (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    assert.equal(sent.length, 1, 'an uncertain POST is never automatically retried');
+    const recovered = await createPurchaseDraft('user1', createPayload);
+    assert.equal(recovered.data.id, id);
+    await assert.rejects(createPurchaseDraft('user1', { ...createPayload, label: 'Different' }),
+      (e: unknown) => e instanceof ApiError && e.kind === 'http' &&
+        e.status === 409 && e.code === 'IDEMPOTENCY_KEY_REUSED');
+  });
+  assert.equal(sent.length, 3);
+  assert.deepEqual(sent[0], sent[1]);
+  assert.deepEqual(sent[0], createPayload);
+  assert.equal((sent[0] as Record<string, unknown>).operationId, operationId);
 });

@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ApiError } from '../src/integration/errors.ts';
+import { readFileSync } from 'node:fs';
 import {
   decodePurchaseEditorDraft,
   encodePurchaseEditorDraft,
   listPurchaseEditorDrafts,
   loadPurchaseEditorDraft,
+  preparePurchaseEditorDraftCreate,
   recyclePurchaseEditorDraft,
   restorePurchaseEditorDraft,
   savePurchaseEditorDraft,
@@ -174,6 +176,9 @@ test('decoding rejects tampered source identity, amount, item count, cart and un
 
 test('create → refresh → resume → versioned edit → recycle → restore uses only draft routes', async () => {
   let current: ServerPurchaseDraft | null = null;
+  const attempt = preparePurchaseEditorDraftCreate(session(), sources(), editor());
+  assert.match(attempt.operationId, /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/);
+  assert.equal(Object.isFrozen(attempt), true);
   const calls: string[] = [];
   await withFetch((async (url, init) => {
     const route = new URL(String(url)).pathname;
@@ -183,7 +188,7 @@ test('create → refresh → resume → versioned edit → recycle → restore u
     assert.equal(new Headers(init?.headers).has('Idempotency-Key'), false);
     const body = init?.body ? JSON.parse(String(init.body)) : null;
     if (method === 'POST' && route.endsWith('/drafts')) {
-      assert.deepEqual(body, payload());
+      assert.deepEqual(body, { ...payload(), operationId: attempt.operationId });
       current = stored();
       return json({data:current},201);
     }
@@ -211,7 +216,8 @@ test('create → refresh → resume → versioned edit → recycle → restore u
     }
     throw Error('Unexpected endpoint '+method+' '+route);
   }) as typeof fetch, async () => {
-    const first=await savePurchaseEditorDraft(session(),sources(),editor());
+    const first=await savePurchaseEditorDraft(session(),sources(),editor(),
+      null, undefined, attempt);
     assert.equal(first.version,1);
     // Refresh: a new caller with no cached draft loads the real server row.
     assert.equal((await listPurchaseEditorDrafts(session(),sources())).length,1);
@@ -252,3 +258,80 @@ test('stale version 409 is not retried; no preview fallback or silent success', 
   });
   assert.equal(calls,1);
 });
+
+
+test('first-create requires opaque prepared intent: no implicit new operation ID or HTTP writes', async () => {
+  let calls = 0;
+  await withFetch((async () => { calls += 1; return json({ data: stored() }, 201); }) as typeof fetch, async () => {
+    await assert.rejects(savePurchaseEditorDraft(session(), sources(), editor()),
+      isProtocol);
+    const forged = { operationId: '01ARZ3NDEKTSV4RRFFQ69G5FB0' };
+    await assert.rejects(savePurchaseEditorDraft(session(), sources(), editor(),
+      null, undefined, forged), isProtocol);
+    const prepared = preparePurchaseEditorDraftCreate(session(), sources(), editor());
+    await assert.rejects(savePurchaseEditorDraft(session(), sources(), editor(),
+      { id: draftId, version: 1 }, undefined, prepared), isProtocol);
+  });
+  assert.equal(calls, 0);
+});
+
+test('lost create response reuses same operation ID and exact original editor snapshot', async () => {
+  const original = editor();
+  const prepared = preparePurchaseEditorDraftCreate(session(), sources(), original);
+  let calls = 0;
+  const createBodies: unknown[] = [];
+  await withFetch((async (_url, init) => {
+    calls += 1;
+    const requestBody = JSON.parse(String(init?.body));
+    createBodies.push(requestBody);
+    assert.equal(init?.method, 'POST');
+    assert.equal(new Headers(init?.headers).has('Idempotency-Key'), false);
+    if (calls === 1) throw new TypeError('Connection lost after commit');
+    return json({ data: stored() }, 201);
+  }) as typeof fetch, async () => {
+    await assert.rejects(savePurchaseEditorDraft(session(), sources(), original,
+      null, undefined, prepared), (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    assert.equal(calls, 1, 'network ambiguity does not automatically send again');
+    const recovered = await savePurchaseEditorDraft(session(), sources(), original,
+      null, undefined, prepared);
+    assert.equal(recovered.id, draftId);
+    assert.equal(recovered.editor.lines[0]?.unitQuantities?.Box, '2');
+    assert.equal(recovered.editor.payments[1]?.amount, '100');
+  });
+  assert.deepEqual(createBodies[0], createBodies[1]);
+  assert.deepEqual(createBodies[0], { ...payload(), operationId: prepared.operationId });
+  assert.equal(calls, 2);
+});
+
+test('rejects changed editor, session, token rotation and new-account source before POST', async () => {
+  const prepared = preparePurchaseEditorDraftCreate(session(), sources(), editor());
+  const mutated = editor(); mutated.notes = 'changed after uncertain POST';
+  let calls = 0;
+  await withFetch((async () => { calls += 1; return json({ data: stored() }, 201); }) as typeof fetch, async () => {
+    for (const attempted of [
+      () => savePurchaseEditorDraft(session(), sources(), mutated, null, undefined, prepared),
+      () => savePurchaseEditorDraft(session({ epoch: 8 }), sources(), editor(), null, undefined, prepared),
+      () => savePurchaseEditorDraft(session({ accessToken: 'rotated' }), sources(), editor(),
+        null, undefined, prepared),
+      () => savePurchaseEditorDraft(session({ userId: product }), sources(), editor(),
+        null, undefined, prepared),
+      () => savePurchaseEditorDraft(session({ tenantId: supplier }), sources(), editor(),
+        null, undefined, prepared),
+      () => savePurchaseEditorDraft(session(), sources({ productIds: new Set() }), editor(),
+        null, undefined, prepared),
+    ]) await assert.rejects(attempted(), isProtocol);
+  });
+  assert.equal(calls, 0);
+});
+
+test('new independently prepared intent has a different ID; no preview, session storage or editor import', () => {
+  const first = preparePurchaseEditorDraftCreate(session(), sources(), editor());
+  const next = preparePurchaseEditorDraftCreate(session(), sources(), editor());
+  assert.notEqual(first.operationId, next.operationId);
+  assert.deepEqual(Object.keys(first), ['operationId'], 'private JWT/editor never exposed');
+  const source = requireSource();
+  assert.doesNotMatch(source, /sessionStorage|localStorage|createPreviewPurchase|erpDemoStore/);
+});
+function requireSource(): string {
+  return readFileSync(new URL('../src/integration/purchase-draft-editor.ts', import.meta.url), 'utf8');
+}
