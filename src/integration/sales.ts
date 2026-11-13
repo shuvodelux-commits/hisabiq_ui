@@ -1,0 +1,176 @@
+import { ApiError } from './errors.ts';
+import { requestJson } from './http.ts';
+import {
+  decodeCustomerDirectory,
+  decodeCustomerStanding,
+  decodePosProducts,
+  isCanonicalPosPartyId,
+} from './saleMapping.ts';
+import type {
+  ServerCustomerDirectory,
+  ServerCustomerStandingEnvelope,
+  ServerPosProductList,
+  ServerPosStockStatus,
+} from './saleMapping.ts';
+
+/**
+ * MOD-007 M7-01b1: GET-only Nest adoption read adapters.
+ * Unmounted by design. No POS/Product/Party preview-to-live projection, mutation,
+ * retry, local cache, idempotency key or tenant identity supplied by the browser.
+ */
+export interface PosProductQuery {
+  search?: string;
+  barcode?: string;
+  categoryId?: string;
+  brandId?: string;
+  stockStatus?: ServerPosStockStatus;
+  customerPartyId?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface CustomerDirectoryQuery {
+  search?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+const allowedPosQuery = [
+  'search', 'barcode', 'categoryId', 'brandId', 'stockStatus',
+  'customerPartyId', 'cursor', 'limit',
+] as const;
+const allowedDirectoryQuery = ['search', 'cursor', 'limit'] as const;
+const allowedStatuses: readonly string[] = [
+  'IN_STOCK', 'LOW_STOCK', 'ZERO_STOCK', 'NEGATIVE_STOCK',
+];
+
+function invalid(): never {
+  throw new ApiError('protocol', 'POS read request or response could not be verified');
+}
+function record(x: unknown): x is Record<string, unknown> {
+  return x !== null && typeof x === 'object' && !Array.isArray(x);
+}
+function queryFields(x: unknown, allowed: readonly string[]): x is Record<string, unknown> {
+  return record(x) && Object.keys(x).every(key => allowed.includes(key));
+}
+function textParam(value: unknown, maxLength: number): string {
+  if (typeof value !== 'string' || value.trim().length > maxLength) return invalid();
+  return value.trim();
+}
+function limitParam(value: unknown, max: number): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > max) return invalid();
+  return value;
+}
+function canonicalId(value: unknown): string {
+  if (!isCanonicalPosPartyId(value)) return invalid();
+  return value;
+}
+
+function posPath(query: PosProductQuery): '/api/v1/sales/pos-products' | '/api/v1/sales/pos-products?' {
+  // Kept separate from the actual returned path type to avoid accidental
+  // copy/paste of any unapproved query key. See posQueryPath below.
+  if (!queryFields(query, allowedPosQuery)) return invalid();
+  return '/api/v1/sales/pos-products';
+}
+function posQueryPath(query: PosProductQuery): '/api/v1/sales/pos-products' | '/api/v1/sales/pos-products?' | '/api/v1/sales/pos-products?' & string {
+  posPath(query);
+  const params = new URLSearchParams();
+  for (const key of allowedPosQuery) {
+    const value: unknown = query[key];
+    if (value === undefined) continue;
+    if (key === 'search' || key === 'barcode') {
+      params.set(key, textParam(value, key === 'search' ? 120 : 64));
+    } else if (key === 'cursor') {
+      params.set(key, textParam(value, 120));
+    } else if (key === 'limit') {
+      params.set(key, String(limitParam(value, 100)));
+    } else if (key === 'stockStatus') {
+      if (!allowedStatuses.includes(String(value))) return invalid();
+      params.set(key, String(value));
+    } else {
+      params.set(key, canonicalId(value));
+    }
+  }
+  const suffix = params.toString();
+  return (suffix ? '/api/v1/sales/pos-products?' + suffix : '/api/v1/sales/pos-products') as
+    '/api/v1/sales/pos-products';
+}
+
+function directoryPath(query: CustomerDirectoryQuery): '/api/v1/parties' {
+  if (!queryFields(query, allowedDirectoryQuery)) return invalid();
+  const params = new URLSearchParams();
+  params.set('role', 'CUSTOMER');
+  params.set('status', 'ACTIVE');
+  for (const key of allowedDirectoryQuery) {
+    const value: unknown = query[key];
+    if (value === undefined) continue;
+    if (key === 'search') params.set(key, textParam(value, 120));
+    else if (key === 'cursor') params.set(key, canonicalId(value));
+    else params.set(key, String(limitParam(value, 200)));
+  }
+  return ('/api/v1/parties?' + params.toString()) as '/api/v1/parties';
+}
+
+/**
+ * Uses the same same-origin bearer transport as MOD-000.
+ * Callers must bind completion to their current verified session epoch and
+ * abort on tenant/session changes; the adapter itself holds no UI state.
+ */
+async function read<T>(
+  accessToken: string,
+  path: '/api/v1/' | string,
+  decode: (value: unknown) => T,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<T> {
+  if (typeof accessToken !== 'string' || !accessToken || /\s/.test(accessToken) ||
+      !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) return invalid();
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) return invalid();
+  signal?.addEventListener('abort', abort, { once: true });
+  const deadline = globalThis.setTimeout(abort, timeoutMs);
+  try {
+    return await requestJson({
+      method: 'GET',
+      path: path as '/api/v1/' & string,
+      accessToken,
+      signal: controller.signal,
+    }, decode);
+  } finally {
+    globalThis.clearTimeout(deadline);
+    signal?.removeEventListener('abort', abort);
+  }
+}
+
+export function readPosProducts(
+  accessToken: string,
+  query: PosProductQuery = {},
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<ServerPosProductList> {
+  return read(accessToken, posQueryPath(query), decodePosProducts, signal, timeoutMs);
+}
+
+export function readPosCustomers(
+  accessToken: string,
+  query: CustomerDirectoryQuery = {},
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<ServerCustomerDirectory> {
+  return read(accessToken, directoryPath(query), decodeCustomerDirectory, signal, timeoutMs);
+}
+
+export function readPosCustomerStanding(
+  accessToken: string,
+  partyId: string,
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<ServerCustomerStandingEnvelope> {
+  const id = canonicalId(partyId);
+  return read(accessToken, '/api/v1/customers/' + id + '/standing', (raw) => {
+    const envelope = decodeCustomerStanding(raw);
+    if (envelope.data.partyId !== id) return invalid();
+    return envelope;
+  }, signal, timeoutMs);
+}
