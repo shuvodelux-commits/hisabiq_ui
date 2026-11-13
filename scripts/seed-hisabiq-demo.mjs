@@ -15,7 +15,7 @@
  *     distinct restricted app/admin users. No URL is logged.
  */
 import { randomBytes } from 'node:crypto';
-import { mkdir, open, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -141,6 +141,31 @@ const mapping = {
   totals: {},
 };
 const defer = (source, reason, count) => mapping.deferred.push({ source, reason, count });
+
+if (process.env.HISABIQ_DEMO_RECONCILE_SETTINGS === '1') {
+  // Repair server feature visibility for a previous partial seed without
+  // registering another tenant, changing money or replaying a financial POST.
+  const credentials = JSON.parse(await readFile(resolve(output, 'demo-login.private.json'), 'utf8'));
+  const existingMap = JSON.parse(await readFile(resolve(output, 'backend-id-map.json'), 'utf8'));
+  const session = await call('/api/v1/auth/login', { method:'POST', authenticated:false,
+    body:{ identifier:credentials.identifier, password:credentials.password } });
+  if (!session?.accessToken) throw new Error('Existing demo login was refused');
+  bearer = session.accessToken;
+  const identity = await call('/api/v1/me');
+  if (!isUlid(existingMap.tenantId) || identity.tenantId !== existingMap.tenantId) {
+    throw new Error('Existing demo database identity mismatch; no setting changed');
+  }
+  await call('/api/v1/settings/value', {
+    method:'POST', body:{ key:'bank_accounts_enabled', value:'on' },
+  });
+  const accountList = await call('/api/v1/money/accounts');
+  if (accountList.accounts?.length !== finance.financeAccounts.length) {
+    throw new Error('Bank setting saved but not all demo accounts are visible');
+  }
+  console.log('RECONCILED_AND_VERIFIED finance account visibility for ' +
+    accountList.accounts.length + ' accounts');
+  process.exit(0);
+}
 
 await mkdir(output, { recursive: true, mode: 0o700 });
 async function writeNew(name, value) {
