@@ -23,6 +23,11 @@ export interface PurchaseDraftPayload {
   cart: Record<string, unknown>;
 }
 
+/** P5A's strict create-only JSON body; NOT the generic Idempotency-Key header. */
+export interface CreatePurchaseDraftPayload extends PurchaseDraftPayload {
+  operationId: string;
+}
+
 export interface ServerPurchaseDraft extends PurchaseDraftPayload {
   id: string;
   businessDate: string;
@@ -52,6 +57,7 @@ export interface PurchaseDraftListEnvelope {
 const ULID = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 const RECOVERY_MS = 30 * 86_400_000;
 const PAYLOAD_KEYS = ['label','supplierName','itemCount','grandTotalMinor','cart'] as const;
+const CREATE_KEYS = [...PAYLOAD_KEYS, 'operationId'] as const;
 const DRAFT_KEYS = [
   ...PAYLOAD_KEYS, 'id','businessDate','savedAt','createdAt',
   'version','deletedAt','recoverableUntilEpochMs',
@@ -131,8 +137,11 @@ function serializableCart(input: unknown): input is Record<string, unknown> {
   }
 }
 
-function payload(input: unknown, update: boolean): PurchaseDraftPayload | UpdatePurchaseDraftPayload {
-  if (!object(input) || !keys(input, update ? [...PAYLOAD_KEYS, 'expectedVersion'] : PAYLOAD_KEYS) ||
+function payload(
+  input: unknown, update: boolean, create = false,
+): PurchaseDraftPayload | UpdatePurchaseDraftPayload | CreatePurchaseDraftPayload {
+  if (!object(input) ||
+    !keys(input, create ? CREATE_KEYS : update ? [...PAYLOAD_KEYS, 'expectedVersion'] : PAYLOAD_KEYS) ||
     typeof input.label !== 'string' || input.label.trim().length === 0 ||
     input.label.trim().length > 80 || input.label !== input.label.trim() ||
     (input.supplierName !== null &&
@@ -141,7 +150,8 @@ function payload(input: unknown, update: boolean): PurchaseDraftPayload | Update
     !safeNonnegative(input.itemCount) || input.itemCount > 500 ||
     !safeNonnegative(input.grandTotalMinor) ||
     !serializableCart(input.cart) ||
-    (update && !positiveVersion(input.expectedVersion))) return protocol();
+    (update && !positiveVersion(input.expectedVersion)) ||
+    (create && !validId(input.operationId))) return protocol();
   // Clone so an in-flight edit cannot mutate what the request sends.
   return JSON.parse(JSON.stringify(input)) as PurchaseDraftPayload | UpdatePurchaseDraftPayload;
 }
@@ -239,15 +249,19 @@ export async function readPurchaseDraft(
     accessToken, decodePurchaseDraft, undefined, signal, timeoutMs);
 }
 
-/** A failed POST is ambiguous: do not blindly retry or create a replacement. */
+/**
+ * A failed create POST may already have committed. The caller MUST retain the
+ * exact same operationId + payload while reconciling or deliberately retrying;
+ * never generate an operationId here, auto-retry or silently issue a new create.
+ */
 export async function createPurchaseDraft(
   accessToken: string,
-  input: PurchaseDraftPayload,
+  input: CreatePurchaseDraftPayload,
   signal?: AbortSignal,
   timeoutMs?: number,
 ): Promise<PurchaseDraftEnvelope> {
   return call('POST', ROOT, accessToken, decodePurchaseDraft,
-    payload(input, false), signal, timeoutMs);
+    payload(input, false, true), signal, timeoutMs);
 }
 
 export async function updatePurchaseDraft(
