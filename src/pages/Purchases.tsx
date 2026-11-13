@@ -41,6 +41,7 @@ import { ApiError } from '../integration/errors.ts';
 import { readPurchase, readPurchases, type ServerPurchaseEnvelope, type ServerPurchaseList, type ServerPurchaseListRow } from '../integration/purchases.ts';
 import { ConnectedPurchaseDraftsPanel } from '../components/purchases/ConnectedPurchaseDraftsPanel';
 import { purchaseMoney, purchaseSettlement, purchaseVisibleState, type IdentityBoundPurchaseState } from '../integration/purchases-read-model.ts';
+import { readReturnablePurchase, type ReturnablePurchaseEnvelope } from '../integration/returns.ts';
 
 type Tab = 'purchases' | 'return' | 'return-history';
 
@@ -129,18 +130,25 @@ function ConnectedPurchasesRead() {
   const [retryVersion, setRetryVersion] = useState(0);
   const [list, setList] = useState<IdentityBoundPurchaseState<ServerPurchaseList> | null>(null);
   const [detail, setDetail] = useState<IdentityBoundPurchaseState<ServerPurchaseEnvelope> | null>(null);
+  const [returnSelection, setReturnSelection] = useState<{ identity: string; id: string } | null>(null);
+  const [returnable, setReturnable] = useState<IdentityBoundPurchaseState<ReturnablePurchaseEnvelope> | null>(null);
+  const [returnRetry, setReturnRetry] = useState(0);
 
   const authenticated = mode === 'connected' && snapshot.status === 'authenticated';
   const token = authenticated ? snapshot.accessToken : null;
   const allowed = authenticated && snapshot.permissions.includes('purchase.bill.view');
+  const canReviewReturns = allowed && snapshot.permissions.includes('purchase.return.create');
   const identity = authenticated
     ? [snapshot.tenantId, snapshot.userId, snapshot.epoch, snapshot.accessToken].join(':')
     : [mode, snapshot.status, snapshot.epoch].join(':');
   const selectedId = selected?.identity === identity ? selected.id : null;
+  const returnId = returnSelection?.identity === identity ? returnSelection.id : null;
+  const returnKey = [identity, 'returnable', returnId ?? 'none', returnRetry].join(':');
   const listKey = [identity, 'list', search.trim(), settlement, cursor ?? 'first', retryVersion].join(':');
   const detailKey = [identity, 'detail', selectedId ?? 'none'].join(':');
   const visibleList = purchaseVisibleState(list, listKey);
   const visibleDetail = purchaseVisibleState(detail, detailKey);
+  const visibleReturnable = purchaseVisibleState(returnable, returnKey);
 
   useEffect(() => {
     if (!authenticated || token === null) return;
@@ -174,6 +182,28 @@ function ConnectedPurchasesRead() {
     });
     return () => controller.abort();
   }, [authenticated, allowed, token, detailKey, selectedId]);
+
+  // Keep a returnability read tied to the verified tenant/user/session and bill.
+  // No preview store or mutation is involved; opening a different bill invalidates
+  // the previous result synchronously through returnKey even before abort cleanup.
+  useEffect(() => {
+    if (!authenticated || !canReviewReturns || token === null || returnId === null || tab !== 'return') return;
+    const controller = new AbortController();
+    setReturnable({ key: returnKey, status: 'loading', data: null });
+    void readReturnablePurchase(token, returnId, controller.signal).then(data => {
+      if (!controller.signal.aborted) setReturnable({ key: returnKey, status: 'ready', data });
+    }).catch(error => {
+      if (!controller.signal.aborted) setReturnable({ key: returnKey, status: reportError(error), data: null });
+    });
+    return () => controller.abort();
+  }, [authenticated, canReviewReturns, token, returnId, returnKey, tab]);
+
+  const reviewReturn = (id: string) => {
+    setReturnSelection({ identity, id });
+    setReturnRetry(0);
+    setSelected(null);
+    chooseTab('return');
+  };
 
   const updateSearch = (value: string) => { setSearch(value.slice(0, 80)); setCursor(null); };
   const updateSettlement = (value: string) => {
@@ -240,7 +270,99 @@ function ConnectedPurchasesRead() {
               onClick={() => chooseTab(value)}>{label}</button>
           ))}
         </div>
-        {tab !== 'purchases' ? (
+        {tab === 'return' ? (
+          <div data-purchase-returnable-review="" className="space-y-3 p-4">
+            <p className="text-xs text-ink-500">
+              {text('Read-only source review. Supplier refunds, credits and stock returns are not connected for posting.',
+                'শুধু মূল বিলের ফেরতযোগ্য তথ্য দেখা যাবে। সরবরাহকারীর টাকা, জমা ও স্টক ফেরত এখনও পোস্ট করা যাবে না।')}
+            </p>
+            {!authenticated || !allowed ? (
+              <p role="alert" className="text-sm text-danger">{errorText}</p>
+            ) : !canReviewReturns ? (
+              <p role="alert" className="text-sm text-danger">
+                {text('You need purchase return permission to review returnable quantities.',
+                  'ফেরতযোগ্য পরিমাণ দেখতে ক্রয় ফেরতের অনুমতি প্রয়োজন।')}
+              </p>
+            ) : returnId === null ? (
+              <p role="status" className="text-sm text-ink-500">
+                {text('Open Purchases and choose Review returnable quantities on a posted bill.',
+                  'ক্রয় তালিকা থেকে পোস্ট করা বিলের ফেরতযোগ্য পরিমাণ যাচাই করুন।')}
+              </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-ink">
+                    {text('Original purchase return review', 'মূল ক্রয়ের ফেরত যাচাই')}
+                  </p>
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => setReturnRetry(revision => revision + 1)}>
+                    <RotateCcw aria-hidden className="size-3.5" />
+                    {text('Refresh source', 'মূল বিল আবার যাচাই')}
+                  </Button>
+                </div>
+                {visibleReturnable.status === 'loading' && (
+                  <p role="status" className="text-sm text-ink-500">
+                    {text('Checking the original bill and available stock…',
+                      'মূল বিল ও অবশিষ্ট স্টক যাচাই করা হচ্ছে…')}
+                  </p>
+                )}
+                {(visibleReturnable.status === 'denied' || visibleReturnable.status === 'error') && (
+                  <p role="alert" className="text-sm text-danger">
+                    {visibleReturnable.status === 'denied'
+                      ? text('Returnability is not authorized for this session.',
+                        'এই সেশনে ফেরতযোগ্য তথ্য দেখার অনুমতি নেই।')
+                      : text('Could not verify returnable quantities. No preview values were loaded.',
+                        'ফেরতযোগ্য পরিমাণ যাচাই করা যায়নি। কোনো নমুনা তথ্য দেখানো হয়নি।')}
+                  </p>
+                )}
+                {visibleReturnable.status === 'ready' && visibleReturnable.data && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap justify-between gap-2 text-xs text-ink-500">
+                      <span className="font-medium text-ink">{visibleReturnable.data.data.number} · {visibleReturnable.data.data.supplierName}</span>
+                      <span>{visibleReturnable.data.data.businessDate}</span>
+                      <span>{text('Bill outstanding', 'বিলের বকেয়া')}: {purchaseMoney(visibleReturnable.data.data.outstandingMinor)}</span>
+                    </div>
+                    <Table data-purchase-returnable-table=""
+                      scrollRegionLabel={text('Returnable purchase source lines', 'ক্রয় ফেরতযোগ্য পণ্যের তালিকা')}>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="h-9 text-xs">{text('Product', 'পণ্য')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Received', 'কেনা হয়েছে')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Already returned', 'আগে ফেরত')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Unreturned', 'ফেরত বাকি')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('In stock', 'বর্তমান স্টক')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Reviewable now', 'এখন যাচাইযোগ্য')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Credit already posted', 'আগের জমা')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {visibleReturnable.data.data.lines.map(line => (
+                          <TableRow key={line.purchaseLineId} className="text-[13px]">
+                            <TableCell className="py-2">
+                              <span className="font-medium text-ink">{line.productName}</span>
+                            </TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyReceived / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyReturned / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyReturnable / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyRemainingInLot / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right font-medium">
+                              {Math.min(line.qtyReturnable, line.qtyRemainingInLot) / 1000} {line.unitName}
+                            </TableCell>
+                            <TableCell className="py-2 text-right">{purchaseMoney(line.valueReturnedMinor)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <p className="text-xs text-ink-500">
+                      {text('Quantities use the current base-unit label; historical compound units and final supplier settlement are not yet connected.',
+                        'পরিমাণ বর্তমান মূল এককে দেখানো হয়েছে; আগের যৌগিক একক ও সরবরাহকারীর চূড়ান্ত নিষ্পত্তি এখনও সংযুক্ত নয়।')}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ) : tab === 'return-history' ? (
           <div className="p-5 text-sm text-ink-500" role="status">
             {text('Purchase returns are not connected to the server yet. No preview transactions are shown.',
               'ক্রয় ফেরত এখনও সার্ভারে সংযুক্ত নয়। এখানে কোনো নমুনা লেনদেন দেখানো হয় না।')}
@@ -312,6 +434,14 @@ function ConnectedPurchasesRead() {
                             <Eye aria-hidden className="size-4" />
                             <span className="sr-only">{text('View bill', 'বিল দেখুন')}</span>
                           </Button>
+                          {canReviewReturns && row.status === 'POSTED' && (
+                            <Button type="button" variant="ghost" size="sm"
+                              aria-label={text('Review returnable quantities', 'ফেরতযোগ্য পরিমাণ যাচাই') + ' ' + row.number}
+                              onClick={() => reviewReturn(row.id)}>
+                              <CornerUpLeft aria-hidden className="size-4" />
+                              <span className="sr-only">{text('Review returnable quantities', 'ফেরতযোগ্য পরিমাণ যাচাই')}</span>
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -380,6 +510,12 @@ function ConnectedPurchasesRead() {
                     </div>
                   ))}
                 </section>
+              )}
+              {canReviewReturns && currentDetail.status === 'POSTED' && (
+                <Button type="button" variant="outline" size="sm" onClick={() => reviewReturn(currentDetail.id)}>
+                  <CornerUpLeft aria-hidden className="size-4" />
+                  {text('Review returnable quantities', 'ফেরতযোগ্য পরিমাণ যাচাই')}
+                </Button>
               )}
               <p className="text-xs text-ink-500">{text('This is a read-only server bill. Posting, payment and correction require separate integration.',
                 'এটি সার্ভারের শুধু দেখার বিল। নতুন ক্রয়, পরিশোধ ও সংশোধন আলাদা সংযোগে হবে।')}</p>
