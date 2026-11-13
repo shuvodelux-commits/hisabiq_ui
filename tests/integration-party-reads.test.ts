@@ -28,7 +28,8 @@ const party = {
   creditLimitMinor: 800000, status: 'ACTIVE', isSystemReserved: false, version: 2,
   balance: received, hasLedgerEntries: true,
 };
-const supplier = { ...party, balance: payable };
+const supplier = { ...party, balance: payable,
+  customerGroupId: null, customerGroupName: null, creditLimitMinor: null };
 const summary = {
   total: 1, active: 1, inactive: 0, ungrouped: 1,
   totalOutstandingMinor: 500000, totalAdvanceMinor: 0, overCreditLimit: 0,
@@ -292,4 +293,44 @@ test('abort, offline network and timeouts refuse read without automatic retry', 
     });
     assert.equal(calls, 1);
   }
+});
+
+
+test('non-Customer Party contract uses null for group count and refuses Customer metadata', async () => {
+  const supplierList = {
+    ...partyList, data: [supplier], summary: { ...summary, ungrouped: null },
+  };
+  assert.equal(decodeTradingPartyList(supplierList, 'SUPPLIER').summary.ungrouped, null);
+  assert.equal(decodeTradingPartyDetail({ data: supplier }, 'SUPPLIER').data.creditLimitMinor, null);
+  assert.throws(
+    () => decodeTradingPartyList({ ...supplierList, summary }, 'SUPPLIER'), ApiError,
+  );
+  assert.throws(
+    () => decodeTradingPartyList({
+      ...supplierList, data: [{ ...supplier, creditLimitMinor: 50 }],
+    }, 'SUPPLIER'), ApiError,
+  );
+  assert.throws(
+    () => decodeTradingPartyDetail({
+      data: { ...supplier, customerGroupName: 'Private customer group' },
+    }, 'SUPPLIER'), ApiError,
+  );
+  assert.throws(
+    () => decodeTradingPartyList({
+      ...partyList, summary: { ...summary, ungrouped: null },
+    }, 'CUSTOMER'), ApiError,
+  );
+  let calls = 0;
+  await withFetch((async () => {
+    calls++;
+    return json(supplierList);
+  }) as typeof fetch, async () => {
+    assert.equal((await readTradingParties('A', 'SUPPLIER')).summary.ungrouped, null);
+    for (const query of [
+      { groupId: partyId }, { sort: 'groupName' as const }, { sort: 'creditLimit' as const },
+    ]) {
+      await assert.rejects(readTradingParties('A', 'SUPPLIER', query), ApiError);
+    }
+  });
+  assert.equal(calls, 1, 'invalid cross-role query probes must not make HTTP calls');
 });

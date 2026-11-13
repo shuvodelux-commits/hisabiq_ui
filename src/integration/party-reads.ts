@@ -42,7 +42,8 @@ export interface TradingPartyList {
     total: number;
     active: number;
     inactive: number;
-    ungrouped: number;
+    /** Null is required on Supplier/Vendor lists: Customer group count is not applicable. */
+    ungrouped: number | null;
     totalOutstandingMinor: number;
     totalAdvanceMinor: number;
     overCreditLimit: number;
@@ -176,6 +177,9 @@ function party(v: unknown, selected: TradingRole): v is TradingParty {
       v[k] === null || typeof v[k] === 'string') &&
     (v.customerGroupId === null || id(v.customerGroupId)) &&
     (v.creditLimitMinor === null || natural(v.creditLimitMinor)) &&
+    // The server must not disclose Customer-only fields in other-role reads.
+    (selected === 'CUSTOMER' || (v.customerGroupId === null &&
+      v.customerGroupName === null && v.creditLimitMinor === null)) &&
     (v.status === 'ACTIVE' || v.status === 'INACTIVE') &&
     typeof v.isSystemReserved === 'boolean' &&
     natural(v.version) && balance(v.balance) && typeof v.hasLedgerEntries === 'boolean';
@@ -185,8 +189,10 @@ function page(v: unknown): v is TradingPartyList['page'] {
     (v.nextCursor === null || id(v.nextCursor)) &&
     typeof v.hasMore === 'boolean' && v.hasMore === (v.nextCursor !== null);
 }
-function summary(v: unknown): v is TradingPartyList['summary'] {
-  return record(v) && exact(v, summaryKeys) && summaryKeys.every(k => natural(v[k]));
+function summary(v: unknown, selected: TradingRole): v is TradingPartyList['summary'] {
+  return record(v) && exact(v, summaryKeys) &&
+    summaryKeys.filter(k => k !== 'ungrouped').every(k => natural(v[k])) &&
+    (selected === 'CUSTOMER' ? natural(v.ungrouped) : v.ungrouped === null);
 }
 function ledgerRow(v: unknown, selected: TradingRole): v is TradingLedgerRow {
   return record(v) && exact(v, ledgerRowKeys) &&
@@ -207,7 +213,7 @@ export function decodeTradingPartyList(raw: unknown, selected: TradingRole): Tra
       !Array.isArray(raw.data) || raw.data.length > 200 ||
       !raw.data.every(v => party(v, selected)) ||
       new Set(raw.data.map((v: TradingParty) => v.id)).size !== raw.data.length ||
-      !page(raw.page) || !summary(raw.summary)) return invalid();
+      !page(raw.page) || !summary(raw.summary, selected)) return invalid();
   return raw as unknown as TradingPartyList;
 }
 export function decodeTradingPartyDetail(raw: unknown, selected: TradingRole): TradingPartyDetail {
@@ -263,6 +269,9 @@ function checkedLimit(v: unknown): string {
 }
 function listPath(selected: TradingRole, query: TradingPartyQuery): ApiRequest['path'] {
   const input = queryValues(query, listQueryKeys);
+  // Fail closed before HTTP instead of probing Customer-only group and credit data.
+  if (selected !== 'CUSTOMER' && (input.groupId !== undefined ||
+      input.sort === 'groupName' || input.sort === 'creditLimit')) return invalid();
   const params = new URLSearchParams({ role: checkedRole(selected) });
   for (const key of listQueryKeys) {
     const v = input[key];
