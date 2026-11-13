@@ -24,6 +24,8 @@ import { normalizeFinancePaymentSplits, financePaymentSplitsAreValid } from '../
 import {useUiCopy} from '../../i18n/useUiCopy';
 import {financeLabel} from '../../i18n/financeCopy';
 import {printReport} from '../../utils/reportOutput';
+import {useSession} from '../../integration/SessionProvider.tsx';
+import {readMoneyAccountStatement, type ServerMoneyAccount, type ServerMoneyAccountStatement} from '../../integration/accounts.ts';
 import { transferAccountId, transferAccountLabel } from '../../utils/accountTransferIdentity';
 
 const typeMeta: Record<FinanceTransactionType, {
@@ -631,3 +633,217 @@ export function FinancePeopleManagerDialog({
   );
 }
 
+
+/** Selected server account and its ORIGINAL verified session scope.
+ * The selected name alone is never a permitted account or tenant identity.
+ * This dialog is intentionally NOT mounted from Finance until P2-B is approved
+ * after the MOD-005 Finance.tsx ownership reservation is released.
+ */
+export type ConnectedMoneyAccountSelection = {
+  account: ServerMoneyAccount;
+  tenantId: string;
+  userId: string;
+  epoch: number;
+};
+
+type ConnectedStatementPage = {
+  scope: string;
+  cursor: string | null;
+  state: 'loading' | 'ready' | 'error';
+  statement?: ServerMoneyAccountStatement;
+};
+
+/** Format server poisha exactly: JS decimal division loses precision for large values. */
+function safeMinorTaka(value: number): string {
+  if (!Number.isSafeInteger(value)) throw new RangeError('Unsafe server money value');
+  const sign = value < 0 ? '−' : '';
+  const magnitude = BigInt(value < 0 ? -value : value);
+  const whole = Number(magnitude / 100n).toLocaleString('en-IN');
+  const fraction = (magnitude % 100n).toString().padStart(2, '0');
+  return sign + '৳' + whole + (fraction === '00' ? '' : '.' + fraction);
+}
+
+/** Read-only live counterpart of FinanceAccountActionDialog.
+ * It uses the SAME Dialog/Button/Detail UI primitives as the preview view.
+ * There are deliberately no edit, transfer, in/out, status or posting controls.
+ * The existing preview dialog above is unchanged.
+ */
+export function ConnectedMoneyAccountActionDialog({
+  selection, onClose,
+}: {
+  selection: ConnectedMoneyAccountSelection | null;
+  onClose: () => void;
+}) {
+  const { mode, snapshot } = useSession();
+  const { text, language } = useUiCopy();
+  const authenticatedScope = snapshot.status === 'authenticated' && mode === 'connected' && selection &&
+    selection.tenantId === snapshot.tenantId &&
+    selection.userId === snapshot.userId &&
+    selection.epoch === snapshot.epoch;
+  // Include the verified token in scope so refresh invalidates outstanding data.
+  const sessionScope = authenticatedScope
+    ? [snapshot.tenantId, snapshot.userId, String(snapshot.epoch), snapshot.accessToken, selection.account.id].join(':')
+    : null;
+  const [navigation, setNavigation] = useState<{ scope: string; stack: (string | null)[] }>({
+    scope: '', stack: [null],
+  });
+  const stack = navigation.scope === sessionScope ? navigation.stack : [null];
+  const cursor = stack[stack.length - 1] ?? null;
+  const [page, setPage] = useState<ConnectedStatementPage | null>(null);
+  const [retryNumber, setRetryNumber] = useState(0);
+
+  useEffect(() => {
+    if (!sessionScope || !selection || snapshot.status !== 'authenticated') return;
+    let active = true;
+    const controller = new AbortController();
+    setPage({ scope: sessionScope, cursor, state: 'loading' });
+    void readMoneyAccountStatement(
+      snapshot.accessToken,
+      selection.account.id,
+      { limit: 25, ...(cursor ? { cursor } : {}) },
+      controller.signal,
+    ).then(
+      statement => {
+        if (!active) return;
+        setPage({ scope: sessionScope, cursor, state: 'ready', statement });
+      },
+      () => {
+        if (!active) return;
+        setPage({ scope: sessionScope, cursor, state: 'error' });
+      },
+    );
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [sessionScope, selection?.account.id, snapshot.status === 'authenticated' ? snapshot.accessToken : null, cursor, retryNumber]);
+
+  const visibleStatement = page?.scope === sessionScope &&
+    page?.cursor === cursor && page.state === 'ready'
+    ? page.statement : undefined;
+  const isError = page?.scope === sessionScope &&
+    page?.cursor === cursor && page.state === 'error';
+
+  // Stale selected accounts must disappear during lock, logout, tenant switch
+  // and session replacement even BEFORE React runs an effect cleanup.
+  if (!sessionScope || !selection) return null;
+  const account = selection.account;
+  const accountType = account.type === 'LOAN'
+    ? text('Lender loan (liability)', 'ঋণদাতার পাওনা (দায়)')
+    : account.type === 'MFS'
+      ? text('Mobile banking', 'মোবাইল ব্যাংকিং')
+      : account.type === 'CASH' ? text('Cash', 'নগদ') : text('Bank', 'ব্যাংক');
+
+  const printPage = () => {
+    if (!visibleStatement) return;
+    const headers = [
+      text('Date', 'তারিখ'), text('Reference', 'রেফারেন্স'),
+      text('Transaction', 'লেনদেন'), text('Amount', 'টাকা'),
+    ];
+    const rows = visibleStatement.rows.map(entry => [
+      entry.businessDate, entry.reference || entry.sourceNumber,
+      entry.description, safeMinorTaka(entry.amountMinor),
+    ]);
+    if (!printReport({
+      title: account.name,
+      language,
+      subtitle: text('Account statement — shown entries only (current page).', 'হিসাব বিবরণী — শুধু এই পাতার লেনদেন।'),
+      headers,
+      rows,
+    })) toast.error(text('Allow the print popup and try again.', 'প্রিন্ট উইন্ডো খুলে আবার চেষ্টা করুন।'));
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{account.name}</DialogTitle>
+          <DialogDescription>
+            {accountType} · {text('Current balance', 'বর্তমান জের')}{' '}
+            {safeMinorTaka(visibleStatement?.closingBalanceMinor ?? account.balanceMinor)}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Detail label="Current balance">{safeMinorTaka(visibleStatement?.closingBalanceMinor ?? account.balanceMinor)}</Detail>
+          <Detail label="Opening balance">{account.openingAmountMinor === null
+            ? '—' : safeMinorTaka(account.openingAmountMinor)}</Detail>
+          <Detail label="Status">
+            <StatusBadge tone={account.status === 'ACTIVE' ? 'success' : 'neutral'} dot>
+              {account.status === 'ACTIVE' ? text('Active', 'সক্রিয়') : text('Inactive', 'নিষ্ক্রিয়')}
+            </StatusBadge>
+          </Detail>
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-border">
+          <div className="flex items-center justify-between border-b border-border bg-ink-50/50 px-3 py-2.5">
+            <div>
+              <p className="text-[13px] font-medium text-ink">{text('Recent ledger', 'সাম্প্রতিক হিসাব')}</p>
+              <p className="text-[10.5px] text-ink-400">
+                {text('Server journal entries for this account only.', 'শুধু এই হিসাবের সার্ভার লেনদেন।')}
+              </p>
+            </div>
+            <BookOpen className="size-4 text-helper" />
+          </div>
+
+          {visibleStatement ? (
+            <>
+              <div className="grid grid-cols-3 gap-2 border-b border-border p-3">
+                <Detail label="Page opening">{safeMinorTaka(visibleStatement.openingBalanceMinor)}</Detail>
+                <Detail label="Shown money in (page)">{safeMinorTaka(visibleStatement.totalInMinor)}</Detail>
+                <Detail label="Shown money out (page)">{safeMinorTaka(visibleStatement.totalOutMinor)}</Detail>
+              </div>
+              <div className="max-h-[45vh] divide-y divide-border overflow-auto">
+                {visibleStatement.rows.length ? visibleStatement.rows.map(entry => (
+                  <div key={entry.journalLineId} className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12.5px] font-medium text-ink">{entry.description}</p>
+                      <p className="text-[10.5px] text-ink-400">{entry.businessDate} · {entry.reference || entry.sourceNumber}</p>
+                      <p className="text-[10.5px] text-ink-400">
+                        {text('Running balance', 'চলতি জের')}: {safeMinorTaka(entry.runningBalanceMinor)}
+                      </p>
+                    </div>
+                    <p className={'shrink-0 text-[12.5px] font-semibold ' + (entry.amountMinor > 0 ? 'text-success' : 'text-ink')}>
+                      {safeMinorTaka(entry.amountMinor)}
+                    </p>
+                  </div>
+                )) : (
+                  <p className="px-3 py-8 text-center text-sm text-ink-400">{text('No ledger entries on this page.', 'এই পাতায় কোনো লেনদেন নেই।')}</p>
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-2">
+                <Button variant="outline" size="sm" disabled={stack.length <= 1}
+                  onClick={() => setNavigation({ scope: sessionScope, stack: stack.slice(0, -1) })}>
+                  {text('Previous page', 'আগের পাতা')}
+                </Button>
+                <Button variant="outline" size="sm" disabled={!visibleStatement.page.hasMore || !visibleStatement.page.nextCursor}
+                  onClick={() => {
+                    if (visibleStatement.page.nextCursor) setNavigation({
+                      scope: sessionScope, stack: [...stack, visibleStatement.page.nextCursor],
+                    });
+                  }}>
+                  {text('Next page', 'পরের পাতা')}
+                </Button>
+              </div>
+            </>
+          ) : isError ? (
+            <div role="alert" className="space-y-3 px-3 py-8 text-center">
+              <p className="text-sm text-danger">{text('Account statement could not be loaded.', 'হিসাব বিবরণী আনা যায়নি।')}</p>
+              <Button variant="outline" onClick={() => setRetryNumber(value => value + 1)}>{text('Retry', 'আবার চেষ্টা করুন')}</Button>
+            </div>
+          ) : (
+            <p role="status" className="px-3 py-8 text-center text-sm text-ink-400">
+              {text('Loading account statement…', 'হিসাব বিবরণী আসছে…')}
+            </p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={printPage} disabled={!visibleStatement}>
+            <Printer className="size-4" /> {text('Print', 'প্রিন্ট')}
+          </Button>
+          <Button onClick={onClose}>{text('Close', 'বন্ধ করুন')}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
