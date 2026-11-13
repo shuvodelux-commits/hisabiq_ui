@@ -65,7 +65,7 @@ async function run() {
   const fd = openSync(out,'wx',0o600); closeSync(fd);
   try {
     const role = success(await api('/api/v1/roles','POST',{
-      name:'MOD005 Read-only QA Cashier',
+      name:'MOD005 Read-only QA Cashier V2',
       permissions:['cash.daily.view'],
       cashRefundPerReturnMinor:null,
       cashRefundPerDayMinor:null,
@@ -92,7 +92,7 @@ async function run() {
     const token = cashierLogin.accessToken;
     const cashierMe = success(await api('/api/v1/me','GET',undefined,token),200,'Cashier me');
     assert.equal(cashierMe.tenantId,a.tenantId,'Cashier must belong only to owner A');
-    assert.equal(cashierMe.userId,user.id);
+    assert.equal(cashierMe.user.id,user.id);
     const read = success(await api('/api/v1/money/day','GET',undefined,token),
       200,'Cashier day GET');
     assert.equal(read.todaySession.id,originalId);
