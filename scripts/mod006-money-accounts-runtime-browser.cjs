@@ -12,6 +12,7 @@ const ids = {
   cash: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   bank: '01ARZ3NDEKTSV4RRFFQ69G5FAW',
   loan: '01ARZ3NDEKTSV4RRFFQ69G5FAX',
+  loanOverpaid: '01ARZ3NDEKTSV4RRFFQ69G5FAN',
   mfs: '01ARZ3NDEKTSV4RRFFQ69G5FAY',
   cashB: '01ARZ3NDEKTSV4RRFFQ69G5FAZ',
   inactive: '01ARZ3NDEKTSV4RRFFQ69G5FAT',
@@ -26,7 +27,7 @@ const actor = {
 
 function account(id, type, balanceMinor, openingAmountMinor, status = 'ACTIVE') {
   return {
-    id, name: id === ids.inactive ? 'Inactive cash' : 'Shared account',
+    id, name: id === ids.inactive ? 'Inactive cash' : id === ids.loanOverpaid ? 'Overpaid lender' : 'Shared account',
     type, holderName: null, reference: null, isDrawer: type === 'CASH' && id !== ids.inactive,
     status, balanceMinor, openingAmountMinor,
     openingDate: openingAmountMinor === null ? null : '2026-11-01', version: 1,
@@ -44,12 +45,15 @@ function list(token, includeInactive) {
     account(ids.cash, 'CASH', cashBalance, null),
     account(ids.bank, 'BANK', 222234, 0),
     account(ids.mfs, 'MFS', 3030, 3030),
-    account(ids.loan, 'LOAN', 777700, 777700),
+    account(ids.loan, 'LOAN', -777700, 777700),
   ];
-  if (includeInactive) accounts.push(account(ids.inactive, 'CASH', 0, 0, 'INACTIVE'));
+  if (includeInactive) {
+    accounts.push(account(ids.inactive, 'CASH', 0, 0, 'INACTIVE'));
+    accounts.push(account(ids.loanOverpaid, 'LOAN', 12550, 0, 'INACTIVE'));
+  }
   return {
     accounts, totalCashMinor: cashBalance, totalBankMinor: 222234,
-    totalMfsMinor: 3030, totalLoanMinor: 777700,
+    totalMfsMinor: 3030, totalLoanMinor: includeInactive ? 765150 : 777700,
   };
 }
 function statement(token, id) {
@@ -194,6 +198,10 @@ async function run() {
     assert.equal(await page.locator('[data-connected-money-summary]').getByText('৳7,777').count(), 0,
       'lender liability excluded from liquid summaries');
     assert.equal(await page.locator('[data-connected-money-liabilities]').getByText('৳7,777').count() > 0, true);
+    assert.equal(list('access-A-1', false).accounts.find(x => x.id === ids.loan).balanceMinor, -777700,
+      'Nest loan ledger credits are negative');
+    assert.ok((await page.locator('[data-connected-money-account="' + ids.loan + '"]').innerText())
+      .includes('৳7,777'), 'lender amount owed negates the signed server credit balance');
     assert.ok((await page.locator('[data-connected-money-account="' + ids.cash + '"]').innerText())
       .includes('Not recorded'), 'missing opening must never read as zero');
     assert.ok((await page.locator('[data-connected-money-account="' + ids.bank + '"]').innerText())
@@ -240,6 +248,17 @@ async function run() {
     await page.getByRole('checkbox', { name: 'Include inactive accounts' }).check();
     await page.locator('[data-connected-money-account="' + ids.inactive + '"]').waitFor();
     assert.ok(requestedAccounts.some(x => x.query.includes('includeInactive=true')));
+    await page.locator('[data-connected-money-account="' + ids.loanOverpaid + '"]').waitFor();
+    const overpaidCard = page.locator('[data-connected-money-account="' + ids.loanOverpaid + '"]');
+    assert.ok((await overpaidCard.innerText()).includes('−৳125.50'),
+      'debit-positive overpayment must display negative net payable, not absolute debt');
+    assert.ok((await page.locator('[data-connected-money-liabilities]').innerText()).includes('৳7,651.50'),
+      'net loan summary reflects signed overpayment rather than an inflated debt');
+    await overpaidCard.getByRole('button', { name: /View ledger for/ }).click();
+    await page.getByText('Verified statement ' + ids.loanOverpaid).waitFor();
+    assert.ok((await page.getByRole('dialog').innerText()).includes('৳125.50'),
+      'source journal/statement retains original debit-positive sign');
+    await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last().click();
 
     // Switch to another verified tenant, including a duplicate account name.
     // Neither tenant A's list, loan, or selected print may cross identities.
