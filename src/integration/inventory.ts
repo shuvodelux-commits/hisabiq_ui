@@ -252,15 +252,15 @@ async function read<T>(accessToken: string, path: Parameters<typeof requestJson>
     signal?.removeEventListener('abort', abort);
   }
 }
-export function readInventoryOverview(accessToken: string, query: InventoryReportQuery = {},
+export async function readInventoryOverview(accessToken: string, query: InventoryReportQuery = {},
   signal?: AbortSignal, timeoutMs?: number): Promise<InventoryOverviewEnvelope> {
   return read(accessToken, reportPath('/api/v1/inventory', query), decodeInventoryOverview, signal, timeoutMs);
 }
-export function readInventoryLots(accessToken: string, query: InventoryLotsQuery = {},
+export async function readInventoryLots(accessToken: string, query: InventoryLotsQuery = {},
   signal?: AbortSignal, timeoutMs?: number): Promise<InventoryLotPageEnvelope> {
   return read(accessToken, lotPath(query), decodeInventoryLotPage, signal, timeoutMs);
 }
-export function readInventoryAdjustments(accessToken: string, query: InventoryReportQuery = {},
+export async function readInventoryAdjustments(accessToken: string, query: InventoryReportQuery = {},
   signal?: AbortSignal, timeoutMs?: number): Promise<InventoryAdjustmentsEnvelope> {
   return read(accessToken, reportPath('/api/v1/inventory/adjustments', query),
     decodeInventoryAdjustments, signal, timeoutMs);
