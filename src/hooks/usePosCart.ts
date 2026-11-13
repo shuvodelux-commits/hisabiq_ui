@@ -203,7 +203,7 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
     const change = Math.max(0, paidNum - total);
     const itemCount = lines.length;
     return { subtotal, discountAmt, net, total, rounding, roundingLabel: 'Rounding (to ৳1)', paidNum, due, change, itemCount };
-  }, [lines, discount, discountMode, payments, settings.rounding]);
+  }, [lines, discount, discountMode, payments]);
 
   return {
     lines,
