@@ -231,8 +231,7 @@ const standingKeys = [
 export function decodeCustomerStanding(raw: unknown): ServerCustomerStandingEnvelope {
   if (!record(raw) || !exact(raw, ['data']) || !record(raw.data) ||
       !exact(raw.data, standingKeys) ||
-      !nullableId(raw.data.partyId) &&
-        !(raw.data.partyId === null) ||
+      !nullableId(raw.data.partyId) ||
       !nullableText(raw.data.name) || !nullableText(raw.data.phone) ||
       !int(raw.data.dueMinor) || !int(raw.data.advanceMinor) ||
       !(raw.data.creditLimitMinor === null || int(raw.data.creditLimitMinor)) ||
