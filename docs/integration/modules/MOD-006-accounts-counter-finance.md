@@ -340,3 +340,128 @@ All amounts are **poisha**, and signs below describe positive journal debit/cred
 - **Required D08 owner sign-off:** canonical relationship identity and borrower account classification; owner capital historical treatment; loan principal vs interest rules and any interest earned account; allowance for advances, overpayment and correction. Architecture agent must first present an explicit proposed accounting chart and test impacts. D05 classification is already confirmed; do **not** ask owner again whether historical openings require sessions.
 - **Coordinator next gate:** reconcile current MOD-000 and MOD-005 PR/issue heads, assign one exact task file allowlist and backend paired SHA, reserve worker and any shared code/schema ownership, attach the approved contract/decision, then allow TDD on disposable DB. This amendment alone **does not** reserve or start a worker.
 - **No UI removal:** retain Accounts/Counter/Finance routes, typography, compact dialogs, bilingual helpers, split editor, invoice selection, cheque statuses, review confirmations, printing, account ledger and cash-session controls. For unavailable connected writes, explain the precise missing contract, preserve draft, and never mutate preview data as if live. No merge/deployment or schema migrations before explicit approval.
+
+
+---
+
+## Revision 4 — MOD-006-T01-R read-only account integration handoff (2026-11-12)
+
+**Status: READY FOR REVIEW, NOT BUILD-APPROVED.** This document-only slice plans GET account list and selected account statement, not account creation/edit/status, cash/finance transactions, Bank Entry or other Accounting screens. It is subordinate to MOD-000 accepted identity/transport, MOD-001 permission/settings reads, the one-worker coordinator rule in `tasks/EXECUTION.md`, and owner approval. It does not reserve capacity. Current inspected source heads: frontend `bd888d1a3dd48cb61370a53a3f6bcdee463302ce` and backend adoption `e2a0a486d6d36cddd51ba58eece83c83c9f2ee69`; revalidate both before dispatch. Tracking: [MOD-006 issue #296](https://github.com/shuvodelux-commits/hisabiq_ui/issues/296), [program queue #294](https://github.com/shuvodelux-commits/hisabiq_ui/issues/294).
+
+### T01-R source chain and exact API
+
+Frontend route `/app/accounts?tab=money-accounts` renders `Finance moneyAccountsOnly` through `src/pages/Accounts.tsx`. `src/pages/Finance.tsx` currently selects accounts from `financePreviewStore`, displays local card balances and passes account + preview transactions/transfers to `FinanceAccountActionDialog`, whose recent ledger can fall back to matching account **names**. This is preview behavior, not live ledger authority. Preserve the Accounts general vouchers, chart, trial, full statements, print and export surfaces: a money-account journal statement is not a universal Accounting report.
+
+- `GET /api/v1/money/accounts` with optional `includeInactive` and `asOf=YYYY-MM-DD` → **direct** `MoneyAccountListResponse` containing `accounts[]` and `totalCashMinor,totalBankMinor,totalMfsMinor,totalLoanMinor`. Backend: `AccountsController.list` → `ManageAccountsService.list` → tenant-scoped repository/journal rollup and permission filtering.
+- `GET /api/v1/money/accounts/:id/statement` with optional `fromDate,toDate,search,kind,cursor,limit` → **direct** `AccountStatementResponse`. `kind` is `ALL|SALE|PURCHASE|EXPENSE|MOVEMENT|OTHER`, `search` max80 chars, `limit` 1..200. Backend: `AccountsController.statement` → `DailyCashService.statement` → journal lines and running balances.
+- No `{data:...}` / `{ok:true}` envelope for either GET. Use approved MOD-000 FND transport/auth, strict validation and tenant epoch, not the legacy bank client. With existing Zod `z.coerce.boolean()`, omit `includeInactive` if false rather than transmitting a truthy string `false`; send true explicitly only when required.
+
+### T01-R field-to-view mapping (no backend schema changes)
+
+| UI account field / behavior | Existing server authority | Translation or nonparity |
+|---|---|---|
+| `id` | `MoneyAccountResponse.id` ULID | Exact persistent account identity; never preview `acc-*` or display-name identity |
+| `name` | `name` | Direct; duplicate names distinguish by actual reference or stable ID |
+| `type` | `CASH/BANK/MFS/LOAN` | Cash→Cash, Bank→Bank, MFS→Mobile Banking. `CASH` cannot distinguish existing UI `Petty Cash`; do not infer a purpose from label. `LOAN` is lender liability, never spendable money |
+| `institution` | **No exact field** | `holderName` means holder, not bank name/provider. Missing metadata remains explicit gap |
+| `number` | `reference` only if semantically approved | Never infer number from account name or silently relabel a reference as a bank number |
+| `balance` | `balanceMinor` | Integer poisha, authoritative server journal; convert exactly at presentation boundary, never update by summing preview rows |
+| `openingBalance` | `openingAmountMinor` nullable, `openingDate` nullable | Preserve null/unknown; no zero fabrication or date default |
+| `status` | `ACTIVE/INACTIVE` | Direct enum translation; permission-filtered missing account is not inactive |
+| `lastActivity` | **No matching account list field** | Only derive from verified statement rows if available; do not show invented “Just now” |
+| Drawer/version | `isDrawer`, `version` | Preserve for future approval-controlled actions; no local permission inference |
+| Liquid totals | `totalCashMinor,totalBankMinor,totalMfsMinor` | Server aggregate; never add `totalLoanMinor` into available cash/bank |
+| Statement header | `accountId,accountName,type,openingBalanceMinor,closingBalanceMinor,totalInMinor,totalOutMinor` | Server totals and ID must match selected current account/session epoch |
+| Statement row | `journalLineId,businessDate,createdAt,sourceType,sourceNumber,sourceId,description,reference,amountMinor,debitMinor,creditMinor,runningBalanceMinor` | Stable journal-line ID, nullable source ID and server running balance; never recompute from paginated subset |
+| Statement page | `page.nextCursor,hasMore` | Server cursor and filtering, no fake full ledger from local preview |
+
+Account card status and selected statement must be identity/epoch scoped. A late response for account A must not appear beneath selected B. Missing or forbidden account must not leak a previous account's rows, total or print/export data. Connected failures cannot silently fall back to preview fixtures; deliberate preview is an independent mode. A valid zero-row statement with historical opening is not an API error. Permission-omitted loan accounts and bank settings must remain omitted in all linked selectors and exports.
+
+### T01-R bounded ownership and excluded writes
+
+| Path | Proposed ownership |
+|---|---|
+| `src/integration/accounts.ts` | **CREATE after approval:** named account-list and account-statement GET adapters consuming existing FND HTTP and session, strict decoders, safe amount formatting and cancellation |
+| `src/pages/Finance.tsx` | **MODIFY after reservation:** only account-card/list read consumption and selected account identity, no transfer, Counter, loan, cheque, cash or modal write behavior |
+| `src/components/finance/FinanceRecordDialogs.tsx` | **MODIFY after reservation:** selected-account recent-ledger read presentation only, no edit/manual/status write changes |
+| `src/pages/Accounts.tsx` | **INSPECT ONLY**, current `Finance moneyAccountsOnly` route likely sufficient; do not modify voucher/trial/general ledger |
+| `src/data/financeAccounts.ts` / `financePreviewStore.ts` | **INSPECT ONLY**; unchanged preview behavior stays preview-only |
+| Shared `src/integration/http.ts`, session, permissions, `src/types/erp.ts`, backend `money` services/contracts, `core-domain/accounting/account.ts`, schema, migrations and CI | **NO WRITES** from this slice; coordinator owns shared changes |
+
+All proposed file modifications are **not an allowed-write manifest** until coordinator assigns exact paths/symbol boundaries. Existing account create form captures opening money but **no opening date** (`Finance.tsx:AccountDialog`), while `createMoneyAccountRequestSchema` requires a date for positive opening; `institution` and `number` also lack exact backend storage. Thus T01 write integration must not silently default historical date to today, encode provider in holderName or drop fields. Preserve Add Account, Edit, Activate/Deactivate, Money in/out, Transfer, Bank Entry, statement and print controls visually and in preview; no connected mutation may falsely report success before its separately approved write source is in place.
+
+### T01-R proposed acceptance vectors (not executed)
+
+| Test | Expected server/frontend assertion |
+|---|---|
+| R01 List identities | Server-direct envelope, real tenant-scoped ULIDs; permission-filtered types; no preview IDs/balances |
+| R02 Duplicate names | Account A and B can display same name, but selecting B opens only B's exact ID and journal |
+| R03 Asynchronous selection | A→B selection before A GET finishes, tenant/session switch, logout: no stale or cross-tenant response or export |
+| R04 Journal totals | Opening BANK 100000 poisha + receipt 25000 − supplier payment 30000 → server closing 95000 and exact source rows; GET makes no new journal |
+| R05 Pagination/filter | `kind`/date/search/cursor filter on server, not only loaded page; running balance stays authoritative |
+| R06 Nulls | Zero-row valid opening, nullable opening amount/source ID, unknown last activity: no synthetic zero, source or date |
+| R07 Access/error | Unauthorized/foreign account, non-Liquid LOAN, malformed envelope, timeout and aborted GET preserve honest live state; no preview fallback |
+| R08 Display regression | Original compact cards, responsive mobile/tablet, bilingual helpers, keyboard, account selection, Bank Entry launch and print affordance preserved |
+| R09 Read-only guarantee | No account create/update/deactivate, no movement, journal, audit or cash session mutation; valid tests use React→Nest→disposable PG16 with authenticated tenants |
+| R10 Query coercion | `includeInactive=true` vs omitted controlled behavior; do not send string `false` expecting false coercion |
+
+### T01-R approval overview (12 sentences)
+
+MOD-006-T01-R is proposed as a read-only Stage A account integration slice. It will reuse NestSherERP's authenticated money-account list and statement GET endpoints rather than inventing new finance services. HisabIQ's account cards, existing ledger dialog, routes and bilingual compact UI remain unchanged in appearance. Account selection and statement queries will use persisted ULIDs instead of fixture IDs or duplicate account names. Server journal balances, openings, totals and running rows will be authoritative, with money converted from integer poisha only for display. Account visibility will continue to respect backend permissions, features and the current tenant identity. Late responses, logout, account switches and permission changes must never display stale or cross-tenant financial information. The frontend's distinct Petty Cash label and bank-provider metadata lack exact backend fields and will not be silently guessed or discarded. Account creation, editing, deactivation, reactivation, manual entries, transfers and all posting actions are excluded from this slice. The backend's positive opening-balance date requirement will be addressed in a later separately approved account-write task instead of inventing a date now. Verification will use unit/contract and React-to-Nest integration tests with disposable PostgreSQL 16, including negative authorization and UI-preservation checks. Implementation may start only after MOD-000/MOD-001 acceptance, owner approval of this scope and executor, and the coordinator's verified single-worker file reservation; merge and deployment remain manual.
+
+**Dispatch gate:** exact paired accepted heads, MOD-000/001 dependencies, per-slice 10–15 sentence owner approval and chosen environment, one verified GitHub Project #2 BUILD worker reservation, exact shared-file allowlist, named tests and disposable PG16. Then only a scoped draft PR with actual verification exits and independent QA, **no automatic merge/deployment**. T01-W account writes and T02..T05 remain separately blocked.
+
+
+---
+
+## Revision 5 — T01-R current-head reconciliation and D08 no-regression gate (2026-11-13)
+
+**Scope unchanged:** this is a **documentation-only amendment to draft PR #297**, not an implementation approval or rewrite of `R4. Existing `R4 read-only T01-R still excludes account writes, Counter, cash policy, loans, transfers, cheque and bank posting. This revision supersedes older source-head snapshots and the specific statement-total assumptions below where they conflict with verified source. Read-only account GET APIs remain stable.
+
+### R5.1 Reverified immutable references and dependency status
+
+| Authority | Observed head / evidence | Implication for T01-R |
+|---|---|---|
+| HisabIQ React `main` | `8409f5e28621ffd38e1e0c8c9ae9d03d6412af7d` | `src/pages/Accounts.tsx`, `src/pages/Finance.tsx` and the existing compact finance dialog still govern presentation. `Accounts.tsx` now derives tab selection directly from URL query; do not add another duplicate tab state. |
+| NestSherERP adoption branch | `54eb8fd1bd4e9ca7e8a389a8b299615b39c6535a` | `apps/api/src/money/accounts.controller.ts`, `packages/core-contracts/src/money.ts`, `manage-accounts-service.ts` and `daily-cash-service.ts` retain the existing account GET routes and strict response shapes. |
+| MOD-000 foundation | Backend [issue #17](https://github.com/shuvodelux-commits/nestshererp/issues/17) **closed** with F0-01…F0-07 accepted engineering handoff; [final evidence](https://github.com/shuvodelux-commits/nestshererp/issues/17#issuecomment-6819672498) | The earlier `R4` “MOD-000 incomplete” observation is historical. The connected AppShell is still deliberately gated; FND authorization is not permission to activate finance writes. |
+| MOD-001 | Scoped Settings/Team/Invoice PRs accepted, with [queue checkpoint](https://github.com/shuvodelux-commits/hisabiq_ui/issues/294#issuecomment-6832995198) stating *whole-module acceptance remains incomplete* | Do not mark MOD-001 complete merely from closed read/write subtask issues. Obtain coordinator's accepted T01-R read prerequisites and authority from precise scopes. |
+| D08 finance identity | [Draft PR #292](https://github.com/shuvodelux-commits/hisabiq_ui/pull/292), head `93b744b9bed70af092a69bd9c89b3b81285d112f`, **unapproved proposal** | Future classified owner entries and borrower funds depend on explicit sign-off; do not implement changes in T01-R. |
+| MOD-004 role isolation | [Backend draft PR #33](https://github.com/shuvodelux-commits/nestshererp/pull/33) and [issue #28](https://github.com/shuvodelux-commits/nestshererp/issues/28) | Active independently scoped party ledger work; leave its five backend paths and worker reservation untouched. No account-list read should accidentally reuse its party-wide ledger authority. |
+| Cash sessions | [Frontend PR #282](https://github.com/shuvodelux-commits/hisabiq_ui/pull/282) open; MOD-005 cash ON/OFF policy still separately gated | T01-R GETs post no money, require no cash session, and must not interpret an account list request as starting or closing a day. |
+
+**Read-path status:** ready for owner/coordinator review of the already drafted `R4` T01-R subset; **not** ready for an executable build until exact acceptance of MOD-001 prerequisites, explicit scope/environment approval, live exclusive Project #2 reservation and allowed paths/tests. Source heads above are observations, not a paired execution lock or proof of free capacity. Existing MOD-002/004 workers and finance PRs must not be displaced.
+
+### R5.2 Statement field semantics — correction to prevent wrong totals
+
+Reinspected backend `DailyCashService.statement` (unchanged at observed head). Its implementation calls `listStatementLines` and `sumStatementBefore` with the requested filters and cursor; sets `openingBalanceMinor` from the repository's prior-line sum; increments running balance across **only the returned page**; and adds `totalInMinor` and `totalOutMinor` from **only page rows**, after `slice(0,limit)`. It sets `closingBalanceMinor = account.balanceMinor` from the account rollup, **not** from the selected page's last running balance and **not** an independently proven as-of date-window closing. Thus the API names must not be displayed as “entire filtered date-period inflow/outflow” or “period closing”, especially when paginated or when `toDate` precedes today.
+
+| Field | Verified meaning in existing service | UI and QA rule |
+|---|---|---|
+| `openingBalanceMinor` | Repository sum before the selected filtered/cursor position | Treat as *page statement opening*, not the account's immutable go-live opening; test filtered/cursor semantics |
+| `rows[].runningBalanceMinor` | Opening + preceding signed rows *on this returned page* | Render the server row value; do not re-sum all preview rows; verify cross-page continuity |
+| `totalInMinor` / `totalOutMinor` | **Returned page** positives/negatives | Label explicitly “shown entries” if surfaced; never represent as whole filtered period totals |
+| `closingBalanceMinor` | Current authoritative account balance in `findAccountById` | Label current account balance, not as-of/period closing; test `toDate` in the past |
+| `GET /money/accounts?asOf=YYYY-MM-DD` balances | Account-list balances at selected as-of (backend service documented intent) | Separate list as-of filter from statement's current account closing; do not silently assert they are the same period result |
+
+**Contract gap:** a true period total/period-closing summary across all pages requires a separately reviewed read-projection extension with explicit `periodOpeningMinor,periodInMinor,periodOutMinor,periodClosingMinor` or equivalent; **no new backend endpoint or field is authorized by T01-R**. Existing Account Ledger dialog can display current balance and statement page rows correctly, but must not fabricate a period summary or imply that loaded pages comprise all movements.
+
+### R5.3 D08 proposal compatibility — not an approved account-model change
+
+The latest D08 draft challenges two older MOD-006 assumptions:
+1. `OWNER_CURRENT_ACCOUNT` is a legacy owner-current classification, **not established owner equity**. D08 proposes separate shared `OWNER_CAPITAL` and `OWNER_DRAWINGS` controls and per-owner journal attribution, retaining unreconciled historical current-account balances until evidence supports reclassification. Existing `OWNER_INJECTION`/`OWNER_WITHDRAWAL` endpoint journals remain real v1 semantics, but must **not** be relabeled as fully classified capital/drawings for connected HisabIQ.
+2. D08 now proposes **one fixed `BORROWER_LOAN_RECEIVABLE` asset control** with mandatory per-loan-agreement attribution, instead of an earlier parameterized borrower GL family. This is an **unapproved draft choice**, not a live chart member. The existing `LOAN:<id>` family remains a lender liability; no borrower receivable may be mapped to it or to customer-trade AR.
+
+Neither proposal changes the approved read-only T01-R account DTO: the existing `LOAN` account is still excluded from spendable money totals, and `totalLoanMinor` is a liability summary. Do not build any D08 prototype, alter fixed account codes, edit schema, add finance people, create finance opening journals, or retrofit owner movement codes under this T01-R task. After D08 owner decision, revise later **T03/T05** designs and test matrices explicitly, then obtain bounded implementation authorization.
+
+### R5.4 Read-only coordinator dispatch evidence checklist (future, not completed here)
+
+- [ ] Coordinator records accepted dependency SHA pair, actual authorized runner, exactly one Project #2 BUILD worker and shared-page ownership after reconciling active MOD-004 work. Chat messages or issue labels alone do not reserve it.
+- [ ] Owner approves the existing twelve-sentence `R4` T01-R review scope and chosen environment, or a changed scope gets a new bounded overview. Existing unchanged approval need not be repeated.
+- [ ] Reserve only `src/integration/accounts.ts` plus named account **read** call sites in `src/pages/Finance.tsx` and `src/components/finance/FinanceRecordDialogs.tsx`, and exact test files. `src/pages/Accounts.tsx`, account preview stores, shared HTTP/session/auth and backend remain read-only unless separately reserved.
+- [ ] Adapter uses current FND authenticated transport and tenant/epoch abort handling; strict success decoding and fail-closed authorization. No `{data:...}` wrapper expectation on list/statement GET; no bearer-token lookup inside account component; no legacy `/api/bank` fallback.
+- [ ] Accepted test suite includes **two-tenant** identity and permission isolation, duplicate names, status/type/loan visibility, nullable openings, stale account A→B, logout/tenant switch, `includeInactive` omitted/true (never string `false`), server pagination, page-only total semantics and backdated `toDate` mismatch, plus selected-page/print privacy.
+- [ ] Assert zero writes to account, money, journal, cash sessions, settlements or audit from both GET paths; disposable PostgreSQL16 for end-to-end financial reads; UI screenshot comparison at 390/768/1440px and bilingual keyboard/touch behavior. Tests remain **specified**, not executed in this packet.
+- [ ] Connected AppShell gate stays closed until separately approved integration activation; preview mode remains deliberate and independent, no live error triggers fake fixture success. Post-PR exact diff, test exit codes, QA and owner-controlled merge/deployment required.
+
+**Decision requested before any code:** separately approve **MOD-006-T01-R read-only accounts list + statement integration** as the next scoped task once its MOD-001 prerequisite and coordinator-exclusive runner are confirmed. Other MOD-006 tasks are not implicitly approved.
