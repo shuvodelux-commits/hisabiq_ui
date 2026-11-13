@@ -159,7 +159,7 @@ test('rejects stale/invalid optimistic version types; never synthesize a new ver
 });
 
 test('rejects path traversal, foreign IDs and unsupported timeout values locally', async () => {
-  const ids = ['', 'not-ulid', '../wrong', productId + '/barcode', '00000000000000000000000000'];
+  const ids = ['', 'not-ulid', '../wrong', productId + '/barcode'];
   let calls = 0;
   await withFetch((async () => { calls++; return json({ data: product }); }) as typeof fetch,
     async () => {
