@@ -5,6 +5,7 @@
 import '../src/index.css';
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { HashRouter } from 'react-router-dom';
 import { SessionProvider, useSession } from '../src/integration/SessionProvider.tsx';
 import { TenantSettingsProvider, useTenantSettings } from '../src/settings/TenantSettingsProvider.tsx';
 import { Finance } from '../src/pages/Finance.tsx';
@@ -43,7 +44,7 @@ createRoot(root).render(
   // Do not simulate StrictMode remount of a disposable real SessionStore.
   <SessionProvider mode="connected">
     <TenantSettingsProvider>
-      <TestControls />
+      <HashRouter><TestControls /></HashRouter>
     </TenantSettingsProvider>
   </SessionProvider>,
 );
