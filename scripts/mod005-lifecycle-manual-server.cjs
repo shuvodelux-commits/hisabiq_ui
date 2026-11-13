@@ -23,7 +23,7 @@ const allowedAuth = new Set([
   '/api/v1/auth/login/pin',
 ]);
 const cashPostPattern = /^\/api\/v1\/money\/day\/(?:start|[0-7][0-9A-HJKMNP-TV-Z]{25}\/(?:close|reopen))$/;
-const html = \`<!doctype html><html lang="en">
+const html = `<!doctype html><html lang="en">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>HisabIQ — Disposable Cash Lifecycle QA</title>
 <style>
@@ -41,7 +41,7 @@ RefreshRuntime.injectIntoGlobalHook(window);window.$RefreshReg$=()=>{};
 window.$RefreshSig$=()=>type=>type;window.__vite_plugin_react_preamble_installed__=true;
 </script>
 <script type="module" src="/tests/mod005LifecycleManualHarness.tsx"></script>
-</body></html>\`;
+</body></html>`;
 const guard = {
   name: 'mod005-lifecycle-disposable-restricted-api',
   enforce: 'pre',
