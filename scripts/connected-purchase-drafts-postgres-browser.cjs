@@ -50,6 +50,21 @@ function settings() {
     process.env[PREFIX+'PG_CONTAINER']], { encoding:'utf8' });
   assert.equal(inspect.status, 0, 'Dedicated isolated Podman PG16 must exist');
   assert.equal(inspect.stdout.trim(), 'true', 'Dedicated test DB must be running');
+  if (P5D) {
+    assert.ok(process.env.HISABIQ_P5D_REDACTED_JWT_A,
+      'Real signed no-cost-permission test identity is mandatory');
+    const label = spawnSync('podman', ['inspect', '--format',
+      '{{index .Config.Labels "hisabiq.qa"}}', process.env[PREFIX+'PG_CONTAINER']],
+      { encoding:'utf8' });
+    assert.equal(label.status, 0, 'P5D must verify its disposable DB owner label');
+    assert.equal(label.stdout.trim(), 'mod008-p5d-501',
+      'P5D cannot run against a shared or unlabeled PostgreSQL container');
+    for (const key of ['SUPPLIER_A','PRODUCT_A','SUPPLIER_B','PRODUCT_B',
+      'WRONG_ROLE_A','INACTIVE_PRODUCT_A']) {
+      assert.match(process.env['HISABIQ_P5D_'+key] || '', ULID,
+        'Missing real Nest-provisioned negative-source identity: '+key);
+    }
+  }
 }
 const user = who => ({
   tenantId: process.env[PREFIX+'TENANT_'+who.toUpperCase()],
@@ -80,6 +95,16 @@ async function tap(page, button, wanted) {
   lastSafeStage = button; // Never log values, JWTs, headers or request bodies.
   await page.locator('[data-test-' + button + ']').click();
   await waitResult(page, wanted);
+}
+function populatedFixtureUrl() {
+  if (!P5D) return ORIGIN + '/tests/fixtures/connected-purchase-drafts-postgres.html';
+  const query = new URLSearchParams({
+    source:'p5d', wrongRole:process.env.HISABIQ_P5D_WRONG_ROLE_A,
+    inactiveProduct:process.env.HISABIQ_P5D_INACTIVE_PRODUCT_A,
+    foreignProduct:process.env.HISABIQ_P5D_PRODUCT_B,
+    foreignSupplier:process.env.HISABIQ_P5D_SUPPLIER_B,
+  });
+  return ORIGIN + '/tests/fixtures/connected-purchase-drafts-postgres.html?' + query.toString();
 }
 const textOf = async (page, selector) =>
   (await page.locator('[data-test-' + selector + ']').textContent() || '').trim();
@@ -421,12 +446,11 @@ async function negativeSourceProbes(knownSupplier, knownProduct) {
     'real inactive product must not be selected');
   await expectApi(404, 'a', '/api/v1/products/' + otherProduct);
   await expectApi(404, 'a', '/api/v1/parties/' + otherSupplier);
-  if (redactedToken) {
-    const redacted = await expectApi(200, 'a',
-      '/api/v1/products/' + knownProduct, redactedToken);
-    assert.equal(Object.hasOwn(redacted.data, 'purchasePriceMinor'), false,
-      'real backend must omit cost without cost permission');
-  }
+  assert.ok(redactedToken, 'P5D real no-cost source probe cannot be skipped');
+  const redacted = await expectApi(200, 'a',
+    '/api/v1/products/' + knownProduct, redactedToken);
+  assert.equal(Object.hasOwn(redacted.data, 'purchasePriceMinor'), false,
+    'real backend must omit cost without cost permission');
   const ownProduct = await expectApi(200, 'a', '/api/v1/products/' + knownProduct);
   const ownSupplier = await expectApi(200, 'a', '/api/v1/parties/' + knownSupplier);
   assert.equal(ownProduct.data.status, 'ACTIVE');
@@ -435,18 +459,32 @@ async function negativeSourceProbes(knownSupplier, knownProduct) {
 async function exercisePopulated(browser) {
   const { context, page, requests, errors } = await sourcePage(browser, 320, false);
   try {
-    await page.goto(ORIGIN + '/tests/fixtures/connected-purchase-drafts-postgres.html?source=p5d');
+    await page.goto(populatedFixtureUrl());
     await tap(page, 'login-a', 'login-a:ok');
     await tap(page, 'select-sources', 'select-sources:ok');
     const supplierId = await textOf(page, 'source-supplier');
     const productId = await textOf(page, 'source-product');
     const factor = Number(await textOf(page, 'source-factor'));
     assert.match(supplierId, ULID); assert.match(productId, ULID);
+    assert.equal(supplierId, process.env.HISABIQ_P5D_SUPPLIER_A);
+    assert.equal(productId, process.env.HISABIQ_P5D_PRODUCT_A);
     assert.equal(factor, 20_000);
     const before = requests.filter(x => x.method !== 'GET').length;
-    await tap(page, 'probe-missing-source', 'probe-missing-source:error');
-    assert.equal(requests.filter(x => x.method !== 'GET').length, before,
-      'Missing real source must not create, update or recycle a draft');
+    const cases = [
+      ['missing-source','probe-missing-source',/^(http|protocol)$/],
+      ['wrong-role','probe-wrong-role',/^(http|protocol)$/],
+      ['inactive-product','probe-inactive-product',/^protocol$/],
+      ['foreign-product','probe-foreign-product',/^(http|protocol)$/],
+      ['foreign-supplier','probe-foreign-supplier',/^(http|protocol)$/],
+    ];
+    for (const [label, button, allowed] of cases) {
+      await tap(page, button, button+':error');
+      const problem = await textOf(page, 'error');
+      const kind = problem.slice(button.length + 1);
+      assert.match(kind, allowed, label+' must fail from a real source read');
+      assert.equal(requests.filter(x => x.method !== 'GET').length, before,
+        label+' must not issue any financial/draft writes');
+    }
     await negativeSourceProbes(supplierId, productId);
     await tap(page, 'prepare', 'prepare:ok');
     await tap(page, 'create', 'create:ok');
@@ -470,6 +508,11 @@ async function exercisePopulated(browser) {
     await tap(page, 'stale', 'stale:error');
     assert.equal(await textOf(page, 'version'), '2');
     await tap(page, 'recycle', 'recycle:ok');
+    assert.equal(await textOf(page, 'version'), '3');
+    await tap(page, 'list-active', 'list-active:ok');
+    assert.equal(await textOf(page, 'list-count'), '0');
+    await tap(page, 'list-deleted', 'list-deleted:ok');
+    assert.equal(await textOf(page, 'list-count'), '1');
     await tap(page, 'restore', 'restore:ok');
     assert.equal(await textOf(page, 'version'), '4');
     assert.deepEqual(await parsedOutput(page, 'line-json'), originalLines);
@@ -478,6 +521,12 @@ async function exercisePopulated(browser) {
     assert.equal(live.data.version, 4);
     assert.equal(live.data.itemCount, 1);
     assert.equal(live.data.grandTotalMinor, 12345);
+    assert.equal(live.data.supplierName, 'P5D Supplier A');
+    assert.equal(live.data.cart.editor.supplierId, supplierId);
+    assert.equal(live.data.cart.editor.date, '2026-11-13');
+    assert.equal(live.data.cart.editor.discount, '10.5');
+    assert.equal(live.data.cart.editor.discountMode, 'percent');
+    assert.equal(live.data.cart.editor.referenceNo, 'P5D-REAL-SOURCES');
     assert.deepEqual(live.data.cart.editor.lines, originalLines);
     assert.deepEqual(live.data.cart.editor.payments, originalPayments);
     await tap(page, 'login-b', 'login-b:ok');
@@ -509,7 +558,7 @@ async function exercisePopulated(browser) {
 async function exercisePopulatedReadOnly(browser, draftId) {
   const { context, page, requests, errors } = await sourcePage(browser, 390, true);
   try {
-    await page.goto(ORIGIN + '/tests/fixtures/connected-purchase-drafts-postgres.html?source=p5d');
+    await page.goto(populatedFixtureUrl());
     await tap(page, 'login-a', 'login-a:ok');
     await tap(page, 'select-sources', 'select-sources:ok');
     await tap(page, 'list-active', 'list-active:ok');
