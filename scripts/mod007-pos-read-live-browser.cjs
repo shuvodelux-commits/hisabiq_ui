@@ -72,7 +72,7 @@ async function register(label) {
 async function seedUnit(actor) {
   // Real registration provisions the base Piece unit. seedTenant() in unit
   // tests bypasses that path, so never assume the authenticated catalog is empty.
-  const listed = await request('/api/v1/catalog/units', undefined, actor.token, 'GET');
+  const listed = await request('/api/v1/catalog', undefined, actor.token, 'GET');
   success(listed, 200, 'Read provisioned unit catalog');
   let piece = listed.body.data.units.find(item => item.name === 'Piece');
   if (piece === undefined) {
