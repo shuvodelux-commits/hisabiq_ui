@@ -230,7 +230,7 @@ async function run() {
       for(const theme of ['light','dark']){
         await page.setViewportSize({width,height:900});
         await page.evaluate(mode=>document.documentElement.classList.toggle('dark',mode==='dark'),theme);
-        console.log('WIDTH_CHECK',width,theme,await page.evaluate(()=>({doc:document.documentElement.scrollWidth,view:innerWidth,controls:document.getElementById('p2c-fixture-controls')?.scrollWidth,accounts:document.querySelector('[data-connected-money-accounts]')?.scrollWidth,body:document.body.scrollWidth})));
+        console.log('WIDTH_CHECK',width,theme,await page.evaluate(()=>({doc:document.documentElement.scrollWidth,view:innerWidth,controls:document.getElementById('p2c-fixture-controls')?.scrollWidth,accounts:document.querySelector('[data-connected-money-accounts]')?.scrollWidth,body:document.body.scrollWidth,summary:document.querySelector('[data-connected-money-summary]')?.scrollWidth,summaryClient:document.querySelector('[data-connected-money-summary]')?.clientWidth,liabilities:document.querySelector('[data-connected-money-liabilities]')?.scrollWidth,cardWidths:[...document.querySelectorAll('[data-connected-money-account]')].map(e=>e.clientWidth+'/'+e.scrollWidth)})));
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),
           'horizontal overflow at '+width+' '+theme);
         if(process.env.MOD006_P2C_SCREEN_DIR&&(width===320||width===1440)){
