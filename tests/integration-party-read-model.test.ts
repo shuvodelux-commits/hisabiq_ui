@@ -44,10 +44,13 @@ function list(role: TradingRole, balance = customerNet as TradingParty['balance'
   return {
     data: [{
       ...shared, roles: role === 'VENDOR' ? ['VENDOR'] : ['CUSTOMER', 'SUPPLIER'],
+      customerGroupId: role === 'CUSTOMER' ? shared.customerGroupId : null,
+      customerGroupName: role === 'CUSTOMER' ? shared.customerGroupName : null,
+      creditLimitMinor: role === 'CUSTOMER' ? shared.creditLimitMinor : null,
       balance,
     }],
     summary: {
-      total: 42, active: 40, inactive: 2, ungrouped: 9,
+      total: 42, active: 40, inactive: 2, ungrouped: role === 'CUSTOMER' ? 9 : null,
       totalOutstandingMinor: 10_000_000,
       totalAdvanceMinor: 5_000_000,
       overCreditLimit: 7,
