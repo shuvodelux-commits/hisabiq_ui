@@ -16,8 +16,8 @@ test('Phase 7 translates only cash drawer presentation and not cash session reco
   assert.ok(drawer.includes('startSession(float,counterpart,note,reviewedRevision,operationId)'));
   assert.ok(drawer.includes('const diff = counted - expected'));
   assert.ok(drawer.includes("diff!==0&&!note.trim()"));
-  assert.match(session, /previewActive\\?\\.expectedMinor/);
-  assert.match(session, /active\\?\\.expectedClosingMinor/);
+  assert.ok(session.includes('previewActive?.expectedMinor'));
+  assert.ok(session.includes('active?.expectedClosingMinor'));
   assert.ok(session.includes('store.count(authority(), {'));
   assert.ok(session.includes('counted: String(counted)'));
   assert.ok(session.includes('note, close, revision, operationId'));
