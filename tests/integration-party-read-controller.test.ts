@@ -99,6 +99,7 @@ function reader(overrides: Partial<TradingPartyReadTransport> = {}): TradingPart
   return {
     list: async () => customerList,
     ledger: async () => customerLedger,
+    opening: async () => ({ data: null }),
     ...overrides,
   };
 }
