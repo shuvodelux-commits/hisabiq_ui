@@ -4,6 +4,7 @@ import type { ApiRequest } from './http.ts';
 import {
   decodeCustomerDirectory,
   decodeCustomerStanding,
+  decodeSaleDrafts,
   decodePosProductsForMode,
   isCanonicalPosCursor,
   isCanonicalPosPartyId,
@@ -11,6 +12,7 @@ import {
 import type {
   ServerCustomerDirectory,
   ServerCustomerStandingEnvelope,
+  ServerSaleDraftsEnvelope,
   ServerPosProductList,
   ServerPosStockStatus,
 } from './saleMapping.ts';
@@ -179,4 +181,17 @@ export async function readPosCustomerStanding(
     if (envelope.data.partyId !== id) return invalid();
     return envelope;
   }, signal, timeoutMs);
+}
+
+
+/**
+ * M7-02A: GET-only opaque sale drafts. No preview-store mount, cart projection,
+ * posting, update, delete, reservation or retry. Caller owns session epoch.
+ */
+export async function readSaleDrafts(
+  accessToken: string,
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<ServerSaleDraftsEnvelope> {
+  return read(accessToken, '/api/v1/sales/drafts', decodeSaleDrafts, signal, timeoutMs);
 }
