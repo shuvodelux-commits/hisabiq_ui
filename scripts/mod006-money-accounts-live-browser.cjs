@@ -36,14 +36,15 @@ async function request(path, body, accessToken, method = 'POST') {
   return { status: response.status, body: result };
 }
 async function register(label) {
-  const identifier = 'p2c-browser-' + label + '@isolated.invalid';
+  const suffix = crypto.randomBytes(4).toString('hex');
+  const identifier = 'p2c-browser-' + label + '-' + suffix + '@isolated.invalid';
   const password = 'P2cOnlyPassw0rd!1';
   const issued = await request('/api/v1/auth/registration/otp', { identifier });
   assert.equal(issued.status, 200, 'real test-only development OTP must be available');
   const otpCode = issued.body?.data?.devCode;
   assert.match(otpCode, /^[0-9]{6}$/, 'OTP may not be mocked or replaced');
   const signup = await request('/api/v1/auth/registration', {
-    identifier, otpCode, username: 'p2cbrowser' + label,
+    identifier, otpCode, username: 'p2cbrowser' + label + suffix,
     businessName: 'P2C Browser Disposable ' + label, password, pin: '472906',
   });
   assert.equal(signup.status, 201, JSON.stringify(signup.body));
