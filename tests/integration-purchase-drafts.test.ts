@@ -108,7 +108,7 @@ test('create transmits opaque multi-unit/cart/payment snapshot exactly, no previ
   }) as typeof fetch, async () => {
     const returned = await createPurchaseDraft('user1', payload);
     assert.deepEqual(returned.data, draft);
-    assert.equal(returned.data.cart.lines, cart.lines);
+    assert.deepEqual(returned.data.cart.lines, cart.lines);
     assert.deepEqual(returned.data.cart.payments, cart.payments);
   });
   assert.equal(calls, 1);
