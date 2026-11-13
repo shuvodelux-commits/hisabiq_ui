@@ -55,5 +55,7 @@ test('connected boundary must render no preview fixture from connected mode', ()
   assert.doesNotMatch(connected, /erpDemoStore|availablePurchases|purchaseDraftsPreviewStore|createPreviewPurchase|PurchaseSourceDialog/);
   assert.match(connected, /readPurchases/);
   assert.match(connected, /readPurchase/);
+  assert.match(connected, /selected\?\.identity === identity/);
+  assert.match(connected, /setRetryVersion\(version => version \+ 1\)/);
   assert.doesNotMatch(connected, /requestJson|method:\s*['"]POST['"]/);
 });
