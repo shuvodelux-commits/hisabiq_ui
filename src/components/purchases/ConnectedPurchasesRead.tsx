@@ -25,7 +25,7 @@ import {
 type PurchaseTab = 'purchases' | 'return' | 'return-history';
 const allowedTab = (value: string | null): PurchaseTab =>
   value === 'return' || value === 'return-history' ? value : 'purchases';
-const reportError = (error: unknown) =>
+const reportError = (error: unknown): 'denied' | 'error' =>
   error instanceof ApiError && (error.status === 401 || error.status === 403) ? 'denied' : 'error';
 
 function Settlement({ row }: { row: ServerPurchaseListRow }) {
