@@ -109,8 +109,15 @@ export function extractPurchaseDraftSourceSelection(
 
   const ids = new Set<string>();
   const lineIds = new Set<string>();
+  const neededText = [
+    'id', 'bigQty', 'smallQty', 'cost', 'costUnit', 'lotSellPrice',
+    'lotSellUnit', 'serialText', 'batchNumber', 'manufactureDate', 'expiryDate',
+  ] as const;
   for (const line of editor.lines) {
     if (!record(line) || !record(line.product) || !validId(line.product.id) ||
+        typeof line.product.name !== 'string' || !line.product.name.trim() ||
+        typeof line.product.unit !== 'string' || !line.product.unit.trim() ||
+        !neededText.every(key => typeof line[key] === 'string') ||
         typeof line.id !== 'string' || !line.id || lineIds.has(line.id)) {
       return invalid('Stored draft has invalid or repeated purchase line identities');
     }
