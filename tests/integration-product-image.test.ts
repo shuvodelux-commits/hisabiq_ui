@@ -297,7 +297,11 @@ test('two bearer principals and product IDs are never cached or cross-used', asy
   const seen: string[] = [];
   await withFetch((async (url, init) => {
     seen.push((new Headers(init?.headers).get('Authorization') ?? '') + ':' + String(url));
-    return json({ data: { ...product, id: String(url).includes(otherProductId) ? otherProductId : productId } });
+    return json({ data: {
+      ...product,
+      id: String(url).includes(otherProductId) ? otherProductId : productId,
+      hasImage: init?.method === 'POST',
+    } });
   }) as typeof fetch, async () => {
     const a = await saveSimpleProductThumbnail('tenant-A', productId, validInput);
     const b = await removeSimpleProductThumbnail('tenant-B', otherProductId);
