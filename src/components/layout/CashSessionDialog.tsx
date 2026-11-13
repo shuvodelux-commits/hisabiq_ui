@@ -14,7 +14,7 @@ import { useUiCopy } from '../../i18n/useUiCopy';
 
 export function CashSessionDialog() {
   const { text, showHelper } = useUiCopy();
-  const { open, setOpen, sessionOpen, startSession, saveCount, openingCash, expectedCash:expected, sampleMovements, lastCount, revision, businessDate, sessionDate, previousClosing, drawerBalance, canView, canStart, canClose, enabled, startBlocked } = useCashSession();
+  const { open, setOpen, sessionOpen, startSession, saveCount, openingCash, expectedCash:expected, sampleMovements, lastCount, revision, businessDate, sessionDate, previousClosing, drawerBalance, canView, canStart, canClose, enabled, startBlocked, mode, busy, error, dayStatus, accounts: serverAccounts, reopenSession, refresh } = useCashSession();
   const [counts, setCounts] = useState<Record<number, string>>({});
   const [countMode,setCountMode]=useState<'total'|'notes'>('total');
   const [total,setTotal]=useState('');
@@ -22,14 +22,17 @@ export function CashSessionDialog() {
   const [float, setFloat] = useState('');
   const [counterpart,setCounterpart]=useState('');
   const [failure,setFailure]=useState('');
+  const [reopenReason,setReopenReason]=useState('');
   const [reviewedRevision,setReviewedRevision]=useState(revision);
   const [operationId,setOperationId]=useState(()=>crypto.randomUUID());
   const {accounts}=useSyncExternalStore(subscribeFinancePreview,getFinancePreviewSnapshot);
   const openingMinor=parseCashMinor(float);
   const difference=openingMinor===null?0:openingMinor/100-drawerBalance;
-  const choices=cashCounterparts(accounts.map(a=>({id:a.id,name:a.name,active:a.status==='Active',drawer:a.id==='acc-cash'})));
-  useEffect(()=>{if(open){setFloat('');setCounterpart('');setNote('');setTotal('');setCounts({});setFailure('');setReviewedRevision(revision);setOperationId(crypto.randomUUID());}},[open]);
-  const submit=(action:()=>void)=>{try{action();setOpen(false);return true;}catch(error){setFailure(error instanceof Error?error.message:String(error));setReviewedRevision(revision);setOperationId(crypto.randomUUID());return false;}};
+  const choices = mode === 'preview'
+    ? cashCounterparts(accounts.map(a=>({id:a.id,name:a.name,active:a.status==='Active',drawer:a.id==='acc-cash'})))
+    : cashCounterparts(serverAccounts.map(a=>({id:`${a.type}:${a.id}`,name:a.name,active:a.status==='ACTIVE',drawer:a.isDrawer})));
+  useEffect(()=>{if(open){setFloat('');setCounterpart('');setNote('');setTotal('');setCounts({});setFailure('');setReopenReason('');setReviewedRevision(revision);setOperationId(crypto.randomUUID());}},[open]);
+  const submit=async(action:()=>void|Promise<void>)=>{try{await action();setOpen(false);return true;}catch(caught){setFailure(caught instanceof Error?caught.message:String(caught));setReviewedRevision(revision);if(mode==='preview')setOperationId(crypto.randomUUID());return false;}};
 
   const notesTotal = useMemo(
     () => denominations.reduce((sum, d) => sum + d * (parseInt(counts[d] || '0', 10) || 0), 0),
@@ -44,23 +47,23 @@ export function CashSessionDialog() {
     {label:text('Cash expenses','ক্যাশ খরচ'),value:-3180}
   ]:[])];
 
-  const close = () => {
+  const close = async () => {
     if(!hasCount||(diff!==0&&!note.trim()))return;
-    if(!submit(()=>saveCount(counted,note,true,reviewedRevision,operationId)))return;
-    toast.success(text('Cash session closed in preview','নমুনা ক্যাশ সেশন বন্ধ হয়েছে'), {
+    if(!await submit(()=>saveCount(counted,note,true,reviewedRevision,operationId)))return;
+    toast.success(mode==='connected'?text('Cash session closed','ক্যাশ সেশন বন্ধ হয়েছে'):text('Cash session closed in preview','নমুনা ক্যাশ সেশন বন্ধ হয়েছে'), {
       description: `${text('Counted','গুনে পাওয়া')} ${taka(counted)} · ${diff === 0 ? text('Balanced','মিলেছে') : diff > 0 ? `${text('Extra','বেশি')} ${taka(diff)}` : `${text('Short','কম')} ${taka(-diff)}`}`
     });
   };
 
-  if(!canView)return <Dialog open={open} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>{text('Cash session unavailable','ক্যাশ সেশন ব্যবহার করা যাবে না')}</DialogTitle><DialogDescription>{text('Enable cash sessions and request cash view permission.','ক্যাশ সেশন চালু করুন এবং দেখার অনুমতি নিন।')}</DialogDescription></DialogHeader><Button onClick={()=>setOpen(false)}>{text('Close','বন্ধ করুন')}</Button></DialogContent></Dialog>;
+  if(!canView)return <Dialog open={open} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>{text('Cash session unavailable','ক্যাশ সেশন ব্যবহার করা যাবে না')}</DialogTitle><DialogDescription>{mode==='loading'?text('Loading verified cash records…','যাচাই করা ক্যাশের হিসাব লোড হচ্ছে…'):mode==='error'?text('Could not load real cash records. No preview balance will be substituted.','আসল ক্যাশের হিসাব লোড হয়নি। নমুনা জের দেখানো হবে না।'):mode==='locked'?text('Sign in to access the cash drawer.','ক্যাশ ড্রয়ার দেখতে লগইন করুন।'):text('Enable cash sessions and request cash view permission.','ক্যাশ সেশন চালু করুন এবং দেখার অনুমতি নিন।')}</DialogDescription></DialogHeader>{error&&<p role="alert" className="text-sm text-danger">{error}</p>}<DialogFooter><Button onClick={()=>setOpen(false)}>{text('Close','বন্ধ করুন')}</Button>{mode==='error'&&<Button variant="outline" onClick={()=>void refresh().catch(()=>undefined)}>{text('Retry','আবার চেষ্টা করুন')}</Button>}</DialogFooter></DialogContent></Dialog> ;
   if (!sessionOpen) {
     return <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
         <DialogHeader><DialogTitle>{text('Start cash session','ক্যাশ সেশন শুরু করুন')}</DialogTitle>
-          <DialogDescription>{text('UI preview only · resets on reload. No backend posting.','শুধু নমুনা · রিলোড করলে মুছে যাবে। সার্ভারে লেনদেন জমা হবে না।')}</DialogDescription></DialogHeader>
+          <DialogDescription>{mode==='connected'?text('Actual drawer count will be posted to the ERP ledger when confirmed.','নিশ্চিত হলে ড্রয়ারের গোনা টাকা মূল খাতায় লেখা হবে।'):text('UI preview only · resets on reload. No backend posting.','শুধু নমুনা · রিলোড করলে মুছে যাবে। সার্ভারে লেনদেন জমা হবে না।')}</DialogDescription></DialogHeader>
         <p className="text-xs text-ink-500">{text('Business date','ব্যবসার তারিখ')}: {businessDate}</p>
-        <p className="rounded-lg bg-ink-50 p-3 text-sm">{previousClosing===null?text('No previous cash session. Initial drawer balance is ৳0.','আগের ক্যাশ সেশন নেই। ড্রয়ারের প্রাথমিক জের ৳০।'):text('Previous actual counted close: ','আগের গুনে পাওয়া শেষ জের: ')+taka(previousClosing)}</p>
-        {(!enabled||!canView||!canStart||startBlocked)&&<p role="status" className="text-sm text-warning">{!enabled?text('Cash sessions are disabled in Settings.','সেটিংসে ক্যাশ সেশন বন্ধ রয়েছে।'):startBlocked?text('This business date is closed. Reopening is unavailable in preview.','এই ব্যবসার দিন বন্ধ হয়েছে। নমুনায় আবার খোলা যাবে না।'):text('You do not have permission to start a cash session.','ক্যাশ সেশন শুরুর অনুমতি নেই।')}</p>}
+        <p className="rounded-lg bg-ink-50 p-3 text-sm">{mode==='connected'?text('Current drawer ledger balance: ','ড্রয়ারের বর্তমান খাতার জের: ')+taka(drawerBalance):previousClosing===null?text('No previous cash session. Initial drawer balance is ৳0.','আগের ক্যাশ সেশন নেই। ড্রয়ারের প্রাথমিক জের ৳০।'):text('Previous actual counted close: ','আগের গুনে পাওয়া শেষ জের: ')+taka(previousClosing)}</p>
+        {(!enabled||!canView||!canStart||startBlocked)&&<p role="status" className="text-sm text-warning">{!enabled?text('Cash sessions are disabled in Settings.','সেটিংসে ক্যাশ সেশন বন্ধ রয়েছে।'):startBlocked?(mode==='connected'?text('Close the earlier day or reopen today if permitted.','আগের দিন বন্ধ করুন অথবা অনুমতি থাকলে আজকের দিন পুনরায় খুলুন।'):text('This business date is closed. Reopening is unavailable in preview.','এই ব্যবসার দিন বন্ধ হয়েছে। নমুনায় আবার খোলা যাবে না।')):text('You do not have permission to start a cash session.','ক্যাশ সেশন শুরুর অনুমতি নেই।')}</p>}
         <label className="block text-sm font-medium text-ink">{text('Opening cash','শুরুর টাকা')}
           <Input aria-label={text('Opening cash','শুরুর টাকা')} autoFocus inputMode="decimal" value={float} onChange={e=>setFloat(e.target.value)} className="mt-1.5 text-right" aria-invalid={float!==''&&openingMinor===null} aria-describedby="cash-opening-help" />
         </label>
@@ -71,9 +74,10 @@ export function CashSessionDialog() {
           <AppSelect label={difference>0?text('Where did this cash come from?','এই টাকা কোথা থেকে এসেছে?'):text('Where did this cash go?','এই টাকা কোথায় গেছে?')} value={counterpart} onChange={setCounterpart} placeholder={text('Choose source or destination','উৎস বা গন্তব্য বাছাই করুন')} options={choices.map(a=>({value:a.id,label:a.id==='OWNER_CURRENT_ACCOUNT'?(difference>0?text('Owner put in','মালিক দিয়েছেন'):text('Owner took out','মালিক নিয়েছেন')):(difference>0?text('From ','থেকে '):text('To ','প্রতি '))+a.name}))}/>
           <label className="block text-sm font-medium">{text('Note (optional)','মন্তব্য (ঐচ্ছিক)')}<Input className="mt-1.5" value={note} maxLength={500} onChange={e=>setNote(e.target.value)}/></label>
         </div>}
-        {failure&&<p role="alert" className="text-sm text-danger">{text('Could not save. Review your input and try again.','সংরক্ষণ হয়নি। তথ্য যাচাই করে আবার চেষ্টা করুন।')} <span>{failure}</span></p>}
+        {(failure||error)&&<p role="alert" className="text-sm text-danger">{text('Could not save. Review your input and try again.','সংরক্ষণ হয়নি। তথ্য যাচাই করে আবার চেষ্টা করুন।')} <span>{failure||error}</span></p>}
+        {mode==='connected'&&dayStatus?.todaySession?.status==='CLOSED'&&dayStatus.canReopenToday&&<label className="block text-sm font-medium">{text('Reason to reopen','পুনরায় খোলার কারণ')}<Input className="mt-1.5" value={reopenReason} onChange={event=>setReopenReason(event.target.value)} maxLength={500}/></label>}
         <DialogFooter><Button variant="outline" onClick={()=>setOpen(false)}>{text('Cancel','বাতিল')}</Button>
-          <Button disabled={!canStart||startBlocked||openingMinor===null||(difference!==0&&!counterpart)} onClick={()=>{if(submit(()=>startSession(float,counterpart,note,reviewedRevision,operationId)))toast.success(text('Cash session started in preview','নমুনায় ক্যাশ সেশন শুরু হয়েছে'));}}><Unlock className="size-4"/>{text('Start session','সেশন শুরু করুন')}</Button></DialogFooter>
+          <Button disabled={busy||!canStart||startBlocked||openingMinor===null||(difference!==0&&!counterpart)} onClick={async()=>{if(await submit(()=>startSession(float,counterpart,note,reviewedRevision,operationId)))toast.success(mode==='connected'?text('Cash session started','ক্যাশ সেশন শুরু হয়েছে'):text('Cash session started in preview','নমুনায় ক্যাশ সেশন শুরু হয়েছে'));}}><Unlock className="size-4"/>{text('Start session','সেশন শুরু করুন')}</Button>{mode==='connected'&&dayStatus?.todaySession?.status==='CLOSED'&&dayStatus.canReopenToday&&<Button disabled={busy||!reopenReason.trim()} onClick={async()=>{if(await submit(()=>reopenSession(reopenReason)))toast.success(text('Cash day reopened','ক্যাশের দিন পুনরায় খোলা হয়েছে'));}}>{text('Reopen day','দিন পুনরায় খুলুন')}</Button>}</DialogFooter>
       </DialogContent></Dialog>;
   }
 
@@ -85,12 +89,12 @@ export function CashSessionDialog() {
             <Wallet className="size-4 text-teal-600" /> {text('Cash reconciliation','ক্যাশ মিলানো')}
             {showHelper && <span className="font-bn text-sm font-normal text-ink-500">ক্যাশ মিলানো</span>}
           </DialogTitle>
-          <DialogDescription>{text('UI preview only · counts stay until reload; sales and payments are not connected.','শুধু নমুনা · রিলোড করলে গণনার তথ্য মুছে যাবে; বিক্রি ও পেমেন্টের সাথে যুক্ত নয়।')}</DialogDescription>
+          <DialogDescription>{mode==='connected'?text('Confirmed drawer values come from the ERP. Count or close only after server acknowledgement.','ক্যাশের জের সার্ভার থেকে আসে। নিশ্চিত না হওয়া পর্যন্ত গণনা/বন্ধ করা সম্পন্ন হবে না।'):text('UI preview only · counts stay until reload; sales and payments are not connected.','শুধু নমুনা · রিলোড করলে গণনার তথ্য মুছে যাবে; বিক্রি ও পেমেন্টের সাথে যুক্ত নয়।')}</DialogDescription>
         </DialogHeader>
 
         {sessionDate!==businessDate&&<p role="status" className="text-sm text-warning">{text('Earlier cash session is still open. Count and close it before starting a new day.','আগের দিনের ক্যাশ সেশন চালু। নতুন দিন শুরুর আগে গুনে বন্ধ করুন।')} {sessionDate}</p>}
         {!canClose&&<p role="status">{text('Cash count / close permission is required.','ক্যাশ গোনা / বন্ধ করার অনুমতি প্রয়োজন।')}</p>}
-        {failure&&<p role="alert" className="text-sm text-danger">{failure}</p>}
+        {(failure||error)&&<p role="alert" className="text-sm text-danger">{failure||error}</p>}
         <div className="flex flex-wrap gap-2" role="group" aria-label={text('How to count cash','ক্যাশ গোনার পদ্ধতি')} >
           <Button variant={countMode==='total'?'default':'outline'} aria-pressed={countMode==='total'} onClick={()=>setCountMode('total')}>{text('Enter total','মোট টাকা লিখুন')}{showHelper && <span className="font-bn"> · মোট টাকা</span>}</Button>
           <Button variant={countMode==='notes'?'default':'outline'} aria-pressed={countMode==='notes'} onClick={()=>setCountMode('notes')}>{text('Count notes','নোট গুনুন')}{showHelper && <span className="font-bn"> · নোট গুনুন</span>}</Button>
@@ -154,18 +158,18 @@ export function CashSessionDialog() {
           <Input value={note} onChange={(e) => setNote(e.target.value)} className="mt-1.5" placeholder={text("e.g. ৳50 given as change from personal cash","যেমন: নিজের টাকা থেকে ৳৫০ খুচরা দিয়েছি")} />
         </label>
 
-        {lastCount&&<p role="status" className="text-xs text-ink-500">{text('Last saved count:','শেষ গণনা:')} {taka(lastCount.counted)} · {lastCount.note||text('No note','মন্তব্য নেই')}</p>}
+        {lastCount&&<p role="status" className="text-xs text-ink-500">{text('Last saved count:','শেষ গণনা:')} {taka(lastCount.counted)} · {lastCount.note||text('No note','মন্তব্য নেই')}{mode==='connected'&&!lastCount.closed&&<> · {text('Device only — not posted','শুধু এই ডিভাইসে — খাতায় লেখা হয়নি')}</>}</p>}
         <DialogFooter>
-          <Button disabled={!canClose||!hasCount}
+          <Button disabled={busy||!canClose||!hasCount}
             variant="outline"
-            onClick={() => {
-              if(!submit(()=>saveCount(counted,note,false,reviewedRevision,operationId)))return;
-              toast.success(text('Count saved in preview','নমুনা গণনা সংরক্ষিত'), { description: `${text('Counted','গুনে পাওয়া')} ${taka(counted)}` });
+            onClick={async () => {
+              if(!await submit(()=>saveCount(counted,note,false,reviewedRevision,operationId)))return;
+              toast.success(mode==='connected'?text('Count saved on this device only — not posted','গণনা শুধু ডিভাইসে সংরক্ষিত — খাতায় লেখা হয়নি'):text('Count saved in preview','নমুনা গণনা সংরক্ষিত'), { description: `${text('Counted','গুনে পাওয়া')} ${taka(counted)}` });
             }}>
             
             {text('Save count','গণনা সংরক্ষণ করুন')}
           </Button>
-          <Button disabled={!canClose||!hasCount||(diff!==0&&!note.trim())} onClick={close}>
+          <Button disabled={busy||!canClose||!hasCount||(diff!==0&&!note.trim())} onClick={()=>void close()}>
             <Lock className="size-4" /> {text('Close session','সেশন বন্ধ করুন')}
           </Button>
         </DialogFooter>
