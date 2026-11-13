@@ -75,11 +75,9 @@ test('stock remains authoritative per location and base scale-3, with separate p
     data: { ...overview.data, stock: [
       { ...stock, valueMinor: 0 },
       { ...stock, locationId: secondLocation, locationName: 'Back room',
-        qtyOnHand: 1000, stockStatus: 'OUT_STOCK' as never },
+        qtyOnHand: 1000, stockStatus: 'NEGATIVE_STOCK' as const },
     ] },
   };
-  // Adjust the second status to a real server enum, keeping product status independent.
-  input.data.stock[1]!.stockStatus = 'NEGATIVE_STOCK';
   const result = projectInventoryPresentation({
     scope, inventory: scoped(input), products: scoped(products),
   });
@@ -178,7 +176,8 @@ test('movements retain source, signed direction and no invented historical runni
   });
   assert.equal(result.movements.state, 'loaded');
   if (result.movements.state !== 'loaded') return;
-  const row = result.movements.rows[0]!;
+  const row = result.movements.rows[0];
+  assert.ok(row);
   assert.equal(result.movements.coverage, 'bounded');
   assert.equal(row.source.direction, 'OUT');
   assert.equal(row.source.qty, 2500);
@@ -234,16 +233,22 @@ test('not-loaded input is distinct from a loaded empty response', () => {
 });
 
 test('different caller-auth contexts cannot be assembled; no network requests are performed', () => {
-  for (const key of ['products', 'inventory', 'lots', 'adjustments'] as const) {
-    const input = { scope, products: scoped(products), inventory: scoped(overview),
-      lots: scoped(lots), adjustments: scoped(adjustments) };
-    (input as any)[key] = scoped((input as any)[key].value, 'tenant-B/session-v3');
+  const source = { scope, products: scoped(products), inventory: scoped(overview),
+    lots: scoped(lots), adjustments: scoped(adjustments) };
+  const badScope = 'tenant-B/session-v3';
+  const mismatches = [
+    { ...source, products: scoped(products, badScope) },
+    { ...source, inventory: scoped(overview, badScope) },
+    { ...source, lots: scoped(lots, badScope) },
+    { ...source, adjustments: scoped(adjustments, badScope) },
+  ];
+  for (const input of mismatches) {
     assert.throws(() => projectInventoryPresentation(input),
-      (e: any) => e instanceof ApiError && e.kind === 'protocol');
+      (error: unknown) => error instanceof ApiError && error.kind === 'protocol');
   }
   for (const bad of ['', '  ', 'tenant-A\nsession']) {
     assert.throws(() => projectInventoryPresentation({ scope: bad }),
-      (e: any) => e instanceof ApiError && e.kind === 'protocol');
+      (error: unknown) => error instanceof ApiError && error.kind === 'protocol');
   }
 });
 
