@@ -273,9 +273,11 @@ async function run() {
       await page.locator('#p2b0-identifier').fill(actor.identifier);
       await page.locator('#p2b0-password').fill(actor.password);
       await page.locator('#p2b0-login').click();
-      await page.waitForFunction(expected =>
-        document.querySelector('#p2b0-identity')?.getAttribute('data-tenant') === expected,
-        actor.tenantId);
+      await page.waitForFunction(expected => {
+        const identity = document.querySelector('#p2b0-identity');
+        return identity?.getAttribute('data-tenant') === expected.tenantId &&
+          identity?.getAttribute('data-user') === expected.userId;
+      }, { tenantId: actor.tenantId, userId: actor.userId });
     };
     const projected = async () => {
       await page.locator('#p2b0-read[data-status="loaded"]').waitFor();
