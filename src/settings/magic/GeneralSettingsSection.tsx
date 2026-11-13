@@ -458,7 +458,9 @@ export function GeneralSettingsSection({
         status={bridge.connected
           ? feedback || (canWriteBusiness
             ? 'Verified server settings loaded. Only the business name is editable.'
-            : 'Live settings are read-only or unavailable; no browser preview is a server save.')
+            : canWriteCash
+              ? 'Cash-session switch writes only after server confirmation; other controls remain read-only.'
+              : 'Live settings are read-only or unavailable; no browser preview is a server save.')
           : feedback || 'UI preview · business settings are not changed.'}
         dirtyLabel={bridge.connected
           ? feedback || 'Business name changed but not saved to the server.'
