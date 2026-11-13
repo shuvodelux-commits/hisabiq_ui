@@ -16,7 +16,7 @@ const returnRow = {
   id: returnId, number: 'SR-000023', saleId, saleNumber: 'INV-000043',
   partyId, customerName: 'Customer A',
   businessDate: '2026-11-13', reason: 'DAMAGED', note: null,
-  returnValueMinor: 3000, refundMinor: 1000, creditMinor: 500,
+  returnValueMinor: 3000, refundMinor: 1000, creditMinor: 2000,
   refundAccountCode: 'BANK-01', refundAccountName: 'Business bank',
   approvedByName: null,
   lines: [{
@@ -52,7 +52,7 @@ async function withFetch(mock: typeof fetch, callback: () => Promise<void>): Pro
 test('R09S-01 unwrapped source response preserves refund, credit, due allocation and original IDs', () => {
   assert.deepEqual(decodeSalesReturnHistory(response), response);
   assert.equal(decodeSalesReturnHistory(response).returns[0]?.refundMinor, 1000);
-  assert.equal(decodeSalesReturnHistory(response).returns[0]?.creditMinor, 500);
+  assert.equal(decodeSalesReturnHistory(response).returns[0]?.creditMinor, 2000);
   assert.equal(decodeSalesReturnHistory(response).returns[0]?.returnValueMinor, 3000);
   assert.equal(decodeSalesReturnHistory(response).returns[0]?.saleId, saleId);
   assert.equal(decodeSalesReturnHistory(response).returns[0]?.lines[0]?.saleLineId, saleLineId);
