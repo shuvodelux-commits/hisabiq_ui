@@ -14,7 +14,7 @@ import { useUiCopy } from '../../i18n/useUiCopy';
 
 export function CashSessionDialog() {
   const { text, showHelper } = useUiCopy();
-  const { open, setOpen, sessionOpen, startSession, saveCount, openingCash, expectedCash:expected, sampleMovements, lastCount, revision, businessDate, sessionDate, previousClosing, drawerBalance, canView, canStart, canClose, enabled, startBlocked, mode, busy, error, dayStatus, accounts: serverAccounts, reopenSession, refresh } = useCashSession();
+  const { open, setOpen, sessionOpen, startSession, saveCount, openingCash, expectedCash:expected, sampleMovements, lastCount, revision, businessDate, sessionDate, previousClosing, drawerBalance, canView, canStart, canClose, enabled, startBlocked, mode, busy, error, dayStatus, accounts: serverAccounts, accountsAccess, historyAccess, reopenSession, refresh } = useCashSession();
   const [counts, setCounts] = useState<Record<number, string>>({});
   const [countMode,setCountMode]=useState<'total'|'notes'>('total');
   const [total,setTotal]=useState('');
@@ -30,7 +30,7 @@ export function CashSessionDialog() {
   const difference=openingMinor===null?0:openingMinor/100-drawerBalance;
   const choices = mode === 'preview'
     ? cashCounterparts(accounts.map(a=>({id:a.id,name:a.name,active:a.status==='Active',drawer:a.id==='acc-cash'})))
-    : cashCounterparts(serverAccounts.map(a=>({id:`${a.type}:${a.id}`,name:a.name,active:a.status==='ACTIVE',drawer:a.isDrawer})));
+    : cashCounterparts(serverAccounts.filter(a=>a.type === 'CASH' || a.type === 'BANK').map(a=>({id:`${a.type}:${a.id}`,name:a.name,active:a.status==='ACTIVE',drawer:a.isDrawer})));
   useEffect(()=>{if(open){setFloat('');setCounterpart('');setNote('');setTotal('');setCounts({});setFailure('');setReopenReason('');setReviewedRevision(revision);setOperationId(crypto.randomUUID());}},[open]);
   const submit=async(action:()=>void|Promise<void>)=>{try{await action();setOpen(false);return true;}catch(caught){setFailure(caught instanceof Error?caught.message:String(caught));setReviewedRevision(revision);if(mode==='preview')setOperationId(crypto.randomUUID());return false;}};
 
@@ -60,6 +60,10 @@ export function CashSessionDialog() {
     return <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
         <DialogHeader><DialogTitle>{text('Start cash session','ক্যাশ সেশন শুরু করুন')}</DialogTitle>
+          {mode==='connected'&&historyAccess !== 'available'&&
+            <p role="status" className="text-xs text-warning">
+              {text('Cash history is currently unavailable; live day status remains authoritative.','পূর্বের ক্যাশ হিসাব এখন দেখা যাচ্ছে না; আজকের সার্ভার অবস্থা সঠিক।')}
+            </p>}
           <DialogDescription>{mode==='connected'?text('Actual drawer count will be posted to the ERP ledger when confirmed.','নিশ্চিত হলে ড্রয়ারের গোনা টাকা মূল খাতায় লেখা হবে।'):text('UI preview only · resets on reload. No backend posting.','শুধু নমুনা · রিলোড করলে মুছে যাবে। সার্ভারে লেনদেন জমা হবে না।')}</DialogDescription></DialogHeader>
         <p className="text-xs text-ink-500">{text('Business date','ব্যবসার তারিখ')}: {businessDate}</p>
         <p className="rounded-lg bg-ink-50 p-3 text-sm">{mode==='connected'?text('Current drawer ledger balance: ','ড্রয়ারের বর্তমান খাতার জের: ')+taka(drawerBalance):previousClosing===null?text('No previous cash session. Initial drawer balance is ৳0.','আগের ক্যাশ সেশন নেই। ড্রয়ারের প্রাথমিক জের ৳০।'):text('Previous actual counted close: ','আগের গুনে পাওয়া শেষ জের: ')+taka(previousClosing)}</p>
@@ -71,6 +75,10 @@ export function CashSessionDialog() {
         {float!==''&&openingMinor===null&&<p role="alert" className="text-xs text-danger">{text('Enter a valid amount with at most two decimal places.','সর্বোচ্চ দুই দশমিক ঘরে সঠিক টাকার অঙ্ক দিন।')}</p>}
         {difference!==0&&<div className="space-y-3">
           <p className="text-sm font-medium">{taka(Math.abs(difference))} · {difference>0?text('More than drawer balance','ড্রয়ারের জেরের চেয়ে বেশি'):text('Less than drawer balance','ড্রয়ারের জেরের চেয়ে কম')}</p>
+          {mode==='connected'&&accountsAccess !== 'available'&&
+            <p role="status" className="text-xs text-warning">
+              {text('Account choices unavailable. Only the owner current account is available until permissions or connection recover.','হিসাবের তালিকা পাওয়া যাচ্ছে না। অনুমতি বা সংযোগ ঠিক না হওয়া পর্যন্ত শুধু মালিকের চলতি হিসাব বেছে নিতে পারবেন।')}
+            </p>}
           <AppSelect label={difference>0?text('Where did this cash come from?','এই টাকা কোথা থেকে এসেছে?'):text('Where did this cash go?','এই টাকা কোথায় গেছে?')} value={counterpart} onChange={setCounterpart} placeholder={text('Choose source or destination','উৎস বা গন্তব্য বাছাই করুন')} options={choices.map(a=>({value:a.id,label:a.id==='OWNER_CURRENT_ACCOUNT'?(difference>0?text('Owner put in','মালিক দিয়েছেন'):text('Owner took out','মালিক নিয়েছেন')):(difference>0?text('From ','থেকে '):text('To ','প্রতি '))+a.name}))}/>
           <label className="block text-sm font-medium">{text('Note (optional)','মন্তব্য (ঐচ্ছিক)')}<Input className="mt-1.5" value={note} maxLength={500} onChange={e=>setNote(e.target.value)}/></label>
         </div>}
