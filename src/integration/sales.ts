@@ -4,7 +4,8 @@ import type { ApiRequest } from './http.ts';
 import {
   decodeCustomerDirectory,
   decodeCustomerStanding,
-  decodePosProducts,
+  decodePosProductsForMode,
+  isCanonicalPosCursor,
   isCanonicalPosPartyId,
 } from './saleMapping.ts';
 import type {
@@ -26,6 +27,8 @@ export interface PosProductQuery {
   brandId?: string;
   stockStatus?: ServerPosStockStatus;
   customerPartyId?: string;
+  /** Explicit opt-in; omission preserves the v1 ID-keyset contract. */
+  rankingMode?: 'GLOBAL_V2';
   cursor?: string;
   limit?: number;
 }
@@ -38,7 +41,7 @@ export interface CustomerDirectoryQuery {
 
 const allowedPosQuery = [
   'search', 'barcode', 'categoryId', 'brandId', 'stockStatus',
-  'customerPartyId', 'cursor', 'limit',
+  'customerPartyId', 'rankingMode', 'cursor', 'limit',
 ] as const;
 const allowedDirectoryQuery = ['search', 'cursor', 'limit'] as const;
 const allowedStatuses: readonly string[] = [
@@ -69,6 +72,9 @@ function canonicalId(value: unknown): string {
 
 function posQueryPath(query: PosProductQuery): ApiRequest['path'] {
   if (!queryFields(query, allowedPosQuery)) return invalid();
+  if (query.rankingMode !== undefined && query.rankingMode !== 'GLOBAL_V2') return invalid();
+  if (query.cursor !== undefined &&
+      !isCanonicalPosCursor(query.cursor, query.rankingMode ?? 'LEGACY')) return invalid();
   const params = new URLSearchParams();
   for (const key of allowedPosQuery) {
     const value: unknown = query[key];
@@ -77,6 +83,8 @@ function posQueryPath(query: PosProductQuery): ApiRequest['path'] {
       params.set(key, textParam(value, key === 'search' ? 120 : 64));
     } else if (key === 'cursor') {
       params.set(key, textParam(value, 120));
+    } else if (key === 'rankingMode') {
+      params.set(key, 'GLOBAL_V2');
     } else if (key === 'limit') {
       params.set(key, String(limitParam(value, 100)));
     } else if (key === 'stockStatus') {
@@ -143,7 +151,11 @@ export async function readPosProducts(
   signal?: AbortSignal,
   timeoutMs?: number,
 ): Promise<ServerPosProductList> {
-  return read(accessToken, posQueryPath(query), decodePosProducts, signal, timeoutMs);
+  // Decode after validation with the same explicit mode as the outbound GET.
+  // Never accept an ID cursor as a ranked cursor (or vice versa).
+  return read(accessToken, posQueryPath(query),
+    raw => decodePosProductsForMode(raw, query.rankingMode ?? 'LEGACY'),
+    signal, timeoutMs);
 }
 
 export async function readPosCustomers(
