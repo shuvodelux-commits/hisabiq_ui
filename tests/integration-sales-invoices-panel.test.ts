@@ -71,7 +71,10 @@ test('R09UI-04 only authenticated connected sale.view users can read list and de
   assert.match(source, /if \(!authenticated \|\| !allowed \|\| token === null \|\| selectedId === null\) return;/);
   assert.match(source, /readSalesInvoices\(token,/);
   assert.match(source, /readSalesInvoiceDetail\(token, selectedId, controller\.signal\)/);
-  assert.doesNotMatch(source, /sales\.return\.create|sales\.return\.view|purchase\.bill\.view/);
+  // Invoice GETs still require sale.view; only the optional posted-source
+  // review action additionally uses the distinct sales.return.create role.
+  assert.match(source, /const canReviewReturnable = allowed && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
+  assert.doesNotMatch(source, /snapshot\.permissions\.includes\('sales\.return\.view'\)|purchase\.bill\.view/);
 });
 
 test('R09UI-05 list, page and detail keys include session permissions, filters and source ID', () => {
