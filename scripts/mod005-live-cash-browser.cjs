@@ -9,10 +9,11 @@ const { chromium } = require('playwright');
 const base = process.env.MOD005_API_BASE_URL;
 const username = process.env.MOD005_TEST_IDENTIFIER;
 const password = process.env.MOD005_TEST_PASSWORD;
+const anonymous = process.env.MOD005_ANON_ONLY === '1';
 if (process.env.MOD005_DISPOSABLE_CONFIRM !== 'hisabiq_mod005_live_425') {
   throw new Error('Disposable test environment not confirmed');
 }
-if (!base || !username || !password) {
+if (!base || (!anonymous && (!username || !password))) {
   throw new Error('Missing API origin or isolated test account credentials');
 }
 const endpoint = new URL(base);
@@ -61,23 +62,37 @@ async function main() {
         '</body></html>',
     }));
     await page.goto('http://127.0.0.1:5187/__mod005_live');
-    await page.locator('#identifier').fill(username);
-    await page.locator('#password').fill(password);
-    await page.locator('#login').click();
-    await page.waitForFunction(() => {
-      const text = document.querySelector('#outcome')?.textContent ?? '';
-      return text.startsWith('confirmed:login:') || text.startsWith('failed:login:');
-    });
-    const outcome = await page.locator('#outcome').textContent();
-    assert.match(outcome, /^confirmed:login:/, 'Real login must succeed');
-    await page.waitForFunction(() =>
-      document.querySelector('#cash')?.getAttribute('data-mode') === 'connected');
-    assert.equal(await page.locator('#auth').getAttribute('data-status'), 'authenticated');
-    assert.ok(requests.includes('GET /api/v1/me'), 'real verified /me must be called');
-    assert.ok(requests.includes('GET /api/v1/money/day'), 'real cash-day GET must be called');
-    assert.deepEqual(errors, [], 'no React runtime errors');
-    console.log('MOD-005 real React→Nest day-read smoke PASS; requests=' + requests.length);
-    console.log('Note: mutation, tenant isolation and accounting acceptance are NOT yet covered.');
+    if (anonymous) {
+      assert.notEqual(await page.locator('#auth').getAttribute('data-status'), 'authenticated');
+      const statuses = await page.evaluate(async () => ({
+        day: (await fetch('/api/v1/money/day', { credentials: 'omit' })).status,
+        me: (await fetch('/api/v1/me', { credentials: 'omit' })).status,
+        settings: (await fetch('/api/v1/settings', { credentials: 'omit' })).status,
+      }));
+      assert.deepEqual(statuses, { day: 401, me: 401, settings: 401 });
+      assert.ok(requests.includes('GET /api/v1/money/day'));
+      assert.deepEqual(errors, []);
+      console.log('MOD-005 real React→Nest anonymous-denial smoke PASS');
+      console.log('No identity provisioned, no cash POST, no financial acceptance claim.');
+    } else {
+      await page.locator('#identifier').fill(username);
+      await page.locator('#password').fill(password);
+      await page.locator('#login').click();
+      await page.waitForFunction(() => {
+        const text = document.querySelector('#outcome')?.textContent ?? '';
+        return text.startsWith('confirmed:login:') || text.startsWith('failed:login:');
+      });
+      const outcome = await page.locator('#outcome').textContent();
+      assert.match(outcome, /^confirmed:login:/, 'Real login must succeed');
+      await page.waitForFunction(() =>
+        document.querySelector('#cash')?.getAttribute('data-mode') === 'connected');
+      assert.equal(await page.locator('#auth').getAttribute('data-status'), 'authenticated');
+      assert.ok(requests.includes('GET /api/v1/me'), 'real verified /me must be called');
+      assert.ok(requests.includes('GET /api/v1/money/day'), 'real cash-day GET must be called');
+      assert.deepEqual(errors, [], 'no React runtime errors');
+      console.log('MOD-005 real React→Nest day-read smoke PASS; requests=' + requests.length);
+      console.log('Mutation, tenant isolation and accounting acceptance are NOT yet covered.');
+    }
   } finally {
     await browser?.close();
     await server.close();
