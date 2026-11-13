@@ -44,8 +44,10 @@ const customerList: TradingPartyList = {
 };
 const supplierList: TradingPartyList = {
   ...customerList,
-  data: [{ ...customerList.data[0]!, balance: negative }],
-  summary: { ...customerList.summary, totalOutstandingMinor: 0, totalAdvanceMinor: 300_000 },
+  data: [{ ...customerList.data[0]!, balance: negative,
+    customerGroupId: null, customerGroupName: null, creditLimitMinor: null }],
+  summary: { ...customerList.summary, ungrouped: null,
+    totalOutstandingMinor: 0, totalAdvanceMinor: 300_000 },
 };
 const customerLedger: TradingLedger = {
   partyId,
