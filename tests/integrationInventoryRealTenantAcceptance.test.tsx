@@ -69,12 +69,7 @@ function InventoryProbe() {
     }
     void load();
     return () => controller.abort();
-  }, [
-    snapshot.status,
-    snapshot.epoch,
-    snapshot.status === 'authenticated' ? snapshot.tenantId : '',
-    snapshot.status === 'authenticated' ? snapshot.accessToken : '',
-  ]);
+  }, [snapshot]);
 
   function login(): void {
     setAuthMessage('loading');
