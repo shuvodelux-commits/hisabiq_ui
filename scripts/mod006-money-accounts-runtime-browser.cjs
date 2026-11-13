@@ -229,11 +229,11 @@ async function run() {
 
     // Backend can deny account list without ever leaking old results.
     deny = true;
-    await page.getByRole('button', { name: 'Refresh' }).click();
+    await page.getByRole('button', { name: 'Refresh', exact: true }).click();
     await page.getByRole('alert').getByText(/Account-list permission is required/).waitFor();
     assert.equal(await accounts.count(), 0, 'permission-denied list never shows old account data');
     deny = false;
-    await page.getByRole('button', { name: 'Refresh' }).click();
+    await page.getByRole('button', { name: 'Refresh', exact: true }).click();
     await page.locator('[data-connected-money-account="' + ids.cash + '"]').waitFor();
 
     // includeInactive uses backend query, not preview local filtering.
