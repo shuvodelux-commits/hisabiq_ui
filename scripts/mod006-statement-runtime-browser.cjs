@@ -86,6 +86,7 @@ async function main() {
     const page = await browser.newPage({
       viewport: { width: 390, height: 850 }, reducedMotion: 'reduce',
     });
+    page.setDefaultTimeout(12_000);
     page.on('pageerror', error => { pageErrors.push(error.message); console.error('PAGE ERROR:', error.message); });
     page.on('console', message => { if (message.type() === 'error') console.error('BROWSER ERROR:', message.text()); });
     page.on('response', response => {
@@ -99,6 +100,7 @@ async function main() {
     await page.route('**/api/v1/**', async route => {
       const request = route.request();
       const url = new URL(request.url());
+      console.log('TEST API:', request.method(), url.pathname);
       if (request.method() !== 'GET' && !url.pathname.startsWith('/api/v1/auth/')) {
         financialWrites.push(request.method() + ' ' + url.pathname);
       }
@@ -151,6 +153,7 @@ async function main() {
       throw new Error('Unexpected API route: ' + request.method() + ' ' + url.pathname);
     });
 
+    console.log('STAGE: load harness');
     await page.goto('http://127.0.0.1:' + port + '/__mod006_statement_runtime');
     const session = page.locator('#session-state');
     await session.waitFor({ timeout: 15_000 }).catch(async error => {
@@ -158,13 +161,21 @@ async function main() {
       throw error;
     });
     assert.equal(await session.getAttribute('data-status'), 'signed-out');
+    console.log('STAGE: login tenant A');
     await page.locator('#login-a').click();
-    await page.getByText('A1 OLD PRIVATE ROW').waitFor();
+    await page.getByText('A1 OLD PRIVATE ROW').waitFor().catch(async error => {
+      console.error('SESSION AT FAILURE:', await session.getAttribute('data-status'));
+      console.error('TEST ERRORS:', await page.locator('#test-error').innerText());
+      console.error('DIALOG AT FAILURE:', (await page.locator('body').innerText()).slice(-2200));
+      throw error;
+    });
+    console.log('STAGE: first server page ready');
     assert.equal(await session.getAttribute('data-tenant'), tenantA);
     assert.equal(await page.getByRole('button', { name: 'Print' }).isEnabled(), true);
 
     // Same tenant/user/epoch on refresh, but a NEW access token. The source
     // account statement and printable old page must vanish synchronously.
+    console.log('STAGE: refresh and hold A2');
     holds.add('access-A-2:' + accountA);
     await page.locator('#refresh').click();
     await waitForPending('access-A-2:' + accountA);
@@ -177,6 +188,7 @@ async function main() {
 
     // Different server account with the SAME name: no name matching, no stale
     // page/print while B fetch is held.
+    console.log('STAGE: duplicate-name account B');
     holds.add('access-A-2:' + accountB);
     await page.locator('#account-b').click();
     await waitForPending('access-A-2:' + accountB);
@@ -196,6 +208,7 @@ async function main() {
     assert.equal(await page.getByText('A2 FRESH SESSION ROW').count(), 0);
 
     // Wrong-tenant selected record cannot render even while authenticated.
+    console.log('STAGE: tenant transition');
     await page.locator('#pin-old').click();
     await page.locator('#logout').click();
     await session.locator('[data-unused]').count().catch(() => 0);
