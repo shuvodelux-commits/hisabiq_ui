@@ -525,7 +525,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const {currentAuthority}=useTenantSettings();
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
-  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount, history, canView:canViewCash, canStart:canStartCash, canClose:canCloseCash, enabled:cashEnabled, startBlocked } = useCashSession();
+  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount, history, canView:canViewCash, canStart:canStartCash, canClose:canCloseCash, enabled:cashEnabled, startBlocked, mode: cashMode } = useCashSession();
   const [searchParams, setSearchParams] = useSearchParams();
   const routeTab = searchParams.get('tab');
   const financeTabs: Tab[] = ['overview','transactions','cheques','cash'];
@@ -738,7 +738,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const pdcCount = chequeRecords.filter((item) => item.chequeDate > '2026-10-07' && !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status)).length;
   const bouncedCount = chequeRecords.filter((item) => item.status === 'Bounced' || item.status === 'Returned').length;
-  const cashSessions=canViewCash?[...history,...sampleCashSessions]:[];
+  const cashSessions=canViewCash?[...history,...(cashMode==='preview'?sampleCashSessions:[])]:[];
   const varianceSessions = cashSessions.filter((item) => item.status === 'Closed' && (item.variance ?? 0) !== 0).length;
 
   const pendingChequeAmount = chequeRecords
