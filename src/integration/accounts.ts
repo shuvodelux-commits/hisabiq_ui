@@ -198,7 +198,7 @@ function statementPath(accountId: string, query: MoneyAccountStatementQuery): Pa
     params.set('search',query.search.trim());
   }
   if (query.kind !== undefined) {
-    if (!kinds.includes(query.kind)) return invalid();
+    if (typeof query.kind !== 'string' || !kinds.includes(query.kind)) return invalid();
     params.set('kind',query.kind);
   }
   if (query.cursor !== undefined) {
