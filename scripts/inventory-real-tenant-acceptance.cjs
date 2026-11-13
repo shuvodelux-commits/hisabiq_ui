@@ -437,7 +437,12 @@ async function run() {
       await hold;
       await route.continue().catch(() => undefined);
     });
+    // Do not allow a false-positive race: require an actual A-scoped GET to
+    // reach the interceptor before we reauthenticate tenant B.
+    const heldARequest = page.waitForRequest(request => request.method() === 'GET' &&
+      new URL(request.url()).pathname === '/api/v1/inventory');
     await login(a);
+    await heldARequest;
     await page.locator('#p2b0-read[data-status="loading"]').waitFor();
     await panelReady('loading');
     assert.equal(await panel.locator('table').count(), 0,
