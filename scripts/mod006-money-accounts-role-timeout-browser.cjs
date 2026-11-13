@@ -239,8 +239,8 @@ async function run() {
     await lenderCard.waitFor();
     assert.ok((await lenderCard.innerText()).includes('overpaid'));
     const renderedLoan=await lenderCard.innerText();
-    assert.ok(renderedLoan.includes('-')&&renderedLoan.includes('৳150'),
-      'signed negative payable should remain visible, not absolute debt');
+    assert.ok(renderedLoan.includes('−৳150'),
+      'signed negative payable must use real Money Accounts formatter (Unicode minus)');
     const ledgerButton=lenderCard.getByRole('button',{name:/View ledger for/});
     await ledgerButton.focus();
     await page.keyboard.press('Enter');
