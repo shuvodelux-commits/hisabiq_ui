@@ -93,6 +93,6 @@ test('R09P-07 preserve preview mode and route gate; panel is a separately unmoun
   assert.doesNotMatch(sales, /ConnectedSalesReturnHistoryPanel|readSalesReturnHistory/);
   assert.doesNotMatch(app, /ConnectedSalesReturnHistoryPanel/);
   assert.match(app, /ConnectedWorkspaceGate/);
-  assert.match(panel, /from '\.\.\/\.\.\/components\/Table'/);
+  assert.match(panel, /from '\.\.\/Table'/);
   assert.doesNotMatch(panel, /font-mono|tabular-nums|tnum/);
 });
