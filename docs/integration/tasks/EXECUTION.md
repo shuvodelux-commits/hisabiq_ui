@@ -1,5 +1,7 @@
 # Concurrent module ownership and ChatGPT-operated Super Build procedure
 
+> **Binding owner override, 2026-11-13:** every HisabIQ engineering build must **actually use the installed `/super-build` skill**, via either merged ChatGPT-assisted `super-build-chatgpt.py` or a verified native Codex **Sol 6.1 Medium** executor. If neither is available, stop rather than substitute an informal manual build. **Write and execute comprehensive automated tests for every affected business rule and applicable scenario.** No prior no-test instruction survives for HisabIQ. Missing, blocked or failing required scenarios mean **NOT MERGE-READY**, regardless of static build or CI success. Read both AGENTS.md files for full precedence, coverage matrix and isolated-DB requirements.
+
 Revision 2 ordering is governed by [integrate then extend](../HISABIQ_INTEGRATE_THEN_EXTEND_PLAN.md) and [cash transaction classification](CASH_SESSION_POLICY.md). Stage A compatible integration precedes Stage B missing backend capabilities; no UI removal or fake posting. Historical opening balances do not require a cash session.
 
 This document prepares future implementation. It authorizes no worker startup, issue mutation, database initialization, merge or deployment in this planning session.
@@ -18,7 +20,7 @@ Use GitHub Project [#2](https://github.com/users/shuvodelux-commits/projects/2) 
 
 The five entries above are **examples only**, not a quota or required number. Start fewer or more concurrently according to actual independent session capacity, accepted dependency heads, nonoverlapping source ownership and disposable test resources. Each chat takes one scoped issue at a time. A parallel chat never obtains automatic authority over another module's merge, financial posting or migration.
 
-Every dispatch issue must contain: module/task ID; plan file and revision commit; 10–15 sentence frontend/backend comparison and outcome; dated owner approval and chosen executor; unique owner session ID; repository/base branch/full SHA; branch/worktree; related frontend/backend PR pair; dependency heads; exact allowed files; coordinator-owned shared files and reserved migration number; disposable database identity/port; verification commands and test authorization; acceptance criteria; rollback; remaining blockers; draft PR/evidence/resume action.
+Every dispatch issue must contain: module/task ID; plan file and revision commit; 10–15 sentence frontend/backend comparison and outcome; dated owner approval and chosen executor; unique owner session ID; repository/base branch/full SHA; branch/worktree; related frontend/backend PR pair; dependency heads; exact allowed files; coordinator-owned shared files and reserved migration number; disposable database identity/port; verification commands, standing test authorization and complete scenario matrix; acceptance criteria; rollback; remaining blockers; draft PR/evidence/resume action.
 
 An assignee or label cannot implement a distributed lock. The coordinator reconciles actual active workers, issue comments, PR head and worktree evidence before confirming reservation. Competing claims pause dispatch; never force-release or delete another session's worktree. A stale-looking comment is insufficient evidence of abandonment.
 
@@ -32,21 +34,15 @@ An assignee or label cannot implement a distributed lock. The coordinator reconc
 - **Runtime configuration:** the historical `.claude/super-board/configs/hisabiq-nest-adoption.json` was located in `/home/shoaib/Projects/hisabiq-a01b-check` (an older local worktree); it has `host:codex`, `worker_backend:workflow`, `max_workers:1`, and is not present at the documented GitHub path in the current repository. **Do not invoke or change it for ChatGPT mode.** Confirm any future active runner configuration separately. Multiple independently controlled ChatGPT+Desktop Commander sessions do not mean a single native runner can spawn them.
 - **Safety:** GitHub branches and draft PRs only; no direct commits to main, auto-merges, production deploy, retained DB writes, broad queue draining, mass resource changes or parallel schema migration. Independent accounting/security QA remains mandatory per actual candidate SHA.
 
-## Tested ChatGPT-assisted launcher (pending owner merge)
+## Required Super Build workflows (merged ChatGPT adapter or verified Codex)
 
-The owner-selected workflow remains **GitHub code and tests first → ChatGPT directs verification using Remote Desktop Commander → GitHub draft PR and independent QA**. The standalone Python workstation launcher in [backend draft PR #35](https://github.com/shuvodelux-commits/nestshererp/pull/35) implements explicit `prepare`, `verify` and `finalize` operations; refer to its [usage guide](https://github.com/shuvodelux-commits/nestshererp/blob/tooling/chatgpt-super-build-assisted-20261113/.agents/skills/super-build/references/chatgpt-assisted.md).
+Backend [PR #35](https://github.com/shuvodelux-commits/nestshererp/pull/35) is **MERGED** and its `.agents/bin/super-build-chatgpt.py` is available on the NestSherERP adoption branch. Its [ChatGPT-assisted guide](https://github.com/shuvodelux-commits/nestshererp/blob/chore/hisabiq-adoption-runtime-a01/.agents/skills/super-build/references/chatgpt-assisted.md) documents `prepare → verify → finalize`. Read the actual `.agents/skills/super-build/SKILL.md` before any task, not merely a copied checklist. The adapter validates source origin, approved issue, paired SHAs, exact file allowlist, isolated worktree and permitted static checks. Its receipt is evidence of **that verification only**, not business acceptance, database tests, native ChatGPT host support or permission to merge.
 
-On 2026-11-13 its 13 local-git safety tests passed and its separate real GitHub worktree pilot returned `state: verified` after frozen install, build, typecheck, lint and boundaries. It recorded one initial typecheck failure and the passing retry after build. **The launcher is still draft and must not be treated as a merged dependency.** Use it only once the owner accepts an exact source SHA; until then the tested manual ChatGPT+Desktop Commander checklist remains available. This launcher does not run an AI model, database suite or background job, create PRs, deploy, or merge. The native `/super-build` host still lacks ChatGPT support. Concurrent module chats are not fixed at five; their number is limited by safe resources, dependencies and exclusive file ownership.
+**Execution route A: ChatGPT-assisted.** ChatGPT writes task-scoped source and tests in GitHub first, then operates the actual Super Build adapter through authorized Remote Desktop Commander, runs the task's separately authorized isolated real PostgreSQL and Playwright/business suites, captures exact-head results and creates a draft PR for independent QA. The prior manual-checklist fallback is **REVOKED**. Use the accepted source-pinned launcher or stop as BLOCKED.
 
-## Installed workflow use
+**Execution route B: verified native Codex.** If the installed `/super-build` can genuinely execute with the selected **Codex Sol 6.1 Medium** model/reasoning configuration and the owner-authorized runner, it may perform the same isolated approved issue with TDD, business scenario tests and draft PR handoff. Verify its true host/model support rather than assuming a label is selectable. The ChatGPT adapter must never be presented as launching Codex. Fake host detection, silent agent substitution, spawning a whole Ready queue and bypassing test/financial controls are prohibited.
 
-Source-inspected bundle paths: `.agents/skills/super-board/SKILL.md`, `.agents/skills/super-build/SKILL.md`, host links under `.claude/` and `.codex/`, `.agents/bin/super-board-lane.sh`, checked-in config `.claude/super-board/configs/hisabiq-nest-adoption.json`.
-
-**Owner-selected executor: ChatGPT, not Codex/Claude.** Read `.agents/skills/super-build/SKILL.md` and its **tested ChatGPT adapter guide** at [backend reference](https://github.com/shuvodelux-commits/nestshererp/blob/tooling/chatgpt-super-build-assisted-20261113/.agents/skills/super-build/references/chatgpt-assisted.md). The separate `super-build-chatgpt.py` launcher is proposed in [backend draft PR #35](https://github.com/shuvodelux-commits/nestshererp/pull/35): it offers explicit `prepare → verify → finalize` via Remote Desktop Commander, but **never** launches a coding model. After owner approval/merge and source-pinned availability, prefer this verified launcher to ad-hoc shell verification; until then, use the documented manual ChatGPT checklist on an authorized branch. ChatGPT alone authors code/tests directly on GitHub, then validates the exact isolated source via the authorized PC. The local native `/super-build` launcher is NOT a ChatGPT host: `super-board-host.sh` returned exit 65 for this host, and the native launchers invoke `claude -p` or `codex exec`. Therefore **do not invoke these launchers, set a fake host flag, or claim a native `/super-build` run succeeded**. This tested workflow is ChatGPT-operated *Super Build procedure*, not native slash-command runtime support. Never drain the whole Ready queue; operate only on the one selected issue.
-
-A ChatGPT chat with both **GitHub connector and authorized Remote Desktop Commander** can execute the *ChatGPT-operated* builder procedure (source via GitHub, isolated local fetch/build/test, draft GitHub PR) without any external coding model. GitHub-only access cannot execute tests and must not be reported as verified build work. Do not copy filled environment files or reuse a retained financial database; verify dedicated disposable database targets before all DB-touching tests.
-
-Recommended role selection after checking availability: stronger reasoning for architecture amendment and accounting/security QA; a capable implementation model for fully specified small adapter tasks. No lower-reasoning agent receives an unresolved accounting task. Required skills are those installed in the issue's executor, checked by readiness tooling: Super Board/Super Build, implementation/TDD, smallest-change guidance, systematic debugging when failing, code/security review, verification before completion. Do not install or upgrade skills as an undocumented module side effect.
+**Testing is mandatory for both routes.** The issue's executable scenario-to-test matrix includes every applicable success/denial, boundary, monetary rounding, multilevel-unit price, cash-session ON/OFF, tenant/role, missing source, idempotency/retry, version/concurrency, error/rollback, source-linked correction, stock and journal effect, zero-posting draft and keyboard/touch/mobile browser path. Run real API/PG/RLS and browser tests wherever the behavior requires them; mocked transport and static checks alone cannot establish correctness. Include all test files, commands, exact exit statuses, CI runs and blockers in the draft PR. Fix failing coverage on GitHub and rerun **a new exact-head Super Build verification**. No unrun required scenario is silently marked passing.
 
 ## Shared-file ownership and conflict rules
 
@@ -56,20 +52,16 @@ Two repositories require linked PRs and a compatibility order. Additive server c
 
 On interrupted build: record exact head, dirty paths, last command, uncertain database effects and operation IDs, held reservation and resume instruction. Keep worktree/data intact for coordinator reconciliation. If a POST outcome is unknown, do not reset its identity or rerun it under a new key. Resume only after verifying current owner, baseline and prior evidence. Release capacity with a deliberate handoff; do not run crash recovery across the other four chats.
 
-## Verified ChatGPT → GitHub → Remote Desktop Commander → GitHub build procedure (2026-11-13)
+## Mandatory Super Build implementation procedure
 
-**Pilot:** [NestSherERP draft PR #33](https://github.com/shuvodelux-commits/nestshererp/pull/33) for D08/MOD-004 trading-ledger isolation; backend initial ref `d2060a7b2c9e2b364b0d0e6d5aad1d077fa76a75`, GitHub pilot head `e403d4ad37d82eccea76294b830ff5cadae1194e`. Tests were run on a dedicated newly created disposable PostgreSQL16 container. Test-first assertion **RED** (HTTP 200 where 400 required), then **GREEN**, 32/32 Parties API tests passed, scoped typechecks and ESLint passed. The test ran under local Node24 (backend declares Node20), so authoritative Node20 CI and independent QA remain separate gates. No Codex/Claude worker or native `/super-build` launcher was invoked. The exact final head contains two comment-only clarification commits following the tested functional head; future CI must still check the final SHA.
+1. **Reconcile and reserve:** read both AGENTS.md files and actual `/super-build` skill, approved issue, dependencies, project claims, exact frontend/backend SHAs, scope/file allowlist and exclusive ownership. Select and verify one supported executor: ChatGPT-assisted adapter or native Codex Sol 6.1 Medium.
+2. **Test matrix before implementation:** enumerate every relevant business action and state, success/failure, boundary, permission, tenant scope, concurrency, retry, money/stock/journal effect and UX path; map each to meaningful executable automated tests, including regression cases for bug fixes. Do not invent unsupported backend semantics; blocked contracts stay blocked.
+3. **Implement test-first on GitHub:** create an isolated approved issue branch; add failing test/reproduction where practical, then minimally implement the behavior, retaining frontend/UI parity and full financial provenance. This is a standing owner authorization to write test files for HisabIQ, superseding historical R-0 restrictions.
+4. **Execute the skill and independent acceptance:** run the actual source-pinned Super Build launcher/host in a unique isolated worktree. For ChatGPT-assisted: `python3 .agents/bin/super-build-chatgpt.py prepare ...`, `verify --receipt ... --check install|build|typecheck|lint|boundaries` as applicable, then `finalize --receipt ...`. Run targeted test suites and, where required, genuine Nest/API/PostgreSQL/RLS/concurrency and Playwright browser scenarios against a newly provisioned, task-owned disposable database/identity. The adapter's v1 static presets **do not** execute these business/DB/browser tests for you. Keep command/CI outputs and identify any skips or blockers.
+5. **Fail closed and reverify:** never bypass a refused QA-identity creation, use another worker's DB, fake a host/model, or report PASS for an unrun check. Missing tools/test data/permissions or failed required cases means BLOCKED and **NOT MERGE-READY**. Fix in GitHub; use exact new pinned SHA and Super Build receipt before claiming verified.
+6. **Draft PR / independent QA:** publish branch-only changes in a draft PR with source SHAs, actual skill invocation and receipt, test matrix and per-case results, CI evidence and known blockers. Preserve UI, split payments, conversion/cash source behavior and integration scope. The reviewer and owner decide merge; no auto-deployment, direct main commits, production data access or unauthorized schema migration. Parallel execution remains limited by actual independent session and resource capacity, not five fixed chats.
 
-1. **Read** both repositories' AGENTS.md, the actual issue, accepted dependencies, skills, exact allowlist, current GitHub refs and Project reservations. Do not assume a prior chat's branch or an active Build slot.
-2. **Author source and tests via GitHub first.** Create one isolated feature branch from an immutable approved source SHA, make focused commits using the connected GitHub API, and never push local source edits as an alternative. Capture the initial failing regression where applicable.
-3. **Use ChatGPT as the sole reasoning/coding agent.** Via @Remote Desktop Commander, fetch that exact GitHub branch into a new clean isolated worktree on the authorized CachyOS computer. Do not invoke `codex`, `claude`, their headless scripts, or a queue-draining slash dispatcher. Reading the Super Build skill and applying its checks is permitted; claiming the native skill launcher ran is not.
-4. **Verify with the computer, not a connector success claim.** Prove the checkout HEAD matches GitHub, install dependencies frozen, run allowed focused RED/GREEN tests and required typecheck/lint/build/boundary checks, inspect failed logs, and re-author any fixes in GitHub before fetching again. For DB tests, create and identify a brand-new disposable DB/port/container, assert all URLs point to it, and destroy it after testing. Never execute against development or production records.
-5. **Finalize in GitHub.** Compare the branch diff to its exact file allowlist, create a **draft PR** linking the issue, report actual test counts/exits and runner/toolchain, mark remaining QA/CI gaps, and hand to an independent reviewer. Preserve the worktree as required for QA. No automatic merge, deployment, financial posting or schema migration.
-6. **Parallel work:** repeat for *any number of safe nonoverlapping modules* supported by actual independent ChatGPT sessions and isolated resources, with coordinator-owned shared contracts and serialized merges. No hard-coded five-worker queue or assumption that the historical Codex runner launches ChatGPT.
-
-**Tooling evidence and limitation:** Backend [draft PR #35](https://github.com/shuvodelux-commits/nestshererp/pull/35) adds a separately tested ChatGPT-assisted workstation launcher, not a native model host: **13/13 safety tests** passed, and a real GitHub PR #33 checkout yielded `state: verified` after frozen install, build, typecheck, lint and boundaries. One initial typecheck failure and successful retry are both retained. The native `/super-build` host detector still does **not** support ChatGPT (exit 65); do not invoke or misrepresent it, and do not replace ChatGPT with Codex/Claude. This v1 adapter cannot run DB tests, open PRs, merge or deploy; those remain separate authorized steps.
-
-**Launcher invocation (only after PR #35 is approved/accepted in the executing checkout):** `python3 .agents/bin/super-build-chatgpt.py prepare ...`, then `verify --receipt <absolute-path> --check install|build|typecheck|lint|boundaries`, then `finalize --receipt <absolute-path>`. The owner-approved issue supplies exact `--allow` files, immutable `--head`/`--base`, unused worktree/receipt, and check authorization. See the linked backend reference for full arguments. The script does not implement a ChatGPT model API or distributed worker reservation; the coordinator must verify actual concurrency safety. No blanket five-chat quota.
+**Earlier historical pilot:** Backend PR #33 verified Parties API 32/32 with disposable PG; backend merged PR #35 tested the ChatGPT-assisted adapter 13/13 and a real GitHub exact-head pilot. These earlier tests are evidence of their own commits only, **not** evidence that a subsequent HisabIQ business scenario passed.
 
 ## Reusable conversation prompt
 
@@ -82,7 +74,7 @@ Chosen execution environment: <runner ID/method>. Session owner: <unique ID>.
 Frontend baseline: <repo/branch/full SHA>. Backend baseline: <repo/branch/full SHA>.
 Allowed writes: <exact paths>. Shared-file owner: <coordinator/session>.
 Dependencies: <accepted heads/PRs>. Disposable DB: <identity/host/port, no secrets>.
-Verification: <exact static, test and UI commands authorized for this task>.
+Verification: <actual Super Build route, full scenario-to-test matrix, exact commands>.
 
 First reconcile issue comments, actual PR heads, verified board/runner capacity (target
 actual concurrent session capacity and unique claims per 2026-11-13 owner override),
@@ -92,20 +84,23 @@ Show the frontend/backend comparison if this approved revision has not already
 received its 10–15 sentence overview and environment approval. Do not demand a
 second START when the existing approval covers this revision/environment.
 
-For ChatGPT+Remote Desktop Commander, execute the documented Super Build
-checklist interactively; do not invoke headless Codex/Claude or drain Ready,
-change worker capacity, take another chat's module or install tools silently.
+For ChatGPT use the REAL source-pinned /super-build ChatGPT-assisted adapter
+prepare -> verify -> finalize, plus independently executed targeted real-PG and
+browser/business tests. Alternatively use verified native /super-build via Codex
+Sol 6.1 Medium. Never claim manual-only verification satisfies Super Build or
+that a fake host/model is running. Do not drain Ready, take another chat's module,
+alter worker capacity or install tools silently.
 A connector-only session must use the named runner for execution or report BLOCKED.
 
 Preserve every existing HisabIQ page, component, compact style, Bangla/English,
 keyboard/touch flow, drafts, unit chain and source-context action. No Reports work.
 Use the specified controller/use case/repository and exact money/quantity rules.
-Do not invent missing DTOs, business decisions, endpoints, fallback success or tests.
+Do not invent missing DTOs, business decisions, endpoints or fallback success; WRITE AND RUN real tests for every applicable business rule and scenario.
 If source/contract differs, stop that task and report the concrete conflict.
 
-Write the approved meaningful behavior test first, run it against the disposable
+Write every applicable meaningful behavior/scenario test first, run it against the disposable
 fixture, implement the smallest source change, verify exact effects and rollback,
-then run the authorized repository gates. Never initialize retained development
+then use the actual Super Build skill and run the full mandated scenario matrix plus repository gates. Never initialize retained development
 or production data. Evidence must identify both repo SHAs and actual runner.
 
 Open linked draft PR(s), include acceptance evidence and source-action trace,
