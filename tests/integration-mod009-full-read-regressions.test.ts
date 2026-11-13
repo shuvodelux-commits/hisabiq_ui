@@ -199,7 +199,7 @@ test('R09QA-09 cost-redacted invoice remains valid; source names and signed due 
     originMode: 'OFFLINE', originDeviceCode: 'DEVICE-A' } }).data;
   assert.equal(detail.dueMinor, -100);
   assert.equal(detail.lines[0]?.source, 'OWN_STOCK');
-  assert.equal('costMinor' in detail.lines[0]!, false);
+  assert.equal('costMinor' in (detail.lines[0] ?? {}), false);
   assert.equal('profitMinor' in detail, false);
 });
 for (const [name, broken] of [
@@ -217,7 +217,8 @@ for (const [name, broken] of [
   assert.throws(() => decodeSalesInvoiceDetail({ data: broken }), protocol);
 });
 test('R09QA-11 return history preserves amount applied to prior due (not all refund or credit)', () => {
-  const result = decodeSalesReturnHistory(history).returns[0]!;
+  const result = decodeSalesReturnHistory(history).returns[0];
+  assert.ok(result);
   assert.equal(result.returnValueMinor, 1000);
   assert.equal(result.refundMinor, 500);
   assert.equal(result.creditMinor, 200);
