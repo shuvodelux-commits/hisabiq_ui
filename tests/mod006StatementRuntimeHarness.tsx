@@ -84,11 +84,11 @@ function Controls() {
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing runtime test root');
 createRoot(root).render(
-  <React.StrictMode>
-    <SessionProvider mode="connected">
-      <TenantSettingsProvider>
-        <Controls />
-      </TenantSettingsProvider>
-    </SessionProvider>
-  </React.StrictMode>,
+  // SessionProvider disposes its real auth store on unmount; do not run
+  // development StrictMode's synthetic mount→unmount→mount cycle here.
+  <SessionProvider mode="connected">
+    <TenantSettingsProvider>
+      <Controls />
+    </TenantSettingsProvider>
+  </SessionProvider>,
 );
