@@ -13,6 +13,7 @@ import { useMagicSettingsState } from './settingsBridge';
 import { useSession } from '../../integration/SessionProvider.tsx';
 import { updateBusinessProfile } from '../../integration/settings-team.ts';
 import { ApiError } from '../../integration/errors.ts';
+import { saveCashEnabled } from '../../services/cashSessionApi.ts';
 import type { SettingsSection } from './settingsSections';
 
 type Value = string | number | boolean;
@@ -51,6 +52,9 @@ export function GeneralSettingsSection({
   const {text}=useUiCopy();
   const {mode, snapshot}=useSession();
   const [cashFeedback,setCashFeedback]=useState('');
+  const [cashSaving, setCashSaving] = useState(false);
+  const [cashNeedsReview, setCashNeedsReview] = useState(false);
+  const cashPendingWrite = useRef<AbortController | null>(null);
   const all = sourceSettingsFields[section.id] ?? [];
   const [advanced, setAdvanced] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => initialDraft(all, bridge.state.settings));
@@ -70,6 +74,11 @@ export function GeneralSettingsSection({
   const identityRef = useRef(identity);
   identityRef.current = identity;
   const verified = bridge.server.status === 'ready' ? bridge.server.data : null;
+  const serverCashValue = verified?.values.cash_session_enabled;
+  const cashValueKnown = serverCashValue === 'on' || serverCashValue === 'off';
+  const canWriteCash = bridge.connected && section.id === 'finance' && snapshot.status === 'authenticated' &&
+    cashValueKnown && snapshot.permissions.includes('settings.setting.view') &&
+    snapshot.permissions.includes('settings.module.toggle');
   const canWriteBusiness = bridge.connected && section.id === 'business' && verified !== null &&
     snapshot.status === 'authenticated' &&
     snapshot.permissions.includes('settings.setting.view') &&
@@ -94,9 +103,15 @@ export function GeneralSettingsSection({
   useEffect(() => {
     // The previous identity's in-flight write is no longer authorized.
     setSaving(false);
+    setCashSaving(false);
+    setCashNeedsReview(false);
+    setCashFeedback('');
     setFeedback('');
     setErrors({});
-    return () => pendingWrite.current?.abort();
+    return () => {
+      pendingWrite.current?.abort();
+      cashPendingWrite.current?.abort();
+    };
   }, [identity]);
 
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
@@ -142,7 +157,8 @@ export function GeneralSettingsSection({
 
   const saveBusiness = async () => {
     if (!canWriteBusiness || verified === null || snapshot.status !== 'authenticated' ||
-        !liveDirty || saving || pendingWrite.current !== null) return;
+        !liveDirty || saving || cashSaving || cashPendingWrite.current !== null ||
+        pendingWrite.current !== null) return;
     const name = liveName.trim();
     if (name.length < 2 || name.length > 120) {
       setErrors({ businessName: 'Enter a business name between 2 and 120 characters.' });
@@ -173,6 +189,66 @@ export function GeneralSettingsSection({
       if (identityRef.current === requestIdentity) setSaving(false);
     }
   };
+
+  /** One server-authoritative cash setting write. Never simulate success in preview. */
+  const saveCash = async (enabled: boolean) => {
+    if (!canWriteCash || verified === null || snapshot.status !== 'authenticated' ||
+        !cashValueKnown || cashSaving || cashNeedsReview ||
+        cashPendingWrite.current !== null || pendingWrite.current !== null || saving ||
+        (serverCashValue === 'on') === enabled) return;
+    const controller = new AbortController();
+    cashPendingWrite.current = controller;
+    const requestIdentity = identity;
+    const token = snapshot.accessToken;
+    setCashSaving(true);
+    setCashFeedback('');
+    try {
+      // No automatic retry: settings POST has no durable idempotency operation ID.
+      const confirmed = await saveCashEnabled(token, enabled, controller.signal);
+      if (controller.signal.aborted || identityRef.current !== requestIdentity) return;
+      if (confirmed.values.cash_session_enabled !== (enabled ? 'on' : 'off')) {
+        setCashNeedsReview(true);
+        setCashFeedback(text(
+          'Save not confirmed. Reload verified settings before changing cash sessions again.',
+          'সংরক্ষণ নিশ্চিত নয়। আবার পরিবর্তনের আগে সার্ভারের সেটিংস নতুন করে দেখুন।',
+        ));
+        return;
+      }
+      // The response is values-only; preserve verified profile and catalogue.
+      if (!bridge.server.acceptWrite({
+        ...verified, values: {...verified.values, ...confirmed.values},
+      })) return;
+      setCashFeedback(text(
+        'Cash session setting confirmed by the server.',
+        'ক্যাশ সেশন সেটিং সার্ভার থেকে নিশ্চিত হয়েছে।',
+      ));
+    } catch (error: unknown) {
+      if (controller.signal.aborted || identityRef.current !== requestIdentity) return;
+      const denied = error instanceof ApiError && error.kind === 'http' &&
+        [401, 403].includes(error.status ?? 0);
+      const refused = error instanceof ApiError && error.kind === 'http' &&
+        [400, 409, 422].includes(error.status ?? 0);
+      if (!denied && !refused) setCashNeedsReview(true);
+      setCashFeedback(denied ? text(
+        'Permission denied or session expired; the verified setting was not changed here.',
+        'অনুমতি নেই অথবা সেশন শেষ। এখানে যাচাইকৃত সেটিং পরিবর্তন হয়নি।',
+      ) : refused ? text(
+        enabled
+          ? 'Server refused to turn cash sessions ON. Your previous setting is retained.'
+          : 'Server refused to turn cash sessions OFF. Close or reconcile the open cash day first.',
+        enabled
+          ? 'সার্ভার ক্যাশ সেশন চালুর অনুরোধ প্রত্যাখ্যান করেছে। আগের সেটিং রয়ে গেছে।'
+          : 'সার্ভার ক্যাশ সেশন বন্ধ করতে দেয়নি। আগে চালু ক্যাশ দিনটি মেলান।',
+      ) : text(
+        'Save not confirmed. Reload verified settings before changing cash sessions again.',
+        'সংরক্ষণ নিশ্চিত নয়। আবার পরিবর্তনের আগে সার্ভারের সেটিংস নতুন করে দেখুন।',
+      ));
+    } finally {
+      if (cashPendingWrite.current === controller) cashPendingWrite.current = null;
+      if (identityRef.current === requestIdentity) setCashSaving(false);
+    }
+  };
+
   const reviewSave = () => {
     if (bridge.connected) {
       void saveBusiness();
@@ -229,7 +305,56 @@ export function GeneralSettingsSection({
     const disabled = bridge.connected
       ? !(canWriteBusiness && field.key === 'businessName') || saving
       : !canEdit;
-    if(section.id==='finance'&&field.key==='cashSession')return <div key={field.key} className="flex min-w-0 items-start justify-between gap-3 sm:col-span-2"><div className="min-w-0"><label htmlFor={id} className="text-[13px] font-medium text-ink">{text('Count the cash drawer at open and close','খোলা ও বন্ধের সময় ড্রয়ারের ক্যাশ গুনুন')}</label><p className="mt-1 text-xs text-ink-500">{text('Live browser setting for this business. Controls Start, count and history; no backend posting.','এই ব্যবসার ব্রাউজার সেটিং। শুরু, গণনা ও ইতিহাস নিয়ন্ত্রণ করে; সার্ভারে লেনদেন হয় না।')}</p>{cashFeedback&&<p role="status" className="mt-1 text-xs text-ink-500">{cashFeedback}</p>}</div><SettingsToggle id={id} aria-label={text('Enable cash sessions','ক্যাশ সেশন চালু করুন')} checked={bridge.connected?false:tenant.sections.money.cashSession} disabled={bridge.connected||!canEdit} onCheckedChange={value=>{if(bridge.connected)return;const current=currentAuthority();if(!canManage(current.state,current.actorId,'money')){setCashFeedback(text('Permission denied.','অনুমতি নেই।'));return;}const result=save('money',{...current.state.sections.money,cashSession:value},current.state.revision);setCashFeedback(result.ok?text('Cash session setting saved in this browser.','ক্যাশ সেশন সেটিং এই ব্রাউজারে সংরক্ষিত।'):result.error??text('Could not save.','সংরক্ষণ হয়নি।'));}}/></div>;
+
+    if (section.id === 'finance' && field.key === 'cashSession') return (
+      <div key={field.key} className="flex min-w-0 items-start justify-between gap-3 sm:col-span-2">
+        <div className="min-w-0">
+          <label htmlFor={id} className="text-[13px] font-medium text-ink">
+            {text('Count the cash drawer at open and close','খোলা ও বন্ধের সময় ড্রয়ারের ক্যাশ গুনুন')}
+          </label>
+          <p className="mt-1 text-xs text-ink-500">
+            {bridge.connected
+              ? !cashValueKnown
+                ? text('Verified server setting is unavailable. This switch is disabled until the value can be read.',
+                    'সার্ভারের যাচাইকৃত সেটিং পাওয়া যায়নি। মান জানা না পর্যন্ত সুইচ বন্ধ থাকবে।')
+                : cashNeedsReview
+                  ? text('Save status is uncertain. Reload verified settings before another change.',
+                      'সংরক্ষণের অবস্থা নিশ্চিত নয়। আবার পরিবর্তনের আগে সার্ভারের সেটিংস দেখুন।')
+                  : text('Verified business setting. A change applies only after server confirmation.',
+                      'সার্ভারের যাচাইকৃত সেটিং। সার্ভার নিশ্চিত করলেই পরিবর্তন কার্যকর হবে।')
+              : text('Live browser setting for this business. Controls Start, count and history; no backend posting.',
+                  'এই ব্যবসার ব্রাউজার সেটিং। শুরু, গণনা ও ইতিহাস নিয়ন্ত্রণ করে; সার্ভারে লেনদেন হয় না।')}
+          </p>
+          {cashSaving && <p role="status" className="mt-1 text-xs text-ink-500">
+            {text('Confirming with the server…', 'সার্ভার থেকে নিশ্চিত করা হচ্ছে…')}
+          </p>}
+          {cashFeedback && <p role="status" aria-live="polite" className="mt-1 text-xs text-ink-500">
+            {cashFeedback}
+          </p>}
+        </div>
+        <SettingsToggle
+          id={id}
+          aria-label={text('Enable cash sessions','ক্যাশ সেশন চালু করুন')}
+          checked={bridge.connected ? serverCashValue === 'on' : tenant.sections.money.cashSession}
+          disabled={bridge.connected
+            ? !canWriteCash || cashSaving || cashNeedsReview || saving ||
+              cashPendingWrite.current !== null || pendingWrite.current !== null
+            : !canEdit}
+          onCheckedChange={value => {
+            if (bridge.connected) { void saveCash(value); return; }
+            const current=currentAuthority();
+            if(!canManage(current.state,current.actorId,'money')){
+              setCashFeedback(text('Permission denied.','অনুমতি নেই.'));
+              return;
+            }
+            const result=save('money',{...current.state.sections.money,cashSession:value},current.state.revision);
+            setCashFeedback(result.ok
+              ? text('Cash session setting saved in this browser.','ক্যাশ সেশন সেটিং এই ব্রাউজারে সংরক্ষিত।')
+              : result.error??text('Could not save.','সংরক্ষণ হয়নি।'));
+          }}
+        />
+      </div>
+    );
     if (field.kind === 'checkbox') {
       return (
         <div key={field.key} className={`flex min-w-0 items-start justify-between gap-3 ${field.wide ? 'sm:col-span-2' : ''}`}>
@@ -283,7 +408,7 @@ export function GeneralSettingsSection({
     <div className="min-w-0 space-y-3" data-settings-magic-general={section.id}>
       {bridge.connected && <p role="status" aria-live="polite" className="rounded-md border border-ink-100 bg-ink-50 px-3 py-2 text-xs text-ink-600">
         {bridge.server.status === 'ready'
-          ? `Verified live settings: ${bridge.server.data.businessName} · ${bridge.server.data.timezone}. ${canWriteBusiness ? 'Business name can be saved with your server permission.' : 'Business profile is read-only for this account.'} All other controls remain read-only. · ব্যবসার তথ্য সার্ভারে যাচাই হয়েছে; অন্য নিয়ন্ত্রণগুলো অপরিবর্তিত।`
+          ? `Verified live settings: ${bridge.server.data.businessName} · ${bridge.server.data.timezone}. ${canWriteBusiness ? 'Business name can be saved with your server permission.' : 'Business profile is read-only for this account.'} ${canWriteCash ? 'The cash-session switch uses verified server settings; other controls remain read-only.' : 'All other controls remain read-only.'} · ব্যবসার তথ্য সার্ভারে যাচাই হয়েছে; অন্য নিয়ন্ত্রণগুলো অপরিবর্তিত।`
           : bridge.server.status === 'loading' ? 'Loading verified business settings… · সার্ভার সেটিংস লোড হচ্ছে…'
           : bridge.server.status === 'denied' ? 'You do not have permission to view live settings. · সার্ভার সেটিংস দেখার অনুমতি নেই।'
           : bridge.server.status === 'locked' ? 'Session locked. Unlock before viewing settings. · সেটিংস দেখতে সেশন আনলক করুন।'
@@ -307,7 +432,7 @@ export function GeneralSettingsSection({
             </button>
           ) : undefined}
         >
-          {!(bridge.connected ? canWriteBusiness : canEdit) && (
+          {!(bridge.connected ? (canWriteBusiness || canWriteCash) : canEdit) && (
             <p className="flex items-center gap-2 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-600">
               <Lock className="size-3.5 shrink-0" aria-hidden="true" />
               Only an authorized business user can change these.
@@ -333,7 +458,9 @@ export function GeneralSettingsSection({
         status={bridge.connected
           ? feedback || (canWriteBusiness
             ? 'Verified server settings loaded. Only the business name is editable.'
-            : 'Live settings are read-only or unavailable; no browser preview is a server save.')
+            : canWriteCash
+              ? 'Cash-session switch writes only after server confirmation; other controls remain read-only.'
+              : 'Live settings are read-only or unavailable; no browser preview is a server save.')
           : feedback || 'UI preview · business settings are not changed.'}
         dirtyLabel={bridge.connected
           ? feedback || 'Business name changed but not saved to the server.'
