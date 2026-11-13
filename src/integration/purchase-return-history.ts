@@ -96,7 +96,11 @@ function timestamp(x: unknown): x is string {
 }
 function cursor(x: unknown): x is string {
   if (typeof x !== 'string' || x.length < 1 || x.length > 1024) return false;
-  return !/[\u0000-\u001f\u007f]/.test(x);
+  for (let index = 0; index < x.length; index += 1) {
+    const code = x.charCodeAt(index);
+    if (code < 32 || code === 127) return false;
+  }
+  return true;
 }
 function line(x: unknown): x is ServerPurchaseReturnLine {
   return exact(x, lineFields) && id(x.id) && id(x.purchaseLineId) && id(x.productId) &&
