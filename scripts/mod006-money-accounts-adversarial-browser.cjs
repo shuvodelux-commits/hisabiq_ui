@@ -155,7 +155,7 @@ async function run() {
       await dialog.waitFor({state:'detached'});
     };
     const injectOnce=async(path,interceptor)=>{
-      await page.route('**/api/v1/money/accounts*',async route=>{
+      await page.route('**'+path+'*',async route=>{
         const url=new URL(route.request().url());
         if(url.pathname===path)return interceptor(route);
         await route.continue();
