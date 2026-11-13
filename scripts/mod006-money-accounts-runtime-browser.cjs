@@ -207,7 +207,10 @@ async function run() {
     const cashCard = page.locator('[data-connected-money-account="' + ids.cash + '"]');
     const bankCard = page.locator('[data-connected-money-account="' + ids.bank + '"]');
     await cashCard.getByRole('button', { name: /View ledger for/ }).click();
-    await page.getByText('Verified statement ' + ids.cash).waitFor();
+    await page.getByText('Verified statement ' + ids.cash).waitFor().catch(async error => {
+      console.error('STATEMENT FIRST DIALOG:', (await page.locator('body').innerText()).slice(-3500));
+      throw error;
+    });
     await bankCard.getByRole('button', { name: /View ledger for/ }).evaluate(button => button.click());
     await page.getByText('Verified statement ' + ids.bank).waitFor();
     assert.equal(await page.getByText('Verified statement ' + ids.cash).count(), 0);
