@@ -39,6 +39,7 @@ import { availableProducts } from '../data/erpDemoStore';
 import { useSession } from '../integration/SessionProvider.tsx';
 import { ApiError } from '../integration/errors.ts';
 import { readPurchase, readPurchases, type ServerPurchaseEnvelope, type ServerPurchaseList, type ServerPurchaseListRow } from '../integration/purchases.ts';
+import { ConnectedPurchaseDraftsPanel } from '../components/purchases/ConnectedPurchaseDraftsPanel';
 import { purchaseMoney, purchaseSettlement, purchaseVisibleState, type IdentityBoundPurchaseState } from '../integration/purchases-read-model.ts';
 
 type Tab = 'purchases' | 'return' | 'return-history';
@@ -207,6 +208,7 @@ function ConnectedPurchasesRead() {
         description="Purchase stock, manage supplier bills, update purchases and handle purchase returns."
         descriptionBn="পণ্য কেনা, সরবরাহকারীর বিল ও ফেরত দেখুন।"
         actions={<>
+          <ConnectedPurchaseDraftsPanel />
           <Button variant="outline" size="sm" disabled title={text('Supplier ledger integration is pending.', 'সরবরাহকারীর খাতা এখনও সংযুক্ত নয়।')}>
             {text('Supplier ledger', 'সরবরাহকারীর খাতা')}
           </Button>
