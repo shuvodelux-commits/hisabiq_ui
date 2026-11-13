@@ -95,7 +95,7 @@ async function main() {
     await panel.getByRole('tab',{name:'Stock'}).click();
     assert.ok((await panel.innerText()).includes('No rows in this response'));
     await render('owner','Bangla');
-    await panel.getByRole('tab',{name:'স্টক'}).click();
+    await panel.getByRole('tab',{name:'স্টক',exact:true}).click();
     assert.ok((await panel.innerText()).includes('স্টকের সারাংশ'));
     await page.evaluate(()=>document.documentElement.classList.add('dark'));
     for(const width of [320,390,768,1440]) {
