@@ -530,10 +530,12 @@ test('sale draft decoder rejects malformed envelope, IDs, dates, minor values an
 test('sale draft decoder rejects invalid or non-JSON cart without transforming it', () => {
   const circular: Record<string, unknown> = {};
   circular.self = circular;
+  const sparseArray = [1];
+  sparseArray.length = 3;
   for (const cart of [
     [], null, 'cart', 1, new Date('2026-11-13T00:00:00.000Z'),
     { x: undefined }, { x: Infinity }, { x: NaN }, { x: () => 123 },
-    { x: [1, undefined] }, { x: [1, , 2] }, circular,
+    { x: [1, undefined] }, { x: sparseArray }, circular,
   ]) {
     assert.throws(() => decodeSaleDrafts({ data: [{ ...saleDraftRow, cart }] }), ApiError);
   }
