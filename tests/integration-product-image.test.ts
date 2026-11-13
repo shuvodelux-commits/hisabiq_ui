@@ -200,6 +200,24 @@ test('rejects malformed ProductResponse and unexpected 204 on either write', asy
     });
 });
 
+test('cannot claim image saved/removed on a wrong product or unchanged hasImage flag', async () => {
+  const wrongId = { data: { ...product, id: otherProductId } };
+  const failedSave = { data: { ...product, hasImage: false } };
+  const failedRemove = { data: { ...product, hasImage: true } };
+  for (const response of [wrongId, failedSave]) {
+    await withFetch((async () => json(response)) as typeof fetch,
+      async () => assert.rejects(
+        saveSimpleProductThumbnail('token', productId, validInput),
+        (error: unknown) => error instanceof ApiError && error.kind === 'protocol'));
+  }
+  for (const response of [wrongId, failedRemove]) {
+    await withFetch((async () => json(response)) as typeof fetch,
+      async () => assert.rejects(
+        removeSimpleProductThumbnail('token', productId),
+        (error: unknown) => error instanceof ApiError && error.kind === 'protocol'));
+  }
+});
+
 test('each HTTP permission/missing/conflict/size/server error is returned; no retry', async () => {
   for (const status of [400, 401, 403, 404, 409, 413, 503]) {
     let calls = 0;
