@@ -7,21 +7,25 @@ import {
 } from './party-setup.ts';
 import {
   readTradingParties,
+  readTradingParty,
   readTradingPartyLedger,
   readHistoricalPartyOpening,
   type TradingLedger,
   type HistoricalPartyOpeningEnvelope,
   type TradingLedgerQuery,
   type TradingPartyList,
+  type TradingPartyDetail,
   type TradingPartyQuery,
   type TradingRole,
 } from './party-reads.ts';
 import {
   projectTradingDirectoryPage,
+  projectTradingPartyDetail,
   projectTradingRoleLedger,
   projectTradingHistoricalOpening,
   tradingRoleForUi,
   type TradingDirectoryPage,
+  type TradingPartyReadDetail,
   type TradingRoleLedgerView,
   type TradingHistoricalOpeningView,
   type UiPartyRelationship,
@@ -43,6 +47,13 @@ export interface TradingPartyReadTransport {
     query: TradingPartyQuery,
     signal: AbortSignal,
   ): Promise<TradingPartyList>;
+  /** Optional for legacy injected test mocks; missing means fail closed. */
+  detail?(
+    accessToken: string,
+    partyId: string,
+    role: TradingRole,
+    signal: AbortSignal,
+  ): Promise<TradingPartyDetail>;
   ledger(
     accessToken: string,
     partyId: string,
@@ -62,6 +73,7 @@ export interface TradingPartyReadTransport {
 
 const defaultTransport: TradingPartyReadTransport = {
   list: (token, role, query, signal) => readTradingParties(token, role, query, signal),
+  detail: (token, partyId, role, signal) => readTradingParty(token, partyId, role, signal),
   ledger: (token, partyId, role, query, signal) =>
     readTradingPartyLedger(token, partyId, role, query, signal),
   opening: (token, partyId, role, signal) =>
@@ -69,9 +81,10 @@ const defaultTransport: TradingPartyReadTransport = {
   setup: (token, signal) => readPartySetup(token, signal),
 };
 
-type ReadKind = 'directory' | 'ledger' | 'opening' | 'setup';
+type ReadKind = 'directory' | 'detail' | 'ledger' | 'opening' | 'setup';
 type ReadyState =
   | { readonly status: 'directory'; readonly value: TradingDirectoryPage }
+  | { readonly status: 'detail'; readonly value: TradingPartyReadDetail }
   | { readonly status: 'ledger'; readonly value: TradingRoleLedgerView }
   | { readonly status: 'opening'; readonly value: TradingHistoricalOpeningView }
   | { readonly status: 'setup'; readonly value: ServerPartySetup };
@@ -283,6 +296,37 @@ export class TradingPartyReadController {
         value: projectTradingDirectoryPage(role,
           await this.transport.list(authentication.accessToken, role, query, signal)),
       }),
+    );
+    return result?.value ?? null;
+  }
+
+  /**
+   * One relationship and exact Party identity; never use a party-wide balance.
+   * Even when an injected transport returns a structurally valid other Party,
+   * reject it before exposing any detail to the connected presentation layer.
+   */
+  async loadPartyDetail(
+    relationship: UiPartyRelationship | 'All',
+    partyId: string,
+  ): Promise<TradingPartyReadDetail | null> {
+    if (typeof partyId !== 'string' ||
+        !/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(partyId)) {
+      this.clear();
+      throw protocol();
+    }
+
+    const result = await this.execute(
+      relationship,
+      'detail',
+      partyId,
+      async (authentication, role, signal) => {
+        // Do not escape an incomplete injected/mock transport to real HTTP.
+        if (!this.transport.detail) throw protocol();
+        const view = projectTradingPartyDetail(role,
+          await this.transport.detail(authentication.accessToken, partyId, role, signal));
+        if (view.item.partyId !== partyId) throw protocol();
+        return { status: 'detail' as const, value: view };
+      },
     );
     return result?.value ?? null;
   }

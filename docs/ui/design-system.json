@@ -2862,6 +2862,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/products/ConnectedInventoryReadPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedInventoryReadPanel"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/products/PhotoUploader.tsx",
       "kind": "component",
       "exports": [
@@ -3248,6 +3256,22 @@
       "kind": "component",
       "exports": [
         "CashflowReport"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/sales/ConnectedSalesReturnHistoryPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedSalesReturnHistoryPanel"
+      ],
+      "reexports": []
+    },
+    {
+      "file": "src/components/sales/ConnectedSalesReturnSourceReview.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedSalesReturnSourceReview"
       ],
       "reexports": []
     },
@@ -5982,6 +6006,8 @@
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
       "src/components/purchases/ConnectedPurchaseDraftsPanel.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
+      "src/components/sales/ConnectedSalesReturnHistoryPanel.tsx",
+      "src/components/sales/ConnectedSalesReturnSourceReview.tsx",
       "src/magic-saas/pages/saas/SmsAdmin.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
