@@ -229,6 +229,7 @@ async function run() {
       for(const theme of ['light','dark']){
         await page.setViewportSize({width,height:900});
         await page.evaluate(mode=>document.documentElement.classList.toggle('dark',mode==='dark'),theme);
+        console.log('WIDTH_CHECK',width,theme,await page.evaluate(()=>({doc:document.documentElement.scrollWidth,view:innerWidth,controls:document.getElementById('p2c-fixture-controls')?.getBoundingClientRect().right,accounts:document.querySelector('[data-connected-money-accounts]')?.getBoundingClientRect().right})));
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),
           'horizontal overflow at '+width+' '+theme);
         if(process.env.MOD006_P2C_SCREEN_DIR&&(width===320||width===1440)){
