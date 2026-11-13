@@ -112,7 +112,9 @@ async function run() {
       viewport: { width: 390, height: 844 }, reducedMotion: 'reduce',
     });
     page.setDefaultTimeout(15_000);
-    page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('pageerror', error => { pageErrors.push(error.message); console.error('PAGE ERROR:', error.message); });
+    page.on('console', message => { if (message.type() === 'error') console.error('CONSOLE ERROR:', message.text()); });
+    page.on('response', response => { if (response.status() >= 400) console.error('HTTP ERROR:', response.status(), response.url()); });
     await page.route('**/__mod006_p2b_accounts', route => route.fulfill({
       contentType: 'text/html',
       body: '<!doctype html><html><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">import RefreshRuntime from "/@react-refresh"; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$ = () => {}; window.$RefreshSig$ = () => (type) => type; window.__vite_plugin_react_preamble_installed__ = true;</script><script type="module" src="/tests/mod006MoneyAccountsRuntimeHarness.tsx"></script></body></html>',
@@ -120,6 +122,7 @@ async function run() {
     await page.route('**/api/v1/**', async route => {
       const request = route.request(), url = new URL(request.url());
       const token = request.headers().authorization?.replace(/^Bearer /, '');
+      console.log('API:', request.method(), url.pathname, token || '(no bearer)');
       if (url.pathname === '/api/v1/auth/login') {
         accessToken = request.postDataJSON().identifier === 'tenant-b' ? 'access-B-1' : 'access-A-1';
         const who = actor[accessToken];
@@ -181,7 +184,11 @@ async function run() {
     const session = page.locator('#verified-session');
     assert.equal(await accounts.count(), 0, 'no preview accounts on initial signed-out render');
     await page.locator('#login-a').click();
-    await page.locator('[data-connected-money-account="' + ids.loan + '"]').waitFor();
+    await page.locator('[data-connected-money-account="' + ids.loan + '"]').waitFor().catch(async error => {
+      console.error('BROWSER DOM:', (await page.locator('body').innerText()).slice(0, 4000));
+      console.error('AUTH DATA:', await page.locator('#verified-session').getAttribute('data-status'));
+      throw error;
+    });
     assert.equal(await session.getAttribute('data-tenant'), ids.tenantA);
     assert.equal(await accounts.count(), 4);
     assert.equal(await page.locator('[data-connected-money-summary]').getByText('৳7,777').count(), 0,
