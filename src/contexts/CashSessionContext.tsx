@@ -75,7 +75,7 @@ function toHistoryRecord(row: DailyCashRow): CashSessionRecord {
 
 /**
  * One provider serves unchanged local preview UI and server-owned connected UI.
- * A trusted SessionSnapshot (not a localStorage key or preview tenant) owns every
+ * A trusted SessionSnapshot (not an unverified browser credential or preview tenant) owns every
  * connected request. Connected failures never run the preview CashSessionStore.
  */
 export function CashSessionProvider({ children }: { children: ReactNode }) {
@@ -124,6 +124,7 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
   const current = server?.identity === identity && identity !== null ? server : null;
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const readGeneration = useRef(0);
   const [busy, setBusy] = useState(false);
   const [deviceCount, setDeviceCount] = useState<CashCount | null>(null);
   const mutationBusy = useRef(false);
@@ -132,6 +133,7 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!identity || !accessToken) throw new Error('Sign in to read real cash sessions');
+    const generation = ++readGeneration.current;
     setLoading(true);
     try {
       const day = await fetchCashDay(accessToken, signal);
@@ -139,20 +141,23 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
         fetchCashHistory(accessToken, signal),
         fetchCashAccounts(accessToken, signal),
       ]);
-      if (activeIdentity.current !== identity || signal?.aborted) return;
+      if (activeIdentity.current !== identity || signal?.aborted ||
+        readGeneration.current !== generation) return;
       setServer({ identity, day, history: history.rows, accounts });
       setError(null);
     } catch (caught) {
-      if (activeIdentity.current === identity && !signal?.aborted) {
+      if (activeIdentity.current === identity && !signal?.aborted &&
+        readGeneration.current === generation) {
         setError(message(caught));
       }
       throw caught;
     } finally {
-      if (activeIdentity.current === identity) setLoading(false);
+      if (activeIdentity.current === identity && readGeneration.current === generation) setLoading(false);
     }
   }, [identity, accessToken]);
 
   useEffect(() => {
+    readGeneration.current += 1;
     setServer(null);
     setError(null);
     setDeviceCount(null);
@@ -270,9 +275,11 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       if (activeIdentity.current === identity) setError(message(caught));
       throw caught;
     } finally {
-      mutationBusy.current = false;
-      mutationAbort.current = null;
-      if (activeIdentity.current === identity) setBusy(false);
+      if (mutationAbort.current === controller) {
+        mutationBusy.current = false;
+        mutationAbort.current = null;
+        if (activeIdentity.current === identity) setBusy(false);
+      }
     }
   };
 
