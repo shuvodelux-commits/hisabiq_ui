@@ -86,7 +86,12 @@ async function main() {
     const page = await browser.newPage({
       viewport: { width: 390, height: 850 }, reducedMotion: 'reduce',
     });
-    page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('pageerror', error => { pageErrors.push(error.message); console.error('PAGE ERROR:', error.message); });
+    page.on('console', message => { if (message.type() === 'error') console.error('BROWSER ERROR:', message.text()); });
+    page.on('response', response => {
+      if (response.status() >= 400) console.error('HTTP RESOURCE ERROR:', response.status(), response.url());
+    });
+    page.on('requestfailed', request => console.error('RESOURCE FAILED:', request.method(), request.url(), request.failure()?.errorText));
     await page.route('**/__mod006_statement_runtime', route => route.fulfill({
       contentType: 'text/html',
       body: '<!doctype html><html><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module" src="/tests/mod006StatementRuntimeHarness.tsx"></script></body></html>',
@@ -148,7 +153,10 @@ async function main() {
 
     await page.goto('http://127.0.0.1:' + port + '/__mod006_statement_runtime');
     const session = page.locator('#session-state');
-    await session.waitFor();
+    await session.waitFor({ timeout: 15_000 }).catch(async error => {
+      console.error('RUNTIME HARNESS DOM:', (await page.locator('body').innerHTML()).slice(0, 2500));
+      throw error;
+    });
     assert.equal(await session.getAttribute('data-status'), 'signed-out');
     await page.locator('#login-a').click();
     await page.getByText('A1 OLD PRIVATE ROW').waitFor();
