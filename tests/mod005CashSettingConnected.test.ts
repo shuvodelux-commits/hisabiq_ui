@@ -27,7 +27,8 @@ test('connected toggle uses only server-verified on or off, never preview fallba
 test('connected write requires authenticated role and server settings permissions', () => {
   assert.match(ui, /section\.id === 'finance' && snapshot\.status === 'authenticated'/);
   assert.match(ui, /snapshot\.permissions\.includes\('settings\.setting\.view'\)/);
-  assert.match(ui, /snapshot\.permissions\.includes\('settings\.setting\.edit'\)/);
+  assert.match(ui, /snapshot\.permissions\.includes\('settings\.module\.toggle'\)/);
+  assert.doesNotMatch(ui.slice(ui.indexOf('const canWriteCash'), ui.indexOf('// Never let a draft')), /settings\.setting\.edit/);
   assert.match(ui, /!canWriteCash \|\| cashSaving \|\| cashNeedsReview/);
 });
 
