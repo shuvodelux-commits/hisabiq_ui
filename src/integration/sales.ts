@@ -162,7 +162,7 @@ export async function readPosCustomerStanding(
   timeoutMs?: number,
 ): Promise<ServerCustomerStandingEnvelope> {
   const id = canonicalId(partyId);
-  return read(accessToken, '/api/v1/customers/' + id + '/standing', (raw) => {
+  return read(accessToken, ('/api/v1/customers/' + id + '/standing') as ApiRequest['path'], (raw) => {
     const envelope = decodeCustomerStanding(raw);
     if (envelope.data.partyId !== id) return invalid();
     return envelope;
