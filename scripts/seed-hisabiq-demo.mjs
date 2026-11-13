@@ -214,7 +214,9 @@ if (process.env.HISABIQ_DEMO_VERIFY === '1') {
     throw new Error('Missing source product categories');
   }
   const inactive = rows.filter(p => p.status === 'INACTIVE').map(p => p.sku).sort();
-  if (inactive.join(',') !== ['BLD-0850','PLB-0734','SRV-1401'].sort().join(',')) {
+  const expectedInactive = products.filter(p => !p.active || p.kind === 'Service' ||
+    p.serialTracking === 'Required' || !!p.expiry?.enabled).map(p => p.sku).sort();
+  if (inactive.join(',') !== expectedInactive.join(',')) {
     throw new Error('Unverified serial/expiry/service placeholder is active');
   }
   console.log('PASS authenticated tenant and all ' + rows.length + ' source products');
