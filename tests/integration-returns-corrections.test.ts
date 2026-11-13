@@ -51,19 +51,24 @@ function json(body: unknown, status = 200): Response {
   });
 }
 async function withFetch(fake: typeof fetch, run: () => Promise<void>): Promise<void> {
-  const previousFetch = globalThis.fetch;
-  const previousWindow = (globalThis as any).window;
-  const previousLocation = (globalThis as any).location;
-  (globalThis as any).fetch = fake;
-  (globalThis as any).window = { location: { origin } };
-  (globalThis as any).location = { origin };
+  const env = globalThis as unknown as {
+    fetch: typeof fetch;
+    window?: unknown;
+    location?: unknown;
+  };
+  const previousFetch = env.fetch;
+  const previousWindow = env.window;
+  const previousLocation = env.location;
+  env.fetch = fake;
+  env.window = { location: { origin } };
+  env.location = { origin };
   try { await run(); }
   finally {
-    (globalThis as any).fetch = previousFetch;
-    if (previousWindow === undefined) delete (globalThis as any).window;
-    else (globalThis as any).window = previousWindow;
-    if (previousLocation === undefined) delete (globalThis as any).location;
-    else (globalThis as any).location = previousLocation;
+    env.fetch = previousFetch;
+    if (previousWindow === undefined) delete env.window;
+    else env.window = previousWindow;
+    if (previousLocation === undefined) delete env.location;
+    else env.location = previousLocation;
   }
 }
 const protocol = (error: unknown): boolean =>
@@ -116,16 +121,16 @@ test('R09G-03 posted prior money is passed through unchanged, never re-rounded',
 
 test('R09G-04 zero-poisha source quantities remain valid with no invented money', () => {
   const zeroSale = structuredClone(sale);
-  zeroSale.lines[0]!.qtyReturned = 0;
-  zeroSale.lines[0]!.qtyReturnable = zeroSale.lines[0]!.qtySold;
-  zeroSale.lines[0]!.netAmountMinor = 0;
-  zeroSale.lines[0]!.unitPriceMinor = 0;
-  zeroSale.lines[0]!.valueReturnedMinor = 0;
+  zeroSale.lines[0].qtyReturned = 0;
+  zeroSale.lines[0].qtyReturnable = zeroSale.lines[0].qtySold;
+  zeroSale.lines[0].netAmountMinor = 0;
+  zeroSale.lines[0].unitPriceMinor = 0;
+  zeroSale.lines[0].valueReturnedMinor = 0;
   assert.equal(decodeReturnableSale({ data: zeroSale }).data.lines[0]?.netAmountMinor, 0);
 
   const zeroPurchase = structuredClone(purchase);
-  zeroPurchase.lines[0]!.billedNetMinor = 0;
-  zeroPurchase.lines[0]!.valueReturnedMinor = 0;
+  zeroPurchase.lines[0].billedNetMinor = 0;
+  zeroPurchase.lines[0].valueReturnedMinor = 0;
   assert.equal(decodeReturnablePurchase({ data: zeroPurchase }).data.lines[0]?.billedNetMinor, 0);
 });
 
@@ -170,7 +175,7 @@ test('R09G-07 duplicate source lines and duplicate serial IDs fail closed', () =
   assert.throws(() => decodeReturnableSale({
     data: { ...sale, lines: [sale.lines[0], sale.lines[0]] },
   }), protocol);
-  const serial = sale.lines[0]!.serials[0]!;
+  const serial = sale.lines[0].serials[0];
   assert.throws(() => decodeReturnableSale({
     data: { ...sale, lines: [{ ...sale.lines[0], serials: [serial, serial] }] },
   }), protocol);
