@@ -70,7 +70,7 @@ test('server presentation has navigation and retry but does not open the connect
 test('state keys use an opaque symbol, never persist or serialize the bearer', () => {
   assert.match(connected, /Symbol\('verified-account-statement'\)/);
   assert.match(connected, /\[snapshot, mode, authenticatedScope/);
-  assert.match(connected, /scope: symbol;/);
+  assert.match(source, /scope: symbol;/);
   assert.match(connected, /scope: symbol \| null;/);
   assert.doesNotMatch(connected, /join\(':'\)/);
   assert.doesNotMatch(connected, /scope: snapshot\.accessToken/);
