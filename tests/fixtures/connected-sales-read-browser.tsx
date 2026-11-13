@@ -41,6 +41,8 @@ function MockOnlySalesBrowserFixture() {
     </main>
   );
 }
+export { MockOnlySalesBrowserFixture };
+
 const root = document.getElementById('root');
 if (!root) throw Error('Isolated Sales browser fixture root missing');
 createRoot(root).render(
