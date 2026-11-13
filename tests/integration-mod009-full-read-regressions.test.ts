@@ -160,8 +160,8 @@ test('R09QA-04 exact poisha formatting preserves sign, zero and fractional cents
 });
 test('R09QA-05 safe-integer extremes format with exact bigint poisha, never float rounding', () => {
   const max = Number.MAX_SAFE_INTEGER;
-  assert.equal(formatSalesInvoiceMoney(max), '৳90,07,19,92,54,740.91');
-  assert.equal(formatSalesInvoiceMoney(-max), '−৳90,07,19,92,54,740.91');
+  assert.equal(formatSalesInvoiceMoney(max), '৳9,00,71,99,25,47,409.91');
+  assert.equal(formatSalesInvoiceMoney(-max), '−৳9,00,71,99,25,47,409.91');
 });
 test('R09QA-06 scale-three quantities remain exact at every fractional boundary', () => {
   for (const [qty, wanted] of [
