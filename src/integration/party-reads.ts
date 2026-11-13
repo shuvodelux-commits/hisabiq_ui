@@ -331,13 +331,13 @@ async function read<T>(
   }
 }
 /** No fixture fallback, local cache, auto retry, money mutation or UI mounting. */
-export function readTradingParties(
+export async function readTradingParties(
   token: string, selected: TradingRole, query: TradingPartyQuery = {},
   signal?: AbortSignal, timeoutMs?: number,
 ): Promise<TradingPartyList> {
   return read(token, listPath(selected, query), raw => decodeTradingPartyList(raw, selected), signal, timeoutMs);
 }
-export function readTradingParty(
+export async function readTradingParty(
   token: string, partyId: string, selected: TradingRole,
   signal?: AbortSignal, timeoutMs?: number,
 ): Promise<TradingPartyDetail> {
@@ -345,7 +345,7 @@ export function readTradingParty(
     '?role=' + checkedRole(selected)) as ApiRequest['path'];
   return read(token, path, raw => decodeTradingPartyDetail(raw, selected), signal, timeoutMs);
 }
-export function readHistoricalPartyOpening(
+export async function readHistoricalPartyOpening(
   token: string, partyId: string, selected: TradingRole,
   signal?: AbortSignal, timeoutMs?: number,
 ): Promise<HistoricalPartyOpeningEnvelope> {
@@ -353,7 +353,7 @@ export function readHistoricalPartyOpening(
     '/opening?role=' + checkedRole(selected)) as ApiRequest['path'];
   return read(token, path, raw => decodeHistoricalPartyOpening(raw, selected), signal, timeoutMs);
 }
-export function readTradingPartyLedger(
+export async function readTradingPartyLedger(
   token: string, partyId: string, selected: TradingRole,
   query: TradingLedgerQuery = {}, signal?: AbortSignal, timeoutMs?: number,
 ): Promise<TradingLedger> {
