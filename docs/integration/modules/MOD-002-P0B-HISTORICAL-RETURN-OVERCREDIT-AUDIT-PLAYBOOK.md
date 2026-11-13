@@ -18,7 +18,8 @@
 5. **Do not conflate money with cost.** For sales, source line net is the customer's value, whereas posted original COGS may derive from owned lots, negative stock and/or vendor origin allocations. For purchases, supplier credit is purchase line_total_minor minus discount_share_minor, whereas inventory source cost uses actual_unit_cost and scale-3 quantity, including a distinct landed-cost basis. A cost comparison is a **candidate for CA/source-origin review**, never an automatic discrepancy to settle.
 6. **No inferential time classification.** Merge at 2026-11-13 06:31:58 UTC is not proof of the deployment date. A record made after that Git commit may still be from old running code. Do not call a row pre-fix or post-fix without owner-approved **per-environment deployed release and cutover evidence**.
 7. **Maintain app-level tenant isolation.** PostgreSQL migrations 0017/0018/0027/0028 enable and FORCE RLS on the relevant source and return tables, with policies bound to app.tenant_id. A server-side non-BYPASSRLS least-privilege identity, parameter-bound tenant filter, and independent tenant authorization are all necessary. RLS alone is not substitute for source-parent joins.
-8. **Existing indexes:** sales_return_lines(tenant_id,sale_line_id), sales_return_lines(tenant_id,return_id,line_no), purchase_return_lines(tenant_id,purchase_line_id), purchase_return_lines(tenant_id,return_id,line_no), plus parent return (tenant_id,sale_id)/(tenant_id,purchase_id). They are present in migrations 0027 and 0028. Verify actual plans, tenant sizes and statement budgets before any authorized execution; avoid unbounded joins and report exports.
+8. **Unresolved parent links need a second, separate aggregate.** The inner joins in the money totals deliberately include only visible same-tenant return parents. They **cannot count** a child row referencing an inaccessible/missing parent; include a separate `NOT EXISTS` check and report those rows separately. If it is nonzero, the source-money counts may be incomplete; halt financial conclusions pending a security/CA review. Also detect `return_line.product_id` mismatch against the original source product, not just source document/lot mismatch.
+9. **Existing indexes:** sales_return_lines(tenant_id,sale_line_id), sales_return_lines(tenant_id,return_id,line_no), purchase_return_lines(tenant_id,purchase_line_id), purchase_return_lines(tenant_id,return_id,line_no), plus parent return (tenant_id,sale_id)/(tenant_id,purchase_id). They are present in migrations 0027 and 0028. Verify actual plans, tenant sizes and statement budgets before any authorized execution; avoid unbounded joins and report exports.
 
 ## 2. Accounting invariants and report definitions
 
@@ -32,7 +33,8 @@ All quantities are the stored **scale-3 integer**; all return values and origina
 | overcredited_purchase_line_count | Original purchase lines for which SUM(POSTED supplier return line value_minor) exceeds (purchase_lines.line_total_minor − discount_share_minor) | Candidate billed-credit excess |
 | max_excess_poisha | Maximum positive source-line excess value in poisha; 0 if none | **Not** an automatically owed refund/correction |
 | out_of_bounds_qty_count | Count of unique original lines whose cumulative POSTED returned qty is negative or greater than originally sold/received | Inventory/source exception requiring investigation |
-| source_mismatch_line_count | Unique line IDs whose POSTED return references are orphaned, point to the wrong parent sale/purchase, or have missing/voided source documents | Data integrity classification; do not silently exclude |
+| source_mismatch_line_count | Unique source-line IDs in visible, active POSTED return rows whose source document/product/lot does not match the return's parent or whose original sale/purchase is missing or not POSTED | **Does not include child rows whose return parent is invisible/missing**; those are counted separately below |
+| unresolved_parent_return_rows | Return child rows for the selected tenant whose `return_id` has **no visible, same-tenant parent** (regardless of parent POSTED/VOIDED status) | Candidate wrong-tenant reference, missing parent, or RLS invisibility; **not** proof of orphaned data. Never silently discard them. |
 | zero_poisha_positive_qty_count | POSTED return-line rows whose qty is positive and value_minor = 0 | **Legitimate under approved Option A**; never report as fraud or accounting error by itself |
 | candidate_cost_review_count | Source lines where cost posted on returns is greater than the available initial source-cost estimate or origin/lot valuation cannot be proved comparable | **Triage only**, not a definitive liability |
 | source_head_mismatch_count | Parent return header value differs from the sum of its line values, in a separately reviewed query | Must be validated before concluding a source-line anomaly is complete |
@@ -62,6 +64,7 @@ WITH active AS (
     COUNT(*)::bigint AS return_row_count,
     COUNT(*) FILTER (
       WHERE sl.id IS NULL OR sr.sale_id IS DISTINCT FROM sl.sale_id
+         OR rl.product_id IS DISTINCT FROM sl.product_id
          OR s.id IS NULL OR s.status <> 'POSTED' OR s.deleted_at IS NOT NULL
     )::bigint AS mismatched_row_count,
     COUNT(*) FILTER (
@@ -96,6 +99,18 @@ SELECT
   COUNT(*) FILTER (
     WHERE a.mismatched_row_count > 0
   )::bigint AS source_mismatch_line_count,
+  -- Correlated to one tenant only; covers child rows hidden by the INNER JOIN
+  -- to the parent above. This is a count of *invisible/missing same-tenant*
+  -- parent links, NOT proof of orphans and not a customer-document listing.
+  (
+    SELECT COUNT(*)::bigint FROM sales_return_lines orphan
+    WHERE orphan.tenant_id = $1::char(26)
+      AND NOT EXISTS (
+        SELECT 1 FROM sales_returns visible_parent
+        WHERE visible_parent.tenant_id = orphan.tenant_id
+          AND visible_parent.id = orphan.return_id
+      )
+  ) AS unresolved_parent_return_rows,
   COALESCE(SUM(a.zero_value_qty_rows), 0)::bigint
     AS zero_poisha_positive_qty_count,
   COUNT(*) FILTER (
@@ -120,6 +135,7 @@ WITH active AS (
     COUNT(*)::bigint AS return_row_count,
     COUNT(*) FILTER (
       WHERE pl.id IS NULL OR pr.purchase_id IS DISTINCT FROM pl.purchase_id
+         OR rl.product_id IS DISTINCT FROM pl.product_id
          OR p.id IS NULL OR p.status <> 'POSTED' OR p.deleted_at IS NOT NULL
          OR rl.lot_id IS DISTINCT FROM pl.lot_id
     )::bigint AS mismatched_row_count,
@@ -160,6 +176,15 @@ SELECT
   COUNT(*) FILTER (
     WHERE a.mismatched_row_count > 0
   )::bigint AS source_mismatch_line_count,
+  (
+    SELECT COUNT(*)::bigint FROM purchase_return_lines orphan
+    WHERE orphan.tenant_id = $1::char(26)
+      AND NOT EXISTS (
+        SELECT 1 FROM purchase_returns visible_parent
+        WHERE visible_parent.tenant_id = orphan.tenant_id
+          AND visible_parent.id = orphan.return_id
+      )
+  ) AS unresolved_parent_return_rows,
   COALESCE(SUM(a.zero_value_qty_rows), 0)::bigint
     AS zero_poisha_positive_qty_count,
   COUNT(*) FILTER (
@@ -176,7 +201,7 @@ LEFT JOIN purchase_lines pl
 WHERE a.tenant_id = $1::char(26);
 ~~~
 
-**SQL review notes:** Both queries report **line-level aggregate counts only**. The purchase cost estimate intentionally matches the current half-up original full-quantity lotCost formula but does **not** establish a universal cost pool or accounting correction. The aggregation deliberately includes source-mismatched active return lines as separate exceptions instead of silently filtering them out. Parent-total-to-child-total reconciliation is an additional bounded and tenant-scoped *future* query, not performed here. Parent VOIDED rows are excluded from *current posted net*; a separate reversible-history review must inspect their audit trail if an exception is proven.
+**SQL review notes:** Both queries report **tenant aggregate counts only**. If `unresolved_parent_return_rows > 0`, the visible POSTED-parent population may be incomplete; any financial clearance/conclusion must stop, rather than assuming an INNER JOIN proves that no other child rows exist. The purchase cost estimate intentionally matches the current half-up original full-quantity lotCost formula but does **not** establish a universal cost pool or accounting correction. The aggregation deliberately includes source-mismatched active return lines as separate exceptions instead of silently filtering them out. Parent-total-to-child-total reconciliation is an additional bounded and tenant-scoped *future* query, not performed here. Parent VOIDED rows are excluded from *current posted net*; a separate reversible-history review must inspect their audit trail if an exception is proven.
 
 ## 4. Synthetic-only acceptance vectors — proposed, NOT run
 
@@ -188,12 +213,35 @@ WHERE a.tenant_id = $1::char(26);
 | VOID and repost | One 1-poisha return VOIDED, correctly replaced by a POSTED document | The VOIDED contribution excluded; no mistaken double credit |
 | Zero poisha with actual original cost | A valid quantity return has 0 poisha customer/supplier value but costMinor > 0 | Legal value; cost reviewed under its independent source/lot valuation rules |
 | Zero poisha without any cost | Original source amount and cost are 0; qty positive | Legitimate Option A case; no fake ledger value |
-| Source mismatch / missing original | One POSTED return line points to a source not owned by the return's parent or missing original | Source mismatch counter increments; cannot be treated as a valid monetary cap |
+| Source mismatch / missing original | One POSTED return line points to a source not owned by the return's parent, has the wrong product/lot, or has a missing original | Source mismatch counter increments; cannot be treated as a valid monetary cap |
+| Return child parent belongs to another tenant | A synthetic child row for tenant A references a synthetically seeded parent owned by tenant B; foreign key refers to the global parent ID only | Tenant A's `unresolved_parent_return_rows` increments; financial totals do not wrongly claim complete coverage |
 | Tenant isolation | Tenant A and tenant B have otherwise identical fixture values | Each authorized RLS session sees **only its own** counts; never a total across tenants |
 | Cost-layer difference | Supplier landed cost differs from billed credit due to extra landed charge | No inference of over-credit from inventory cost alone |
 | Duplicate original return line | Two POSTED return lines against the same original source line | Both actual amounts contribute to the cap; no distinct-parent-row multiplication |
 
 **Synthetic execution approval boundary:** The owner must first explicitly approve *the exact disposable DB name/container, local binding, synthetic tenant fixture, SQL read-only role, and test command*. Only then may an executor create that disposable PG16 dataset and execute an audited query. This documentation PR does not run SQL, connect to any database, or create fixtures. A request to execute these templates against a snapshot of customer records requires a **separate** privacy/security and tenant-scope authorization after the synthetic stage.
+
+## 4A. Exact synthetic-only execution request — **PROPOSED, NOT APPROVED**
+
+The following scope is proposed for **separate explicit owner authorization**, not inferred from merging this document or the instruction to continue planning. The authorized computer is CachyOS with Podman; it presently has the local `postgres:16-alpine` image. The proposed local port was free when checked, but must be checked **again before running**.
+
+| Required input | Exact proposed value / restriction |
+|---|---|
+| Physical machine | Existing authorized CachyOS development PC, **not a server** |
+| Runtime | Existing cached `docker.io/library/postgres:16-alpine` image, PostgreSQL 16, Podman `--rm` and `--tmpfs /var/lib/postgresql/data:rw,size=512m`; prohibit mounting production volumes, home folders, SSH keys, or cloud credentials |
+| Container name | `hisabiq-issue44-synthetic-pg16-20261113` |
+| Bind | `127.0.0.1:55544:5432` only; abort if the port or container name is already occupied |
+| Disposable database | `hisabiq_issue44_synthetic_20261113` (a new empty database created only in the new container) |
+| Test-app role | `hisabiq_audit_probe_44`, **NOSUPERUSER, NOBYPASSRLS**, not table owner, **SELECT only** on the original source and return tables; no INSERT/UPDATE/DELETE, no privileged role membership |
+| Privileged fixture loader | A separately scoped, local-only ephemeral setup identity used **only inside this new disposable container** to install exact source migrations and seed synthetic fixtures, not to run aggregate audits |
+| Synthetic tenants | Exactly two **fixed fabricated** ULIDs, tenant A = `01H0000000000000000000000A` and tenant B = `01H0000000000000000000000B` (both exactly 26 Crockford-base32 characters); **no customer IDs, exports, logs, backups, or sample data from HisabIQ users** |
+| Synthetic return cases | 5 Pcs / 3 poisha correct `[1,0,1,0,1]`; legacy overcredit `[1,1,1,1,1]`; zero-value stock with/without cost; VOIDED ignored; mismatched source/product/lot; cross-tenant child-to-parent reference; independently valued landed-cost difference |
+| Read transaction | `BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY`, call `SELECT set_config('app.tenant_id', $1, true)` inside the transaction using the **same bound tenant value** supplied to the audit queries, set `statement_timeout='5s'`, `lock_timeout='1s'` and `work_mem='4MB'`, then **ROLLBACK** |
+| Commands to approve | **(1)** a checked `podman run --rm --name hisabiq-issue44-synthetic-pg16-20261113 --tmpfs /var/lib/postgresql/data:rw,size=512m -p 127.0.0.1:55544:5432` with image above and locally generated non-logged secret; **(2)** a Node 20 + PostgreSQL 16 isolated, synthetic-only Vitest/psql harness, **to be authored and reviewed before use**, running **only** the two parameter-bound query templates and their assertions; **(3)** `podman stop hisabiq-issue44-synthetic-pg16-20261113` and verify automatic deletion. No shell command is authorized until the precise finished test source and command are reviewed. |
+
+**Two-stage gate:** First the owner approves the *exact synthetic-only parameters* above and explicitly authorizes preparation of isolated test fixtures and test code on a new branch. The executor then presents the **finished exact test command**, role checks, expected per-tenant counts, and explicit safeguards for approval **before any SQL is run**. Any production, historical tenant clone or snapshot access remains prohibited even if synthetic testing later passes. If role isolation, timeout or tenant pinning cannot be proven, abort the test.
+
+---
 
 ## 5. What a safe result can and cannot conclude
 
