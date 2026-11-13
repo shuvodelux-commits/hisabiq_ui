@@ -109,7 +109,9 @@ async function main(){
     // It may be disabled by permissions, but must remain visible and discoverable.
     assert.equal(await menu.locator('[data-action-menu-item]').count(),4,'view, edit, reversal and Delete preserved');
     for(const label of ['View transaction','Edit','Review reversal','Delete']){
-      assert.equal(await menu.getByRole('button',{name:label,exact:true}).count(),1,label+' command remains present');
+      const named=menu.getByRole('button',{name:label,exact:true});
+      await named.waitFor({state:'visible'});
+      assert.equal(await named.count(),1,label+' command remains present');
     }
     const deleteAction=menu.getByRole('button',{name:'Delete',exact:true});
     assert.equal(await deleteAction.getAttribute('data-tone'),'destructive','Delete remains visibly destructive');
