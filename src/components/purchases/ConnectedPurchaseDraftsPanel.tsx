@@ -25,8 +25,8 @@ import type { SessionSnapshot } from '../../integration/session.ts';
 import {
   connectedPurchaseResumeIsCurrent,
   reopenConnectedPurchaseDraftReadOnly,
-  purchaseSourceIdentity,
 } from '../../integration/purchase-editor-resume.ts';
+import { purchaseSourceIdentity } from '../../integration/purchase-editor-sources.ts';
 import {
   projectConnectedPurchaseDraftReview,
   type PurchaseDraftReviewView,
