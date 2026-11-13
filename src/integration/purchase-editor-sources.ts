@@ -115,8 +115,11 @@ export async function readPurchaseEditorSourceChoices(
   const accessToken = token(session);
   if (!object(query) ||
       Object.keys(query).some(key => !['search','supplierCursor','productCursor','limit'].includes(key))) return invalid();
-  const limit = query.limit ?? 50;
-  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 200 ||
+  const rawLimit: unknown = query.limit;
+  if (rawLimit !== undefined && (typeof rawLimit !== 'number' ||
+      !Number.isSafeInteger(rawLimit))) return invalid();
+  const limit = typeof rawLimit === 'number' ? rawLimit : 50;
+  if (limit < 1 || limit > 200 ||
       (query.search !== undefined && (typeof query.search !== 'string' ||
         query.search.length > 120)) ||
       (query.supplierCursor !== undefined && !validId(query.supplierCursor)) ||
