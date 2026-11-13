@@ -1,7 +1,8 @@
 /* MOD-005 M5-02A: test-only real HTTP browser smoke.
  * Requires a separately provisioned disposable PostgreSQL16 database and a
  * real Nest API running on loopback. Never mocks /api/v1 responses.
- * No fixture creation, production route activation, or accounting writes.
+ * Opt-in fixture registration is restricted to a confirmed fresh local QA DB.
+ * Never activates production routes or makes cash/journal postings.
  */
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
