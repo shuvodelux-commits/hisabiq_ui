@@ -2,7 +2,9 @@ import { ApiError, type ApiErrorKind } from './errors.ts';
 import {
   readTradingParties,
   readTradingPartyLedger,
+  readHistoricalPartyOpening,
   type TradingLedger,
+  type HistoricalPartyOpeningEnvelope,
   type TradingLedgerQuery,
   type TradingPartyList,
   type TradingPartyQuery,
@@ -11,9 +13,11 @@ import {
 import {
   projectTradingDirectoryPage,
   projectTradingRoleLedger,
+  projectTradingHistoricalOpening,
   tradingRoleForUi,
   type TradingDirectoryPage,
   type TradingRoleLedgerView,
+  type TradingHistoricalOpeningView,
   type UiPartyRelationship,
 } from './party-read-model.ts';
 import type { SessionSnapshot, SessionStore } from './session.ts';
@@ -40,18 +44,27 @@ export interface TradingPartyReadTransport {
     query: TradingLedgerQuery,
     signal: AbortSignal,
   ): Promise<TradingLedger>;
+  opening(
+    accessToken: string,
+    partyId: string,
+    role: TradingRole,
+    signal: AbortSignal,
+  ): Promise<HistoricalPartyOpeningEnvelope>;
 }
 
 const defaultTransport: TradingPartyReadTransport = {
   list: (token, role, query, signal) => readTradingParties(token, role, query, signal),
   ledger: (token, partyId, role, query, signal) =>
     readTradingPartyLedger(token, partyId, role, query, signal),
+  opening: (token, partyId, role, signal) =>
+    readHistoricalPartyOpening(token, partyId, role, signal),
 };
 
-type ReadKind = 'directory' | 'ledger';
+type ReadKind = 'directory' | 'ledger' | 'opening';
 type ReadyState =
   | { readonly status: 'directory'; readonly value: TradingDirectoryPage }
-  | { readonly status: 'ledger'; readonly value: TradingRoleLedgerView };
+  | { readonly status: 'ledger'; readonly value: TradingRoleLedgerView }
+  | { readonly status: 'opening'; readonly value: TradingHistoricalOpeningView };
 
 export type PartyReadSnapshot =
   | { readonly status: 'idle' }
@@ -246,6 +259,30 @@ export class TradingPartyReadController {
         status: 'ledger' as const,
         value: projectTradingRoleLedger(role, partyId,
           await this.transport.ledger(authentication.accessToken, partyId, role, query, signal)),
+      }),
+    );
+    return result?.value ?? null;
+  }
+
+
+  /**
+   * Exact trading-role historical source read; no cash session is involved.
+   * On a completed GET with no opening, returns {opening:null}. On an aborted
+   * or superseded GET, returns null; on HTTP/protocol failure, throws.
+   * The caller must not interpret any of these as a zero opening journal.
+   */
+  async loadHistoricalOpening(
+    relationship: UiPartyRelationship | 'All',
+    partyId: string,
+  ): Promise<TradingHistoricalOpeningView | null> {
+    const result = await this.execute(
+      relationship,
+      'opening',
+      partyId,
+      async (authentication, role, signal) => ({
+        status: 'opening' as const,
+        value: projectTradingHistoricalOpening(role, partyId,
+          await this.transport.opening(authentication.accessToken, partyId, role, signal)),
       }),
     );
     return result?.value ?? null;
