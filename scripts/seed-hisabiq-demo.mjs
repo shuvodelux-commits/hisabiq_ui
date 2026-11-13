@@ -167,6 +167,62 @@ if (process.env.HISABIQ_DEMO_RECONCILE_SETTINGS === '1') {
   process.exit(0);
 }
 
+if (process.env.HISABIQ_DEMO_VERIFY === '1') {
+  const credentials = JSON.parse(await readFile(resolve(output, 'demo-login.private.json'), 'utf8'));
+  const existingMap = JSON.parse(await readFile(resolve(output, 'backend-id-map.json'), 'utf8'));
+  const session = await call('/api/v1/auth/login', {
+    method:'POST', authenticated:false,
+    body:{ identifier:credentials.identifier, password:credentials.password },
+  });
+  if (!session?.accessToken) throw new Error('Cannot verify seeded demo owner');
+  bearer = session.accessToken;
+  const me = await call('/api/v1/me');
+  if (me.tenantId !== existingMap.tenantId) throw new Error('Wrong demo tenant identity');
+  const catalog = await call('/api/v1/catalog');
+  const visible = await call('/api/v1/products?limit=100');
+  const rows = Array.isArray(visible) ? visible : visible.items ?? visible.products ?? [];
+  if (rows.length !== products.length) throw new Error('Demo product total mismatch');
+  for (const p of products) {
+    const recorded = rows.find(row => row.sku === p.sku);
+    if (!recorded || recorded.stockQty !== scaled(p.stock,'stock') ||
+      recorded.sellingPriceMinor !== minor(p.sellPrice,'sell') ||
+      recorded.purchasePriceMinor !== minor(p.purchasePrice,'purchase')) {
+      throw new Error('Product field mismatch ' + p.id);
+    }
+  }
+  const partyIds = new Set();
+  for (const role of ['CUSTOMER','SUPPLIER','VENDOR']) {
+    const response = await call('/api/v1/parties?role=' + role + '&limit=100');
+    for (const entry of Array.isArray(response) ? response : response.items ?? response.parties ?? []) {
+      partyIds.add(entry.id);
+    }
+  }
+  if (partyIds.size !== Object.keys(existingMap.parties).length + 1) {
+    throw new Error('Demo parties do not match supported identities and walk-in');
+  }
+  const accounts = await call('/api/v1/money/accounts');
+  if (accounts.accounts?.length !== finance.financeAccounts.length) {
+    throw new Error('Missing accessible cash, bank or MFS account');
+  }
+  for (const original of finance.financeAccounts) {
+    const recorded = accounts.accounts.find(item => item.name === original.name);
+    if (!recorded || recorded.openingAmountMinor !== minor(original.openingBalance,'account opening')) {
+      throw new Error('Money account opening mismatch ' + original.id);
+    }
+  }
+  if (catalog.categories.length < Object.keys(existingMap.categories).length) {
+    throw new Error('Missing source product categories');
+  }
+  const inactive = rows.filter(p => p.status === 'INACTIVE').map(p => p.sku).sort();
+  if (inactive.join(',') !== ['BLD-0850','PLB-0734','SRV-1401'].sort().join(',')) {
+    throw new Error('Unverified serial/expiry/service placeholder is active');
+  }
+  console.log('PASS authenticated tenant and all ' + rows.length + ' source products');
+  console.log('PASS ' + partyIds.size + ' parties and ' + accounts.accounts.length + ' accounts');
+  console.log('PASS matching exact stock, prices, opening accounts and deferred product safety');
+  process.exit(0);
+}
+
 await mkdir(output, { recursive: true, mode: 0o700 });
 async function writeNew(name, value) {
   const file = await open(resolve(output, name), 'wx', 0o600);
