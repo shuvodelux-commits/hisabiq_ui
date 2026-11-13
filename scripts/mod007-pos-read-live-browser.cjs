@@ -240,8 +240,11 @@ async function run() {
     await login(fixtures.a);
     const epochBefore = Number(await page.locator('#p0d-session').getAttribute('data-epoch'));
     await page.locator('#p0d-refresh').click();
-    await page.waitForFunction(previous =>
-      Number(document.querySelector('#p0d-session')?.getAttribute('data-epoch')) > previous,
+    await page.waitForFunction(() =>
+      document.querySelector('#p0d-result')?.textContent === 'confirmed');
+    // SessionStore.refresh() legitimately rotates its bearer in the SAME
+    // verified tenant epoch; switching identity, not token refresh, advances it.
+    assert.equal(Number(await page.locator('#p0d-session').getAttribute('data-epoch')),
       epochBefore);
     await ready().waitFor();
     assert.equal(await products.first().getAttribute('data-p0d-product'), fixtures.ids.aExact);
