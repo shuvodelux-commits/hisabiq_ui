@@ -145,11 +145,11 @@ function send(route, body, status = 200) {
     status, contentType: 'application/json', body: JSON.stringify(body),
   });
 }
-function setupMockRoutes(page, requestLog, violations) {
+function setupMockRoutes(page, requestLog, violations, blockedExternals) {
   page.route('**/*', route => {
     const u = new URL(route.request().url());
     if (u.origin !== origin) {
-      violations.push('external-request-blocked');
+      blockedExternals.push(u.origin);
       return route.abort('blockedbyclient');
     }
     return route.continue();
@@ -242,9 +242,10 @@ async function exercise(browser, width) {
   page.setDefaultTimeout(22_000);
   const requestLog = [];
   const violations = [];
+  const blockedExternals = [];
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  setupMockRoutes(page, requestLog, violations);
+  setupMockRoutes(page, requestLog, violations, blockedExternals);
   const session = page.locator('[data-qa-session]');
   const panel = page.locator('[data-connected-sales-read-workspace]');
   try {
@@ -298,7 +299,9 @@ async function exercise(browser, width) {
     await panel.getByText('No verified sales returns on this page.').waitFor();
     assert.equal(await panel.getByText('SR-QA-A-01').count(), 0);
 
-    assert.deepEqual(violations, [], 'No unauthorized/off-origin/business write API');
+    assert.deepEqual(violations, [], 'No unauthorized or business write API');
+    assert.ok(blockedExternals.every(url => url !== origin),
+      'Every intercepted external resource is blocked rather than loaded');
     assert.deepEqual(errors, [], 'No React runtime errors');
     const businessCalls = requestLog.filter(x => x.path.startsWith('/api/v1/sales'));
     assert.ok(businessCalls.length >= 5, 'Full list/detail/returnable/history requests exercised');
@@ -313,7 +316,8 @@ async function exercise(browser, width) {
       x.path === '/api/v1/sales-returns'), 'D can read permitted history');
     console.log('PASS MOCK-ONLY Sales React browser @' + width +
       'px: source, roles, tenant switch, voided, history and GET-only (' +
-      businessCalls.length + ' business GETs)');
+      businessCalls.length + ' business GETs; ' + blockedExternals.length +
+      ' external assets blocked)');
   } finally {
     await context.close();
   }
