@@ -226,13 +226,33 @@ async function run() {
     await cash.waitFor();
     await page.locator('#p2c-language').click();
     await page.getByText('টাকার হিসাব').first().waitFor();
+    // Continue through every viewport even if one fails: capture true P0
+    // dimensions and screenshots without hiding, downgrading or skipping it.
+    const overflowFailures=[];
     for(const width of [320,390,768,1440]){
       for(const theme of ['light','dark']){
         await page.setViewportSize({width,height:900});
         await page.evaluate(mode=>document.documentElement.classList.toggle('dark',mode==='dark'),theme);
-        console.log('WIDTH_CHECK',width,theme,await page.evaluate(()=>({doc:document.documentElement.scrollWidth,view:innerWidth,controls:document.getElementById('p2c-fixture-controls')?.scrollWidth,accounts:document.querySelector('[data-connected-money-accounts]')?.scrollWidth,body:document.body.scrollWidth,summary:document.querySelector('[data-connected-money-summary]')?.scrollWidth,summaryClient:document.querySelector('[data-connected-money-summary]')?.clientWidth,liabilities:document.querySelector('[data-connected-money-liabilities]')?.scrollWidth,cardWidths:[...document.querySelectorAll('[data-connected-money-account]')].map(e=>e.clientWidth+'/'+e.scrollWidth)})));
-        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),
-          'horizontal overflow at '+width+' '+theme);
+        const layout=await page.evaluate(()=>({
+          doc:document.documentElement.scrollWidth,view:innerWidth,
+          controls:document.getElementById('p2c-fixture-controls')?.scrollWidth,
+          accounts:document.querySelector('[data-connected-money-accounts]')?.scrollWidth,
+          body:document.body.scrollWidth,
+          summary:document.querySelector('[data-connected-money-summary]')?.scrollWidth,
+          summaryClient:document.querySelector('[data-connected-money-summary]')?.clientWidth,
+          liabilities:document.querySelector('[data-connected-money-liabilities]')?.scrollWidth,
+          cards:[...document.querySelectorAll('[data-connected-money-account]')].map(card=>({
+            width:card.clientWidth,scroll:card.scrollWidth,
+            footer:[...card.querySelectorAll('span')].filter(e=>/Opening date|শুরুর তারিখ/.test(e.textContent||''))
+              .map(e=>({width:e.clientWidth,scroll:e.scrollWidth,
+                minWidth:getComputedStyle(e).minWidth,whiteSpace:getComputedStyle(e).whiteSpace})),
+          })),
+        }));
+        console.log('WIDTH_CHECK',width,theme,layout);
+        if(layout.doc>layout.view+1){
+          overflowFailures.push({width,theme,document:layout.doc,viewport:layout.view,
+            accountRoot:layout.accounts,cardWidths:layout.cards.map(card=>card.width)});
+        }
         if(process.env.MOD006_P2C_SCREEN_DIR&&(width===320||width===1440)){
           fs.mkdirSync(process.env.MOD006_P2C_SCREEN_DIR,{recursive:true});
           await page.screenshot({
@@ -251,6 +271,8 @@ async function run() {
     assert.ok(seen.some(s=>s==='GET /api/v1/me'),'real verified /me must be called');
     assert.ok(seen.some(s=>s==='GET /api/v1/money/accounts'),
       'account GETs must pass through Vite proxy to Nest');
+    assert.deepEqual(overflowFailures,[],
+      'P2-C real responsive gate RED: actual 320px/card overflow must be fixed in source; see issue #420');
     console.log('P2-C LIVE React -> Nest -> disposable PG16: two tenants, token rotation, ledger, permissions, responsive/Bangla, zero business writes PASS');
   } finally {
     await browser?.close();
