@@ -48,7 +48,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function main() {
   const { createServer } = await import('vite');
   const server = await createServer({
-    server: { host: '127.0.0.1', port: 0, strictPort: false },
+    server: { host: '127.0.0.1', port: 0, strictPort: false, hmr: false },
     logLevel: 'error',
   });
   await server.listen();
@@ -94,7 +94,7 @@ async function main() {
     page.on('requestfailed', request => console.error('RESOURCE FAILED:', request.method(), request.url(), request.failure()?.errorText));
     await page.route('**/__mod006_statement_runtime', route => route.fulfill({
       contentType: 'text/html',
-      body: '<!doctype html><html><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module" src="/tests/mod006StatementRuntimeHarness.tsx"></script></body></html>',
+      body: '<!doctype html><html><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">import RefreshRuntime from "/@react-refresh"; RefreshRuntime.injectIntoGlobalHook(window); window.$RefreshReg$ = () => {}; window.$RefreshSig$ = () => (type) => type; window.__vite_plugin_react_preamble_installed__ = true;</script><script type="module" src="/tests/mod006StatementRuntimeHarness.tsx"></script></body></html>',
     }));
     await page.route('**/api/v1/**', async route => {
       const request = route.request();
