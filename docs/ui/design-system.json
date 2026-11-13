@@ -2269,7 +2269,8 @@
         "FinanceTransactionActionDialog",
         "FinanceAccountActionDialog",
         "FinanceTransferActionDialog",
-        "FinancePeopleManagerDialog"
+        "FinancePeopleManagerDialog",
+        "ConnectedMoneyAccountActionDialog"
       ],
       "reexports": []
     },
