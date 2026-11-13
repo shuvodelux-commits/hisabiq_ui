@@ -212,8 +212,7 @@ export function projectInventoryPresentation(input: InventoryPresentationInput):
       state: 'loaded', coverage: 'keyset-page',
       page: { ...lots.data.page },
       valuationMethod: lots.data.valuationMethod,
-      ...(Object.prototype.hasOwnProperty.call(lots.data, 'expiry')
-        ? { expiry: { ...lots.data.expiry! } } : {}),
+      ...(lots.data.expiry === undefined ? {} : { expiry: { ...lots.data.expiry } }),
       rows: lots.data.data.map(item => ({
         source: { ...item },
         product: lookup(item.productId),
