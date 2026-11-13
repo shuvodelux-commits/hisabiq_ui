@@ -106,18 +106,18 @@ function json(body: unknown, status = 200): Response {
 }
 async function withFetch(fake: typeof fetch, action: () => Promise<void>): Promise<void> {
   const prevFetch = globalThis.fetch;
-  const prevWindow = (globalThis as any).window;
-  const prevLocation = (globalThis as any).location;
-  (globalThis as any).fetch = fake;
-  (globalThis as any).window = { location: { origin } };
-  (globalThis as any).location = { origin };
+  const prevWindow = (globalThis as unknown as Record<string, unknown>).window;
+  const prevLocation = (globalThis as unknown as Record<string, unknown>).location;
+  (globalThis as unknown as Record<string, unknown>).fetch = fake;
+  (globalThis as unknown as Record<string, unknown>).window = { location: { origin } };
+  (globalThis as unknown as Record<string, unknown>).location = { origin };
   try { await action(); }
   finally {
-    (globalThis as any).fetch = prevFetch;
-    if (prevWindow === undefined) delete (globalThis as any).window;
-    else (globalThis as any).window = prevWindow;
-    if (prevLocation === undefined) delete (globalThis as any).location;
-    else (globalThis as any).location = prevLocation;
+    (globalThis as unknown as Record<string, unknown>).fetch = prevFetch;
+    if (prevWindow === undefined) delete (globalThis as unknown as Record<string, unknown>).window;
+    else (globalThis as unknown as Record<string, unknown>).window = prevWindow;
+    if (prevLocation === undefined) delete (globalThis as unknown as Record<string, unknown>).location;
+    else (globalThis as unknown as Record<string, unknown>).location = prevLocation;
   }
 }
 
@@ -126,9 +126,9 @@ test('POS list is a bare response, preserves base-unit stock/price and absent co
   assert.equal(result.items[0]?.unitName, 'Feet');
   assert.equal(result.items[0]?.sellingPriceMinor, 1250);
   assert.equal(result.items[0]?.qtyOnHand, 24000);
-  assert.equal(Object.hasOwn(result.items[0]!, 'purchasePriceMinor'), false);
-  assert.equal(Object.hasOwn(result.items[0]!, 'unitRelations'), false);
-  assert.equal(Object.hasOwn(result.items[0]!, 'unitSellPrices'), false);
+  assert.equal(Object.hasOwn(result.items[0], 'purchasePriceMinor'), false);
+  assert.equal(Object.hasOwn(result.items[0], 'unitRelations'), false);
+  assert.equal(Object.hasOwn(result.items[0], 'unitSellPrices'), false);
 });
 
 test('allowed POS scan/query filters are URL encoded, GET only, and use caller bearer', async () => {
@@ -181,7 +181,7 @@ test('one missing purchase-price key is not reinterpreted as zero or inherited f
     const b = await readPosProducts('cashier');
     assert.equal(a.items[0]?.purchasePriceMinor, 625);
     assert.equal(b.items[0]?.id, otherProductId);
-    assert.equal(Object.hasOwn(b.items[0]!, 'purchasePriceMinor'), false);
+    assert.equal(Object.hasOwn(b.items[0], 'purchasePriceMinor'), false);
   });
   assert.deepEqual(tokens, ['Bearer cost-reader', 'Bearer cashier']);
 });
@@ -284,14 +284,14 @@ test('invalid queries, fake IDs, unsupported roles and invalid bearer fail befor
       () => readPosProducts('A', { limit: 0 }),
       () => readPosProducts('A', { limit: 101 }),
       () => readPosProducts('A', { limit: 1.5 }),
-      () => readPosProducts('A', { stockStatus: 'ALL' as any }),
+      () => readPosProducts('A', { stockStatus: 'ALL' as never }),
       () => readPosProducts('A', { barcode: 'x'.repeat(65) }),
       () => readPosProducts('A', { categoryId: 'bad' }),
-      () => readPosProducts('A', { role: 'SUPPLIER' } as any),
-      () => readPosProducts('A', { tenantId: customerId } as any),
+      () => readPosProducts('A', { role: 'SUPPLIER' } as never),
+      () => readPosProducts('A', { tenantId: customerId } as never),
       () => readPosCustomers('A', { cursor: 'local-id' }),
       () => readPosCustomers('A', { limit: 201 }),
-      () => readPosCustomers('A', { role: 'VENDOR' } as any),
+      () => readPosCustomers('A', { role: 'VENDOR' } as never),
       () => readPosCustomerStanding('A', '../wrong'),
       () => readPosCustomerStanding('A', 'walk-in'),
       () => readPosProducts(''),
