@@ -62,7 +62,8 @@ export function ConnectedPurchasesRead() {
   const [search, setSearch] = useState(() => (searchParams.get('q') ?? '').slice(0, 80));
   const [settlement, setSettlement] = useState<'ALL' | 'PAID' | 'UNPAID'>('ALL');
   const [cursor, setCursor] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ identity: string; id: string } | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
   const [list, setList] = useState<IdentityBoundPurchaseState<ServerPurchaseList> | null>(null);
   const [detail, setDetail] = useState<IdentityBoundPurchaseState<ServerPurchaseEnvelope> | null>(null);
 
@@ -72,7 +73,8 @@ export function ConnectedPurchasesRead() {
   const identity = authenticated
     ? [snapshot.tenantId, snapshot.userId, snapshot.epoch, snapshot.accessToken].join(':')
     : [mode, snapshot.status, snapshot.epoch].join(':');
-  const listKey = [identity, 'list', search.trim(), settlement, cursor ?? 'first'].join(':');
+  const selectedId = selected?.identity === identity ? selected.id : null;
+  const listKey = [identity, 'list', search.trim(), settlement, cursor ?? 'first', retryVersion].join(':');
   const detailKey = [identity, 'detail', selectedId ?? 'none'].join(':');
   const visibleList = purchaseVisibleState(list, listKey);
   const visibleDetail = purchaseVisibleState(detail, detailKey);
@@ -202,8 +204,8 @@ export function ConnectedPurchasesRead() {
               <div role="alert" className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-4 text-sm text-danger">
                 <span>{errorText}</span>
                 {!blocked && visibleList.status === 'error' &&
-                  <Button variant="outline" size="sm" onClick={() => setCursor(null)}>
-                    {text('Reset filters', 'ফিল্টার মুছুন')}
+                  <Button variant="outline" size="sm" onClick={() => setRetryVersion(version => version + 1)}>
+                    {text('Retry', 'আবার চেষ্টা করুন')}
                   </Button>}
               </div>
             )}
@@ -242,7 +244,7 @@ export function ConnectedPurchasesRead() {
                         <TableCell className="py-2 pr-3 text-right">
                           <Button type="button" variant="ghost" size="sm"
                             aria-label={text('View bill', 'বিল দেখুন') + ' ' + row.number}
-                            onClick={() => setSelectedId(row.id)}>
+                            onClick={() => setSelected({ identity, id: row.id })}>
                             <Eye aria-hidden className="size-4" />
                             <span className="sr-only">{text('View bill', 'বিল দেখুন')}</span>
                           </Button>
@@ -269,7 +271,7 @@ export function ConnectedPurchasesRead() {
         )}
       </div>
 
-      <Dialog open={selectedId !== null} onOpenChange={open => { if (!open) setSelectedId(null); }}>
+      <Dialog open={selectedId !== null} onOpenChange={open => { if (!open) setSelected(null); }}>
         <DialogContent role="dialog" aria-label={text('Purchase bill details', 'ক্রয় বিলের বিবরণ')}
           className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
