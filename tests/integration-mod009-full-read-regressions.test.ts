@@ -54,7 +54,7 @@ const returnRow = {
   id: e, number: 'SR-001', saleId: a, saleNumber: 'INV-BN-001',
   partyId: b, customerName: 'রহিম', businessDate: '2026-11-13',
   reason: 'DAMAGED', note: null, returnValueMinor: 1000,
-  refundMinor: 500, creditMinor: 200,
+  refundMinor: 500, creditMinor: 500,
   refundAccountCode: 'CASH-01', refundAccountName: 'Cash',
   approvedByName: null, lines: [returnLine],
   createdAt: '2026-11-13T11:00:00.000Z',
@@ -216,16 +216,17 @@ for (const [name, broken] of [
 ] as const) test('R09QA-10 detail decoder rejects ' + name, () => {
   assert.throws(() => decodeSalesInvoiceDetail({ data: broken }), protocol);
 });
-test('R09QA-11 return history preserves amount applied to prior due (not all refund or credit)', () => {
+test('R09QA-11 refund and customer credit exactly distribute the original return value', () => {
   const result = decodeSalesReturnHistory(history).returns[0];
   assert.ok(result);
   assert.equal(result.returnValueMinor, 1000);
   assert.equal(result.refundMinor, 500);
-  assert.equal(result.creditMinor, 200);
-  assert.equal(result.returnValueMinor - result.refundMinor - result.creditMinor, 300);
+  assert.equal(result.creditMinor, 500);
+  assert.equal(result.returnValueMinor - result.refundMinor - result.creditMinor, 0);
 });
 for (const [name, broken] of [
   ['combined refund and credit exceeding return value', { ...history, returns: [{ ...returnRow, refundMinor: 800, creditMinor: 500 }] }],
+  ['missing refund and credit allocation', { ...history, returns: [{ ...returnRow, refundMinor: 500, creditMinor: 200 }] }],
   ['aggregate refund exceeding aggregate return value', { ...history, totalRefundMinor: 1001 }],
   ['duplicate return ID', { ...history, returns: [returnRow, returnRow] }],
   ['negative original quantity', { ...history, returns: [{ ...returnRow, lines: [{ ...returnLine, qty: -1 }] }] }],
