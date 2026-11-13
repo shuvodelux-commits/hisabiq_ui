@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires, no-undef */
 /*
  * MOD-003 T01-R/P2B0 — isolated REAL Nest/PG16 + React/Vite browser acceptance.
  * Test-only fixture POSTs run before browser interaction. During the browser
