@@ -337,11 +337,13 @@ export class TradingPartyReadController {
       null,
       async (authentication, signal) => ({
         status: 'setup' as const,
-        value: decodePartySetup(await (
-          this.transport.setup
-            ? this.transport.setup(authentication.accessToken, signal)
-            : readPartySetup(authentication.accessToken, signal)
-        )).data,
+        // The default transport provides the real GET; injected transports
+        // must explicitly provide setup. Never escape a test/mock transport
+        // into a live network call if that method is omitted.
+        value: decodePartySetup(await (() => {
+          if (!this.transport.setup) throw protocol();
+          return this.transport.setup(authentication.accessToken, signal);
+        })()).data,
       }),
     );
     return result?.value ?? null;
