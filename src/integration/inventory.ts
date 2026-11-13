@@ -78,7 +78,7 @@ function record(raw: unknown): raw is Record<string, unknown> {
   return typeof raw === 'object' && raw !== null && !Array.isArray(raw);
 }
 function exact(raw: Record<string, unknown>, required: readonly string[], optional: readonly string[] = []): boolean {
-  return required.every(k => Object.hasOwn(raw, k)) &&
+  return required.every(k => Object.prototype.hasOwnProperty.call(raw, k)) &&
     Object.keys(raw).every(k => required.includes(k) || optional.includes(k));
 }
 function text(raw: unknown): raw is string { return typeof raw === 'string'; }
@@ -86,7 +86,7 @@ function id(raw: unknown): raw is string { return text(raw) && ulid.test(raw); }
 function nullableId(raw: unknown): boolean { return raw === null || id(raw); }
 function integer(raw: unknown): raw is number { return typeof raw === 'number' && Number.isSafeInteger(raw); }
 function optionalInt(raw: Record<string, unknown>, key: string): boolean {
-  return !Object.hasOwn(raw, key) || integer(raw[key]);
+  return !Object.prototype.hasOwnProperty.call(raw, key) || integer(raw[key]);
 }
 function oneOf(raw: unknown, choices: readonly string[]): boolean { return text(raw) && choices.includes(raw); }
 function date(raw: unknown): raw is string {
@@ -170,7 +170,7 @@ export function decodeInventoryLotPage(raw: unknown): InventoryLotPageEnvelope {
       !nullableId(raw.data.page.nextCursor) ||
       typeof raw.data.page.hasMore !== 'boolean' ||
       !oneOf(raw.data.valuationMethod, ['FIFO', 'AVERAGE']) ||
-      (Object.hasOwn(raw.data, 'expiry') && !expirySummary(raw.data.expiry))) return invalid();
+      (Object.prototype.hasOwnProperty.call(raw.data, 'expiry') && !expirySummary(raw.data.expiry))) return invalid();
   return raw as unknown as InventoryLotPageEnvelope;
 }
 export function decodeInventoryAdjustments(raw: unknown): InventoryAdjustmentsEnvelope {
