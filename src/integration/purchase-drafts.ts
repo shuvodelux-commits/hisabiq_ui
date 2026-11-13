@@ -107,6 +107,8 @@ function serializableCart(input: unknown): input is Record<string, unknown> {
     if (typeof value === 'number') return Number.isFinite(value);
     if (typeof value !== 'object' || visited.has(value)) return false;
     if (Array.isArray(value)) {
+      // A sparse array or named array property would lose information in JSON.
+      if (Object.keys(value).length !== value.length) return false;
       visited.add(value);
       const ok = value.every((entry, i) => i in value && visit(entry, depth + 1));
       visited.delete(value);
