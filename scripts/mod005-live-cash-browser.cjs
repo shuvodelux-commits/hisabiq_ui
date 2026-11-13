@@ -5,15 +5,17 @@
  */
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
+const { randomBytes } = require('node:crypto');
 
 const base = process.env.MOD005_API_BASE_URL;
 const username = process.env.MOD005_TEST_IDENTIFIER;
 const password = process.env.MOD005_TEST_PASSWORD;
 const anonymous = process.env.MOD005_ANON_ONLY === '1';
+const seedFixtures = process.env.MOD005_SEED_FIXTURES === '1';
 if (process.env.MOD005_DISPOSABLE_CONFIRM !== 'hisabiq_mod005_live_425') {
   throw new Error('Disposable test environment not confirmed');
 }
-if (!base || (!anonymous && (!username || !password))) {
+if (!base || (!anonymous && !seedFixtures && (!username || !password))) {
   throw new Error('Missing API origin or isolated test account credentials');
 }
 const endpoint = new URL(base);
@@ -21,6 +23,38 @@ if (endpoint.protocol !== 'http:' || endpoint.hostname !== '127.0.0.1' ||
     !endpoint.port || endpoint.pathname !== '/' ||
     endpoint.username || endpoint.password || endpoint.search || endpoint.hash) {
   throw new Error('Only a local Nest test API is accepted');
+}
+
+async function createIsolatedFixture(suffix) {
+  if (!seedFixtures || process.env.MOD005_NEW_EMPTY_DB !== 'hisabiq_mod005_live_425') {
+    throw new Error('Fresh single-use database is not certified for fixture creation');
+  }
+  const identifier = 'mod005-' + suffix + '-' + randomBytes(6).toString('hex') + '@example.test';
+  const localPassword = 'QA' + randomBytes(12).toString('hex') + 'z9!';
+  const post = async (path, payload) => {
+    const result = await fetch(base + path, {
+      method: 'POST', redirect: 'error', credentials: 'omit',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await result.json();
+    assert.ok(result.ok, path + ': HTTP ' + result.status + ' (' +
+      (data?.error?.code ?? 'unknown') + ')');
+    return { status: result.status, body: data };
+  };
+  const code = await post('/api/v1/auth/registration/otp', { identifier });
+  assert.equal(code.status, 200);
+  assert.match(code.body?.data?.devCode, /^\d{6}$/);
+  const created = await post('/api/v1/auth/registration', {
+    identifier, otpCode: code.body.data.devCode,
+    businessName: 'Disposable MOD005 ' + suffix,
+    username: 'test' + suffix.toLowerCase(),
+    password: localPassword, pin: '482193',
+  });
+  assert.equal(created.status, 201);
+  const tenantId = created.body?.data?.tenant?.id;
+  assert.match(tenantId, /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/);
+  return { identifier, password: localPassword, tenantId };
 }
 
 async function main() {
@@ -75,8 +109,12 @@ async function main() {
       console.log('MOD-005 real React→Nest anonymous-denial smoke PASS');
       console.log('No identity provisioned, no cash POST, no financial acceptance claim.');
     } else {
-      await page.locator('#identifier').fill(username);
-      await page.locator('#password').fill(password);
+      const first = seedFixtures
+        ? await createIsolatedFixture('A')
+        : { identifier: username, password, tenantId: null };
+      const second = seedFixtures ? await createIsolatedFixture('B') : null;
+      await page.locator('#identifier').fill(first.identifier);
+      await page.locator('#password').fill(first.password);
       await page.locator('#login').click();
       await page.waitForFunction(() => {
         const text = document.querySelector('#outcome')?.textContent ?? '';
@@ -89,6 +127,23 @@ async function main() {
       assert.equal(await page.locator('#auth').getAttribute('data-status'), 'authenticated');
       assert.ok(requests.includes('GET /api/v1/me'), 'real verified /me must be called');
       assert.ok(requests.includes('GET /api/v1/money/day'), 'real cash-day GET must be called');
+      const firstTenant = await page.locator('#auth').getAttribute('data-tenant');
+      assert.match(firstTenant, /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/);
+      if (seedFixtures) assert.equal(firstTenant, first.tenantId);
+      if (second) {
+        await page.locator('#logout').click();
+        await page.waitForFunction(() =>
+          document.querySelector('#auth')?.getAttribute('data-status') !== 'authenticated');
+        await page.locator('#identifier').fill(second.identifier);
+        await page.locator('#password').fill(second.password);
+        await page.locator('#login').click();
+        await page.waitForFunction(expected =>
+          document.querySelector('#auth')?.getAttribute('data-tenant') === expected,
+        second.tenantId);
+        assert.notEqual(firstTenant, second.tenantId);
+        assert.equal(await page.locator('#cash').getAttribute('data-mode'), 'connected');
+        console.log('Two independent real Nest test tenants, React session switching PASS');
+      }
       assert.deepEqual(errors, [], 'no React runtime errors');
       console.log('MOD-005 real React→Nest day-read smoke PASS; requests=' + requests.length);
       console.log('Mutation, tenant isolation and accounting acceptance are NOT yet covered.');
