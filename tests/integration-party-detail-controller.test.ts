@@ -37,6 +37,9 @@ const customer: TradingPartyDetail = {
 const supplier: TradingPartyDetail = {
   data: {
     ...customer.data,
+    customerGroupId: null,
+    customerGroupName: null,
+    creditLimitMinor: null,
     balance: {
       netMinor: -300_000,
       direction: 'PAYABLE',
