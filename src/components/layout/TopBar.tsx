@@ -48,7 +48,7 @@ const toneDot = {
 
 export function TopBar() {
   const { text, language } = useUiCopy();
-  const { setOpen, sessionOpen, expectedCash, canView, canStart, startBlocked, sessionDate, businessDate } = useCashSession();
+  const { setOpen, sessionOpen, expectedCash, canView, canStart, startBlocked, sessionDate, businessDate, enabled: cashEnabled } = useCashSession();
   const { state,actorId } = useTenantSettings();
   const activeEmployee=state.sections.team.employees.find(employee=>employee.id===actorId&&employee.active);
   const userName=activeEmployee?.name.trim()||text('User','ব্যবহারকারী');
@@ -147,7 +147,7 @@ export function TopBar() {
             </Button>
           )}
 
-          {state.sections.money.cashSession && canView && <button
+          {cashEnabled && canView && <button
             onClick={() => setOpen(true)}
             disabled={!sessionOpen&&(!canStart||startBlocked)}
             aria-label={sessionOpen?text("Count / close cash session","ক্যাশ গুনুন / সেশন বন্ধ করুন"):text("Start cash session","ক্যাশ সেশন শুরু করুন")}
