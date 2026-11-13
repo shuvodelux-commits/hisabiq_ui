@@ -122,7 +122,8 @@ async function run() {
         '<script type="module" src="/tests/mod006MoneyAccountsLiveHarness.tsx"></script>'+
         '</body></html>',
     }));
-    await page.goto('http://127.0.0.1:5198'+pagePath);
+    await page.goto('http://127.0.0.1:5198'+pagePath,
+      {waitUntil:'domcontentloaded',timeout:45_000});
     const cards=page.locator('[data-connected-money-account]');
     const cashA=page.locator('[data-connected-money-account="'+aCash+'"]');
     const cashB=page.locator('[data-connected-money-account="'+bCash+'"]');
