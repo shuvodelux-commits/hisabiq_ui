@@ -149,7 +149,7 @@ async function run() {
       await dialog.waitFor();
     };
     const closeDialog=async()=>{
-      await dialog.getByRole('button',{name:'Close',exact:true}).click();
+      await dialog.getByRole('button',{name:'Close',exact:true}).first().click();
       await dialog.waitFor({state:'detached'});
     };
     const injectOnce=async(path,interceptor)=>{
