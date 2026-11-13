@@ -344,13 +344,14 @@ async function exerciseReadOnly(browser, draftId) {
 
 
 /** P5D tests only; P5C's existing fixture, browser path and assertions remain unchanged. */
-async function sourcePage(browser, width, readOnly) {
+async function sourcePage(browser, width, readOnly, injectLostResponse = false) {
   const context = await browser.newContext({
     viewport: { width, height: 844 }, reducedMotion: 'reduce',
   });
   const page = await context.newPage();
   const requests = [];
   const errors = [];
+  const postCommit = { pending:injectLostResponse, id:'', error:'' };
   page.on('pageerror', () => errors.push('React page error'));
   await page.route('**/api/v1/**', async route => {
     // Never propagate Playwright exceptions: they can print authorization.
@@ -391,12 +392,31 @@ async function sourcePage(browser, width, readOnly) {
         (method === 'GET' || (!readOnly && ['POST','PUT','DELETE'].includes(method)));
       assert.ok(allowedSource || allowedDraft, 'P5D may use source reads and nonposting drafts only');
       requests.push({ method, path });
+      if (postCommit.pending && method === 'POST' &&
+          path === '/api/v1/purchases/drafts') {
+        postCommit.pending = false;
+        // Simulate the API committing, followed by loss of its response.
+        // Never emit errors or headers; Playwright may embed the test bearer.
+        try {
+          const committed = await route.fetch({ timeout:90_000 });
+          if (committed.status() !== 201) {
+            postCommit.error = 'Nest did not commit expected test draft';
+          } else {
+            const saved = await committed.json();
+            if (ULID.test(saved?.data?.id || '')) postCommit.id = saved.data.id;
+            else postCommit.error = 'Nest returned no committed draft ID';
+          }
+        } catch {
+          postCommit.error = 'Disposable API post-commit probe failed';
+        }
+        return route.abort('failed').catch(() => {});
+      }
       return route.continue();
     } catch {
       return route.abort('failed').catch(() => {});
     }
   });
-  return { context, page, requests, errors };
+  return { context, page, requests, errors, postCommit };
 }
 const parsedOutput = async (page, key) => JSON.parse(await textOf(page, key));
 function assertSnapshot(editor, supplierId, productId, unitFactor) {
@@ -457,7 +477,8 @@ async function negativeSourceProbes(knownSupplier, knownProduct) {
   assert.equal(ownSupplier.data.roles.includes('SUPPLIER'), true);
 }
 async function exercisePopulated(browser) {
-  const { context, page, requests, errors } = await sourcePage(browser, 320, false);
+  const { context, page, requests, errors, postCommit } =
+    await sourcePage(browser, 320, false, true);
   try {
     await page.goto(populatedFixtureUrl());
     await tap(page, 'login-a', 'login-a:ok');
@@ -487,8 +508,17 @@ async function exercisePopulated(browser) {
     }
     await negativeSourceProbes(supplierId, productId);
     await tap(page, 'prepare', 'prepare:ok');
+    const operationBeforeFailure = await textOf(page, 'operation-id');
+    await tap(page, 'create', 'create:error');
+    assert.equal(postCommit.error, '', 'Nest commit must precede lost network reply');
+    assert.match(postCommit.id, ULID);
+    assert.match(await textOf(page, 'error'), /create:(http|network|The network|Network)/i);
+    assert.equal(await textOf(page, 'operation-id'), operationBeforeFailure,
+      'Lost response must not invent a new creation operation ID');
     await tap(page, 'create', 'create:ok');
     const draftId = await textOf(page, 'draft-id');
+    assert.equal(draftId, postCommit.id,
+      'Explicit retry after lost response must return the same server document');
     const intent = await textOf(page, 'operation-id');
     assert.match(draftId, ULID); assert.match(intent, ULID);
     assert.equal(await textOf(page, 'version'), '1');
@@ -529,6 +559,21 @@ async function exercisePopulated(browser) {
     assert.equal(live.data.cart.editor.referenceNo, 'P5D-REAL-SOURCES');
     assert.deepEqual(live.data.cart.editor.lines, originalLines);
     assert.deepEqual(live.data.cart.editor.payments, originalPayments);
+    // A same-tenant reauthentication must invalidate prior selection/intent.
+    await tap(page, 'login-a', 'login-a:ok');
+    assert.equal(await textOf(page, 'source-supplier'), '');
+    const beforeReauthPosts = requests.filter(x => x.method === 'POST' &&
+      x.path === '/api/v1/purchases/drafts').length;
+    await tap(page, 'create', 'create:error');
+    assert.equal(requests.filter(x => x.method === 'POST' &&
+      x.path === '/api/v1/purchases/drafts').length, beforeReauthPosts,
+      'Old create intent cannot cross the reauthenticated session epoch');
+    await tap(page, 'select-sources', 'select-sources:ok');
+    await tap(page, 'list-active', 'list-active:ok');
+    assert.equal(await textOf(page, 'list-count'), '1');
+    assert.equal(await textOf(page, 'draft-id'), draftId);
+    await tap(page, 'load', 'load:ok');
+    assert.deepEqual(await parsedOutput(page, 'line-json'), originalLines);
     await tap(page, 'login-b', 'login-b:ok');
     assert.equal(await textOf(page, 'source-supplier'), '',
       'Switching business must clear previously verified supplier identity');
