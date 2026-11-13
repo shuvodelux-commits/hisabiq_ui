@@ -70,10 +70,16 @@ async function register(label) {
   };
 }
 async function seedUnit(actor) {
-  const value = await request('/api/v1/catalog/units', { name: 'Piece' }, actor.token);
-  success(value, 201, 'Create unit');
-  const units = value.body.data.units;
-  const piece = units.find(item => item.name === 'Piece');
+  // Real registration provisions the base Piece unit. seedTenant() in unit
+  // tests bypasses that path, so never assume the authenticated catalog is empty.
+  const listed = await request('/api/v1/catalog/units', undefined, actor.token, 'GET');
+  success(listed, 200, 'Read provisioned unit catalog');
+  let piece = listed.body.data.units.find(item => item.name === 'Piece');
+  if (piece === undefined) {
+    const value = await request('/api/v1/catalog/units', { name: 'Piece' }, actor.token);
+    success(value, 201, 'Create fallback Piece unit');
+    piece = value.body.data.units.find(item => item.name === 'Piece');
+  }
   assert.match(piece?.id, /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/);
   return piece.id;
 }
