@@ -7,11 +7,12 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import { SessionProvider, useSession } from '../src/integration/SessionProvider.tsx';
-import { TenantSettingsProvider } from '../src/settings/TenantSettingsProvider.tsx';
+import { TenantSettingsProvider, useTenantSettings } from '../src/settings/TenantSettingsProvider.tsx';
 import { Finance } from '../src/pages/Finance.tsx';
 
 function LiveControls() {
   const { snapshot, store } = useSession();
+  const { personal, updatePersonal } = useTenantSettings();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [result, setResult] = useState('');
@@ -32,6 +33,10 @@ function LiveControls() {
           run(() => store.refresh())}>Refresh bearer</button>
         <button type="button" id="p2c-logout" onClick={() =>
           run(() => store.logout())}>Logout</button>
+        <button type="button" id="p2c-language" onClick={() =>
+          updatePersonal({ language: personal.language === 'Bangla' ? 'English' : 'Bangla' })}>
+          Change language
+        </button>
         <p id="p2c-auth" data-status={snapshot.status}
           data-tenant={snapshot.status === 'authenticated' ? snapshot.tenantId : ''}
           data-epoch={snapshot.epoch}>{snapshot.status}</p>
