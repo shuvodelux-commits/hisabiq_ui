@@ -17,7 +17,7 @@ test('poisha formatting is exact and never rounds large integers through floatin
   assert.equal(purchaseMoney(1), '৳0.01');
   assert.equal(purchaseMoney(500), '৳5.00');
   assert.equal(purchaseMoney(123456789), '৳12,34,567.89');
-  assert.equal(purchaseMoney(Number.MAX_SAFE_INTEGER), '৳90,07,19,92,54,74,099.91');
+  assert.equal(purchaseMoney(Number.MAX_SAFE_INTEGER), '৳9,00,71,99,25,47,409.91');
 });
 test('redacted, null and invalid values are not silently converted to zero', () => {
   assert.equal(purchaseMoney(undefined), '—');
