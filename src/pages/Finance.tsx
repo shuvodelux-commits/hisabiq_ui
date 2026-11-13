@@ -1544,7 +1544,9 @@ function ConnectedMoneyAccountsRead() {
     const typeLabel = account.type === 'CASH' ? text('Cash', 'নগদ') :
       account.type === 'BANK' ? text('Bank', 'ব্যাংক') :
       account.type === 'MFS' ? text('Mobile banking', 'মোবাইল ব্যাংকিং') :
-      text('Lender loan · liability', 'ঋণদাতার পাওনা · দায়');
+      account.balanceMinor > 0
+        ? text('Lender overpaid · negative payable', 'ঋণদাতাকে বেশি পরিশোধ · ঋণাত্মক দেনা')
+        : text('Lender loan · liability', 'ঋণদাতার পাওনা · দায়');
     const Icon = account.type === 'CASH' ? Banknote : account.type === 'BANK' ? Landmark :
       account.type === 'MFS' ? WalletCards : ArrowDownLeft;
     return (
@@ -1567,14 +1569,15 @@ function ConnectedMoneyAccountsRead() {
             {account.status === 'ACTIVE' ? text('Active', 'সক্রিয়') : text('Inactive', 'নিষ্ক্রিয়')}
           </StatusBadge>
         </div>
-        <p className={'mt-4 text-2xl font-semibold ' + (loan ? 'text-danger' : 'text-ink')}>
-          {serverMoney(account.balanceMinor)}
+        <p className={'mt-4 text-2xl font-semibold ' + (loan ? (account.balanceMinor > 0 ? 'text-teal-700' : 'text-danger') : 'text-ink')}>
+          {serverMoney(loan ? -BigInt(account.balanceMinor) : account.balanceMinor)}
         </p>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10.5px] text-ink-400">
           <span>{text('Opening', 'শুরুর জের')} {account.openingAmountMinor === null
             ? text('Not recorded', 'দেওয়া নেই') : serverMoney(account.openingAmountMinor)}</span>
           <span>{loan ? text('Not available for payments', 'পেমেন্টে ব্যবহার করা যাবে না') :
-            account.openingDate ? account.openingDate : text('No activity date supplied','শেষ লেনদেনের তারিখ নেই')}</span>
+            account.openingDate ? text('Opening date:', 'শুরুর তারিখ:') + ' ' + account.openingDate :
+              text('Opening date not recorded', 'শুরুর তারিখ দেওয়া নেই')}</span>
         </div>
         <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
           <Button variant="outline" size="sm"
@@ -1679,9 +1682,9 @@ function ConnectedMoneyAccountsRead() {
             <section data-connected-money-liabilities="" className="mt-5">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-[13px] font-semibold text-ink">{text('Lender liabilities', 'ঋণদাতার পাওনা (দায়)')}</p>
+                  <p className="text-[13px] font-semibold text-ink">{text('Lender balances · payable / overpayment', 'ঋণদাতার জের · দেনা / বেশি পরিশোধ')}</p>
                   <p className="text-[11px] text-ink-500">
-                    {text('Not included in spendable cash, bank or mobile balances.', 'ব্যবহারযোগ্য ক্যাশ, ব্যাংক বা মোবাইল টাকার সঙ্গে যোগ হয় না।')}
+                    {text('Net lender payable; negative means overpaid. Never included in liquid money.', 'ঋণদাতার মোট দেনা; ঋণাত্মক হলে বেশি পরিশোধ। ব্যবহারযোগ্য টাকার সঙ্গে যোগ হয় না।')}
                   </p>
                 </div>
                 <p className="text-sm font-semibold text-danger">{serverMoney(data.totalLoanMinor)}</p>
