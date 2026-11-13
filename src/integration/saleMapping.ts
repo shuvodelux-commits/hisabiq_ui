@@ -1,0 +1,245 @@
+import { ApiError } from './errors.ts';
+
+/**
+ * MOD-007 M7-01b1: wire-only POS and customer read models.
+ *
+ * These are the CURRENT Nest adoption API shapes, not HisabIQ cart Product/Party
+ * objects. In particular, no multi-unit conversion chain or independent price
+ * can be inferred from a POS product's base-unit price.
+ */
+export type ServerPosStockStatus =
+  'IN_STOCK' | 'LOW_STOCK' | 'ZERO_STOCK' | 'NEGATIVE_STOCK';
+export type ServerNegativeStockPolicy = 'BLOCK' | 'WARN' | 'ALLOW';
+
+export interface ServerPosProduct {
+  id: string;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  brandName: string | null;
+  categoryName: string | null;
+  unitName: string;
+  sellingPriceMinor: number;
+  groupPriceMinor: number | null;
+  qtyOnHand: number;
+  sellableOwnedQty: number;
+  minStockQty: number;
+  stockStatus: ServerPosStockStatus;
+  hasImage: boolean;
+  tracksSerial: boolean;
+  searchText: string;
+  /** Permission-redacted by the server: key absent without inventory.cost.view. */
+  purchasePriceMinor?: number;
+}
+
+export interface ServerPosProductList {
+  items: ServerPosProduct[];
+  nextCursor: string | null;
+  negativeStockPolicy: ServerNegativeStockPolicy;
+}
+
+export type ServerTradingRole = 'CUSTOMER' | 'SUPPLIER' | 'VENDOR';
+export type ServerPartyStatus = 'ACTIVE' | 'INACTIVE';
+export type ServerBalanceDirection = 'RECEIVABLE' | 'PAYABLE' | 'SETTLED';
+
+export interface ServerCustomerBalance {
+  netMinor: number;
+  direction: ServerBalanceDirection;
+  outstandingMinor: number;
+  advanceMinor: number;
+}
+
+export interface ServerCustomerDirectoryEntry {
+  id: string;
+  name: string;
+  roles: ServerTradingRole[];
+  phone: string | null;
+  address: string | null;
+  guardianName: string | null;
+  nid: string | null;
+  email: string | null;
+  notes: string | null;
+  customerGroupId: string | null;
+  customerGroupName: string | null;
+  creditLimitMinor: number | null;
+  status: ServerPartyStatus;
+  isSystemReserved: boolean;
+  version: number;
+  balance: ServerCustomerBalance;
+  hasLedgerEntries: boolean;
+}
+
+export interface ServerCustomerDirectory {
+  data: ServerCustomerDirectoryEntry[];
+  page: { nextCursor: string | null; hasMore: boolean };
+  summary: {
+    total: number;
+    active: number;
+    inactive: number;
+    ungrouped: number;
+    totalOutstandingMinor: number;
+    totalAdvanceMinor: number;
+    overCreditLimit: number;
+  };
+}
+
+export interface ServerOpenCustomerInvoice {
+  id: string;
+  number: string;
+  businessDate: string;
+  dueDate: string | null;
+  grandTotalMinor: number;
+  outstandingMinor: number;
+}
+
+export interface ServerCustomerStanding {
+  partyId: string | null;
+  name: string | null;
+  phone: string | null;
+  /** Journal-derived, independent quantities in integer poisha. */
+  dueMinor: number;
+  advanceMinor: number;
+  creditLimitMinor: number | null;
+  openInvoices: ServerOpenCustomerInvoice[];
+}
+export interface ServerCustomerStandingEnvelope {
+  data: ServerCustomerStanding;
+}
+
+const ID = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const stockStatuses: readonly string[] = ['IN_STOCK', 'LOW_STOCK', 'ZERO_STOCK', 'NEGATIVE_STOCK'];
+const negativePolicies: readonly string[] = ['BLOCK', 'WARN', 'ALLOW'];
+const partyRoles: readonly string[] = ['CUSTOMER', 'SUPPLIER', 'VENDOR'];
+const directions: readonly string[] = ['RECEIVABLE', 'PAYABLE', 'SETTLED'];
+const partyStatuses: readonly string[] = ['ACTIVE', 'INACTIVE'];
+
+function invalid(): never {
+  throw new ApiError('protocol', 'POS read request or response could not be verified');
+}
+function record(x: unknown): x is Record<string, unknown> {
+  return x !== null && typeof x === 'object' && !Array.isArray(x);
+}
+function exact(x: Record<string, unknown>, required: readonly string[], optional: readonly string[] = []): boolean {
+  return required.every(key => Object.prototype.hasOwnProperty.call(x, key)) &&
+    Object.keys(x).every(key => required.includes(key) || optional.includes(key));
+}
+function int(x: unknown): x is number {
+  return typeof x === 'number' && Number.isSafeInteger(x);
+}
+function nonnegative(x: unknown): x is number {
+  return int(x) && x >= 0;
+}
+function id(x: unknown): x is string {
+  return typeof x === 'string' && ID.test(x);
+}
+function nullableId(x: unknown): x is string | null {
+  return x === null || id(x);
+}
+function nullableText(x: unknown): x is string | null {
+  return x === null || typeof x === 'string';
+}
+function day(x: unknown): x is string {
+  if (typeof x !== 'string' || !DAY.test(x)) return false;
+  const [year, month, date] = x.split('-').map(Number);
+  return year >= 1 && year <= 9999 && month >= 1 && month <= 12 &&
+    date >= 1 && date <= new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+const posKeys = [
+  'id', 'name', 'sku', 'barcode', 'brandName', 'categoryName', 'unitName',
+  'sellingPriceMinor', 'groupPriceMinor', 'qtyOnHand', 'sellableOwnedQty',
+  'minStockQty', 'stockStatus', 'hasImage', 'tracksSerial', 'searchText',
+];
+function posProduct(x: unknown): x is ServerPosProduct {
+  return record(x) && exact(x, posKeys, ['purchasePriceMinor']) &&
+    id(x.id) && typeof x.name === 'string' &&
+    nullableText(x.sku) && nullableText(x.barcode) &&
+    nullableText(x.brandName) && nullableText(x.categoryName) &&
+    typeof x.unitName === 'string' && int(x.sellingPriceMinor) &&
+    (x.groupPriceMinor === null || int(x.groupPriceMinor)) &&
+    int(x.qtyOnHand) && nonnegative(x.sellableOwnedQty) &&
+    int(x.minStockQty) && stockStatuses.includes(String(x.stockStatus)) &&
+    typeof x.hasImage === 'boolean' && typeof x.tracksSerial === 'boolean' &&
+    typeof x.searchText === 'string' &&
+    (!Object.prototype.hasOwnProperty.call(x, 'purchasePriceMinor') ||
+      int(x.purchasePriceMinor));
+}
+export function decodePosProducts(raw: unknown): ServerPosProductList {
+  if (!record(raw) || !exact(raw, ['items', 'nextCursor', 'negativeStockPolicy']) ||
+      !Array.isArray(raw.items) || !raw.items.every(posProduct) ||
+      !(raw.nextCursor === null || typeof raw.nextCursor === 'string') ||
+      !negativePolicies.includes(String(raw.negativeStockPolicy))) return invalid();
+  return raw as unknown as ServerPosProductList;
+}
+
+const balanceKeys = ['netMinor', 'direction', 'outstandingMinor', 'advanceMinor'];
+function balance(x: unknown): x is ServerCustomerBalance {
+  return record(x) && exact(x, balanceKeys) &&
+    int(x.netMinor) && directions.includes(String(x.direction)) &&
+    nonnegative(x.outstandingMinor) && nonnegative(x.advanceMinor);
+}
+const partyKeys = [
+  'id', 'name', 'roles', 'phone', 'address', 'guardianName', 'nid', 'email',
+  'notes', 'customerGroupId', 'customerGroupName', 'creditLimitMinor',
+  'status', 'isSystemReserved', 'version', 'balance', 'hasLedgerEntries',
+];
+function customer(x: unknown): x is ServerCustomerDirectoryEntry {
+  return record(x) && exact(x, partyKeys) &&
+    id(x.id) && typeof x.name === 'string' &&
+    Array.isArray(x.roles) && x.roles.includes('CUSTOMER') &&
+    x.roles.every(role => partyRoles.includes(String(role))) &&
+    nullableText(x.phone) && nullableText(x.address) &&
+    nullableText(x.guardianName) && nullableText(x.nid) &&
+    nullableText(x.email) && nullableText(x.notes) &&
+    nullableId(x.customerGroupId) && nullableText(x.customerGroupName) &&
+    (x.creditLimitMinor === null || int(x.creditLimitMinor)) &&
+    partyStatuses.includes(String(x.status)) &&
+    typeof x.isSystemReserved === 'boolean' &&
+    int(x.version) && x.version >= 0 && balance(x.balance) &&
+    typeof x.hasLedgerEntries === 'boolean';
+}
+const summaryKeys = [
+  'total', 'active', 'inactive', 'ungrouped', 'totalOutstandingMinor',
+  'totalAdvanceMinor', 'overCreditLimit',
+];
+function summary(x: unknown): boolean {
+  return record(x) && exact(x, summaryKeys) &&
+    summaryKeys.every(key => nonnegative(x[key]));
+}
+export function decodeCustomerDirectory(raw: unknown): ServerCustomerDirectory {
+  if (!record(raw) || !exact(raw, ['data', 'page', 'summary']) ||
+      !Array.isArray(raw.data) || !raw.data.every(customer) ||
+      !record(raw.page) || !exact(raw.page, ['nextCursor', 'hasMore']) ||
+      !nullableId(raw.page.nextCursor) || typeof raw.page.hasMore !== 'boolean' ||
+      !summary(raw.summary)) return invalid();
+  return raw as unknown as ServerCustomerDirectory;
+}
+
+const openInvoiceKeys = [
+  'id', 'number', 'businessDate', 'dueDate', 'grandTotalMinor', 'outstandingMinor',
+];
+function openInvoice(x: unknown): x is ServerOpenCustomerInvoice {
+  return record(x) && exact(x, openInvoiceKeys) &&
+    id(x.id) && typeof x.number === 'string' &&
+    day(x.businessDate) && (x.dueDate === null || day(x.dueDate)) &&
+    int(x.grandTotalMinor) && int(x.outstandingMinor);
+}
+const standingKeys = [
+  'partyId', 'name', 'phone', 'dueMinor', 'advanceMinor', 'creditLimitMinor', 'openInvoices',
+];
+export function decodeCustomerStanding(raw: unknown): ServerCustomerStandingEnvelope {
+  if (!record(raw) || !exact(raw, ['data']) || !record(raw.data) ||
+      !exact(raw.data, standingKeys) ||
+      !nullableId(raw.data.partyId) ||
+      !nullableText(raw.data.name) || !nullableText(raw.data.phone) ||
+      !int(raw.data.dueMinor) || !int(raw.data.advanceMinor) ||
+      !(raw.data.creditLimitMinor === null || int(raw.data.creditLimitMinor)) ||
+      !Array.isArray(raw.data.openInvoices) ||
+      !raw.data.openInvoices.every(openInvoice)) return invalid();
+  return raw as unknown as ServerCustomerStandingEnvelope;
+}
+
+export function isCanonicalPosPartyId(value: unknown): value is string {
+  return id(value);
+}
