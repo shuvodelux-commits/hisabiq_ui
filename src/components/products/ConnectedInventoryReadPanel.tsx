@@ -11,7 +11,7 @@ import type {
   ProductReference,
 } from '../../integration/inventory-projection.ts';
 import type { UiLanguage } from '../../i18n/uiCopy.ts';
-import { formatNumber, taka } from '../../utils/currency.ts';
+import { taka } from '../../utils/currency.ts';
 
 /**
  * MOD-003 T01-R/P2B1 — UNMOUNTED read-only adapter presentation.
