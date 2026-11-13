@@ -270,3 +270,23 @@ test('no retry/cache, disposal prevents resurrection and unsubscribes session', 
   assert.equal(called, 2);
   await assert.rejects(reader.loadPartySetup(), ApiError);
 });
+
+
+test('custom transport missing setup fails closed without silently invoking network', async () => {
+  const session = new FakeSession();
+  const controller = new TradingPartyReadController(session, {
+    list: async () => { throw new Error('Unexpected directory'); },
+    ledger: async () => { throw new Error('Unexpected ledger'); },
+    opening: async () => { throw new Error('Unexpected historical opening'); },
+    // setup is intentionally absent; never use defaultTransport as fallback.
+  });
+  await assert.rejects(controller.loadPartySetup(), (error: unknown) =>
+    error instanceof ApiError && error.kind === 'protocol');
+  const snapshot = controller.getSnapshot();
+  assert.equal(snapshot.status, 'error');
+  if (snapshot.status === 'error') {
+    assert.equal(snapshot.errorKind, 'protocol');
+    assert.equal(snapshot.role, null);
+  }
+  controller.dispose();
+});
