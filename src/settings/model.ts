@@ -210,7 +210,7 @@ export function defaults(tenantId = currentBusinessId): TenantSettings {
         guardian: true,
         address: true,
         defaultPayment: "Cash",
-        rounding: "Nearest ৳5",
+        rounding: "Nearest ৳1",
         shortage: "Ask every time",
         priceOverride: "Authorized employee",
         discountLimit: 100,
@@ -544,6 +544,12 @@ export function parseSettings(
         const owner=v.sections.team.roles.find((r:unknown)=>plain(r)&&r.id==='owner');
         if(plain(owner)&&Array.isArray(owner.permissions)&&owner.permissions.every((p:unknown)=>typeof p==='string')&&['view','business','sales','products','purchases','money','invoices','team','notifications','export','import'].every(p=>(owner.permissions as unknown[]).includes(p))){owner.permissions=[...new Set([...owner.permissions,...permissions])];}
       }
+      // New invoices use whole taka. Keep old document snapshots untouched;
+      // normalize legacy persisted preference when loading settings only.
+      if (plain(v.sections.sales) &&
+          (v.sections.sales.rounding === 'Nearest ৳5' || v.sections.sales.rounding === 'No rounding')) {
+        v.sections.sales.rounding = 'Nearest ৳1';
+      }
       if(plain(v.sections.business)){
         if(v.sections.business.regional===undefined)v.sections.business.regional=regionalDefaults();
         if(v.sections.business.tax===undefined)v.sections.business.tax=taxDefaults();
@@ -667,4 +673,14 @@ export function saveSection<K extends BusinessSection>(
 export function roundInvoice(net: number, setting: SalesSettings["rounding"]) {
   const step = setting === "Nearest ৳5" ? 5 : setting === "Nearest ৳1" ? 1 : 0;
   return step ? Math.round(net / step) * step : Math.round(net * 100) / 100;
+}
+
+/** Mandatory nearest-taka total for NEW invoices only, after discounts.
+ * Existing posted sources must use their historical snapshot via roundInvoice.
+ */
+export function roundNewInvoice(net: number): number {
+  if (!Number.isFinite(net) || net < 0 || !Number.isSafeInteger(Math.round(net))) {
+    throw new RangeError('Enter a valid non-negative invoice total');
+  }
+  return Math.round(net);
 }

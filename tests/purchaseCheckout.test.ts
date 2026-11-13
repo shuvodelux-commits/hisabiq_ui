@@ -14,11 +14,14 @@ test('purchase discount clamps to bill and percent is capped at 100', () => {
   assert.equal(calculatePurchaseCheckout(2000, '150', 'percent', 'No rounding', []).total, 0);
   assert.equal(calculatePurchaseCheckout(2000, '3000', 'amount', 'No rounding', []).total, 0);
 });
-test('rounding matches POS sales rounding setting and is applied after discount', () => {
+test('new purchase checkout rounds final net to nearest ৳1, while posted source keeps frozen ৳5 rule', () => {
   const result = calculatePurchaseCheckout(5482.5, '100', 'amount', 'Nearest ৳5', []);
   assert.equal(result.net, 5382.5);
-  assert.equal(result.total, 5385);
-  assert.equal(result.rounding, 2.5);
+  assert.equal(result.total, 5383);
+  assert.equal(result.rounding, 0.5);
+  const historical = calculatePurchaseCheckout(5482.5, '100', 'amount', 'Nearest ৳5', [], true);
+  assert.equal(historical.total, 5385);
+  assert.equal(historical.rounding, 2.5);
 });
 test('split supplier payments and Remaining never create customer-style change', () => {
   const result = calculatePurchaseCheckout(2000, '100', 'amount', 'No rounding', [

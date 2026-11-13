@@ -6,7 +6,7 @@ import { resolveLotSalePrice } from '../utils/lotSellingPrice';
 import { availableStockLots } from '../data/erpDemoStore';
 import { productUnitFactor } from '../utils/unitChain';
 import { useTenantSettings } from '../settings/TenantSettingsProvider';
-import { roundInvoice } from '../settings/model';
+import { roundNewInvoice } from '../settings/model';
 import {saleLineTotal} from '../utils/posMultiUnit';
 import type {FrozenUnitProfile} from '../utils/multiUnitTransactions';
 
@@ -196,14 +196,14 @@ export function usePosCart(initialLines:()=>CartLine[]=demoCart) {
     const d = posMoney(discount) || 0;
     const discountAmt = Math.min(subtotal, discountMode === 'percent' ? subtotal * d / 100 : d);
     const net = subtotal - discountAmt;
-    const total = net > 0 ? roundInvoice(net, settings.rounding) : 0;
+    const total = net > 0 ? roundNewInvoice(net) : 0;
     const rounding = total - net;
     const paidNum = payments.reduce((sum, payment) => sum + (posMoney(payment.amount) || 0), 0);
     const due = Math.max(0, total - paidNum);
     const change = Math.max(0, paidNum - total);
     const itemCount = lines.length;
-    return { subtotal, discountAmt, net, total, rounding, roundingLabel: settings.rounding === 'No rounding' ? 'Rounding (off)' : settings.rounding === 'Nearest ৳1' ? 'Rounding (to ৳1)' : 'Rounding (to ৳5)', paidNum, due, change, itemCount };
-  }, [lines, discount, discountMode, payments, settings.rounding]);
+    return { subtotal, discountAmt, net, total, rounding, roundingLabel: 'Rounding (to ৳1)', paidNum, due, change, itemCount };
+  }, [lines, discount, discountMode, payments]);
 
   return {
     lines,

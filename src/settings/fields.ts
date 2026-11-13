@@ -201,9 +201,9 @@ export const settingsFields: Partial<Record<BusinessSection, SettingField[]>> =
         "rounding",
         "Invoice rounding",
         "বিলের রাউন্ডিং",
-        "Updates the POS total; quantity and unit conversions are unchanged.",
+        "New bills round the final amount to the nearest ৳1; existing posted bills stay unchanged.",
         "select",
-        { options: ["Nearest ৳5", "Nearest ৳1", "No rounding"], live: true },
+        { options: ["Nearest ৳1"], live: true },
       ),
       f(
         "shortage",
