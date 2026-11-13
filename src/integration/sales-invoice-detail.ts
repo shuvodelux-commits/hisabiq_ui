@@ -202,7 +202,7 @@ function line(value: unknown, allocationIds: Set<string>): value is SaleDetailLi
   if (!exact(value, lineFields, ['costMinor']) || !id(value.id) || !id(value.productId) ||
       !str(value.productName) || !nullableStr(value.displayName) || !str(value.unitName) ||
       !integers(value, ['qty', 'unitPriceMinor', 'lineDiscountMinor', 'lineTotalMinor',
-        'discountShareMinor', 'netAmountMinor']) ||
+        'discountShareMinor', 'netAmountMinor']) || value.qty <= 0 ||
       !choice(value.source, sourceTypes) || !nullableId(value.vendorPartyId) ||
       !nullableStr(value.vendorName) || typeof value.isProvisionalCost !== 'boolean' ||
       typeof value.tracksSerial !== 'boolean' || !Array.isArray(value.allocations) ||
@@ -250,7 +250,7 @@ export function decodeSalesInvoiceDetail(raw: unknown): ServerSaleDetailEnvelope
       !choice(sale.status, statuses) || !nullableStr(sale.notes) ||
       !Array.isArray(sale.lines) || !Array.isArray(sale.payments) ||
       !integers(sale, ['itemsTotalMinor', 'discountMinor', 'grandTotalMinor',
-        'paidMinor', 'dueMinor', 'changeMinor', 'advanceMinor', 'version']) ||
+        'paidMinor', 'dueMinor', 'changeMinor', 'advanceMinor', 'version']) || sale.version < 0 ||
       !choice(sale.ageing, ages) ||
       !(sale.presentation === null || presentation(sale.presentation)) ||
       !Array.isArray(sale.receipts) || !Array.isArray(sale.warnings) ||
