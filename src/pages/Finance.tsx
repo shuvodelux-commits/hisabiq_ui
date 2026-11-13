@@ -1552,7 +1552,7 @@ function ConnectedMoneyAccountsRead() {
     return (
       <div key={account.id} data-connected-money-account={account.id}
         data-money-account-type={account.type}
-        className="rounded-xl border border-border bg-card p-4">
+        className="min-w-0 rounded-xl border border-border bg-card p-4">
         <div className="flex items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
             <Icon className="size-4" aria-hidden="true" />
@@ -1675,7 +1675,7 @@ function ConnectedMoneyAccountsRead() {
               </div>
             ))}
           </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {renderCards(liquid)}
           </div>
           {loans.length > 0 && (
@@ -1689,7 +1689,7 @@ function ConnectedMoneyAccountsRead() {
                 </div>
                 <p className="text-sm font-semibold text-danger">{serverMoney(data.totalLoanMinor)}</p>
               </div>
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{renderCards(loans)}</div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{renderCards(loans)}</div>
             </section>
           )}
           {permitted.length === 0 && <p className="rounded-lg border border-border p-4 text-sm text-ink-500">
