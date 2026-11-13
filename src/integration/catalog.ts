@@ -63,7 +63,7 @@ function catalogEntry(value: unknown, allowed: readonly string[]): value is Serv
   return record(value) &&
     Object.keys(value).every(key => allowed.includes(key)) &&
     validId(value.id) && typeof value.name === 'string' &&
-    (!Object.hasOwn(value, 'nameBn') ||
+    (!Object.prototype.hasOwnProperty.call(value, 'nameBn') ||
       value.nameBn === null || typeof value.nameBn === 'string');
 }
 function entry(value: unknown): value is ServerCatalogEntry {
@@ -72,12 +72,12 @@ function entry(value: unknown): value is ServerCatalogEntry {
 function unitEntry(value: unknown): value is ServerUnit {
   return catalogEntry(value, ['id', 'name', 'nameBn', 'symbol']) &&
     record(value) &&
-    (!Object.hasOwn(value, 'symbol') ||
+    (!Object.prototype.hasOwnProperty.call(value, 'symbol') ||
       value.symbol === null || typeof value.symbol === 'string');
 }
 function category(value: unknown): value is ServerCategory {
   return catalogEntry(value, ['id', 'name', 'nameBn', 'parentId']) &&
-    record(value) && Object.hasOwn(value, 'parentId') &&
+    record(value) && Object.prototype.hasOwnProperty.call(value, 'parentId') &&
     (value.parentId === null || validId(value.parentId));
 }
 function features(value: unknown): value is ServerCatalogFeatures {
