@@ -2,6 +2,8 @@
 
 > **Binding owner override, 2026-11-13:** every HisabIQ engineering build must **actually use the installed `/super-build` skill**, via either merged ChatGPT-assisted `super-build-chatgpt.py` or a verified native Codex **Sol 6.1 Medium** executor. If neither is available, stop rather than substitute an informal manual build. **Write and execute comprehensive automated tests for every affected business rule and applicable scenario.** No prior no-test instruction survives for HisabIQ. Missing, blocked or failing required scenarios mean **NOT MERGE-READY**, regardless of static build or CI success. Read both AGENTS.md files for full precedence, coverage matrix and isolated-DB requirements.
 
+The detailed per-function and per-state test matrix, exact-SHA evidence, missing-case blocker rules, independent Super QA and Super Review gates are defined in [Mandatory Super Build and scenario-testing policy](SUPER_BUILD_TEST_POLICY.md).
+
 Revision 2 ordering is governed by [integrate then extend](../HISABIQ_INTEGRATE_THEN_EXTEND_PLAN.md) and [cash transaction classification](CASH_SESSION_POLICY.md). Stage A compatible integration precedes Stage B missing backend capabilities; no UI removal or fake posting. Historical opening balances do not require a cash session.
 
 This document prepares future implementation. It authorizes no worker startup, issue mutation, database initialization, merge or deployment in this planning session.
