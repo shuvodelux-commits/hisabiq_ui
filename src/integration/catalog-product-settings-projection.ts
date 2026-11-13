@@ -51,7 +51,7 @@ export interface ConnectedCatalogUnit extends ConnectedCatalogBase {
   readonly unitKind: null;
 }
 
-export interface ConnectedCatalogBrand extends ConnectedCatalogBase {}
+export type ConnectedCatalogBrand = ConnectedCatalogBase;
 
 export interface ConnectedCatalogCategory extends ConnectedCatalogBase {
   readonly parentId: string | null;
