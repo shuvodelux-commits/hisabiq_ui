@@ -79,7 +79,7 @@ function isOptionalDay(value: unknown): boolean {
   return value === null || (typeof value === 'string' && dayPattern.test(value));
 }
 
-function verifySimpleCreate(raw: unknown): ServerSimpleProductCreateInput {
+export function verifySimpleCreate(raw: unknown): ServerSimpleProductCreateInput {
   if (!isRecord(raw) || Object.keys(raw).length !== allowedKeys.length ||
       !allowedKeys.every(key => Object.prototype.hasOwnProperty.call(raw, key))) return invalid();
 
