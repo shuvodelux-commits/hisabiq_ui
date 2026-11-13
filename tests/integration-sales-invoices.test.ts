@@ -152,6 +152,8 @@ test('R09L-08 query whitelist, unsafe date/cursor, limit and token fail before f
       () => readSalesInvoices('a', { fromDate: '2026-02-30' }),
       () => readSalesInvoices('a', { partyId: 'not-an-id' }),
       () => readSalesInvoices('a', { origin: 'DRAFT' as 'ONLINE' }),
+      () => readSalesInvoices('a', { origin: null } as never),
+      () => readSalesInvoices('a', { origin: 7 } as never),
       () => readSalesInvoices('a', { other: true } as never),
       () => readSalesInvoices('a', { search: 'x'.repeat(65) }),
       () => readSalesInvoices('a', {}, undefined, -1),
