@@ -160,8 +160,29 @@ async function main() {
         assert.match(await page.locator('#outcome').textContent(), /^confirmed:read:/,
           'Real authenticated cash-day read must succeed');
         assert.equal(await page.locator('#cash').getAttribute('data-mode'), 'connected');
+        assert.equal(await page.locator('#cash').getAttribute('data-can-view'), 'true',
+          'Authenticated owner must hold permission to view cash day');
+        assert.equal(await page.locator('#cash').getAttribute('data-open'), 'false',
+          'Demo account openings are not an open cash-day session');
         assert.equal(await page.locator('#cash').getAttribute('data-today'), '',
           'Historical demo openings must not automatically create an open cash session');
+        await page.locator('#refresh').click();
+        await page.waitForFunction(() => {
+          const result = document.querySelector('#outcome')?.textContent ?? '';
+          return result.startsWith('confirmed:refresh:') || result.startsWith('failed:refresh:');
+        });
+        assert.match(await page.locator('#outcome').textContent(), /^confirmed:refresh:/,
+          'Real token rotation must succeed');
+        assert.equal(await page.locator('#auth').getAttribute('data-tenant'),
+          privateFixture.mapping.tenantId, 'Same tenant after refresh');
+        await page.locator('#read-day').click();
+        await page.waitForFunction(() => {
+          const result = document.querySelector('#outcome')?.textContent ?? '';
+          return result.startsWith('confirmed:read:') || result.startsWith('failed:read:');
+        });
+        assert.match(await page.locator('#outcome').textContent(), /^confirmed:read:/,
+          'Cash-day read after token rotation must succeed');
+        assert.equal(await page.locator('#cash').getAttribute('data-open'), 'false');
         assert.ok(!requests.some(value =>
           /^(POST|PUT|PATCH|DELETE) \/api\/v1\/(money|sales|purchases|parties|inventory|expenses)/.test(value)),
           'Read-only smoke must not make economic business writes');
