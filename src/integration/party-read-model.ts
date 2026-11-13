@@ -1,8 +1,11 @@
+import { ApiError } from './errors.ts';
 import {
   decodeTradingLedger,
+  decodeHistoricalPartyOpening,
   decodeTradingPartyDetail,
   decodeTradingPartyList,
   type TradingLedger,
+  type HistoricalPartyOpeningEnvelope,
   type TradingPartyDetail,
   type TradingPartyList,
   type TradingRole,
@@ -212,6 +215,55 @@ export function projectTradingRoleLedger(
     page: {
       nextCursor: checked.page.nextCursor,
       hasMore: checked.page.hasMore,
+    },
+  };
+}
+
+
+/**
+ * One historical OPENING_BALANCE source document for exactly one trading role.
+ * Distinct from TradingRoleLedgerView.serverOpeningNet: a ledger's opening
+ * snapshot is a balance at a page/window boundary, not this posted document.
+ *
+ * A documented absence (opening:null) differs from a stale/aborted controller
+ * read (controller returns null). Neither implies an opening of zero taka.
+ * This projection never generates/queries a cash session or a money account.
+ */
+export interface TradingHistoricalOpeningView {
+  partyId: string;
+  selectedRole: TradingRole;
+  opening: null | {
+    openingId: string;
+    sourceNumber: string;
+    direction: 'RECEIVABLE' | 'PAYABLE';
+    amountMinor: number;
+    businessDate: string;
+    version: number;
+  };
+}
+const partyUlid = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
+
+/** Server source identity and financial direction are preserved verbatim. */
+export function projectTradingHistoricalOpening(
+  selectedRole: TradingRole,
+  expectedPartyId: string,
+  payload: HistoricalPartyOpeningEnvelope,
+): TradingHistoricalOpeningView {
+  if (typeof expectedPartyId !== 'string' || !partyUlid.test(expectedPartyId)) {
+    throw new ApiError('protocol', 'Opening source Party identity could not be verified');
+  }
+  const verified = decodeHistoricalPartyOpening(payload, selectedRole);
+  const document = verified.data;
+  return {
+    partyId: expectedPartyId,
+    selectedRole,
+    opening: document === null ? null : {
+      openingId: document.id,
+      sourceNumber: document.number,
+      direction: document.direction,
+      amountMinor: document.amountMinor,
+      businessDate: document.businessDate,
+      version: document.version,
     },
   };
 }
