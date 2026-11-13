@@ -343,7 +343,18 @@ async function main() {
       'saving resumed draft updates it rather than duplicating');
     await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Delete' }).click();
     await page.locator('[data-purchase-drafts-menu]').getByRole('button', { name: 'Delete', exact: true }).last().click();
-    assert.match(await page.locator('[data-purchase-drafts-menu]').innerText(), /No saved purchase drafts/);
+    // Draft deletion uses a second, source-owned Recycle Bin confirmation.
+    // The menu's two clicks only request deletion; they must never remove stock or data.
+    const recycleConfirm = page.getByRole('dialog', { name: /Move to Recycle Bin\?/ });
+    await recycleConfirm.waitFor({ state: 'visible' });
+    assert.match(await page.locator('[data-purchase-drafts-trigger]').innerText(), /Drafts \(1\)/,
+      'the draft must survive until Recycle Bin confirmation');
+    await recycleConfirm.getByRole('button', { name: 'Delete', exact: true }).click();
+    await recycleConfirm.waitFor({ state: 'hidden' });
+    const draftsTriggerAfterDelete = page.locator('[data-purchase-drafts-trigger]');
+    await draftsTriggerAfterDelete.getByText('Drafts (0)').waitFor({ state: 'visible' });
+    if (!(await page.locator('[data-purchase-drafts-menu]').isVisible())) await draftsTriggerAfterDelete.click();
+    await page.locator('[data-purchase-drafts-menu]').getByText('No saved purchase drafts.').waitFor({ state: 'visible' });
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await page.getByRole('dialog', { name: 'Leave this purchase?' }).getByRole('button', { name: 'Discard' }).click();
