@@ -77,7 +77,9 @@ function productBody(name, pieceId, boxId, conversion = true) {
     description: null, defaultDiscountType: null,
     defaultDiscountValue: null, offerEnabled: false,
     offerPriceMinor: null, offerStartDate: null, offerEndDate: null,
-    tracksExpiry: true, tracksSerial: true,
+    // The default tenant setting disables expiry tracking until explicitly enabled.
+    // Serial/expiry text below is preserved only as an opaque draft snapshot.
+    tracksExpiry: false, tracksSerial: false,
     conversionUnitId: conversion ? boxId : null,
     conversionFactorQty: conversion ? 20_000 : null,
   };
