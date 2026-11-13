@@ -85,7 +85,7 @@ function generateCreateOperationId(): string {
   }
   const result = Array<string>(10);
   for (let index = 9; index >= 0; index -= 1) {
-    result[index] = CROCKFORD[clock % 32]!;
+    result[index] = CROCKFORD.charAt(clock % 32);
     clock = Math.floor(clock / 32);
   }
   const bytes = globalThis.crypto.getRandomValues(new Uint8Array(10));
