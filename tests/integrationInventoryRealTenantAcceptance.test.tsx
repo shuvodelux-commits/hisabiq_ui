@@ -71,6 +71,18 @@ function InventoryProbe() {
     return () => controller.abort();
   }, [snapshot]);
 
+  // Render-time scope guard: useEffect cleanup runs *after* React's commit.
+  // Never display a previous tenant/user/epoch's cost-bearing projection even
+  // for one frame while a new verified session is becoming active.
+  const currentScope = snapshot.status === 'authenticated'
+    ? snapshot.tenantId + '/' + snapshot.userId + '/' + String(snapshot.epoch)
+    : null;
+  const visibleData = read.state === 'loaded' && read.data.scope === currentScope
+    ? read.data : null;
+  const visibleStatus = currentScope === null ? 'unloaded'
+    : visibleData !== null ? 'loaded'
+    : read.state === 'failed' ? 'failed' : 'loading';
+
   function login(): void {
     setAuthMessage('loading');
     void store.loginWithPassword(identifier, password)
@@ -102,15 +114,17 @@ function InventoryProbe() {
       <p id="p2b0-identity"
         data-status={snapshot.status}
         data-tenant={snapshot.status === 'authenticated' ? snapshot.tenantId : ''}
+        data-user={snapshot.status === 'authenticated' ? snapshot.userId : ''}
         data-epoch={snapshot.epoch}>
         {snapshot.status}
       </p>
       <section id="p2b0-read"
-        data-status={read.state}
-        data-tenant={read.state === 'loaded' ? read.data.scope.split('/')[0] : ''}>
-        {read.state === 'loaded'
-          ? <pre id="p2b0-projection">{JSON.stringify(read.data)}</pre>
-          : <p id="p2b0-read-status">{read.state === 'failed' ? read.error : read.state}</p>}
+        data-status={visibleStatus}
+        data-tenant={visibleData?.scope.split('/')[0] ?? ''}>
+        {visibleData !== null
+          ? <pre id="p2b0-projection">{JSON.stringify(visibleData)}</pre>
+          : <p id="p2b0-read-status">{read.state === 'failed' && visibleStatus === 'failed'
+            ? read.error : visibleStatus}</p>}
       </section>
       <label htmlFor="p2b0-foreign">Foreign product ID (negative test)</label>
       <input id="p2b0-foreign" value={foreignId} onChange={e => setForeignId(e.target.value)} />
