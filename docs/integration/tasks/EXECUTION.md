@@ -1,5 +1,9 @@
 # Concurrent module ownership and ChatGPT-operated Super Build procedure
 
+## Mandatory owner override — /super-build and comprehensive scenario tests (2026-11-13)
+
+**Required for every new or changed functionality in HisabIQ React and NestSherERP:** follow [Mandatory Super Build and scenario-testing policy](SUPER_BUILD_TEST_POLICY.md) before a Builder marks any task done. The owner's new explicit instruction authorizes writing/running automated tests for every applicable case and **supersedes legacy backend instructions forbidding tests**. Each ticket must enumerate all affected actions and meaningful positive/negative/boundary/role/tenant/feature-state/financial/UX cases, implement RED→GREEN tests, run appropriate levels against exact source SHAs, and have independent Super QA test-gap plus Super Review checks. Missing/skipped/untested cases cannot be represented as passes or merged without a visible blocker disposition. This does **not** authorize production deployment, migrations or unsafe test data. The native `/super-build` host is not ChatGPT; use the reviewed **already merged** ChatGPT-assisted adapter in backend PR #35 where available, while following the actual skill procedure and independently running DB/Playwright tests. Never claim native invocation if only an assisted path ran. Existing AGENTS-only environment-reuse PRs #511 (frontend) and #94 (backend) must be coordinated rather than overwritten.
+
 Revision 2 ordering is governed by [integrate then extend](../HISABIQ_INTEGRATE_THEN_EXTEND_PLAN.md) and [cash transaction classification](CASH_SESSION_POLICY.md). Stage A compatible integration precedes Stage B missing backend capabilities; no UI removal or fake posting. Historical opening balances do not require a cash session.
 
 This document prepares future implementation. It authorizes no worker startup, issue mutation, database initialization, merge or deployment in this planning session.
