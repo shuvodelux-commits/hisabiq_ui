@@ -13,9 +13,9 @@ const gate = readFileSync(new URL('../src/integration/ConnectedWorkspaceGate.tsx
 test('cash provider must preserve preview store and use verified session identity', () => {
   assert.match(context, /new CashSessionStore\(/);
   assert.match(context, /useSession\(/);
-  assert.match(context, /snapshot\.accessToken/);
-  assert.match(context, /snapshot\.tenantId/);
-  assert.match(context, /snapshot\.epoch/);
+  assert.match(context, /auth\.accessToken/);
+  assert.match(context, /auth\.tenantId/);
+  assert.match(context, /auth\.epoch/);
   assert.doesNotMatch(context, /shererp_auth_token|localStorage/);
 });
 
