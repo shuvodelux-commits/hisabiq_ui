@@ -82,7 +82,7 @@ async function run() {
 
   const {createServer}=await import('vite');
   const vite=await createServer({logLevel:'error',server:{
-    host:'127.0.0.1',port:5198,strictPort:true,hmr:{host:'127.0.0.1',clientPort:5198},
+    host:'127.0.0.1',port:5198,strictPort:true,hmr:false,
     proxy:{'/api/v1':{target:apiBase,changeOrigin:false}},
   }});
   await vite.listen();
@@ -122,8 +122,10 @@ async function run() {
         '<script type="module" src="/tests/mod006MoneyAccountsLiveHarness.tsx"></script>'+
         '</body></html>',
     }));
+    // Do not block navigation on Vite's module preloads; require React to mount separately.
     await page.goto('http://127.0.0.1:5198'+pagePath,
-      {waitUntil:'domcontentloaded',timeout:45_000});
+      {waitUntil:'commit',timeout:45_000});
+    await page.locator('#p2c-auth').waitFor({timeout:90_000});
     const cards=page.locator('[data-connected-money-account]');
     const cashA=page.locator('[data-connected-money-account="'+aCash+'"]');
     const cashB=page.locator('[data-connected-money-account="'+bCash+'"]');
