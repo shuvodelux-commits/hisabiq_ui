@@ -19,11 +19,14 @@ import {
 
 type CashCount = { counted: number; expected: number; note: string; savedAt: string; closed: boolean };
 type CashMode = 'preview' | 'loading' | 'connected' | 'error' | 'locked';
+type ReadAccess = 'available' | 'permission-denied' | 'unavailable';
 type ServerSnapshot = {
   identity: string;
   day: CashDayStatus;
   history: DailyCashRow[];
   accounts: MoneyAccount[];
+  historyAccess: ReadAccess;
+  accountsAccess: ReadAccess;
 };
 type PendingOperation = { identity: string; fingerprint: string; id: string };
 type CashSessionContextValue = {
@@ -52,6 +55,8 @@ type CashSessionContextValue = {
   error: string | null;
   dayStatus: CashDayStatus | null;
   accounts: MoneyAccount[];
+  accountsAccess: ReadAccess;
+  historyAccess: ReadAccess;
   reopenSession: (reason: string) => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -130,44 +135,81 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
   const mutationBusy = useRef(false);
   const mutationAbort = useRef<AbortController | null>(null);
   const pendingOperation = useRef<PendingOperation | null>(null);
+  const lifecycleIdentity = useRef<string | null>(identity);
+  // Refers to SessionStore's already-verified snapshot, not a copied credential.
+  const activeVerifiedSnapshot = useRef(auth);
+  activeVerifiedSnapshot.current = auth;
 
   const refresh = useCallback(async (signal?: AbortSignal): Promise<void> => {
     if (!identity || !accessToken) throw new Error('Sign in to read real cash sessions');
     const generation = ++readGeneration.current;
     setLoading(true);
     try {
+      // Daily status is the authoritative independent permissioned read.
+      // Account visibility is optional; a cashier can have cash.daily.view
+      // without cash.account.view or bank.account.view.
       const day = await fetchCashDay(accessToken, signal);
-      const [history, accounts] = await Promise.all([
+      const [historyResult, accountsResult] = await Promise.allSettled([
         fetchCashHistory(accessToken, signal),
         fetchCashAccounts(accessToken, signal),
       ]);
-      if (activeIdentity.current !== identity || signal?.aborted ||
-        readGeneration.current !== generation) return;
-      setServer({ identity, day, history: history.rows, accounts });
+      const failure = (result: PromiseSettledResult<unknown>): unknown =>
+        result.status === 'rejected' ? result.reason : null;
+      const isUnauthorized = (caught: unknown): boolean =>
+        caught instanceof ApiError && caught.kind === 'http' && caught.status === 401;
+      if (isUnauthorized(failure(historyResult)) || isUnauthorized(failure(accountsResult))) {
+        throw failure(historyResult) instanceof ApiError && isUnauthorized(failure(historyResult))
+          ? failure(historyResult) : failure(accountsResult);
+      }
+      if (activeIdentity.current !== identity || activeVerifiedSnapshot.current !== auth ||
+        signal?.aborted || readGeneration.current !== generation) return;
+      const access = (result: PromiseSettledResult<unknown>): ReadAccess => {
+        if (result.status === 'fulfilled') return 'available';
+        if (result.reason instanceof ApiError && result.reason.kind === 'http' &&
+          result.reason.status === 403) return 'permission-denied';
+        return 'unavailable';
+      };
+      setServer({
+        identity, day,
+        history: historyResult.status === 'fulfilled' ? historyResult.value.rows : [],
+        accounts: accountsResult.status === 'fulfilled' ? accountsResult.value : [],
+        historyAccess: access(historyResult),
+        accountsAccess: access(accountsResult),
+      });
       setError(null);
     } catch (caught) {
-      if (activeIdentity.current === identity && !signal?.aborted &&
-        readGeneration.current === generation) {
+      if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth &&
+        !signal?.aborted && readGeneration.current === generation) {
+        // A missing optional account/history permission never reaches this
+        // branch; genuine day/auth failures do not switch to preview.
         if (caught instanceof ApiError && caught.kind === 'http' &&
           [401, 403].includes(caught.status ?? 0)) setServer(null);
         setError(message(caught));
       }
       throw caught;
     } finally {
-      if (activeIdentity.current === identity && readGeneration.current === generation) setLoading(false);
+      if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth &&
+        readGeneration.current === generation) setLoading(false);
     }
-  }, [identity, accessToken]);
+  }, [identity, accessToken, auth]);
 
   useEffect(() => {
+    // Do not erase/abort a possibly POSTED operation on routine bearer-token
+    // refresh: SessionStore publishes a fresh verified snapshot in the SAME
+    // tenant/user/epoch. Only a real identity change may discard that intent.
+    const identityChanged = lifecycleIdentity.current !== identity;
+    lifecycleIdentity.current = identity;
     readGeneration.current += 1;
     setServer(null);
     setError(null);
-    setDeviceCount(null);
-    mutationAbort.current?.abort();
-    mutationAbort.current = null;
-    pendingOperation.current = null;
-    mutationBusy.current = false;
-    setBusy(false);
+    if (identityChanged) {
+      setDeviceCount(null);
+      mutationAbort.current?.abort();
+      mutationAbort.current = null;
+      pendingOperation.current = null;
+      mutationBusy.current = false;
+      setBusy(false);
+    }
     if (!identity) {
       setLoading(false);
       return;
@@ -249,7 +291,7 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       // Server acknowledged the mutation. Discard operation ID only after this.
       pendingOperation.current = null;
       setDeviceCount(null);
-      setServer(before => before?.identity === identity ? {
+      if (activeVerifiedSnapshot.current === auth) setServer(before => before?.identity === identity ? {
         ...before,
         day: {
           ...before.day,
@@ -261,11 +303,13 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
             ? posted.businessDate : null,
         },
       } : before);
-      try {
-        await refresh();
-      } catch {
-        if (activeIdentity.current === identity) {
-          setError('Cash operation was confirmed, but refreshing its history failed. Use Retry.');
+      if (activeVerifiedSnapshot.current === auth) {
+        try {
+          await refresh();
+        } catch {
+          if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) {
+            setError('Cash operation was confirmed, but refreshing its history failed. Use Retry.');
+          }
         }
       }
     } catch (caught) {
@@ -273,8 +317,8 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       // network/server outcomes MUST retain the same idempotency identity.
       if (caught instanceof ApiError && caught.kind === 'http' &&
         [400, 401, 403, 404, 409, 422].includes(caught.status ?? 0) &&
-        activeIdentity.current === identity) pendingOperation.current = null;
-      if (activeIdentity.current === identity) {
+        activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) pendingOperation.current = null;
+      if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) {
         if (caught instanceof ApiError && caught.kind === 'http' &&
           [401, 403].includes(caught.status ?? 0)) setServer(null);
         setError(message(caught));
@@ -368,6 +412,8 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       history, canView, canStart, canClose, enabled, startBlocked,
       mode, busy: busy || loading, error,
       dayStatus: day, accounts: current?.accounts ?? [],
+      accountsAccess: current?.accountsAccess ?? 'unavailable',
+      historyAccess: current?.historyAccess ?? 'unavailable',
       reopenSession, refresh: async () => refresh(),
     }}>
       {children}
