@@ -98,6 +98,23 @@ async function main() {
     page.setDefaultTimeout(20000);
     const requests = [];
     const errors = [];
+    const blockedMutations = [];
+    // The retained demo database is not disposable. Enforce a proactive
+    // financial-write firewall in addition to checking the observed calls.
+    // Read API traffic is never mocked; allowed requests reach real Nest.
+    if (existingDemoReadOnly) {
+      await page.route('**/api/v1/**', route => {
+        const request = route.request();
+        const method = request.method();
+        const path = new URL(request.url()).pathname;
+        if (['GET', 'HEAD', 'OPTIONS'].includes(method) ||
+            (method === 'POST' && ['/api/v1/auth/login', '/api/v1/auth/refresh'].includes(path))) {
+          return route.continue();
+        }
+        blockedMutations.push(method + ' ' + path);
+        return route.abort('blockedbyclient');
+      });
+    }
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => {
       const path = new URL(request.url()).pathname;
@@ -183,6 +200,8 @@ async function main() {
         assert.match(await page.locator('#outcome').textContent(), /^confirmed:read:/,
           'Cash-day read after token rotation must succeed');
         assert.equal(await page.locator('#cash').getAttribute('data-open'), 'false');
+        assert.deepEqual(blockedMutations, [],
+          'Mounted React must not even attempt unexpected API mutations');
         assert.ok(!requests.some(value =>
           /^(POST|PUT|PATCH|DELETE) \/api\/v1\/(money|sales|purchases|parties|inventory|expenses)/.test(value)),
           'Read-only smoke must not make economic business writes');
