@@ -28,7 +28,7 @@ test('connected write requires authenticated role and server settings permission
   assert.match(ui, /section\.id === 'finance' && snapshot\.status === 'authenticated'/);
   assert.match(ui, /snapshot\.permissions\.includes\('settings\.setting\.view'\)/);
   assert.match(ui, /snapshot\.permissions\.includes\('settings\.module\.toggle'\)/);
-  assert.doesNotMatch(ui.slice(ui.indexOf('const canWriteCash'), ui.indexOf('// Never let a draft')), /settings\.setting\.edit/);
+  assert.doesNotMatch(ui.slice(ui.indexOf('const canWriteCash'), ui.indexOf('const canWriteBusiness')), /settings\.setting\.edit/);
   assert.match(ui, /!canWriteCash \|\| cashSaving \|\| cashNeedsReview/);
 });
 
