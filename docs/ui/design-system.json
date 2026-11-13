@@ -3260,6 +3260,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/sales/ConnectedSalesReturnHistoryPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedSalesReturnHistoryPanel"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/sales/SalesMobileLayout.tsx",
       "kind": "component",
       "exports": [
@@ -5990,6 +5998,7 @@
       "src/components/pos/InstallmentReceiptReversalDialog.tsx",
       "src/components/purchases/ConnectedPurchaseDraftsPanel.tsx",
       "src/components/reports/premium/AdvisorReport.tsx",
+      "src/components/sales/ConnectedSalesReturnHistoryPanel.tsx",
       "src/magic-saas/pages/saas/SmsAdmin.tsx",
       "src/pages/Expenses.tsx",
       "src/pages/Finance.tsx",
