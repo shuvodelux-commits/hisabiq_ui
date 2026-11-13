@@ -42,6 +42,7 @@ import { readPurchase, readPurchases, type ServerPurchaseEnvelope, type ServerPu
 import { ConnectedPurchaseDraftsPanel } from '../components/purchases/ConnectedPurchaseDraftsPanel';
 import { purchaseMoney, purchaseSettlement, purchaseVisibleState, type IdentityBoundPurchaseState } from '../integration/purchases-read-model.ts';
 import { readReturnablePurchase, type ReturnablePurchaseEnvelope } from '../integration/returns.ts';
+import { readPurchaseReturnHistory, type ServerPurchaseReturnHistory } from '../integration/purchase-return-history.ts';
 
 type Tab = 'purchases' | 'return' | 'return-history';
 
@@ -133,22 +134,28 @@ function ConnectedPurchasesRead() {
   const [returnSelection, setReturnSelection] = useState<{ identity: string; id: string } | null>(null);
   const [returnable, setReturnable] = useState<IdentityBoundPurchaseState<ReturnablePurchaseEnvelope> | null>(null);
   const [returnRetry, setReturnRetry] = useState(0);
+  const [historyCursor, setHistoryCursor] = useState<string | null>(null);
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const [history, setHistory] = useState<IdentityBoundPurchaseState<ServerPurchaseReturnHistory> | null>(null);
 
   const authenticated = mode === 'connected' && snapshot.status === 'authenticated';
   const token = authenticated ? snapshot.accessToken : null;
   const allowed = authenticated && snapshot.permissions.includes('purchase.bill.view');
   const canReviewReturns = allowed && snapshot.permissions.includes('purchase.return.create');
+  const canViewHistory = allowed && snapshot.permissions.includes('purchase.return.view');
   const identity = authenticated
     ? [snapshot.tenantId, snapshot.userId, snapshot.epoch, snapshot.accessToken].join(':')
     : [mode, snapshot.status, snapshot.epoch].join(':');
   const selectedId = selected?.identity === identity ? selected.id : null;
   const returnId = returnSelection?.identity === identity ? returnSelection.id : null;
   const returnKey = [identity, 'returnable', returnId ?? 'none', returnRetry].join(':');
+  const historyKey = [identity, 'return-history', historyCursor ?? 'first', historyRevision].join(':');
   const listKey = [identity, 'list', search.trim(), settlement, cursor ?? 'first', retryVersion].join(':');
   const detailKey = [identity, 'detail', selectedId ?? 'none'].join(':');
   const visibleList = purchaseVisibleState(list, listKey);
   const visibleDetail = purchaseVisibleState(detail, detailKey);
   const visibleReturnable = purchaseVisibleState(returnable, returnKey);
+  const visibleHistory = purchaseVisibleState(history, historyKey);
 
   useEffect(() => {
     if (!authenticated || token === null) return;
@@ -198,6 +205,23 @@ function ConnectedPurchasesRead() {
     return () => controller.abort();
   }, [authenticated, canReviewReturns, token, returnId, returnKey, tab]);
 
+  // This tab is an independently authorized GET, not a return-create action.
+  // In-flight answers are tenant/session/cursor-keyed and discarded on switch.
+  useEffect(() => {
+    if (!authenticated || !canViewHistory || token === null || tab !== 'return-history') return;
+    const controller = new AbortController();
+    setHistory({ key: historyKey, status: 'loading', data: null });
+    void readPurchaseReturnHistory(token, { cursor: historyCursor, limit: 20 }, controller.signal)
+      .then(data => {
+        if (!controller.signal.aborted) setHistory({ key: historyKey, status: 'ready', data });
+      }).catch(error => {
+        if (!controller.signal.aborted) setHistory({
+          key: historyKey, status: reportError(error), data: null,
+        });
+      });
+    return () => controller.abort();
+  }, [authenticated, canViewHistory, token, tab, historyKey, historyCursor]);
+
   const reviewReturn = (id: string) => {
     setReturnSelection({ identity, id });
     setReturnRetry(0);
@@ -218,6 +242,8 @@ function ConnectedPurchasesRead() {
     ? visibleList.data?.summary : null;
   const currentDetail = authenticated && allowed && selectedId &&
     visibleDetail.status === 'ready' ? visibleDetail.data?.data : null;
+  const historyRows = authenticated && canViewHistory && visibleHistory.status === 'ready'
+    ? visibleHistory.data?.returns ?? [] : [];
   const blocked = !authenticated || !allowed;
   const errorText = !authenticated
     ? text('Your connected session must be verified to read purchases.', 'ক্রয় দেখতে যাচাইকৃত সেশন লাগবে।')
@@ -363,9 +389,113 @@ function ConnectedPurchasesRead() {
             )}
           </div>
         ) : tab === 'return-history' ? (
-          <div className="p-5 text-sm text-ink-500" role="status">
-            {text('Purchase returns are not connected to the server yet. No preview transactions are shown.',
-              'ক্রয় ফেরত এখনও সার্ভারে সংযুক্ত নয়। এখানে কোনো নমুনা লেনদেন দেখানো হয় না।')}
+          <div data-purchase-return-history="" className="space-y-3 p-4">
+            <p className="text-xs text-ink-500">
+              {text('Read-only server return records. No supplier refund, credit, void or inventory movement can be posted here.',
+                'এখানে সার্ভারের ফেরতের ইতিহাস শুধু দেখা যাবে। টাকা, জমা, বাতিল বা স্টক পরিবর্তন করা যাবে না।')}
+            </p>
+            {!authenticated || !allowed ? (
+              <p role="alert" className="text-sm text-danger">{errorText}</p>
+            ) : !canViewHistory ? (
+              <p role="alert" className="text-sm text-danger">
+                {text('You do not have permission to view supplier return history.',
+                  'সরবরাহকারীর ফেরতের ইতিহাস দেখার অনুমতি নেই।')}
+              </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-ink">
+                    {text('Supplier return history', 'সরবরাহকারীর ফেরতের ইতিহাস')}
+                  </h3>
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => setHistoryRevision(value => value + 1)}>
+                    <RotateCcw aria-hidden className="size-3.5" />
+                    {text('Refresh history', 'ইতিহাস আবার দেখুন')}
+                  </Button>
+                </div>
+                {visibleHistory.status === 'loading' && (
+                  <p role="status" className="text-sm text-ink-500">
+                    {text('Loading verified supplier returns…',
+                      'যাচাইকৃত সরবরাহকারী ফেরতের তালিকা আনা হচ্ছে…')}
+                  </p>
+                )}
+                {(visibleHistory.status === 'denied' || visibleHistory.status === 'error') && (
+                  <p role="alert" className="text-sm text-danger">
+                    {visibleHistory.status === 'denied'
+                      ? text('You are not authorized to read this supplier return history.',
+                        'সরবরাহকারীর এই ফেরতের ইতিহাস দেখার অনুমতি নেই।')
+                      : text('Could not verify supplier returns. No preview entries were loaded.',
+                        'সরবরাহকারীর ফেরত যাচাই করা যায়নি। কোনো নমুনা তথ্য দেখানো হয়নি।')}
+                  </p>
+                )}
+                {visibleHistory.status === 'ready' && visibleHistory.data && (
+                  <>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-500">
+                      <span>{text('Return value', 'ফেরতের মূল্য')}: <strong className="text-ink">
+                        {purchaseMoney(visibleHistory.data.totalValueMinor)}
+                      </strong></span>
+                      <span>{text('Actual money received', 'বাস্তবে টাকা পাওয়া')}: <strong className="text-ink">
+                        {purchaseMoney(visibleHistory.data.totalReceivedMinor)}
+                      </strong></span>
+                    </div>
+                    {historyRows.length === 0 ? (
+                      <p role="status" className="rounded-md border border-border p-4 text-sm text-ink-500">
+                        {text('No verified supplier returns on this page.', 'এই পৃষ্ঠায় কোনো যাচাইকৃত সরবরাহকারীর ফেরত নেই।')}
+                      </p>
+                    ) : (
+                      <Table data-purchase-return-history-table=""
+                        scrollRegionLabel={text('Supplier returns history table', 'সরবরাহকারী ফেরতের তালিকা')}>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="h-9 text-xs">{text('Return / source', 'ফেরত / মূল বিল')}</TableHead>
+                            <TableHead className="h-9 text-xs">{text('Supplier', 'সরবরাহকারী')}</TableHead>
+                            <TableHead className="h-9 text-right text-xs">{text('Return value', 'ফেরতের মূল্য')}</TableHead>
+                            <TableHead className="h-9 text-right text-xs">{text('Money received', 'টাকা পাওয়া')}</TableHead>
+                            <TableHead className="h-9 text-right text-xs">{text('Supplier credit', 'সরবরাহকারীর জমা')}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {historyRows.map(item => (
+                            <TableRow key={item.id} className="text-[13px]">
+                              <TableCell className="py-2">
+                                <span className="block font-medium text-ink">{item.number}</span>
+                                <span className="block text-[11px] text-ink-500">
+                                  {item.purchaseNumber} · {item.businessDate}
+                                </span>
+                                {item.lines.map(line => (
+                                  <span key={line.id} className="block text-[11px] text-ink-500">
+                                    {line.productName} · {line.qty / 1000} {line.unitName}
+                                  </span>
+                                ))}
+                              </TableCell>
+                              <TableCell className="py-2">{item.supplierName}</TableCell>
+                              <TableCell className="py-2 text-right">{purchaseMoney(item.returnValueMinor)}</TableCell>
+                              <TableCell className="py-2 text-right">{purchaseMoney(item.receivedMinor)}</TableCell>
+                              <TableCell className="py-2 text-right">{purchaseMoney(item.creditMinor)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Button type="button" size="sm" variant="outline"
+                        disabled={historyCursor === null} onClick={() => setHistoryCursor(null)}>
+                        {text('First page', 'প্রথম পৃষ্ঠা')}
+                      </Button>
+                      <Button type="button" size="sm" variant="outline"
+                        disabled={!visibleHistory.data.nextCursor}
+                        onClick={() => setHistoryCursor(visibleHistory.data?.nextCursor ?? null)}>
+                        {text('Next', 'পরবর্তী')}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-ink-500">
+                      {text('Amounts are server-recorded. Dates and quantities use source base units; this list does not establish whether a return was later voided.',
+                        'অঙ্ক সার্ভারের রেকর্ড থেকে এসেছে। পরিমাণ মূল এককে; কোনো ফেরত পরে বাতিল হয়েছে কি না, এই তালিকা তা নিশ্চিত করে না।')}
+                    </p>
+                  </>
+                )}
+              </>
+            )}
           </div>
         ) : (
           <>
