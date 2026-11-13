@@ -6,21 +6,31 @@ This document prepares future implementation. It authorizes no worker startup, i
 
 ## Coordinator-owned dispatch record
 
-Use GitHub Project [#2](https://github.com/users/shuvodelux-commits/projects/2), actual issue/PR state and checked-in board configuration. Reserve exactly one active build worker; other chats may inspect approved nonoverlapping source or prepare their handoff. Do not change max_workers from1. Builder, QA and reviewer are separate roles; a passing self-review is not independent QA. Run scoped QA against the candidate head, not a generic autonomous bug-bash that changes main or unrelated modules.
+Use GitHub Project [#2](https://github.com/users/shuvodelux-commits/projects/2), actual issue/PR state and checked-in board configuration. **Owner override (2026-11-13): target up to five concurrent, separately approved BUILDING module sessions, not one.** Each chat owns exactly one issue, unique executor/session, isolated GitHub branch/worktree and disposable test database. Coordinator verifies actual Project #2 Building claims and runner capacity before every dispatch; five is a ceiling, not permission to start a dependency-blocked task. One chat may not consume another worker's issue or edit a shared file while someone else owns it. The runner's actual max_workers setting must be located, verified and explicitly changed through its separate governance task; the previously documented config path was not present at review, so this Markdown alone does **not** establish five available runtime slots. Builder, QA and reviewer remain separate roles; scoped independent QA and human merge still apply.
 
 | Chat slot | First packet | Preparation allowed | Build dependency | Initial reservation |
 |---|---|---|---|---|
-| 1 | MOD-000 foundation/auth | Source/contract review | None; D13/bootstrap amendment | UNRESERVED |
-| 2 | MOD-001 settings/team | Source/field-map review | Approved MOD-000 slice | UNRESERVED |
-| 3 | MOD-002 products/catalog | Source/parity review | MOD-000; approved settings dependencies; D03/D04/D16 | UNRESERVED |
-| 4 | MOD-004 parties | Source/parity review | MOD-000; account identity for payment tasks | UNRESERVED |
-| 5 | MOD-005 cash sessions | Reconcile issue281/PR282 and backend issue14/PR16 | Approved account identity + cash OFF amendment | UNRESERVED |
+| 1 | MOD-001 settings/team | Independent remaining compatible read/permission slices | Accepted foundation and exact MOD-001 packet | Coordinator must check live claim |
+| 2 | MOD-002 products/catalog | Continue already scoped Catalog/Product tasks | Accepted catalogue heads; no rich-field loss | Existing Building claim may occupy this lane |
+| 3 | MOD-004 parties | [Backend P0 ledger isolation #28](https://github.com/shuvodelux-commits/nestshererp/issues/28) | Role-scoped read test/contract; no finance write or shared migration | Separate runner/claim required |
+| 4 | MOD-005 cash sessions | Reconcile PR #282 and approved backend ON/OFF | Own settings/session policy and locks exclusively; no duplicated cash adapter | Separate runner/claim required |
+| 5 | MOD-006 accounts/finance | Compatible account read integration only | Accepted foundation/account head; D08 write paths remain gated | Separate runner/claim required |
 
-The table is a proposal, not five assigned issues. A chat takes only one module/approved task at a time. When finished, a slot can receive a later packet after a fresh source/dependency/reservation check. Do not compress the other eighteen packets into these five assignments.
+The table is a proposed lane split, **not** five active reservations or five preapproved build tasks. A chat takes one independently authorized issue and exact file allowlist at a time. Five can be Building concurrently only after live runner-capacity, nonoverlapping ownership, accepted dependency heads and environment checks. Independently working chats do not grant each other merge, DB or migration authority. After a handoff, a lane may take a later packet; do not compress the other modules into these five assignments.
 
 Every dispatch issue must contain: module/task ID; plan file and revision commit; 10–15 sentence frontend/backend comparison and outcome; dated owner approval and chosen executor; unique owner session ID; repository/base branch/full SHA; branch/worktree; related frontend/backend PR pair; dependency heads; exact allowed files; coordinator-owned shared files and reserved migration number; disposable database identity/port; verification commands and test authorization; acceptance criteria; rollback; remaining blockers; draft PR/evidence/resume action.
 
 An assignee or label cannot implement a distributed lock. The coordinator reconciles actual active workers, issue comments, PR head and worktree evidence before confirming reservation. Competing claims pause dispatch; never force-release or delete another session's worktree. A stale-looking comment is insufficient evidence of abandonment.
+
+## Five-lane execution invariants (owner override, 2026-11-13)
+
+- **Capacity:** maximum five active implementation sessions total across frontend/backend, not five per repo. A Project 2 Building card represents an actual uniquely claimed session; no builder self-promotes an issue. A runner still configured for one may host **only one** while additional sessions require other individually verified authorized runners or an approved capacity change.
+- **Isolation:** unique branch and worktree per task. Each test runner uses its own disposable PostgreSQL database/container and verifies the database target before fixtures/migrations; never share a mutable test DB between builds. CI must be pinned to each pair of frontend/backend commits.
+- **Ownership:** coordinator assigns exact allowed paths and a cross-repo ownership map before dispatch. Exclusive global writers for shared HTTP/session helpers, Party/Finance types, backend contract exports, controller/module providers, schema/migration numbers, permissions/settings and cash-session locking. Conflicting tasks wait for the owner to publish an accepted shared contract, but unrelated work may proceed.
+- **Accounting dependencies:** MOD-004 trading ledger isolation may be a separate read-only slice; MOD-005 owns cash-session ON/OFF/locking; MOD-006 owns lender/borrower/owner finance posting; D07/MOD-012 owns expense-payable treatment. Multiple jobs may run simultaneously, but no payment/finance workflow is activated until its required server contract, session policy, schema and reconciliation tests are accepted. Historical openings remain session-free.
+- **Concurrency evidence:** before adding any additional Building claim, inspect all current Project #2 Building tasks, active local/remote sessions, target shared files and any unmerged PR's actual head. No claims of idle capacity based only on stale comments. The coordinator alone assigns/releases reservations and handles conflicting merges serially.
+- **Runtime configuration:** the earlier reference to `.claude/super-board/configs/hisabiq-nest-adoption.json` is not evidence of a currently present/checked-in file; it was not found at the documented GitHub path or local checkout when inspected. Locate the actual active runner config and update its worker limit through an approved isolated change before claiming that a single Super Board instance supports five. The logical five-chat policy is effective as owner direction even if the physical runner needs additional setup.
+- **Safety:** GitHub branches and draft PRs only; no direct commits to main, auto-merges, production deploy, retained DB writes, broad queue draining, mass resource changes or parallel schema migration. Independent accounting/security QA remains mandatory per actual candidate SHA.
 
 ## Installed workflow use
 
@@ -53,8 +63,10 @@ Allowed writes: <exact paths>. Shared-file owner: <coordinator/session>.
 Dependencies: <accepted heads/PRs>. Disposable DB: <identity/host/port, no secrets>.
 Verification: <exact static, test and UI commands authorized for this task>.
 
-First reconcile issue comments, actual PR heads, board worker capacity=1,
-coordinator reservation, real checkout and the source symbols named by the packet.
+First reconcile issue comments, actual PR heads, verified board/runner capacity (target
+maximum five independent BUILDING sessions per 2026-11-13 owner override),
+coordinator reservation, nonoverlapping shared-file ownership, real checkout and the
+source symbols named by the packet.
 Show the frontend/backend comparison if this approved revision has not already
 received its 10–15 sentence overview and environment approval. Do not demand a
 second START when the existing approval covers this revision/environment.
