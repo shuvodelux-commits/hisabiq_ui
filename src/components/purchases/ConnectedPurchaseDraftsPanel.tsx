@@ -10,7 +10,6 @@ import {
   readPurchaseDrafts,
   recyclePurchaseDraft,
   restorePurchaseDraft,
-  type ServerPurchaseDraft,
 } from '../../integration/purchase-drafts.ts';
 import {
   purchaseDraftPanelIdentity,
