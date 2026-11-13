@@ -23,7 +23,7 @@ import {
  * DO NOT MOUNT into Sales.tsx, App.tsx or AppShell until MOD-007 source-bound
  * workspace activation and Sales list contracts are separately accepted.
  *
- * This deliberately does not import salesPreviewStore or share preview data.
+ * This deliberately does not import or share preview financial data.
  * GET /api/v1/sales-returns requires sales.return.view, not return-create.
  * Posted value, cash refunded and customer credit are separate historical facts:
  * do not infer an allocation of the remainder, a live balance or COGS here.
