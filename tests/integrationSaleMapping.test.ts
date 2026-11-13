@@ -247,13 +247,19 @@ test('mixed v1/v2 cursor request or response fails without fallback and no extra
   });
   assert.equal(calls, 0);
 
-  await withFetch((async () => { calls++; return json({ ...products, nextCursor: productId }); })
-    as typeof fetch, async () => {
+  const rawIdResponse: typeof fetch = async () => {
+    calls++;
+    return json({ ...products, nextCursor: productId });
+  };
+  await withFetch(rawIdResponse, async () => {
     await assert.rejects(readPosProducts('A', { rankingMode: 'GLOBAL_V2' }),
       (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
   });
-  await withFetch((async () => { calls++; return json({ ...products, nextCursor: globalV2Cursor }); })
-    as typeof fetch, async () => {
+  const rankedResponse: typeof fetch = async () => {
+    calls++;
+    return json({ ...products, nextCursor: globalV2Cursor });
+  };
+  await withFetch(rankedResponse, async () => {
     await assert.rejects(readPosProducts('A'),
       (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
   });
