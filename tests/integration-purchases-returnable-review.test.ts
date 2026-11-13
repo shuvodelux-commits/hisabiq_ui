@@ -35,7 +35,8 @@ test('R09U-04 source review displays no sample purchase and no success or mutati
   assert.match(connected, /tab === 'return'/);
   assert.match(connected, /tab === 'return-history'/);
   assert.match(connected, /text\('Review returnable quantities'/);
-  assert.match(connected, /text\('Purchase returns are not connected to the server yet/);
+  assert.match(connected, /readPurchaseReturnHistory\(token/);
+  assert.match(connected, /data-purchase-return-history-table=""/);
   assert.doesNotMatch(connected, /method:\s*['"](?:POST|PUT|PATCH|DELETE)['"]/);
   assert.doesNotMatch(connected, /requestJson\(|toast\.success|setPurchases\(/);
 });
