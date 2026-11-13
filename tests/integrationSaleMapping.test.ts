@@ -494,8 +494,7 @@ test('sale draft decoder preserves opaque nested cart and server-owned minor amo
   const decoded = decodeSaleDrafts(raw);
   assert.strictEqual(decoded, raw);
   assert.strictEqual(decoded.data[0]?.cart, opaqueSaleDraftCart);
-  assert.deepEqual(decoded.data[0]?.cart.lines[0]?.unitQuantities,
-    { Carton: '1', Box: '2', Pcs: '3' });
+  assert.deepEqual(decoded.data[0]?.cart, opaqueSaleDraftCart);
   assert.equal(decoded.data[0]?.grandTotalMinor, 40125);
   assert.equal(decoded.data[1]?.grandTotalMinor, 0);
   assert.equal(Object.hasOwn(decoded.data[0], 'posted'), false);
@@ -510,6 +509,7 @@ test('sale draft decoder rejects malformed envelope, IDs, dates, minor values an
     { data: [{ ...saleDraftRow, customerName: 123 }] },
     { data: [{ ...saleDraftRow, itemCount: -1 }] },
     { data: [{ ...saleDraftRow, itemCount: 0.3 }] },
+    { data: [{ ...saleDraftRow, itemCount: 501 }] },
     { data: [{ ...saleDraftRow, itemCount: Number.MAX_SAFE_INTEGER + 1 }] },
     { data: [{ ...saleDraftRow, grandTotalMinor: -1 }] },
     { data: [{ ...saleDraftRow, grandTotalMinor: 1.5 }] },
