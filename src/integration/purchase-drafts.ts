@@ -229,7 +229,7 @@ export function readPurchaseDrafts(
     undefined, signal, timeoutMs);
 }
 
-export function readPurchaseDraft(
+export async function readPurchaseDraft(
   accessToken: string,
   id: string,
   signal?: AbortSignal,
@@ -240,7 +240,7 @@ export function readPurchaseDraft(
 }
 
 /** A failed POST is ambiguous: do not blindly retry or create a replacement. */
-export function createPurchaseDraft(
+export async function createPurchaseDraft(
   accessToken: string,
   input: PurchaseDraftPayload,
   signal?: AbortSignal,
@@ -250,7 +250,7 @@ export function createPurchaseDraft(
     payload(input, false), signal, timeoutMs);
 }
 
-export function updatePurchaseDraft(
+export async function updatePurchaseDraft(
   accessToken: string,
   id: string,
   input: UpdatePurchaseDraftPayload,
@@ -261,7 +261,7 @@ export function updatePurchaseDraft(
     accessToken, decodePurchaseDraft, payload(input, true), signal, timeoutMs);
 }
 
-export function recyclePurchaseDraft(
+export async function recyclePurchaseDraft(
   accessToken: string,
   id: string,
   version: DraftVersion,
@@ -272,7 +272,7 @@ export function recyclePurchaseDraft(
     accessToken, decodePurchaseDraft, versionRequest(version), signal, timeoutMs);
 }
 
-export function restorePurchaseDraft(
+export async function restorePurchaseDraft(
   accessToken: string,
   id: string,
   version: DraftVersion,
