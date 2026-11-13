@@ -257,6 +257,7 @@ try {
   // No source sale/purchase is replayed: on-hand numbers are current snapshot
   // values, and replaying earlier sales against them would double-reduce stock.
   for (const p of products) {
+    const requiresUnprovidedIdentifiers = p.serialTracking === 'Required' || !!p.expiry?.enabled;
     const conversionUnitId = p.altUnit ? mapping.units[p.altUnit.unit] : null;
     const factor = p.altUnit ? scaled(p.altUnit.factor, 'conversion factor') : null;
     const warrantyMonths = p.warranty?.enabled
@@ -277,9 +278,10 @@ try {
           .filter(Boolean).join(' | ') || null,
         defaultDiscountType:null, defaultDiscountValue:null,
         offerEnabled:false, offerPriceMinor:null, offerStartDate:null, offerEndDate:null,
-        tracksExpiry:!!p.expiry?.enabled,
-        // Optional serial tracking in the preview is not a mandatory serial rule.
-        tracksSerial:p.serialTracking === 'Required',
+        // Source has no serial list or per-lot expiry for these stocked demo
+        // products. Refuse to make those mandatory controls look verified.
+        tracksExpiry:false,
+        tracksSerial:false,
         conversionUnitId:conversionUnitId ?? null, conversionFactorQty:factor,
         usualSupplierId:null, minOrderQty:null,
         warrantyMonths:Number.isSafeInteger(warrantyMonths) ? warrantyMonths : null,
@@ -288,7 +290,7 @@ try {
     });
     if (!isUlid(product.id)) throw new Error('Invalid saved product ' + p.id);
     mapping.products[p.id] = product.id;
-    if (p.kind === 'Service' || !p.active) {
+    if (p.kind === 'Service' || !p.active || requiresUnprovidedIdentifiers) {
       await call('/api/v1/products/' + product.id + '/status', {
         method:'POST', body:{ status:'INACTIVE' },
       });
@@ -297,6 +299,12 @@ try {
       defer('product-price:' + p.id, 'Independent alternate-unit selling prices are preview-only in Nest', 1);
     }
     if (p.kind === 'Service') defer('service:' + p.id, 'Inactive stock placeholder; not a posted service sale', 1);
+    if (p.serialTracking === 'Required') {
+      defer('product-serials:' + p.id, 'Inactive until real source serial numbers and tracked opening are available', 1);
+    }
+    if (p.expiry?.enabled) {
+      defer('product-expiry:' + p.id, 'Inactive until source lot expiry dates enable FEFO integrity', 1);
+    }
     if (p.stock > 0 && p.kind !== 'Service') {
       const opened = await call('/api/v1/inventory/openings', {
         method:'POST', idempotent:true,
@@ -361,7 +369,7 @@ try {
     ...mapping.totals, tenantId:mapping.tenantId, asOf:'2026-10-07',
     warnings:[
       'Preview cash/party current balances are not ledger postings.',
-      'Service product is inactive until backend service contract exists.',
+      'Service and missing-serial/expiry products are inactive until valid backend contracts and source evidence exist.',
       'Alternate unit prices are retained in source archive, not backend prices.',
       'Historical invoices, purchases, returns and loans not posted.',
     ],
