@@ -141,7 +141,16 @@ async function run() {
       }
     });
     page.on('console', message => {
-      if (message.type()==='error') errors.push(message.text().slice(0,300));
+      if (message.type()!=='error') return;
+      const detail=message.text();
+      // Vite's injected *development-only* HMR client tries ports 5173/0 when
+      // this one-shot test allocates an ephemeral HTTP port. Those known WS
+      // messages are not React exceptions or application HTTP failures. Do not
+      // broadly ignore console errors: every other error still fails QA.
+      const devHmrSocketError =
+        /^WebSocket connection to 'ws:\/\/127\.0\.0\.1:(?:5173|0)\/\?token=[^']+' failed: Error in connection establishment: net::ERR_(?:UNSAFE_PORT|BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS)$/.test(detail)
+        || detail.startsWith('[vite] failed to connect to websocket.\n');
+      if (!devHmrSocketError) errors.push(detail.slice(0,300));
     });
     page.route('**'+livePath, route => route.fulfill({
       contentType: 'text/html',
