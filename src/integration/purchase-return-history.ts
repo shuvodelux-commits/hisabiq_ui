@@ -157,7 +157,7 @@ export async function readPurchaseReturnHistory(
       Object.keys(query).some(key => key !== 'cursor' && key !== 'limit') ||
       !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) return invalid();
   const limit = query.limit ?? 20;
-  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) return invalid();
+  if (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) return invalid();
   const params = new URLSearchParams();
   params.set('limit', String(limit));
   if (query.cursor !== undefined && query.cursor !== null) {
