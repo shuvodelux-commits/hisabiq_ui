@@ -195,8 +195,8 @@ test('two independent paginated source lists remain explicit about incomplete ca
     });
     assert.equal(result.suppliers.data[0]?.id,supplierId);
     assert.equal(result.products.data[0]?.id,productId);
-    assert.equal(result.completeSupplierList,false);
-    assert.equal(result.completeProductList,false);
+    assert.equal(result.supplierHasMore,true);
+    assert.equal(result.productHasMore,true);
     assert.equal(result.identity,purchaseSourceIdentity(session()));
   });
   assert.equal(calls.length,2);
