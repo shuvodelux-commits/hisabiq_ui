@@ -88,7 +88,9 @@ async function thumbnailAction(
     }, decodeProduct);
     // requestJson permits 204 in general, but these two Nest endpoints promise
     // {data:ProductResponse}; 204 cannot certify the requested image operation.
-    if (!envelope || envelope.data.id !== productId) return invalid();
+    if (!envelope || envelope.data.id !== productId ||
+        (method === 'POST' && !envelope.data.hasImage) ||
+        (method === 'DELETE' && envelope.data.hasImage)) return invalid();
     return envelope;
   } finally {
     globalThis.clearTimeout(deadline);
