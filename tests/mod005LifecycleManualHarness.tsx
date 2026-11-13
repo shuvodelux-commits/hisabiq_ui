@@ -31,7 +31,8 @@ function ManualCashQA() {
   const asCash = (value: string, fallback: number): number => {
     if (!value.trim()) return fallback;
     const number = Number(value);
-    if (!Number.isFinite(number) || number < 0 || Math.round(number * 100) !== number * 100) {
+    if (!Number.isFinite(number) || number < 0 ||
+        Math.abs(Math.round(number * 100) - number * 100) > 1e-7) {
       throw new Error('Enter a valid nonnegative amount with at most two decimal places');
     }
     return number;
