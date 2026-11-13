@@ -125,7 +125,7 @@ function decodeEntry(value: unknown): value is ServerSalesReturn {
       !nullableText(value.note) ||
       !amount(value.returnValueMinor) || !amount(value.refundMinor) ||
       value.refundMinor > value.returnValueMinor ||
-      !amount(value.creditMinor) || value.creditMinor > value.returnValueMinor ||
+      !amount(value.creditMinor) || value.creditMinor > value.returnValueMinor - value.refundMinor ||
       !nullableText(value.refundAccountCode) ||
       !nullableText(value.refundAccountName) ||
       !nullableText(value.approvedByName) ||
@@ -145,7 +145,8 @@ export function decodeSalesReturnHistory(raw: unknown): ServerSalesReturnHistory
   if (!exact(raw, ['returns', 'nextCursor', 'totalValueMinor', 'totalRefundMinor']) ||
       !Array.isArray(raw.returns) ||
       !(raw.nextCursor === null || cursor(raw.nextCursor)) ||
-      !amount(raw.totalValueMinor) || !amount(raw.totalRefundMinor)) return invalid();
+      !amount(raw.totalValueMinor) || !amount(raw.totalRefundMinor) ||
+      raw.totalRefundMinor > raw.totalValueMinor) return invalid();
   const returnIds = new Set<string>();
   for (const item of raw.returns) {
     if (!decodeEntry(item) || returnIds.has(item.id)) return invalid();
