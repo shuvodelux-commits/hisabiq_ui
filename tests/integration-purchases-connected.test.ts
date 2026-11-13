@@ -51,7 +51,7 @@ test('connected boundary must render no preview fixture from connected mode', ()
   assert.match(source, /export function Purchases\(\)[\s\S]*?mode\s*===\s*['"]connected['"][\s\S]*?<ConnectedPurchasesRead/);
   assert.match(source, /function PreviewPurchases\(\)/);
   assert.match(source, /useState<Purchase\[\]>\(availablePurchases\)/);
-  const connected = readFileSync(new URL('../src/components/purchases/ConnectedPurchasesRead.tsx', import.meta.url), 'utf8');
+  const connected = source.split('function ConnectedPurchasesRead()')[1]?.split('function PreviewPurchases()')[0] ?? '';
   assert.doesNotMatch(connected, /erpDemoStore|availablePurchases|purchaseDraftsPreviewStore|createPreviewPurchase|PurchaseSourceDialog/);
   assert.match(connected, /readPurchases/);
   assert.match(connected, /readPurchase/);
