@@ -29,8 +29,8 @@ export interface PurchaseEditorSourceChoices {
   readonly identity: string;
   readonly suppliers: PurchaseSupplierList;
   readonly products: ServerProductList;
-  readonly completeSupplierList: boolean;
-  readonly completeProductList: boolean;
+  readonly supplierHasMore: boolean;
+  readonly productHasMore: boolean;
 }
 export interface ResolvedPurchaseEditorSources {
   /** Opaque fingerprint for UI caller to compare against the current session. */
@@ -147,8 +147,8 @@ export async function readPurchaseEditorSourceChoices(
   return {
     identity,
     suppliers, products,
-    completeSupplierList: !suppliers.page.hasMore,
-    completeProductList: !products.page.hasMore,
+    supplierHasMore: suppliers.page.hasMore,
+    productHasMore: products.page.hasMore,
   };
 }
 
