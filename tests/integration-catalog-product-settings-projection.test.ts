@@ -125,7 +125,9 @@ test('strict metadata-v1 contract rejects guessed active counts/kinds, extra key
 test('no shared cache, mutable fixture fallback or caller-controlled projection mutation', () => {
   const firstInput = catalog();
   const first = projectConnectedProductSettings(firstInput);
-  firstInput.data.units[0]!.name = 'Changed After Projection';
+  const originalUnit = firstInput.data.units[0];
+  assert.ok(originalUnit);
+  originalUnit.name = 'Changed After Projection';
   assert.equal(first.units[0]?.name, 'Gauge');
   assert.equal(Object.isFrozen(first), true);
   assert.equal(Object.isFrozen(first.units), true);
