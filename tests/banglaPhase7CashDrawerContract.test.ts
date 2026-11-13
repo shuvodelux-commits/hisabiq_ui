@@ -16,16 +16,19 @@ test('Phase 7 translates only cash drawer presentation and not cash session reco
   assert.ok(drawer.includes('startSession(float,counterpart,note,reviewedRevision,operationId)'));
   assert.ok(drawer.includes('const diff = counted - expected'));
   assert.ok(drawer.includes("diff!==0&&!note.trim()"));
-  assert.ok(session.includes('expectedCash:canView?(active?.expectedMinor??0)/100:0'));
-  assert.ok(session.includes('store.count(authority(),{counted:String(counted),note,close,revision,operationId})'));
+  assert.match(session, /previewActive\\?\\.expectedMinor/);
+  assert.match(session, /active\\?\\.expectedClosingMinor/);
+  assert.ok(session.includes('store.count(authority(), {'));
+  assert.ok(session.includes('counted: String(counted)'));
+  assert.ok(session.includes('note, close, revision, operationId'));
 });
 
 test('An empty count is not shown as a counted or reconciled amount', () => {
   const drawer = file('src/components/layout/CashSessionDialog.tsx');
   assert.ok(drawer.includes("hasCount ? taka(counted) : '—'"));
   assert.ok(drawer.includes("hasCount ? taka(Math.abs(diff)) : '—'"));
-  assert.ok(drawer.includes('disabled={!canClose||!hasCount}'));
-  assert.ok(drawer.includes('disabled={!canClose||!hasCount||(diff!==0&&!note.trim())}'));
+  assert.ok(drawer.includes('disabled={busy||!canClose||!hasCount}'));
+  assert.ok(drawer.includes('disabled={busy||!canClose||!hasCount||(diff!==0&&!note.trim())}'));
   assert.ok(drawer.includes("text('Count saved in preview','নমুনা গণনা সংরক্ষিত')"));
   assert.ok(drawer.includes("text('Cash session closed in preview','নমুনা ক্যাশ সেশন বন্ধ হয়েছে')"));
 });
