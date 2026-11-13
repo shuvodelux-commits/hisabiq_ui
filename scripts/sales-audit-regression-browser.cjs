@@ -50,7 +50,7 @@ async function main(){
     // Opening/cancelling a contextual child must preserve the partially entered parent return.
     await tab('Drafts & templates','খসড়া ও নমুনা');
     const templates=page.locator('section').filter({hasText:label('Sale templates','বিক্রির নমুনা')});
-    await click(templates.getByRole('button',{name:label('Actions','কাজ'),exact:true}).first());
+    await click(templates.getByRole('button',{name:/Monthly site supply/}).first());
     await click(page.getByRole('button',{name:label('Edit template','নমুনা বদলান'),exact:true}));
     let dialog=page.getByRole('dialog',{name:label('Edit template','নমুনা বদলান'),exact:true});await dialog.waitFor();
     const nameLabel=label('Template name','নমুনার নাম');
