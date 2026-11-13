@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* MOD-009 R09-SALES-BROWSER-QA-11 — isolated, MOCK-ONLY rendered React QA.
  *
  * Explicitly NO real Nest, tenant DB, account mutation, production route, or
