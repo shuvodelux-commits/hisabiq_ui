@@ -63,7 +63,11 @@ export class CatalogMetadataSessionBridge {
    * caller-selected tenant IDs, access tokens, or preview identities to this
    * bridge. A structurally compatible store can be used in isolated tests.
    */
-  constructor(private readonly session: SessionSource) {}
+  private readonly session: SessionSource;
+
+  constructor(session: SessionSource) {
+    this.session = session;
+  }
 
   private requireSession(): SignedIn {
     const snapshot = this.session.getSnapshot();
