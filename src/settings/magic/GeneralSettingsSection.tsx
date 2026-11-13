@@ -78,7 +78,7 @@ export function GeneralSettingsSection({
   const cashValueKnown = serverCashValue === 'on' || serverCashValue === 'off';
   const canWriteCash = bridge.connected && section.id === 'finance' && snapshot.status === 'authenticated' &&
     cashValueKnown && snapshot.permissions.includes('settings.setting.view') &&
-    snapshot.permissions.includes('settings.setting.edit');
+    snapshot.permissions.includes('settings.module.toggle');
   const canWriteBusiness = bridge.connected && section.id === 'business' && verified !== null &&
     snapshot.status === 'authenticated' &&
     snapshot.permissions.includes('settings.setting.view') &&
@@ -233,8 +233,12 @@ export function GeneralSettingsSection({
         'Permission denied or session expired; the verified setting was not changed here.',
         'অনুমতি নেই অথবা সেশন শেষ। এখানে যাচাইকৃত সেটিং পরিবর্তন হয়নি।',
       ) : refused ? text(
-        'Server refused this change. Close or reconcile the open cash day before switching OFF.',
-        'সার্ভার পরিবর্তনটি প্রত্যাখ্যান করেছে। বন্ধ করার আগে চালু ক্যাশ দিনটি মেলান।',
+        enabled
+          ? 'Server refused to turn cash sessions ON. Your previous setting is retained.'
+          : 'Server refused to turn cash sessions OFF. Close or reconcile the open cash day first.',
+        enabled
+          ? 'সার্ভার ক্যাশ সেশন চালুর অনুরোধ প্রত্যাখ্যান করেছে। আগের সেটিং রয়ে গেছে।'
+          : 'সার্ভার ক্যাশ সেশন বন্ধ করতে দেয়নি। আগে চালু ক্যাশ দিনটি মেলান।',
       ) : text(
         'Save not confirmed. Reload verified settings before changing cash sessions again.',
         'সংরক্ষণ নিশ্চিত নয়। আবার পরিবর্তনের আগে সার্ভারের সেটিংস নতুন করে দেখুন।',
