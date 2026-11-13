@@ -45,7 +45,9 @@ const readError = (error: unknown): 'denied' | 'error' =>
  * Uses Nest sale.view GET list/detail. inventory.cost.view additionally gates
  * any optional cost/profit display; missing server costs never become zero.
  */
-export function ConnectedSalesInvoicesPanel() {
+export function ConnectedSalesInvoicesPanel({ onReviewReturnable }: {
+  onReviewReturnable?: (saleId: string) => void;
+}) {
   const { text } = useUiCopy();
   const { mode, snapshot } = useSession();
   const [search, setSearch] = useState('');
@@ -61,6 +63,8 @@ export function ConnectedSalesInvoicesPanel() {
   const token = authenticated ? snapshot.accessToken : null;
   const allowed = authenticated && snapshot.permissions.includes('sale.view');
   const canViewCost = authenticated && snapshot.permissions.includes('inventory.cost.view');
+  // This GET uses sales.return.create, not the separate sales.return.view permission.
+  const canReviewReturnable = allowed && snapshot.permissions.includes('sales.return.create');
   const identity = authenticated
     ? JSON.stringify([snapshot.tenantId, snapshot.userId, snapshot.epoch,
       snapshot.accessToken, snapshot.permissions])
@@ -312,10 +316,19 @@ export function ConnectedSalesInvoicesPanel() {
                   <h3 className="text-sm font-semibold text-ink">
                     {text('Original invoice', 'মূল চালান')}
                   </h3>
-                  <Button type="button" size="sm" variant="outline"
-                    onClick={() => setSelected(null)}>
-                    {text('Close detail', 'বিবরণ বন্ধ করুন')}
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedDetail && selectedDetail.status === 'POSTED' &&
+                      selectedId === selectedDetail.id && canReviewReturnable && onReviewReturnable && (
+                        <Button type="button" size="sm" variant="outline"
+                          onClick={() => onReviewReturnable(selectedDetail.id)}>
+                          {text('Review returnable source', 'ফেরতযোগ্য মূল তথ্য দেখুন')}
+                        </Button>
+                      )}
+                    <Button type="button" size="sm" variant="outline"
+                      onClick={() => setSelected(null)}>
+                      {text('Close detail', 'বিবরণ বন্ধ করুন')}
+                    </Button>
+                  </div>
                 </div>
                 {visibleDetail.status === 'loading' && (
                   <p role="status" className="text-sm text-ink-500">
