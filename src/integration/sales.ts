@@ -1,5 +1,6 @@
 import { ApiError } from './errors.ts';
 import { requestJson } from './http.ts';
+import type { ApiRequest } from './http.ts';
 import {
   decodeCustomerDirectory,
   decodeCustomerStanding,
@@ -66,14 +67,8 @@ function canonicalId(value: unknown): string {
   return value;
 }
 
-function posPath(query: PosProductQuery): '/api/v1/sales/pos-products' | '/api/v1/sales/pos-products?' {
-  // Kept separate from the actual returned path type to avoid accidental
-  // copy/paste of any unapproved query key. See posQueryPath below.
+function posQueryPath(query: PosProductQuery): ApiRequest['path'] {
   if (!queryFields(query, allowedPosQuery)) return invalid();
-  return '/api/v1/sales/pos-products';
-}
-function posQueryPath(query: PosProductQuery): '/api/v1/sales/pos-products' | '/api/v1/sales/pos-products?' | '/api/v1/sales/pos-products?' & string {
-  posPath(query);
   const params = new URLSearchParams();
   for (const key of allowedPosQuery) {
     const value: unknown = query[key];
@@ -92,11 +87,10 @@ function posQueryPath(query: PosProductQuery): '/api/v1/sales/pos-products' | '/
     }
   }
   const suffix = params.toString();
-  return (suffix ? '/api/v1/sales/pos-products?' + suffix : '/api/v1/sales/pos-products') as
-    '/api/v1/sales/pos-products';
+  return (suffix ? '/api/v1/sales/pos-products?' + suffix : '/api/v1/sales/pos-products') as ApiRequest['path'];
 }
 
-function directoryPath(query: CustomerDirectoryQuery): '/api/v1/parties' {
+function directoryPath(query: CustomerDirectoryQuery): ApiRequest['path'] {
   if (!queryFields(query, allowedDirectoryQuery)) return invalid();
   const params = new URLSearchParams();
   params.set('role', 'CUSTOMER');
@@ -108,7 +102,7 @@ function directoryPath(query: CustomerDirectoryQuery): '/api/v1/parties' {
     else if (key === 'cursor') params.set(key, canonicalId(value));
     else params.set(key, String(limitParam(value, 200)));
   }
-  return ('/api/v1/parties?' + params.toString()) as '/api/v1/parties';
+  return ('/api/v1/parties?' + params.toString()) as ApiRequest['path'];
 }
 
 /**
@@ -118,7 +112,7 @@ function directoryPath(query: CustomerDirectoryQuery): '/api/v1/parties' {
  */
 async function read<T>(
   accessToken: string,
-  path: '/api/v1/' | string,
+  path: ApiRequest['path'],
   decode: (value: unknown) => T,
   signal?: AbortSignal,
   timeoutMs = 12_000,
@@ -127,13 +121,13 @@ async function read<T>(
       !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) return invalid();
   const controller = new AbortController();
   const abort = () => controller.abort();
-  if (signal?.aborted) return invalid();
+  if (signal?.aborted) throw new ApiError('network', 'Network request failed');
   signal?.addEventListener('abort', abort, { once: true });
   const deadline = globalThis.setTimeout(abort, timeoutMs);
   try {
     return await requestJson({
       method: 'GET',
-      path: path as '/api/v1/' & string,
+      path,
       accessToken,
       signal: controller.signal,
     }, decode);
@@ -143,7 +137,7 @@ async function read<T>(
   }
 }
 
-export function readPosProducts(
+export async function readPosProducts(
   accessToken: string,
   query: PosProductQuery = {},
   signal?: AbortSignal,
@@ -152,7 +146,7 @@ export function readPosProducts(
   return read(accessToken, posQueryPath(query), decodePosProducts, signal, timeoutMs);
 }
 
-export function readPosCustomers(
+export async function readPosCustomers(
   accessToken: string,
   query: CustomerDirectoryQuery = {},
   signal?: AbortSignal,
@@ -161,7 +155,7 @@ export function readPosCustomers(
   return read(accessToken, directoryPath(query), decodeCustomerDirectory, signal, timeoutMs);
 }
 
-export function readPosCustomerStanding(
+export async function readPosCustomerStanding(
   accessToken: string,
   partyId: string,
   signal?: AbortSignal,
