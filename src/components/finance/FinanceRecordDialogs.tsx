@@ -789,9 +789,9 @@ export function ConnectedMoneyAccountActionDialog({
           {visibleStatement ? (
             <>
               <div className="grid grid-cols-3 gap-2 border-b border-border p-3">
-                <Detail label="Page opening">{safeMinorTaka(visibleStatement.openingBalanceMinor)}</Detail>
-                <Detail label="Shown money in (page)">{safeMinorTaka(visibleStatement.totalInMinor)}</Detail>
-                <Detail label="Shown money out (page)">{safeMinorTaka(visibleStatement.totalOutMinor)}</Detail>
+                <Detail label={text("Page opening", "এই পাতার শুরুর জের")}>{safeMinorTaka(visibleStatement.openingBalanceMinor)}</Detail>
+                <Detail label={text("Shown money in (page)", "এই পাতায় টাকা এসেছে")}>{safeMinorTaka(visibleStatement.totalInMinor)}</Detail>
+                <Detail label={text("Shown money out (page)", "এই পাতায় টাকা গেছে")}>{safeMinorTaka(visibleStatement.totalOutMinor)}</Detail>
               </div>
               <div className="max-h-[45vh] divide-y divide-border overflow-auto">
                 {visibleStatement.rows.length ? visibleStatement.rows.map(entry => (
