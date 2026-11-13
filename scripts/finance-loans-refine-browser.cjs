@@ -105,7 +105,17 @@ async function main(){
     await menu.waitFor({state:'visible'});
     const m=await menu.boundingBox();
     assert.ok(m&&m.x>=-1&&m.x+m.width<=width+1,'opened row menu stays in viewport');
-    assert.equal(await menu.locator('[data-action-menu-item]').count(),3,'view, edit and reversal commands preserved');
+    // The existing fourth action is the source-policy-aware Delete command.
+    // It may be disabled by permissions, but must remain visible and discoverable.
+    assert.equal(await menu.locator('[data-action-menu-item]').count(),4,'view, edit, reversal and Delete preserved');
+    for(const label of ['View transaction','Edit','Review reversal','Delete']){
+      assert.equal(await menu.getByRole('button',{name:label,exact:true}).count(),1,label+' command remains present');
+    }
+    const deleteAction=menu.getByRole('button',{name:'Delete',exact:true});
+    assert.equal(await deleteAction.getAttribute('data-tone'),'destructive','Delete remains visibly destructive');
+    if(await deleteAction.isDisabled()){
+      assert.ok(await deleteAction.getAttribute('aria-describedby'),'disabled Delete explains why it is unavailable');
+    }
     await page.screenshot({path:shot('menu-open'),animations:'disabled'});
     await page.keyboard.press('Escape');
     await menu.waitFor({state:'hidden'});
