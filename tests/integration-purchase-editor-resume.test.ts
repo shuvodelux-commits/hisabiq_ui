@@ -255,6 +255,11 @@ test('bad cart sources and inline photos are rejected BEFORE supplier/product re
     {...base,cart:{...(base.cart as any),editor:{
       ...(base.cart as any).editor,photos:['data:image/png;base64,AAAA'],
     }}},
+    {...base,cart:{...(base.cart as any),editor:{
+      ...(base.cart as any).editor,lines:[{
+        ...(base.cart as any).editor.lines[0],lotSellPrice:{untrusted:'object'},
+      }],
+    }}},
   ];
   for(const draft of bads){
     const {fake,calls}=mockedServer({draft:draft as ServerPurchaseDraft});
