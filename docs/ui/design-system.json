@@ -2862,6 +2862,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/products/ConnectedInventoryReadPanel.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedInventoryReadPanel"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/products/PhotoUploader.tsx",
       "kind": "component",
       "exports": [
