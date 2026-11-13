@@ -69,7 +69,7 @@ export function validatePurchaseSource(purchase:Purchase) {
  const cart=purchase.cartSnapshot!;
  for(const snapshot of cart)validatePurchaseUnitSnapshot(snapshot);
  const subtotal=cart.reduce((sum,line)=>sum+lineAmount(line),0);
- const totals=calculatePurchaseCheckout(subtotal,String(purchase.discount??0),'amount',purchase.roundingRule??'No rounding',[]);
+ const totals=calculatePurchaseCheckout(subtotal,String(purchase.discount??0),'amount',purchase.roundingRule??'No rounding',[],true);
  if(toPaisa(totals.total,'Calculated total')!==total)throw new Error('Total does not match the original cart calculation.');
  for(const [index,line] of purchase.inventoryLines!.entries()){
   const snapshot=cart[index];
