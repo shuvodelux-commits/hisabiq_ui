@@ -94,7 +94,7 @@ async function main(){
     assert.equal(await page.getByTestId('pos-cart-row').locator('[data-testid="compound-quantity"] input').first().inputValue(),'2');
     await click(page.getByRole('button',{name:'Back to sales',exact:true}));
     await tab('Drafts & templates','খসড়া ও নমুনা');await copy.waitFor();
-    await click(copy.getByRole('button',{name:/QA Edited template copy/}));await click(page.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));await copy.waitFor({state:'hidden'});
+    await click(copy.getByRole('button',{name:/QA Edited template copy/}));await click(page.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));const recycle=page.getByRole('dialog',{name:label('Move to Recycle Bin?','রিসাইকেল বিনে সরাবেন?')});await recycle.waitFor();await click(recycle.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));await copy.waitFor({state:'hidden'});
     // Arrange a real Sonner action toast and prove the shared pointer rule preserves its control.
     await page.evaluate(async()=>{
      const url=performance.getEntriesByType('resource').map(entry=>entry.name).find(name=>name.includes('/sonner.js?'));
