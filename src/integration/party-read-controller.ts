@@ -104,10 +104,15 @@ export class TradingPartyReadController {
   private generation = 0;
   private disposed = false;
 
+  private readonly session: PartySession;
+  private readonly transport: TradingPartyReadTransport;
+
   constructor(
-    private readonly session: PartySession,
-    private readonly transport: TradingPartyReadTransport = defaultTransport,
+    session: PartySession,
+    transport: TradingPartyReadTransport = defaultTransport,
   ) {
+    this.session = session;
+    this.transport = transport;
     this.unsubscribeSession = session.subscribe(() => {
       if (this.authentication !== null &&
           !sameAuthentication(this.authentication, this.session.getSnapshot())) {
