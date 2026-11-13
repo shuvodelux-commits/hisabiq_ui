@@ -164,7 +164,8 @@ export function projectTradingDirectoryPage(
       total: summary.total,
       active: summary.active,
       inactive: summary.inactive,
-      ungroupedCustomers: selectedRole === 'CUSTOMER' ? summary.ungrouped : null,
+      ungroupedCustomers: selectedRole === 'CUSTOMER' && summary.ungrouped !== null
+        ? summary.ungrouped : null,
       positiveNetTotalMinor: summary.totalOutstandingMinor,
       negativeNetMagnitudeTotalMinor: summary.totalAdvanceMinor,
       overCustomerCreditLimit: selectedRole === 'CUSTOMER' ? summary.overCreditLimit : null,
