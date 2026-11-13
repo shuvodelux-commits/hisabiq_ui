@@ -3268,6 +3268,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/sales/ConnectedSalesReadWorkspace.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedSalesReadWorkspace"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/sales/ConnectedSalesReturnHistoryPanel.tsx",
       "kind": "component",
       "exports": [
