@@ -44,6 +44,10 @@ test('lender liability is separate from liquid account balances', () => {
   assert.match(live, /account\.type !== 'LOAN'/);
   assert.match(live, /account\.type === 'LOAN'/);
   assert.match(live, /data\.totalLoanMinor/);
+  assert.match(live, /serverMoney\(loan \? -BigInt\(account\.balanceMinor\) : account\.balanceMinor\)/);
+  assert.match(live, /account\.balanceMinor > 0/);
+  assert.match(live, /Opening date:/);
+  assert.doesNotMatch(live, /No activity date supplied/);
   assert.match(live, /data\.totalCashMinor/);
   assert.match(live, /data\.totalBankMinor/);
   assert.match(live, /data\.totalMfsMinor/);
