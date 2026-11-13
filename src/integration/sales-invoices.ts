@@ -140,9 +140,10 @@ function salesListPath(query: SalesInvoicesQuery): ApiRequest['path'] {
     // Omission is the only safe representation of false for this endpoint.
     if (query.unpaidOnly) params.set('unpaidOnly', 'true');
   }
-  if (query.origin !== undefined) {
-    if (query.origin !== 'ALL' && !origins.has(query.origin)) return invalid();
-    params.set('origin', query.origin);
+  const selectedOrigin: unknown = query.origin;
+  if (selectedOrigin !== undefined) {
+    if (selectedOrigin !== 'ALL' && selectedOrigin !== 'ONLINE' && selectedOrigin !== 'OFFLINE') return invalid();
+    params.set('origin', selectedOrigin);
   }
   if (query.cursor !== undefined) {
     if (!id(query.cursor)) return invalid();
