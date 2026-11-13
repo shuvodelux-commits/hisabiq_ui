@@ -7,13 +7,31 @@
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { randomBytes } = require('node:crypto');
+const { readFileSync } = require('node:fs');
+const { join } = require('node:path');
 
 const base = process.env.MOD005_API_BASE_URL;
-const username = process.env.MOD005_TEST_IDENTIFIER;
-const password = process.env.MOD005_TEST_PASSWORD;
+const existingDemoReadOnly = process.env.MOD005_READONLY_EXISTING_DEMO === '1';
+const privateDir = process.env.MOD005_DEMO_PRIVATE_DIR;
+const privateFixture = existingDemoReadOnly && privateDir
+  ? {
+    login: JSON.parse(readFileSync(join(privateDir, 'demo-login.private.json'), 'utf8')),
+    mapping: JSON.parse(readFileSync(join(privateDir, 'backend-id-map.json'), 'utf8')),
+  }
+  : null;
+const username = existingDemoReadOnly ? privateFixture?.login?.identifier : process.env.MOD005_TEST_IDENTIFIER;
+const password = existingDemoReadOnly ? privateFixture?.login?.password : process.env.MOD005_TEST_PASSWORD;
 const anonymous = process.env.MOD005_ANON_ONLY === '1';
 const seedFixtures = process.env.MOD005_SEED_FIXTURES === '1';
-if (process.env.MOD005_DISPOSABLE_CONFIRM !== 'hisabiq_mod005_live_425') {
+if (existingDemoReadOnly) {
+  if (process.env.MOD005_DEMO_READ_ONLY_CONFIRM !== 'hisabiq_ui_demo_20261113' ||
+      process.env.MOD005_SEED_FIXTURES === '1' || anonymous ||
+      base !== 'http://127.0.0.1:3065' || !privateFixture ||
+      !/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(privateFixture.mapping.tenantId) ||
+      privateFixture.mapping.sourceSha !== 'bce2470d346d18a7e7876b555bb242861e734f9a') {
+    throw new Error('Existing demo mode requires verified exact local source and read-only scope');
+  }
+} else if (process.env.MOD005_DISPOSABLE_CONFIRM !== 'hisabiq_mod005_live_425') {
   throw new Error('Disposable test environment not confirmed');
 }
 if (!base || (!anonymous && !seedFixtures && (!username || !password))) {
@@ -131,6 +149,25 @@ async function main() {
       const firstTenant = await page.locator('#auth').getAttribute('data-tenant');
       assert.match(firstTenant, /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/);
       if (seedFixtures) assert.equal(firstTenant, first.tenantId);
+      if (existingDemoReadOnly) {
+        assert.equal(firstTenant, privateFixture.mapping.tenantId,
+          'Existing demo session must use exact seeded tenant');
+        await page.locator('#read-day').click();
+        await page.waitForFunction(() => {
+          const result = document.querySelector('#outcome')?.textContent ?? '';
+          return result.startsWith('confirmed:read:') || result.startsWith('failed:read:');
+        });
+        assert.match(await page.locator('#outcome').textContent(), /^confirmed:read:/,
+          'Real authenticated cash-day read must succeed');
+        assert.equal(await page.locator('#cash').getAttribute('data-mode'), 'connected');
+        assert.equal(await page.locator('#cash').getAttribute('data-today'), '',
+          'Historical demo openings must not automatically create an open cash session');
+        assert.ok(!requests.some(value =>
+          /^(POST|PUT|PATCH|DELETE) \/api\/v1\/(money|sales|purchases|parties|inventory|expenses)/.test(value)),
+          'Read-only smoke must not make economic business writes');
+        console.log('MOD-005 existing seeded demo: mounted React real auth + cash-day read PASS');
+        console.log('Zero cash/business POSTs from browser; no day starts/closes or journal writes.');
+      }
       if (second) {
         await page.locator('#logout').click();
         await page.waitForFunction(() =>
