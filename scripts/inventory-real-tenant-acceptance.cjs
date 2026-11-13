@@ -98,8 +98,10 @@ async function register(api, label) {
   };
 }
 async function seedProduct(api, actor, label, initialQty, extraQty = 0) {
-  const unit = expectStatus(await http(api, '/api/v1/catalog/units',
-    { name: 'Piece' }, actor.token), 201, 'create a real unit');
+  const catalogue = expectStatus(await http(api, '/api/v1/catalog',
+    undefined, actor.token, 'GET'), 200, 'read seeded catalogue');
+  const unit = catalogue.units.find(item => item.name === 'Piece');
+  assert.ok(unit);
   const body = {
     name: 'Same product label across tenants ' + label,
     baseUnitId: unit.id, purchasePriceMinor: 10_000,
