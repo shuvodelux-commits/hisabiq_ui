@@ -26,8 +26,8 @@ test('R09UI-01 signed server poisha is formatted exactly, without float or negat
   assert.equal(formatSalesInvoiceMoney(12540020), '৳1,25,400.20');
   assert.equal(formatSalesInvoiceMoney(-35000), '−৳350.00');
   assert.equal(formatSalesInvoiceMoney(-1), '−৳0.01');
-  assert.equal(formatSalesInvoiceMoney(Number.MAX_SAFE_INTEGER), '৳90,07,19,92,54,740.91');
-  assert.equal(formatSalesInvoiceMoney(Number.MIN_SAFE_INTEGER), '−৳90,07,19,92,54,740.91');
+  assert.equal(formatSalesInvoiceMoney(Number.MAX_SAFE_INTEGER), '৳9,00,71,99,25,47,409.91');
+  assert.equal(formatSalesInvoiceMoney(Number.MIN_SAFE_INTEGER), '−৳9,00,71,99,25,47,409.91');
   assert.equal(formatSalesInvoiceMoney(Number.POSITIVE_INFINITY), '—');
   assert.equal(formatSalesInvoiceMoney(Number.NaN), '—');
   assert.equal(formatSalesInvoiceMoney(null), '—');
