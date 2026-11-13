@@ -188,14 +188,14 @@ export async function resolvePurchaseEditorSources(
   const result = new Map<string, ServerProduct>();
   let next = 0;
   try {
-    async function worker(): Promise<void> {
+    const worker = async (): Promise<void> => {
       while (next < selection.productIds.length && !controller.signal.aborted) {
         const productId = selection.productIds[next++]!;
         const response = await readProduct(accessToken, productId, controller.signal);
         const product = verifiedProduct(response.data, productId);
         result.set(productId, product);
       }
-    }
+    };
     const jobs: Promise<unknown>[] = [];
     if (selection.supplierId) {
       const supplierId = selection.supplierId;
