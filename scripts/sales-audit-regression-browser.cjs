@@ -77,7 +77,7 @@ async function main(){
     await axe('new template dialog','[data-dialog-root]');
     await click(dialog.getByRole('button',{name:label('Save template','নমুনা রাখুন'),exact:true}));await dialog.waitFor({state:'hidden'});
     let card=templates.locator('.divide-y > div').filter({hasText:'QA Sales template'});
-    await click(card.getByRole('button',{name:label('Actions','কাজ'),exact:true}));
+    await click(card.getByRole('button',{name:/QA Sales template/}));
     await click(page.getByRole('button',{name:label('Edit template','নমুনা বদলান'),exact:true}));
     dialog=page.getByRole('dialog',{name:label('Edit template','নমুনা বদলান'),exact:true});await dialog.waitFor();
     await dialog.getByRole('textbox',{name:nameLabel}).fill('QA Edited template');
@@ -85,7 +85,7 @@ async function main(){
     assert.equal(await row.locator('[data-testid="compound-quantity"] input').nth(1).inputValue(),'5');
     await click(dialog.getByRole('button',{name:label('Save template','নমুনা রাখুন'),exact:true}));await dialog.waitFor({state:'hidden'});
     card=templates.locator('.divide-y > div').filter({hasText:'QA Edited template'});
-    await click(card.getByRole('button',{name:label('Actions','কাজ'),exact:true}));await click(page.getByRole('button',{name:label('Duplicate','নকল তৈরি'),exact:true}));
+    await click(card.getByRole('button',{name:/QA Edited template/}));await click(page.getByRole('button',{name:label('Duplicate','নকল তৈরি'),exact:true}));
     const copy=templates.locator('.divide-y > div').filter({hasText:'QA Edited template copy'});
     await click(copy.getByRole('button',{name:label('Use template','নমুনা দিয়ে বিক্রি করুন'),exact:true}));
     await page.getByRole('heading',{name:'Template sale',exact:true}).waitFor();
@@ -94,7 +94,7 @@ async function main(){
     assert.equal(await page.getByTestId('pos-cart-row').locator('[data-testid="compound-quantity"] input').first().inputValue(),'2');
     await click(page.getByRole('button',{name:'Back to sales',exact:true}));
     await tab('Drafts & templates','খসড়া ও নমুনা');await copy.waitFor();
-    await click(copy.getByRole('button',{name:label('Actions','কাজ'),exact:true}));await click(page.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));await copy.waitFor({state:'hidden'});
+    await click(copy.getByRole('button',{name:/QA Edited template copy/}));await click(page.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));await copy.waitFor({state:'hidden'});
     // Arrange a real Sonner action toast and prove the shared pointer rule preserves its control.
     await page.evaluate(async()=>{
      const url=performance.getEntriesByType('resource').map(entry=>entry.name).find(name=>name.includes('/sonner.js?'));
