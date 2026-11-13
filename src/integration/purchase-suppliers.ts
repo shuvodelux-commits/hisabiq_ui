@@ -198,7 +198,7 @@ async function read<T>(
 }
 
 /** One strict bearer-token GET; no preview fallback, cross-tenant cache or retry. */
-export function readPurchaseSuppliers(
+export async function readPurchaseSuppliers(
   accessToken: string,
   query: PurchaseSupplierQuery = {},
   signal?: AbortSignal,
