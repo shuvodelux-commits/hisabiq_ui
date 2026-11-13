@@ -5,6 +5,8 @@ import {
   decodeCustomerDirectory,
   decodeCustomerStanding,
   decodePosProducts,
+  decodePosProductsForMode,
+  isCanonicalPosCursor,
 } from '../src/integration/saleMapping.ts';
 import {
   readPosProducts,
@@ -18,6 +20,7 @@ const otherProductId = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
 const customerId = '01ARZ3NDEKTSV4RRFFQ69G5FAX';
 const otherCustomerId = '01ARZ3NDEKTSV4RRFFQ69G5FAY';
 const invoiceId = '01ARZ3NDEKTSV4RRFFQ69G5FAZ';
+const globalV2Cursor = 'v2.1010.' + productId + '.0123456789abcdef01234567';
 
 const product = {
   id: productId,
@@ -145,6 +148,7 @@ test('allowed POS scan/query filters are URL encoded, GET only, and use caller b
     assert.equal(parsed.searchParams.get('stockStatus'), 'ZERO_STOCK');
     assert.equal(parsed.searchParams.get('customerPartyId'), customerId);
     assert.equal(parsed.searchParams.get('cursor'), productId);
+    assert.equal(parsed.searchParams.get('rankingMode'), null);
     assert.equal(parsed.searchParams.get('limit'), '100');
     assert.equal(init?.method, 'GET');
     assert.equal(init?.body, undefined);
@@ -166,6 +170,100 @@ test('allowed POS scan/query filters are URL encoded, GET only, and use caller b
     assert.equal(result.negativeStockPolicy, 'WARN');
   });
   assert.equal(calls, 1);
+});
+
+test('GLOBAL_V2 explicitly serializes ranked GET, preserving bearer, cost redaction and bare list', async () => {
+  let calls = 0;
+  await withFetch((async (url, init) => {
+    calls++;
+    const parsed = new URL(String(url));
+    assert.equal(parsed.pathname, '/api/v1/sales/pos-products');
+    assert.equal(parsed.searchParams.get('rankingMode'), 'GLOBAL_V2');
+    assert.equal(parsed.searchParams.get('cursor'), globalV2Cursor);
+    assert.equal(parsed.searchParams.get('search'), 'মরিচ 200');
+    assert.equal(parsed.searchParams.get('stockStatus'), 'LOW_STOCK');
+    assert.equal(parsed.searchParams.get('limit'), '2');
+    assert.equal(parsed.searchParams.has('tenantId'), false);
+    assert.equal(parsed.searchParams.has('role'), false);
+    assert.equal(init?.method, 'GET');
+    assert.equal(init?.body, undefined);
+    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer cashier-A');
+    assert.equal(new Headers(init?.headers).get('Idempotency-Key'), null);
+    return json({ ...products, nextCursor: globalV2Cursor });
+  }) as typeof fetch, async () => {
+    const result = await readPosProducts('cashier-A', {
+      rankingMode: 'GLOBAL_V2', cursor: globalV2Cursor,
+      search: ' মরিচ 200 ', stockStatus: 'LOW_STOCK', limit: 2,
+    });
+    assert.equal(result.nextCursor, globalV2Cursor);
+    assert.equal(result.items[0]?.sellingPriceMinor, 1250);
+    assert.equal(Object.hasOwn(result.items[0], 'purchasePriceMinor'), false);
+    assert.equal(Object.hasOwn(result.items[0], 'unitSellPrices'), false);
+  });
+  assert.equal(calls, 1);
+});
+
+test('mode-aware POS decoder accepts only current pagination shape (not an auth proof)', () => {
+  assert.equal(isCanonicalPosCursor(productId, 'LEGACY'), true);
+  assert.equal(isCanonicalPosCursor(globalV2Cursor, 'GLOBAL_V2'), true);
+  assert.equal(isCanonicalPosCursor(productId, 'GLOBAL_V2'), false);
+  assert.equal(isCanonicalPosCursor(globalV2Cursor, 'LEGACY'), false);
+  assert.equal(decodePosProductsForMode({ ...products, nextCursor: productId }, 'LEGACY').nextCursor, productId);
+  assert.equal(decodePosProductsForMode({ ...products, nextCursor: globalV2Cursor }, 'GLOBAL_V2').nextCursor,
+    globalV2Cursor);
+  assert.equal(decodePosProductsForMode(products, 'GLOBAL_V2').nextCursor, null);
+  for (const cursor of [
+    productId,
+    'v2.invalid',
+    globalV2Cursor.replace('1010.', '1011.'),
+    globalV2Cursor.replace(/.$/, 'G'),
+    globalV2Cursor.replace(productId, 'p1'),
+    globalV2Cursor.toUpperCase(),
+    'v2.1010.' + productId + '.' + '0'.repeat(121),
+  ]) {
+    assert.throws(() => decodePosProductsForMode({ ...products, nextCursor: cursor }, 'GLOBAL_V2'),
+      (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+  }
+  for (const cursor of [globalV2Cursor, '../wrong', '', productId.toLowerCase()]) {
+    assert.throws(() => decodePosProductsForMode({ ...products, nextCursor: cursor }, 'LEGACY'),
+      ApiError);
+  }
+});
+
+test('mixed v1/v2 cursor request or response fails without fallback and no extra GET', async () => {
+  let calls = 0;
+  await withFetch((async () => { calls++; return json(products); }) as typeof fetch, async () => {
+    const attempts = [
+      () => readPosProducts('A', { cursor: globalV2Cursor }),
+      () => readPosProducts('A', { rankingMode: 'GLOBAL_V2', cursor: productId }),
+      () => readPosProducts('A', { rankingMode: 'LEGACY' } as never),
+      () => readPosProducts('A', { rankingMode: 'global_v2' } as never),
+      () => readPosProducts('A', { rankingMode: 'GLOBAL_V2', cursor: 'v2.1011.' + productId + '.0123456789abcdef01234567' }),
+      () => readPosProducts('A', { rankingMode: 'GLOBAL_V2', cursor: 'v2.invalid' }),
+    ];
+    for (const request of attempts) {
+      await assert.rejects(request, (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+    }
+  });
+  assert.equal(calls, 0);
+
+  const rawIdResponse: typeof fetch = async () => {
+    calls++;
+    return json({ ...products, nextCursor: productId });
+  };
+  await withFetch(rawIdResponse, async () => {
+    await assert.rejects(readPosProducts('A', { rankingMode: 'GLOBAL_V2' }),
+      (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+  });
+  const rankedResponse: typeof fetch = async () => {
+    calls++;
+    return json({ ...products, nextCursor: globalV2Cursor });
+  };
+  await withFetch(rankedResponse, async () => {
+    await assert.rejects(readPosProducts('A'),
+      (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+  });
+  assert.equal(calls, 2);
 });
 
 test('one missing purchase-price key is not reinterpreted as zero or inherited from a prior token', async () => {

@@ -10,6 +10,8 @@ import { ApiError } from './errors.ts';
 export type ServerPosStockStatus =
   'IN_STOCK' | 'LOW_STOCK' | 'ZERO_STOCK' | 'NEGATIVE_STOCK';
 export type ServerNegativeStockPolicy = 'BLOCK' | 'WARN' | 'ALLOW';
+/** Legacy is ID-keyset; GLOBAL_V2 is rank-keyset, without a new cart model. */
+export type ServerPosPaginationMode = 'LEGACY' | 'GLOBAL_V2';
 
 export interface ServerPosProduct {
   id: string;
@@ -107,6 +109,8 @@ export interface ServerCustomerStandingEnvelope {
 }
 
 const ID = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
+// The backend uses v2.<score>.<product ULID>.<query fingerprint> (24 hex).
+const RANKED_POS_CURSOR = /^v2\.([0-9]{1,4})\.([0-7][0-9A-HJKMNP-TV-Z]{25})\.([a-f0-9]{24})$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const stockStatuses: readonly string[] = ['IN_STOCK', 'LOW_STOCK', 'ZERO_STOCK', 'NEGATIVE_STOCK'];
 const negativePolicies: readonly string[] = ['BLOCK', 'WARN', 'ALLOW'];
@@ -171,6 +175,32 @@ export function decodePosProducts(raw: unknown): ServerPosProductList {
       !(raw.nextCursor === null || typeof raw.nextCursor === 'string') ||
       !negativePolicies.includes(String(raw.negativeStockPolicy))) return invalid();
   return raw as unknown as ServerPosProductList;
+}
+
+/** Only checks *wire shape*. Server owns tenant, filter and fingerprint authority. */
+export function isCanonicalPosCursor(
+  cursor: unknown,
+  mode: ServerPosPaginationMode,
+): cursor is string {
+  if (typeof cursor !== 'string' || cursor.length > 120) return false;
+  if (mode === 'LEGACY') return id(cursor);
+  if (mode !== 'GLOBAL_V2') return false;
+  const match = RANKED_POS_CURSOR.exec(cursor);
+  if (match === null) return false;
+  const score = Number(match[1]);
+  return Number.isSafeInteger(score) && score >= 0 && score <= 1010;
+}
+
+/** Bind the returned cursor's *format* to the caller's requested API mode. */
+export function decodePosProductsForMode(
+  raw: unknown,
+  mode: ServerPosPaginationMode,
+): ServerPosProductList {
+  const products = decodePosProducts(raw);
+  if (products.nextCursor !== null && !isCanonicalPosCursor(products.nextCursor, mode)) {
+    return invalid();
+  }
+  return products;
 }
 
 const balanceKeys = ['netMinor', 'direction', 'outstandingMinor', 'advanceMinor'];
