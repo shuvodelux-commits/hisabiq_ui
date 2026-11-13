@@ -1,5 +1,11 @@
 import { ApiError, type ApiErrorKind } from './errors.ts';
 import {
+  decodePartySetup,
+  readPartySetup,
+  type ServerPartySetup,
+  type ServerPartySetupEnvelope,
+} from './party-setup.ts';
+import {
   readTradingParties,
   readTradingPartyLedger,
   readHistoricalPartyOpening,
@@ -50,6 +56,8 @@ export interface TradingPartyReadTransport {
     role: TradingRole,
     signal: AbortSignal,
   ): Promise<HistoricalPartyOpeningEnvelope>;
+  /** Optional only for existing test mocks; the default is a strict GET. */
+  setup?(accessToken: string, signal: AbortSignal): Promise<ServerPartySetupEnvelope>;
 }
 
 const defaultTransport: TradingPartyReadTransport = {
@@ -58,27 +66,29 @@ const defaultTransport: TradingPartyReadTransport = {
     readTradingPartyLedger(token, partyId, role, query, signal),
   opening: (token, partyId, role, signal) =>
     readHistoricalPartyOpening(token, partyId, role, signal),
+  setup: (token, signal) => readPartySetup(token, signal),
 };
 
-type ReadKind = 'directory' | 'ledger' | 'opening';
+type ReadKind = 'directory' | 'ledger' | 'opening' | 'setup';
 type ReadyState =
   | { readonly status: 'directory'; readonly value: TradingDirectoryPage }
   | { readonly status: 'ledger'; readonly value: TradingRoleLedgerView }
-  | { readonly status: 'opening'; readonly value: TradingHistoricalOpeningView };
+  | { readonly status: 'opening'; readonly value: TradingHistoricalOpeningView }
+  | { readonly status: 'setup'; readonly value: ServerPartySetup };
 
 export type PartyReadSnapshot =
   | { readonly status: 'idle' }
   | {
     readonly status: 'loading';
     readonly kind: ReadKind;
-    readonly role: TradingRole;
+    readonly role: TradingRole | null;
     readonly partyId: string | null;
   }
   | ReadyState
   | {
     readonly status: 'error';
     readonly kind: ReadKind;
-    readonly role: TradingRole;
+    readonly role: TradingRole | null;
     readonly partyId: string | null;
     readonly errorKind: ApiErrorKind;
     readonly httpStatus: number | null;
@@ -184,15 +194,30 @@ export class TradingPartyReadController {
 
   private async execute<T extends ReadyState>(
     relationship: UiPartyRelationship | 'All',
-    kind: ReadKind,
+    kind: Exclude<ReadKind, 'setup'>,
     partyId: string | null,
     read: (authentication: Authentication, role: TradingRole, signal: AbortSignal) => Promise<T>,
   ): Promise<T | null> {
     if (this.disposed) throw protocol();
-
     const role = tradingRoleForUi(relationship);
+    if (role === null) {
+      this.clear();
+      throw protocol();
+    }
+    return this.executeAuthenticated(kind, role, partyId,
+      (authentication, signal) => read(authentication, role, signal));
+  }
+
+  /** Shared identity-bound lifecycle for role reads and role-free form setup. */
+  private async executeAuthenticated<T extends ReadyState>(
+    kind: ReadKind,
+    role: TradingRole | null,
+    partyId: string | null,
+    read: (authentication: Authentication, signal: AbortSignal) => Promise<T>,
+  ): Promise<T | null> {
+    if (this.disposed) throw protocol();
     const authentication = this.session.getSnapshot();
-    if (role === null || authentication.status !== 'authenticated') {
+    if (authentication.status !== 'authenticated') {
       this.clear();
       throw protocol();
     }
@@ -205,15 +230,18 @@ export class TradingPartyReadController {
     this.publish({ status: 'loading', kind, role, partyId });
 
     try {
-      const ready = await read(authentication, role, controller.signal);
-      // Session identity must be rechecked AFTER the awaited response. Merely
-      // aborting is insufficient: some transports resolve after abort.
-      if (!this.current(generation, authentication, controller)) return null;
+      const ready = await read(authentication, controller.signal);
+      if (!this.current(generation, authentication, controller)) {
+        this.dropUnnotifiedSession(generation, authentication, controller);
+        return null;
+      }
       this.publish(ready);
       return ready;
     } catch (error) {
-      // No error or stale page may replace a newer role, tenant or session.
-      if (!this.current(generation, authentication, controller)) return null;
+      if (!this.current(generation, authentication, controller)) {
+        this.dropUnnotifiedSession(generation, authentication, controller);
+        return null;
+      }
       const safeError = error instanceof ApiError ? error : null;
       this.publish({
         status: 'error',
@@ -226,6 +254,19 @@ export class TradingPartyReadController {
       throw error;
     } finally {
       if (this.controller === controller) this.controller = null;
+    }
+  }
+
+  /** A silently changed session must not leave the loading snapshot forever. */
+  private dropUnnotifiedSession(
+    generation: number,
+    authentication: Authentication,
+    controller: AbortController,
+  ): void {
+    if (this.generation === generation &&
+        this.controller === controller &&
+        !sameAuthentication(authentication, this.session.getSnapshot())) {
+      this.clear();
     }
   }
 
@@ -283,6 +324,26 @@ export class TradingPartyReadController {
         status: 'opening' as const,
         value: projectTradingHistoricalOpening(role, partyId,
           await this.transport.opening(authentication.accessToken, partyId, role, signal)),
+      }),
+    );
+    return result?.value ?? null;
+  }
+
+  /** Session-epoch-safe read of the backend's feature/field/group settings. */
+  async loadPartySetup(): Promise<ServerPartySetup | null> {
+    const result = await this.executeAuthenticated(
+      'setup',
+      null,
+      null,
+      async (authentication, signal) => ({
+        status: 'setup' as const,
+        // The default transport provides the real GET; injected transports
+        // must explicitly provide setup. Never escape a test/mock transport
+        // into a live network call if that method is omitted.
+        value: decodePartySetup(await (() => {
+          if (!this.transport.setup) throw protocol();
+          return this.transport.setup(authentication.accessToken, signal);
+        })()).data,
       }),
     );
     return result?.value ?? null;
