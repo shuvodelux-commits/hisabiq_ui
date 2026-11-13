@@ -111,6 +111,7 @@ export async function readPurchaseEditorSourceChoices(
   signal?: AbortSignal,
 ): Promise<PurchaseEditorSourceChoices> {
   const identity = purchaseSourceIdentity(session);
+  if (signal?.aborted) return invalid('Purchase source request was cancelled');
   const accessToken = token(session);
   if (!object(query) ||
       Object.keys(query).some(key => !['search','supplierCursor','productCursor','limit'].includes(key))) return invalid();
@@ -166,6 +167,7 @@ export async function resolvePurchaseEditorSources(
   signal?: AbortSignal,
 ): Promise<ResolvedPurchaseEditorSources> {
   const identity = purchaseSourceIdentity(session);
+  if (signal?.aborted) return invalid('Purchase source request was cancelled');
   const accessToken = token(session);
   if (!object(selection) ||
       Object.keys(selection).some(key => key !== 'supplierId' && key !== 'productIds') ||
