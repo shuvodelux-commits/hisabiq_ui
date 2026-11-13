@@ -4,6 +4,7 @@ import { ApiError } from '../src/integration/errors.ts';
 import {
   decodeCustomerDirectory,
   decodeCustomerStanding,
+  decodeSaleDrafts,
   decodePosProducts,
   decodePosProductsForMode,
   isCanonicalPosCursor,
@@ -12,6 +13,7 @@ import {
   readPosProducts,
   readPosCustomers,
   readPosCustomerStanding,
+  readSaleDrafts,
 } from '../src/integration/sales.ts';
 
 const origin = 'https://hisabiq-m7.test';
@@ -453,4 +455,177 @@ test('offline error, external abort, bounded timeout and zero retries', async ()
         e instanceof ApiError && e.kind === 'network');
     });
   }
+});
+
+
+/** M7-02A: unmounted, GET-only sale draft reads; cart is opaque, never posted. */
+const opaqueSaleDraftCart = {
+  customerId,
+  customerDetails: { name: 'করিম ট্রেডার্স', guardianName: 'মতিন', phone: '01711111111' },
+  discountMode: 'percent',
+  discount: '7.125',
+  payments: [{ method: 'bKash', amount: '100', account: 'merchant-1' }],
+  lines: [{
+    productId, qty: '1', unit: 'Carton',
+    unitQuantities: { Carton: '1', Box: '2', Pcs: '3' },
+    unitSnapshot: { revision: 4, prices: [{ unit: 'Box', value: '200.1250' }] },
+    serials: ['SN-001'], stockSource: 'VENDOR',
+    bundleRevision: 3, bundleSources: [{ productId: otherProductId, qty: '2' }],
+  }],
+  installment: { count: 6, firstDueDate: '2026-12-13' },
+  futureServerField: { preserved: [null, true, 12.125, 'বাংলা'] },
+};
+const saleDraftRow = {
+  id: productId,
+  label: 'Draft #27',
+  customerName: 'করিম ট্রেডার্স',
+  itemCount: 1,
+  grandTotalMinor: 40125,
+  businessDate: '2026-11-13',
+  savedAt: '2026-11-13T09:24:10.321Z',
+  cart: opaqueSaleDraftCart,
+};
+
+test('sale draft decoder preserves opaque nested cart and server-owned minor amounts without projection', () => {
+  const raw = { data: [saleDraftRow, {
+    ...saleDraftRow, id: otherProductId, customerName: null,
+    itemCount: 0, grandTotalMinor: 0, cart: {},
+  }] };
+  const decoded = decodeSaleDrafts(raw);
+  assert.strictEqual(decoded, raw);
+  assert.strictEqual(decoded.data[0]?.cart, opaqueSaleDraftCart);
+  assert.deepEqual(decoded.data[0]?.cart.lines[0]?.unitQuantities,
+    { Carton: '1', Box: '2', Pcs: '3' });
+  assert.equal(decoded.data[0]?.grandTotalMinor, 40125);
+  assert.equal(decoded.data[1]?.grandTotalMinor, 0);
+  assert.equal(Object.hasOwn(decoded.data[0], 'posted'), false);
+  assert.deepEqual(decodeSaleDrafts({ data: [] }), { data: [] });
+});
+
+test('sale draft decoder rejects malformed envelope, IDs, dates, minor values and metadata', () => {
+  for (const bad of [
+    [], {}, { data: [] , nextCursor: null }, { data: {} },
+    { data: [{ ...saleDraftRow, id: 'draft-1' }] },
+    { data: [{ ...saleDraftRow, label: 42 }] },
+    { data: [{ ...saleDraftRow, customerName: 123 }] },
+    { data: [{ ...saleDraftRow, itemCount: -1 }] },
+    { data: [{ ...saleDraftRow, itemCount: 0.3 }] },
+    { data: [{ ...saleDraftRow, itemCount: Number.MAX_SAFE_INTEGER + 1 }] },
+    { data: [{ ...saleDraftRow, grandTotalMinor: -1 }] },
+    { data: [{ ...saleDraftRow, grandTotalMinor: 1.5 }] },
+    { data: [{ ...saleDraftRow, grandTotalMinor: Number.MAX_SAFE_INTEGER + 1 }] },
+    { data: [{ ...saleDraftRow, businessDate: '2026-02-30' }] },
+    { data: [{ ...saleDraftRow, businessDate: '2026-11-31' }] },
+    { data: [{ ...saleDraftRow, savedAt: 'Today' }] },
+    { data: [{ ...saleDraftRow, savedAt: '2026-02-30T09:24:10.321Z' }] },
+    { data: [{ ...saleDraftRow, savedAt: '2026-11-13T25:24:10.321Z' }] },
+    { data: [{ ...saleDraftRow, savedAt: '2026-11-13T09:61:10.321Z' }] },
+    { data: [{ ...saleDraftRow, unexpectedPermission: 'SALE_ADMIN' }] },
+  ]) {
+    assert.throws(() => decodeSaleDrafts(bad),
+      (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+  }
+});
+
+test('sale draft decoder rejects invalid or non-JSON cart without transforming it', () => {
+  const circular: Record<string, unknown> = {};
+  circular.self = circular;
+  for (const cart of [
+    [], null, 'cart', 1, new Date('2026-11-13T00:00:00.000Z'),
+    { x: undefined }, { x: Infinity }, { x: NaN }, { x: () => 123 },
+    { x: [1, undefined] }, { x: [1, , 2] }, circular,
+  ]) {
+    assert.throws(() => decodeSaleDrafts({ data: [{ ...saleDraftRow, cart }] }), ApiError);
+  }
+});
+
+test('sale draft GET uses exact authenticated endpoint and never writes or projects preview records', async () => {
+  let calls = 0;
+  await withFetch((async (url, init) => {
+    calls++;
+    const parsed = new URL(String(url));
+    assert.equal(parsed.origin, origin);
+    assert.equal(parsed.pathname, '/api/v1/sales/drafts');
+    assert.equal(parsed.search, '');
+    assert.equal(init?.method, 'GET');
+    assert.equal(init?.body, undefined);
+    assert.equal(init?.redirect, 'error');
+    assert.equal(init?.credentials, 'omit');
+    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer cashier-A');
+    assert.equal(new Headers(init?.headers).get('Idempotency-Key'), null);
+    return json({ data: [saleDraftRow] });
+  }) as typeof fetch, async () => {
+    const res = await readSaleDrafts('cashier-A');
+    assert.equal(res.data.length, 1);
+    assert.deepEqual(res.data[0]?.cart, opaqueSaleDraftCart);
+    assert.equal(res.data[0]?.savedAt, '2026-11-13T09:24:10.321Z');
+    assert.equal(Object.hasOwn(res.data[0], 'unitPrices'), false);
+  });
+  assert.equal(calls, 1);
+});
+
+test('sale draft GET is stateless per bearer, rejects invalid token before network and never retries', async () => {
+  let calls = 0;
+  await withFetch((async (_url, init) => {
+    calls++;
+    const bearer = new Headers(init?.headers).get('Authorization');
+    return json({ data: bearer === 'Bearer tenant-A' ? [saleDraftRow] : [] });
+  }) as typeof fetch, async () => {
+    const a = await readSaleDrafts('tenant-A');
+    const b = await readSaleDrafts('tenant-B');
+    assert.equal(a.data.length, 1);
+    assert.deepEqual(b.data, []);
+    for (const badToken of ['', 'bad token']) {
+      await assert.rejects(readSaleDrafts(badToken),
+        (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+    }
+  });
+  assert.equal(calls, 2);
+});
+
+for (const status of [401, 403, 404, 503]) {
+  test('sale draft HTTP ' + status + ' refuses without fallback/retry', async () => {
+    let calls = 0;
+    await withFetch((async () => {
+      calls++;
+      return json({ error: { code: 'DENIED', message: 'Denied',
+        details: {}, traceId: 'trace-draft' } }, status);
+    }) as typeof fetch, async () => {
+      await assert.rejects(readSaleDrafts('cashier-A'),
+        (e: unknown) => e instanceof ApiError && e.kind === 'http' && e.status === status);
+    });
+    assert.equal(calls, 1);
+  });
+}
+
+test('sale draft GET fails closed on corrupt payload, abort, timeout and offline network', async () => {
+  await withFetch((async () => json({ data: [{ ...saleDraftRow, cart: [] }] })) as typeof fetch,
+    async () => {
+      await assert.rejects(readSaleDrafts('cashier-A'),
+        (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+    });
+  let calls = 0;
+  await withFetch((async (_url, init) => {
+    calls++;
+    return new Promise<Response>((_resolve, reject) => {
+      if (init?.signal?.aborted) reject(new DOMException('Aborted', 'AbortError'));
+      else init?.signal?.addEventListener('abort',
+        () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+    });
+  }) as typeof fetch, async () => {
+    const abort = new AbortController();
+    const pending = readSaleDrafts('cashier-A', abort.signal, 1000);
+    abort.abort();
+    await assert.rejects(pending, (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    await assert.rejects(readSaleDrafts('cashier-A', undefined, 5),
+      (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    await assert.rejects(readSaleDrafts('cashier-A', undefined, 0),
+      (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+  });
+  assert.equal(calls, 2);
+  await withFetch((async () => { throw new TypeError('offline'); }) as typeof fetch,
+    async () => {
+      await assert.rejects(readSaleDrafts('cashier-A'),
+        (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    });
 });
