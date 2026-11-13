@@ -110,8 +110,9 @@ async function run() {
     assert.equal(closed.status,200);
     assert.equal(closed.body.todaySession.status,'CLOSED');
     assert.equal(closed.body.todaySession.id,originalSessionId);
-    assert.equal(closed.body.todaySession.countedClosingMinor,95000);
-    assert.equal(closed.body.todaySession.differenceMinor,-5000);
+    assert.equal(closed.body.todaySession.closes?.[0]?.countedClosingMinor,95000);
+    assert.equal(closed.body.todaySession.closes?.[0]?.differenceMinor,-5000);
+    assert.equal(closed.body.todaySession.closes?.[0]?.status,'ACTIVE');
     console.log('PASS counted Close: expected BDT 1000, actual 950, shortage BDT 50');
     await page.locator('#reopen').waitFor({state:'visible'});
     await action(page,'reopen','Reopen cash day');
