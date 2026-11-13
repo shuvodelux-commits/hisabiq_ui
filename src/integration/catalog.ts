@@ -5,11 +5,19 @@ import { requestJson } from './http.ts';
  * MOD-002 T01A: read only. Source contract:
  * nestshererp packages/core-contracts/src/catalog.ts and CatalogController.list.
  * The existing response is {data:{units,brands,categories,features}}.
- * Unsupported Bengali labels and symbols are NOT inferred from English names.
+ * Legacy entries have only id/name. Future opt-in metadata may include exact
+ * server-issued nameBn (all three kinds) and symbol (units only); never infer
+ * either from English names, and never send unsupported metadata writes.
  */
 export interface ServerCatalogEntry {
   id: string;
   name: string;
+  /** Absent on legacy responses; null means explicitly unset. */
+  nameBn?: string | null;
+}
+export interface ServerUnit extends ServerCatalogEntry {
+  /** Display-only unit symbol; never a unit ID or conversion factor. */
+  symbol?: string | null;
 }
 export interface ServerCategory extends ServerCatalogEntry {
   parentId: string | null;
@@ -23,7 +31,7 @@ export interface ServerCatalogFeatures {
   vendors: boolean;
 }
 export interface ServerCatalog {
-  units: ServerCatalogEntry[];
+  units: ServerUnit[];
   brands: ServerCatalogEntry[];
   categories: ServerCategory[];
   features: ServerCatalogFeatures;
@@ -51,13 +59,25 @@ function keys(value: Record<string, unknown>, expected: readonly string[]): bool
 function validId(value: unknown): value is string {
   return typeof value === 'string' && ulid.test(value);
 }
+function catalogEntry(value: unknown, allowed: readonly string[]): value is ServerCatalogEntry {
+  return record(value) &&
+    Object.keys(value).every(key => allowed.includes(key)) &&
+    validId(value.id) && typeof value.name === 'string' &&
+    (!Object.hasOwn(value, 'nameBn') ||
+      value.nameBn === null || typeof value.nameBn === 'string');
+}
 function entry(value: unknown): value is ServerCatalogEntry {
-  return record(value) && keys(value, ['id', 'name']) &&
-    validId(value.id) && typeof value.name === 'string';
+  return catalogEntry(value, ['id', 'name', 'nameBn']);
+}
+function unitEntry(value: unknown): value is ServerUnit {
+  return catalogEntry(value, ['id', 'name', 'nameBn', 'symbol']) &&
+    record(value) &&
+    (!Object.hasOwn(value, 'symbol') ||
+      value.symbol === null || typeof value.symbol === 'string');
 }
 function category(value: unknown): value is ServerCategory {
-  return record(value) && keys(value, ['id', 'name', 'parentId']) &&
-    validId(value.id) && typeof value.name === 'string' &&
+  return catalogEntry(value, ['id', 'name', 'nameBn', 'parentId']) &&
+    record(value) && Object.hasOwn(value, 'parentId') &&
     (value.parentId === null || validId(value.parentId));
 }
 function features(value: unknown): value is ServerCatalogFeatures {
@@ -70,7 +90,7 @@ export function decodeCatalog(raw: unknown): ServerCatalogEnvelope {
   if (!record(raw) || !keys(raw, ['data']) || !record(raw.data)) return invalid();
   const data = raw.data;
   if (!keys(data, ['units', 'brands', 'categories', 'features']) ||
-      !Array.isArray(data.units) || !data.units.every(entry) ||
+      !Array.isArray(data.units) || !data.units.every(unitEntry) ||
       !Array.isArray(data.brands) || !data.brands.every(entry) ||
       !Array.isArray(data.categories) || !data.categories.every(category) ||
       !features(data.features)) return invalid();
@@ -105,8 +125,9 @@ export async function readCatalog(
 /**
  * MOD-002 T01B/P1: the EXISTING name-only CatalogController Class M writes.
  *
- * Important: The current API cannot accept nameBn, symbol, active, a renamed
- * category parent or a rich product draft. These commands must fail closed
+ * Important: The current legacy WRITE API cannot accept nameBn, symbol,
+ * active, a renamed category parent or a rich product draft. A read decoder
+ * accepting future fields does NOT authorize writes or imply backend support. These commands must fail closed
  * rather than silently stripping a richer UI field. The original HisabIQ
  * Product Settings and nested Add Product editor are intentionally untouched.
  *
