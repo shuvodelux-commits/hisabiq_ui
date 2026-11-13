@@ -315,6 +315,14 @@ try {
     }
   }
 
+  // The source contains two BANK and two MFS accounts. They may be created
+  // while the tenant's bank feature is off, but an ordinary authenticated
+  // money-account GET would then hide them; enable the setting deliberately.
+  if (finance.financeAccounts.some(a => a.type === 'Bank' || a.type === 'Mobile Banking')) {
+    await call('/api/v1/settings/value', {
+      method:'POST', body:{ key:'bank_accounts_enabled', value:'on' },
+    });
+  }
   for (const a of finance.financeAccounts) {
     const type = a.type === 'Cash' || a.type === 'Petty Cash' ? 'CASH'
       : a.type === 'Bank' ? 'BANK' : a.type === 'Mobile Banking' ? 'MFS' : null;
