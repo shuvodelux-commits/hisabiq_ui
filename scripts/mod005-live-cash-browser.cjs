@@ -219,7 +219,13 @@ async function main() {
           document.querySelector('#auth')?.getAttribute('data-tenant') === expected,
         second.tenantId);
         assert.notEqual(firstTenant, second.tenantId);
-        assert.equal(await page.locator('#cash').getAttribute('data-mode'), 'connected');
+        // Tenant B's authenticated identity commits before the cash context
+        // finishes its separately scoped /money/day request. A synchronous
+        // mode check is a React scheduling race, not evidence of failed reads.
+        await page.waitForFunction(() =>
+          document.querySelector('#cash')?.getAttribute('data-mode') === 'connected');
+        assert.equal(await page.locator('#cash').getAttribute('data-today'), '',
+          'A new tenant must not inherit the prior tenant cash-session state');
         console.log('Two independent real Nest test tenants, React session switching PASS');
       }
       assert.deepEqual(errors, [], 'no React runtime errors');
