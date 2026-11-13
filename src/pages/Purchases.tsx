@@ -36,6 +36,8 @@ import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } 
 import { Eye, Printer, Pencil, Banknote, CornerUpLeft, History } from 'lucide-react';
 import { printReport, downloadReport } from '../utils/reportOutput';
 import { availableProducts } from '../data/erpDemoStore';
+import { useSession } from '../integration/SessionProvider.tsx';
+import { ConnectedPurchasesRead } from '../components/purchases/ConnectedPurchasesRead';
 
 type Tab = 'purchases' | 'return' | 'return-history';
 
@@ -71,7 +73,16 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
   );
 }
 
+/**
+ * Keep preview business stores entirely unmounted in connected mode.
+ * ConnectedWorkspaceGate remains authoritative for route activation.
+ */
 export function Purchases() {
+  const { mode } = useSession();
+  return mode === 'connected' ? <ConnectedPurchasesRead /> : <PreviewPurchases />;
+}
+
+function PreviewPurchases() {
   const {text,language}=useUiCopy();
   const pl=(s:string)=>purchaseLabel(language,s);
   const navigate = useNavigate();
