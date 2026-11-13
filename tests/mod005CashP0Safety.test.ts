@@ -16,7 +16,7 @@ test('cash day remains independently readable when account list is permission-de
 test('account denial never silently substitutes preview fixtures or leaks loan liabilities', () => {
   assert.match(dialog, /accountsAccess/);
   assert.match(dialog, /a\.type === 'CASH' \|\| a\.type === 'BANK'/);
-  assert.doesNotMatch(dialog, /\$\{a\.type\}:\$\{a\.id\}/);
+  assert.match(dialog, /serverAccounts\.filter\(a=>a\.type === 'CASH' \|\| a\.type === 'BANK'\)/);
   assert.match(context, /mode === 'preview'/);
 });
 
