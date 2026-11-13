@@ -159,6 +159,27 @@ function DraftBrowserFixture() {
     setSourceProductId(product.id);
     setSourceFactorQty(product.conversion?.factorQty ?? 0);
   });
+  const probeInvalidSource = (kind: 'wrong-role' | 'inactive-product' |
+    'foreign-product' | 'foreign-supplier') => action('probe-' + kind, async () => {
+    if (!populatedMode) throw Error('P5D only');
+    const verified = selectedSources.current;
+    const product = verified && [...verified.products.keys()][0];
+    if (!verified?.supplier || !product) throw Error('Verify sources before a negative probe');
+    const query = new URLSearchParams(window.location.search);
+    const option = kind === 'wrong-role' ? 'wrongRole' :
+      kind === 'inactive-product' ? 'inactiveProduct' :
+        kind === 'foreign-product' ? 'foreignProduct' : 'foreignSupplier';
+    const id = query.get(option);
+    if (!id || !/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(id)) {
+      throw Error('Missing seeded negative-source identity');
+    }
+    const supplierId = kind === 'wrong-role' || kind === 'foreign-supplier'
+      ? id : verified.supplier.id;
+    const productIds = kind === 'inactive-product' || kind === 'foreign-product'
+      ? [id] : [product];
+    await resolvePurchaseEditorSources(signed(), { supplierId, productIds });
+    throw Error('Unexpectedly accepted an unverified source');
+  });
   const probeMissingSource = () => action('probe-missing-source', async () => {
     if (!populatedMode) throw Error('P5D only');
     const supplier = selectedSources.current?.supplier;
@@ -252,6 +273,10 @@ function DraftBrowserFixture() {
       {populatedMode && <section aria-label="Real authenticated source verification">
         <button data-test-select-sources="" onClick={() => void selectSources()}>Verify supplier and product</button>
         <button data-test-probe-missing-source="" onClick={() => void probeMissingSource()}>Probe missing source</button>
+        <button data-test-probe-wrong-role="" onClick={() => void probeInvalidSource('wrong-role')}>Probe wrong-role supplier</button>
+        <button data-test-probe-inactive-product="" onClick={() => void probeInvalidSource('inactive-product')}>Probe inactive product</button>
+        <button data-test-probe-foreign-product="" onClick={() => void probeInvalidSource('foreign-product')}>Probe foreign product</button>
+        <button data-test-probe-foreign-supplier="" onClick={() => void probeInvalidSource('foreign-supplier')}>Probe foreign supplier</button>
       </section>}
       <section aria-label="Nonposting draft actions" className="flex flex-wrap gap-2">
         <button data-test-prepare="" onClick={() => void prepare()}>Prepare</button>
