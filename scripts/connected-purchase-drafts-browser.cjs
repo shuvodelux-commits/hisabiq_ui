@@ -205,7 +205,11 @@ async function exercise(browser, viewport) {
         scroll: document.documentElement.scrollWidth }));
     assert.ok(width.scroll <= width.viewport + 2,
       viewport + 'px Review overflow: ' + JSON.stringify(width));
-    await details.getByRole('button', { name: 'Back to drafts' }).click();
+    const back = details.getByRole('button', { name: 'Back to drafts' });
+    await back.focus();
+    assert.equal(await back.evaluate(node => document.activeElement === node), true,
+      'Back action must be keyboard focusable');
+    await page.keyboard.press('Enter');
     await draftRow().getByText('INV-TEST-77', { exact: true }).waitFor();
 
     // Force a real SessionStore authentication switch while the Drafts
