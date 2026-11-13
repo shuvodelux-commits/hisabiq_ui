@@ -65,7 +65,7 @@ test('connected unsupported actions are visibly disabled with truthful explanati
 
 test('permission denial and GET failures never substitute fixture balances', () => {
   assert.match(live, /error\.status === 403/);
-  assert.match(live, /status: 'permission-denied'/);
+  assert.match(live, /\? 'permission-denied' : 'error'/);
   assert.match(live, /current\?\.status === 'error'/);
   assert.match(live, /No permitted accounts to display/);
   assert.match(live, /preview balances will not be substituted/);
