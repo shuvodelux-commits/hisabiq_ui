@@ -16,7 +16,8 @@ const connected = start < 0 ? '' : source.slice(start);
 test('server statement dialog exists separately from preserved preview dialog', () => {
   assert.match(source, /export function FinanceAccountActionDialog\(/);
   assert.ok(start >= 0, 'requires separate server-money dialog');
-  assert.match(connected, /ServerMoneyAccount/);
+  assert.match(source, /account: ServerMoneyAccount;/);
+  assert.match(connected, /selection: ConnectedMoneyAccountSelection/);
 });
 
 test('server dialog requires exact verified tenant, user and epoch before displaying account', () => {
