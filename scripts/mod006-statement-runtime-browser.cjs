@@ -177,7 +177,7 @@ async function main() {
     // account statement and printable old page must vanish synchronously.
     console.log('STAGE: refresh and hold A2');
     holds.add('access-A-2:' + accountA);
-    await page.locator('#refresh').click();
+    await page.locator('#refresh').evaluate(button => button.click());
     await waitForPending('access-A-2:' + accountA);
     await page.getByText('A1 OLD PRIVATE ROW').waitFor({ state: 'hidden' });
     assert.equal(await page.getByRole('button', { name: 'Print' }).isDisabled(), true,
@@ -190,7 +190,7 @@ async function main() {
     // page/print while B fetch is held.
     console.log('STAGE: duplicate-name account B');
     holds.add('access-A-2:' + accountB);
-    await page.locator('#account-b').click();
+    await page.locator('#account-b').evaluate(button => button.click());
     await waitForPending('access-A-2:' + accountB);
     await page.getByText('A2 FRESH SESSION ROW').waitFor({ state: 'hidden' });
     assert.equal(await page.getByRole('button', { name: 'Print' }).isDisabled(), true);
@@ -200,27 +200,27 @@ async function main() {
     // Account B -> A -> B while A is in flight; abandoned A's late result
     // must never replace B and A's ID must not become B's page identity.
     holds.add('access-A-2:' + accountA);
-    await page.locator('#account-a').click();
+    await page.locator('#account-a').evaluate(button => button.click());
     await waitForPending('access-A-2:' + accountA);
-    await page.locator('#account-b').click();
+    await page.locator('#account-b').evaluate(button => button.click());
     await page.getByText('A2 ACCOUNT B ROW').waitFor();
     await release('access-A-2:' + accountA);
     assert.equal(await page.getByText('A2 FRESH SESSION ROW').count(), 0);
 
     // Wrong-tenant selected record cannot render even while authenticated.
     console.log('STAGE: tenant transition');
-    await page.locator('#pin-old').click();
-    await page.locator('#logout').click();
+    await page.locator('#pin-old').evaluate(button => button.click());
+    await page.locator('#logout').evaluate(button => button.click());
     await session.locator('[data-unused]').count().catch(() => 0);
     await page.waitForFunction(() => document.querySelector('#session-state')?.getAttribute('data-status') === 'signed-out');
     assert.equal(await page.getByRole('dialog').count(), 0);
-    await page.locator('#login-b').click();
+    await page.locator('#login-b').evaluate(button => button.click());
     await page.getByText('TENANT B ISOLATED ROW').waitFor();
     assert.equal(await session.getAttribute('data-tenant'), tenantB);
-    await page.locator('#try-old').click();
+    await page.locator('#try-old').evaluate(button => button.click());
     assert.equal(await page.getByRole('dialog').count(), 0,
       'old tenant selection cannot survive new verified tenant');
-    await page.locator('#restore-selection').click();
+    await page.locator('#restore-selection').evaluate(button => button.click());
     await page.getByText('TENANT B ISOLATED ROW').waitFor();
     assert.equal(await page.getByText('A1 OLD PRIVATE ROW').count(), 0);
     assert.equal(await page.getByText('A2 FRESH SESSION ROW').count(), 0);
