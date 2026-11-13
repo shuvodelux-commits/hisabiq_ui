@@ -8,7 +8,11 @@ import {
   restorePurchaseDraft,
   updatePurchaseDraft,
 } from './purchase-drafts.ts';
-import type { PurchaseDraftPayload, ServerPurchaseDraft } from './purchase-drafts.ts';
+import type {
+  CreatePurchaseDraftPayload,
+  PurchaseDraftPayload,
+  ServerPurchaseDraft,
+} from './purchase-drafts.ts';
 import type { SessionSnapshot } from './session.ts';
 import type { PurchaseDraftInput } from '../data/purchaseDraftsPreviewStore.ts';
 
@@ -25,6 +29,18 @@ export interface PurchaseDraftSources {
   readonly tenantId: string;
   readonly productIds: ReadonlySet<string>;
   readonly supplierNames: ReadonlyMap<string, string>;
+}
+
+/**
+ * Opaque, memory-only create intent. Only an operation ULID is public; the
+ * authenticated source identity and exact draft payload live in a private
+ * WeakMap. Neither JWT nor editor data is persisted in browser storage.
+ *
+ * A lost response must NOT result in a new intent. Retain this handle until
+ * confirmed, or block new creates pending an audited server reconciliation.
+ */
+export interface PreparedPurchaseDraftCreate {
+  readonly operationId: string;
 }
 
 export interface ResolvedPurchaseEditorDraft {
@@ -44,6 +60,51 @@ const EDITOR_KEYS = [
   'discountMode', 'photos', 'total',
 ];
 const MAX_BYTES = 120_000;
+const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+const preparedCreates = new WeakMap<PreparedPurchaseDraftCreate, {
+  readonly identity: string;
+  readonly serialized: string;
+}>();
+
+function currentDraftIdentity(session: ConnectedPurchaseSession): string {
+  if (session.status !== 'authenticated' || !validId(session.tenantId) ||
+      !validId(session.userId) || !Number.isSafeInteger(session.epoch) ||
+      session.epoch < 0 || !session.accessToken) return refuse();
+  // The token remains only in a private in-memory WeakMap, never the handle.
+  return JSON.stringify([
+    session.tenantId, session.userId, session.epoch, session.accessToken,
+  ]);
+}
+
+/** 48-bit millisecond timestamp + 80 cryptographically random bits. */
+function generateCreateOperationId(): string {
+  if (!globalThis.crypto?.getRandomValues) return refuse('Secure creation ID generator is unavailable.');
+  let clock = Date.now();
+  if (!Number.isSafeInteger(clock) || clock < 0 || clock >= 2 ** 48) {
+    return refuse('Device clock cannot generate a safe purchase draft ID.');
+  }
+  const result = Array<string>(10);
+  for (let index = 9; index >= 0; index -= 1) {
+    result[index] = CROCKFORD[clock % 32]!;
+    clock = Math.floor(clock / 32);
+  }
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(10));
+  let bits = 0;
+  let buffer = 0;
+  let random = '';
+  for (const byte of bytes) {
+    buffer = (buffer << 8) | byte;
+    bits += 8;
+    while (bits >= 5) {
+      bits -= 5;
+      random += CROCKFORD[(buffer >>> bits) & 31];
+      buffer &= (1 << bits) - 1;
+    }
+  }
+  const operationId = result.join('') + random;
+  if (!validId(operationId)) return refuse('Purchase draft creation ID could not be verified.');
+  return operationId;
+}
 
 function refuse(message = 'Purchase draft cannot be verified for this business.'): never {
   throw new ApiError('protocol', message);
@@ -207,6 +268,23 @@ function ordered(value: unknown): string {
 }
 
 /**
+ * Prepare exactly one new-draft intent before sending an HTTP request.
+ * Retain this object through ambiguous network failures; never generate a
+ * second operation ID for the same original draft creation.
+ */
+export function preparePurchaseEditorDraftCreate(
+  session: ConnectedPurchaseSession,
+  sources: PurchaseDraftSources,
+  editor: PurchaseDraftInput,
+): PreparedPurchaseDraftCreate {
+  const payload = encodePurchaseEditorDraft(session, sources, editor);
+  const identity = currentDraftIdentity(session);
+  const intent = Object.freeze({ operationId: generateCreateOperationId() });
+  preparedCreates.set(intent, { identity, serialized: JSON.stringify(payload) });
+  return intent;
+}
+
+/**
  * Read/restore only after verifying current session/tenant and LIVE server
  * source IDs. Do not hydrate preview stores or trust serialized product data
  * for a subsequent financial posting.
@@ -269,12 +347,31 @@ export async function savePurchaseEditorDraft(
   editor: PurchaseDraftInput,
   existing?: { id: string; version: number } | null,
   signal?: AbortSignal,
+  createIntent?: PreparedPurchaseDraftCreate,
 ): Promise<ResolvedPurchaseEditorDraft> {
   const payload = encodePurchaseEditorDraft(session, sources, editor);
-  const response = existing
-    ? await updatePurchaseDraft(session.accessToken, existing.id,
-      { ...payload, expectedVersion: existing.version }, signal)
-    : await createPurchaseDraft(session.accessToken, payload, signal);
+  if (existing && createIntent) return refuse('Draft update cannot reuse a new-create operation ID.');
+  let response;
+  if (existing) {
+    response = await updatePurchaseDraft(session.accessToken, existing.id,
+      { ...payload, expectedVersion: existing.version }, signal);
+  } else {
+    if (!createIntent || !validId(createIntent.operationId)) {
+      return refuse('Prepare a stable Purchase Draft creation intent before saving.');
+    }
+    const savedIntent = preparedCreates.get(createIntent);
+    if (!savedIntent || savedIntent.identity !== currentDraftIdentity(session) ||
+        ordered(payload) !== ordered(JSON.parse(savedIntent.serialized))) {
+      return refuse('Creation intent is stale or the draft content has changed.');
+    }
+    const original = JSON.parse(savedIntent.serialized) as PurchaseDraftPayload;
+    const createBody: CreatePurchaseDraftPayload = {
+      ...original, operationId: createIntent.operationId,
+    };
+    // Exactly one HTTP request per caller action; retain intent even after a
+    // timeout/abort/409, and do not create a substitute document.
+    response = await createPurchaseDraft(session.accessToken, createBody, signal);
+  }
   if (existing && (response.data.id !== existing.id ||
       response.data.version !== existing.version + 1)) {
     return refuse('Saved purchase draft version was not verified.');
