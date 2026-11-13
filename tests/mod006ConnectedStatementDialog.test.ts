@@ -65,3 +65,14 @@ test('server presentation has navigation and retry but does not open the connect
   assert.match(connected, /Retry/);
   assert.doesNotMatch(source, /ConnectedWorkspaceGate/);
 });
+
+
+test('state keys use an opaque symbol, never persist or serialize the bearer', () => {
+  assert.match(connected, /Symbol\('verified-account-statement'\)/);
+  assert.match(connected, /\[snapshot, mode, authenticatedScope/);
+  assert.match(connected, /scope: symbol;/);
+  assert.match(connected, /scope: symbol \| null;/);
+  assert.doesNotMatch(connected, /join\(':'\)/);
+  assert.doesNotMatch(connected, /scope: snapshot\.accessToken/);
+  assert.doesNotMatch(connected, /scope:.*accessToken/);
+});
