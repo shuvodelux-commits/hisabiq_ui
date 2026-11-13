@@ -647,7 +647,7 @@ export type ConnectedMoneyAccountSelection = {
 };
 
 type ConnectedStatementPage = {
-  scope: string;
+  scope: symbol;
   cursor: string | null;
   state: 'loading' | 'ready' | 'error';
   statement?: ServerMoneyAccountStatement;
@@ -680,12 +680,16 @@ export function ConnectedMoneyAccountActionDialog({
     selection.tenantId === snapshot.tenantId &&
     selection.userId === snapshot.userId &&
     selection.epoch === snapshot.epoch;
-  // Include the verified token in scope so refresh invalidates outstanding data.
-  const sessionScope = authenticatedScope
-    ? [snapshot.tenantId, snapshot.userId, String(snapshot.epoch), snapshot.accessToken, selection.account.id].join(':')
-    : null;
-  const [navigation, setNavigation] = useState<{ scope: string; stack: (string | null)[] }>({
-    scope: '', stack: [null],
+  // SessionStore publishes a fresh snapshot object on each verified login/refresh.
+  // A symbol derived from that identity invalidates stale pages synchronously,
+  // without storing or serializing the bearer credential in React pagination state.
+  const sessionScope = useMemo(
+    () => authenticatedScope ? Symbol('verified-account-statement') : null,
+    [snapshot, mode, authenticatedScope, selection?.tenantId, selection?.userId,
+      selection?.epoch, selection?.account.id],
+  );
+  const [navigation, setNavigation] = useState<{ scope: symbol | null; stack: (string | null)[] }>({
+    scope: null, stack: [null],
   });
   const stack = navigation.scope === sessionScope ? navigation.stack : [null];
   const cursor = stack[stack.length - 1] ?? null;
@@ -716,7 +720,7 @@ export function ConnectedMoneyAccountActionDialog({
       active = false;
       controller.abort();
     };
-  }, [sessionScope, selection?.account.id, snapshot.status === 'authenticated' ? snapshot.accessToken : null, cursor, retryNumber]);
+  }, [sessionScope, selection?.account.id, cursor, retryNumber]);
 
   const visibleStatement = page?.scope === sessionScope &&
     page?.cursor === cursor && page.state === 'ready'
