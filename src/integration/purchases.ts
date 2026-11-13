@@ -262,7 +262,7 @@ async function read<T>(
 }
 
 /** No implicit mutation, retry, preview source or global cache. */
-export function readPurchases(
+export async function readPurchases(
   accessToken: string,
   query: ServerPurchaseQuery = {},
   signal?: AbortSignal,
