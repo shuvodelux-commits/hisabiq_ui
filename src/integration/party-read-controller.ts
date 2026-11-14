@@ -110,6 +110,14 @@ export type PartyReadSnapshot =
 type Authentication = Extract<SessionSnapshot, { status: 'authenticated' }>;
 type PartySession = Pick<SessionStore, 'getSnapshot' | 'subscribe'>;
 
+/** Capabilities are sets: an order change is not a permission change. */
+function sameAccessSet(left: readonly string[], right: readonly string[]): boolean {
+  const expected = new Set(left);
+  const actual = new Set(right);
+  return expected.size === actual.size &&
+    [...expected].every(value => actual.has(value));
+}
+
 function sameAuthentication(
   expected: Authentication,
   actual: SessionSnapshot,
@@ -118,7 +126,10 @@ function sameAuthentication(
     expected.epoch === actual.epoch &&
     expected.tenantId === actual.tenantId &&
     expected.userId === actual.userId &&
-    expected.accessToken === actual.accessToken;
+    expected.accessToken === actual.accessToken &&
+    expected.roleName === actual.roleName &&
+    sameAccessSet(expected.permissions, actual.permissions) &&
+    sameAccessSet(expected.features, actual.features);
 }
 
 function protocol(): ApiError {
