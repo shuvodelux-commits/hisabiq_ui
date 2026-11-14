@@ -24,7 +24,7 @@ test('R09B-02 invoice view requires sale.invoice.view and verified connected aut
 });
 
 test('R09B-03 returnability GET requires sales.return.create, not return-history permission', () => {
-  assert.match(workspace, /canViewInvoices && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
+  assert.match(workspace, /authenticated && canViewInvoices && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.match(invoicePanel, /snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.match(sourcePanel, /snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.doesNotMatch(workspace, /canReviewSource.*sales\.return\.view/);
