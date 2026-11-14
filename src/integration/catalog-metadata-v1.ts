@@ -62,6 +62,30 @@ export type CatalogMetadataV1PatchCommand =
       nameBn: string | null;
     };
 
+
+/**
+ * MOD-002 T02A/P6d — opt-in one-request full edit, added only after backend P6c.
+ * These fields are accepted by the new /full-edit route, not the existing
+ * Bengali-only metadata PATCH. Omitted optional values preserve, null clears.
+ * No frontend Product Settings screen or session bridge uses this yet.
+ */
+export type CatalogMetadataV1FullEditCommand =
+  | {
+      kind: 'units';
+      id: string;
+      expectedVersion: number;
+      name: string;
+      nameBn?: string | null;
+      symbol?: string | null;
+    }
+  | {
+      kind: 'brands' | 'categories';
+      id: string;
+      expectedVersion: number;
+      name: string;
+      nameBn?: string | null;
+    };
+
 const ulid = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 const featureKeys = [
   'productOffers', 'expiryTracking', 'serialTracking',
@@ -169,6 +193,45 @@ function validatePatch(raw: unknown): {
   return { kind: raw.kind, id: raw.id, body };
 }
 
+
+function englishName(value: unknown): string {
+  if (typeof value !== 'string') return invalid();
+  // Normalise before applying the server's <=120 UTF-16-unit name bound.
+  // The server also collapses internal whitespace before storing a name.
+  const normalized = value.normalize('NFC').trim().replace(/\s+/gu, ' ');
+  if (normalized.length < 1 || normalized.length > 120) return invalid();
+  for (let index = 0; index < normalized.length; index += 1) {
+    const code = normalized.charCodeAt(index);
+    if (code < 32 || code === 127) return invalid();
+  }
+  return normalized;
+}
+
+function validateFullEdit(raw: unknown): {
+  kind: 'units' | 'brands' | 'categories';
+  id: string;
+  body: Record<string, string | number | null>;
+} {
+  if (!record(raw) || !validId(raw.id) || !validVersion(raw.expectedVersion) ||
+      (raw.kind !== 'units' && raw.kind !== 'brands' && raw.kind !== 'categories')) {
+    return invalid();
+  }
+  const common = ['kind', 'id', 'expectedVersion', 'name', 'nameBn'];
+  const fields = raw.kind === 'units' ? [...common, 'symbol'] : common;
+  if (!allowedKeys(raw, fields) || !has(raw, 'name')) return invalid();
+
+  const body: Record<string, string | number | null> = {
+    expectedVersion: raw.expectedVersion,
+    name: englishName(raw.name),
+  };
+  if (has(raw, 'nameBn')) body.nameBn = nameBn(raw.nameBn);
+  if (has(raw, 'symbol')) {
+    if (raw.kind !== 'units') return invalid();
+    body.symbol = symbol(raw.symbol);
+  }
+  return { kind: raw.kind, id: raw.id, body };
+}
+
 async function metadataRequest(
   accessToken: string,
   method: 'GET' | 'PATCH',
@@ -219,6 +282,27 @@ export async function patchCatalogMetadataV1(
   const { kind, id, body } = validatePatch(command);
   return metadataRequest(
     accessToken, 'PATCH', `/api/v1/catalog/metadata-v1/${kind}/${id}`,
+    body, signal, timeoutMs,
+  );
+}
+
+/**
+ * Atomic English+Bengali (+optional unit symbol) full edit.
+ *
+ * Unlike the legacy English-only rename and metadata-only PATCH, this sends a
+ * single CAS request. No retries, local optimistic mutation, forged tenant ID,
+ * fixture fallback or session bypass is added here. A 409 or lost response
+ * must be reconciled by re-reading under a separately verified session.
+ */
+export async function fullEditCatalogMetadataV1(
+  accessToken: string,
+  command: CatalogMetadataV1FullEditCommand,
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<CatalogMetadataV1Envelope> {
+  const { kind, id, body } = validateFullEdit(command);
+  return metadataRequest(
+    accessToken, 'PATCH', `/api/v1/catalog/metadata-v1/${kind}/${id}/full-edit`,
     body, signal, timeoutMs,
   );
 }
