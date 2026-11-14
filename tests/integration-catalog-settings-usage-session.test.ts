@@ -166,6 +166,26 @@ test('P7d: count response from a switched tenant/user/epoch/token is rejected de
   }
 });
 
+test('P7d: same-principal role revocation during request rejects late counts and revokes preflight', async () => {
+  const store = new Store(signed());
+  const bridge = new CatalogMetadataSessionBridge(store);
+  let countRequests = 0;
+  await withFetch((async (url) => {
+    if (String(url).endsWith('/metadata-v1')) return json(catalog);
+    countRequests++;
+    // Same tenant, user, token and epoch; ONLY the live role changed.
+    store.change(signed({ permissions: [] }));
+    return json(usage); // Simulates a proxy delivering a late 200.
+  }) as typeof fetch, async () => {
+    await bridge.read();
+    await assert.rejects(bridge.readUsage(), (e: unknown) =>
+      e instanceof ApiError && e.kind === 'http' && e.status === 403);
+    assert.equal(bridge.isReadReady(), false);
+  });
+  assert.equal(countRequests, 1);
+  assert.equal(store.listenerCount, 0);
+});
+
 test('P7d: external abort rejects usage and no response reaches a later session', async () => {
   const store = new Store(signed());
   const bridge = new CatalogMetadataSessionBridge(store);
