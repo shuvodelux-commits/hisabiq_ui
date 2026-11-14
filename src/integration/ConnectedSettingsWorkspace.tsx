@@ -109,14 +109,19 @@ function ConnectedSettingsContent({ section }: { section: string }) {
             <p role="alert" className="rounded-md border border-ink-100 p-4 text-sm text-ink-600">
               You do not have permission to view this section. · এই অংশ দেখার অনুমতি নেই।
             </p>
-          ) : section === 'business' ? (
-            <GeneralSettingsSection key={identity} section={business}
-              canEdit={snapshot.permissions.includes('settings.setting.edit')}
-              onDirtyChange={setDirty} />
           ) : (
-            <TeamSettings key={identity}
-              canEdit={canUsers && snapshot.permissions.includes('user.account.edit')}
-              onDirtyChange={setDirty} />
+            <fieldset disabled className="m-0 min-w-0 border-0 p-0">
+              <p role="status" className="mb-3 rounded-md border border-ink-100 bg-ink-50 p-3 text-xs text-ink-600">
+                Connected Settings are view-only until live write acceptance is complete.
+                <span className="ml-1 font-bn">সার্ভার তথ্য দেখা যাবে; পরিবর্তন আপাতত বন্ধ।</span>
+              </p>
+              {section === 'business' ? (
+                <GeneralSettingsSection key={identity} section={business}
+                  canEdit={false} onDirtyChange={setDirty} />
+              ) : (
+                <TeamSettings key={identity} canEdit={false} onDirtyChange={setDirty} />
+              )}
+            </fieldset>
           )}
         </main>
       </div>
