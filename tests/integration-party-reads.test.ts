@@ -23,12 +23,12 @@ const payable = { netMinor: -300000, direction: 'PAYABLE', outstandingMinor: 0, 
 const zero = { netMinor: 0, direction: 'SETTLED', outstandingMinor: 0, advanceMinor: 0 };
 const party = {
   id: partyId, name: 'Karim Electrical', roles: ['CUSTOMER', 'SUPPLIER'],
-  phone: '01712345678', address: null, guardianName: null, nid: null,
-  email: null, notes: null, customerGroupId: null, customerGroupName: null,
+  readRole: 'CUSTOMER', phone: '01712345678',
+  customerGroupId: null, customerGroupName: null,
   creditLimitMinor: 800000, status: 'ACTIVE', isSystemReserved: false, version: 2,
-  balance: received, hasLedgerEntries: true,
+  balance: received, profile: { state: 'WITHHELD' }, globalHistory: { state: 'WITHHELD' },
 };
-const supplier = { ...party, balance: payable,
+const supplier = { ...party, readRole: 'SUPPLIER', balance: payable,
   customerGroupId: null, customerGroupName: null, creditLimitMinor: null };
 const summary = {
   total: 1, active: 1, inactive: 0, ungrouped: 1,
@@ -78,13 +78,7 @@ async function withFetch(mock: typeof fetch, run: () => Promise<void>): Promise<
 }
 
 test('P3B-R RED: V2 WITHHELD list/detail and selected-role transport, no V1 fallback', async () => {
-  const { address: _a, guardianName: _g, nid: _n, email: _e, notes: _o,
-    hasLedgerEntries: _h, ...safe } = party;
-  const row = {
-    ...safe, readRole: 'CUSTOMER',
-    profile: { state: 'WITHHELD' },
-    globalHistory: { state: 'WITHHELD' },
-  };
+  const row = { ...party };
   const payload = { ...partyList, data: [row] };
   assert.equal(decodeTradingPartyList(payload, 'CUSTOMER').data[0]?.profile.state, 'WITHHELD');
   assert.equal(decodeTradingPartyDetail({ data: row }, 'CUSTOMER').data.globalHistory.state, 'WITHHELD');
@@ -105,7 +99,7 @@ test('trading Party list sends an explicit CUSTOMER role with allowlisted filter
     calls++;
     const u = new URL(String(url));
     assert.equal(u.origin, origin);
-    assert.equal(u.pathname, '/api/v1/parties');
+    assert.equal(u.pathname, '/api/v2/parties');
     assert.equal(u.searchParams.get('role'), 'CUSTOMER');
     assert.equal(u.searchParams.get('search'), 'Karim');
     assert.equal(u.searchParams.get('status'), 'ACTIVE');
@@ -147,8 +141,8 @@ test('multi-role identity gives independent CUSTOMER and SUPPLIER detail without
     assert.deepEqual(customer.data.roles, ['CUSTOMER', 'SUPPLIER']);
   });
   assert.deepEqual(requests, [
-    origin + '/api/v1/parties/' + partyId + '?role=CUSTOMER',
-    origin + '/api/v1/parties/' + partyId + '?role=SUPPLIER',
+    origin + '/api/v2/parties/' + partyId + '?role=CUSTOMER',
+    origin + '/api/v2/parties/' + partyId + '?role=SUPPLIER',
   ]);
 });
 
@@ -238,7 +232,15 @@ test('response decoders fail closed on cross-role identity, wrong ledger party, 
     { ...partyList, data: [{ ...party, balance: { ...received, netMinor: 1.5 } }] },
     { ...partyList, data: [{ ...party, id: 'preview-1' }] },
     { ...partyList, data: [{ ...party, roles: ['CUSTOMER', 'LENDER'] }] },
-    { ...partyList, data: [{ ...party, hasLedgerEntries: null }] },
+    { ...partyList, data: [{ ...party, globalHistory: { state: 'VISIBLE', hasLedgerEntries: null } }] },
+    { ...partyList, data: [{ ...party, readRole: 'SUPPLIER' }] },
+    { ...partyList, data: [{ ...party, profile: { state: 'WITHHELD', data: { nid: 'leak' } } }] },
+    { ...partyList, data: [{ ...party, profile: { state: 'VISIBLE' } }] },
+    { ...partyList, data: [{ ...party, profile: { state: 'VISIBLE', data: {
+      address: null, guardianName: null, nid: null, email: null, notes: null, extra: 'leak',
+    } } }] },
+    { ...partyList, data: [{ ...party, address: 'raw-v1-bypass' }] },
+    { ...partyList, data: [{ ...party, globalHistory: { state: 'WITHHELD', hasLedgerEntries: false } }] },
     { ...partyList, summary: { ...summary, totalAdvanceMinor: -1 } },
     { ...partyList, page: { nextCursor: secondId, hasMore: false } },
     { ...partyList, data: [party, party] },
@@ -260,6 +262,31 @@ test('response decoders fail closed on cross-role identity, wrong ledger party, 
     { ...ledger, totalDebitMinor: -1 },
     { ...ledger, extra: 123 },
   ]) assert.throws(() => decodeTradingLedger(bad, 'CUSTOMER', partyId), ApiError);
+});
+
+test('V2 nested sensitive states validate visible and withheld without coercion', () => {
+  const revealed = {
+    ...party,
+    profile: { state: 'VISIBLE', data: {
+      address: 'PRIVATE street', guardianName: null, nid: 'PRIVATE NID',
+      email: null, notes: 'PRIVATE note',
+    } },
+    globalHistory: { state: 'VISIBLE', hasLedgerEntries: true },
+  };
+  const visible = decodeTradingPartyDetail({ data: revealed }, 'CUSTOMER').data;
+  assert.equal(visible.profile.state, 'VISIBLE');
+  assert.equal(visible.globalHistory.state, 'VISIBLE');
+  assert.equal(JSON.stringify(visible).includes('PRIVATE NID'), true);
+  const withheld = decodeTradingPartyDetail({ data: party }, 'CUSTOMER').data;
+  assert.deepEqual(withheld.profile, { state: 'WITHHELD' });
+  assert.deepEqual(withheld.globalHistory, { state: 'WITHHELD' });
+  assert.equal(Object.hasOwn(withheld, 'hasLedgerEntries'), false);
+  assert.throws(() => decodeTradingPartyDetail({
+    data: { ...party, profile: { state: 'VISIBLE', data: { nid: 'incomplete' } } },
+  }, 'CUSTOMER'), ApiError);
+  assert.throws(() => decodeTradingPartyDetail({
+    data: { ...party, globalHistory: { state: 'WITHHELD', hasLedgerEntries: false } },
+  }, 'CUSTOMER'), ApiError);
 });
 
 test('distinct bearer tokens produce independent reads without process cache or fixture fallback', async () => {
