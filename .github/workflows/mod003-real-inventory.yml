@@ -114,8 +114,10 @@ jobs:
           set -euo pipefail
           psql -v ON_ERROR_STOP=1 -c 'GRANT CONNECT ON DATABASE sher_mod003_p2b0_20261113 TO sher_app'
           psql -v ON_ERROR_STOP=1 -c 'GRANT USAGE ON SCHEMA public TO sher_app'
-          psql -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public TO sher_app'
+          psql -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sher_app'
           PGPASSWORD=sher_app_test PGUSER=sher_app psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_user' | grep -Fx sher_app
+          # TRUNCATE bypasses RLS; this runtime role must never be able to clear another tenant's table.
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT has_table_privilege('sher_app', 'public.products', 'TRUNCATE')" | grep -Fx f
           psql -v ON_ERROR_STOP=1 -Atqc "SELECT pg_get_userbyid(datdba) <> 'sher_app' FROM pg_database WHERE datname=current_database()" | grep -Fx t
 
       - name: Start isolated real Nest API and check 401 before writes
