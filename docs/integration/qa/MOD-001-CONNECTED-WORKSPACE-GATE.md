@@ -18,6 +18,7 @@
 - **NO CHANGE** to src/settings/TenantSettingsPage.tsx, SettingsNav.tsx, AppShell.tsx, backend, API contracts, DB or global router guard; preserve their preview behavior and existing layout. No CashSessionProvider is mounted in connected mode.
 - **GENERATED OUTPUTS ONLY:** docs/ui/design-system.json and src/data/designGuide.json must be synchronized after introducing one new TSX component; the existing checked-in generator produces +1 component inventory entry. No source redesign or manual edits to those outputs. Required to pass the UI contract; recorded in #549 before generation.
 - **BLOCK** preview dashboard, POS, finance, purchases, stock, subscriptions, SaaS and any /app route not explicitly allowed. Do not authorize by preview actorId or canManage().
+- **READ-ONLY LIVE SLICE:** the existing Magic components contain previously unmounted server write adapters. In this #549 route, wrap displayed Business and Team controls in a disabled fieldset; do not activate those write paths until separate real mutation/tenant-authorization QA is accepted. This does not modify any preview control.
 - **WARN/DO NOT ASSUME** 3-second /me watcher production cadence is approved. Server permission checks are the authoritative security barrier. Real background-tab/throttle timing has no hard guarantee.
 - Each production or browser check is distinct from CI's mock-only acceptance. Do not call any mock-only check "real two-tenant QA".
 - Draft PR only. No merge or deployment. Independent reviewer and remaining #560/#574/#548 release gates apply.
