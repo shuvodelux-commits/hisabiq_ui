@@ -3482,6 +3482,14 @@
       "reexports": []
     },
     {
+      "file": "src/integration/ConnectedSettingsWorkspace.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ConnectedSettingsWorkspace"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/integration/ConnectedWorkspaceGate.tsx",
       "kind": "authored-ui",
       "exports": [
