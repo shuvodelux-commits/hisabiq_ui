@@ -7,6 +7,7 @@ import {
   type CatalogMetadataV1FullEditCommand,
   type CatalogMetadataV1PatchCommand,
 } from './catalog-metadata-v1.ts';
+import { readCatalogSettingsUsageV1, type CatalogSettingsUsageV1Envelope } from './catalog-settings-usage-v1.ts';
 import { ApiError } from './errors.ts';
 import type { SessionSnapshot, SessionStore } from './session.ts';
 
@@ -107,6 +108,32 @@ export class CatalogMetadataSessionBridge {
     return this.confirmed !== null && identityMatches(current, this.confirmed);
   }
 
+  /**
+   * P7d — unmounted tenant-session-bound read-only Product Settings usage.
+   * It can run only after metadata read() has verified this exact principal.
+   * This is NOT a Product Settings switch or an Active/Inactive master roster.
+   * Failure requires a fresh metadata read before retry; never return stale
+   * counts, invent zero values, or retry through the legacy catalog API.
+   */
+  async readUsage(signal?: AbortSignal): Promise<CatalogSettingsUsageV1Envelope> {
+    const snapshot = this.requireSession();
+    this.requirePermission(snapshot, VIEW);
+    if (!this.isReadReady()) throw notReady();
+    try {
+      const result = await this.request(snapshot, (token, operationSignal) =>
+        readCatalogSettingsUsageV1(token, operationSignal), signal);
+      // The SessionStore may refresh live roles without changing identity or
+      // bearer. Recheck VIEW after await: never deliver a late count to a
+      // principal whose permission was revoked while the request was in flight.
+      this.requirePermission(this.requireSession(), VIEW);
+      if (!this.isReadReady()) throw notReady();
+      return result;
+    } catch (error) {
+      this.confirmed = null;
+      throw error;
+    }
+  }
+
   /** A single server-owned atomic POST, never legacy create followed by PATCH. */
   async create(
     command: CatalogMetadataV1CreateCommand,
@@ -177,11 +204,11 @@ export class CatalogMetadataSessionBridge {
    * Browsers, test mocks or server proxies can complete a request even after
    * an abort; those stale results must never reach a later tenant's UI.
    */
-  private async request(
+  private async request<T>(
     snapshot: SignedIn,
-    execute: (accessToken: string, signal: AbortSignal) => Promise<CatalogMetadataV1Envelope>,
+    execute: (accessToken: string, signal: AbortSignal) => Promise<T>,
     externalSignal?: AbortSignal,
-  ): Promise<CatalogMetadataV1Envelope> {
+  ): Promise<T> {
     const controller = new AbortController();
     const changed = () => {
       if (!identityMatches(this.session.getSnapshot(), snapshot)) controller.abort();
