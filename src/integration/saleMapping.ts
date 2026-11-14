@@ -273,3 +273,90 @@ export function decodeCustomerStanding(raw: unknown): ServerCustomerStandingEnve
 export function isCanonicalPosPartyId(value: unknown): value is string {
   return id(value);
 }
+
+
+/** Non-posting Nest sale drafts: metadata is server-owned; cart stays opaque JSON. */
+export interface ServerSaleDraft {
+  id: string;
+  label: string;
+  customerName: string | null;
+  itemCount: number;
+  grandTotalMinor: number;
+  businessDate: string;
+  savedAt: string;
+  cart: Record<string, unknown>;
+}
+export interface ServerSaleDraftsEnvelope {
+  data: ServerSaleDraft[];
+}
+
+const saleDraftKeys = [
+  'id', 'label', 'customerName', 'itemCount', 'grandTotalMinor',
+  'businessDate', 'savedAt', 'cart',
+];
+
+/** The service serializes Date.toISOString(), including three-digit UTC milliseconds. */
+function draftTimestamp(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/.exec(value);
+  return match !== null && day(match[1]) &&
+    Number(match[2]) < 24 && Number(match[3]) < 60 && Number(match[4]) < 60 &&
+    Number.isFinite(Date.parse(value));
+}
+
+/**
+ * Assert JSON-compatible shape without parsing/pricing/rewriting opaque cart fields.
+ * In production requestJson has already JSON-parsed the response; the check also
+ * rejects non-JSON fixtures, prototypes, sparse arrays and cycles in direct calls.
+ */
+function draftJsonCart(value: unknown): value is Record<string, unknown> {
+  if (!record(value) ||
+      (Object.getPrototypeOf(value) !== Object.prototype &&
+       Object.getPrototypeOf(value) !== null)) return false;
+  const remaining: unknown[] = [value];
+  const seen = new WeakSet<object>();
+  while (remaining.length > 0) {
+    const next = remaining.pop();
+    if (next === null || typeof next === 'string' || typeof next === 'boolean') continue;
+    if (typeof next === 'number') {
+      if (!Number.isFinite(next)) return false;
+      continue;
+    }
+    if (typeof next !== 'object' || seen.has(next)) return false;
+    seen.add(next);
+    if (Object.getOwnPropertySymbols(next).length !== 0) return false;
+    if (Array.isArray(next)) {
+      if (Object.keys(next).length !== next.length) return false;
+      for (let i = 0; i < next.length; i++) {
+        const part = Object.getOwnPropertyDescriptor(next, String(i));
+        if (!part || !('value' in part)) return false;
+        remaining.push(part.value);
+      }
+    } else if (record(next) &&
+      (Object.getPrototypeOf(next) === Object.prototype ||
+       Object.getPrototypeOf(next) === null)) {
+      for (const key of Object.keys(next)) {
+        const part = Object.getOwnPropertyDescriptor(next, key);
+        if (!part || !('value' in part)) return false;
+        remaining.push(part.value);
+      }
+    } else return false;
+  }
+  return true;
+}
+
+/** Strict GET /api/v1/sales/drafts envelope, never a POS cart or invoice. */
+export function decodeSaleDrafts(raw: unknown): ServerSaleDraftsEnvelope {
+  if (!record(raw) || !exact(raw, ['data']) || !Array.isArray(raw.data) ||
+      !raw.data.every(row =>
+        record(row) && exact(row, saleDraftKeys) &&
+        id(row.id) && typeof row.label === 'string' &&
+        row.label.trim().length > 0 && row.label.length <= 80 &&
+        nullableText(row.customerName) &&
+        (row.customerName === null || row.customerName.length <= 120) &&
+        nonnegative(row.itemCount) && row.itemCount <= 500 &&
+        nonnegative(row.grandTotalMinor) &&
+        day(row.businessDate) && draftTimestamp(row.savedAt) &&
+        draftJsonCart(row.cart))) return invalid();
+  return raw as unknown as ServerSaleDraftsEnvelope;
+}
