@@ -120,8 +120,14 @@ export class CatalogMetadataSessionBridge {
     this.requirePermission(snapshot, VIEW);
     if (!this.isReadReady()) throw notReady();
     try {
-      return await this.request(snapshot, (token, operationSignal) =>
+      const result = await this.request(snapshot, (token, operationSignal) =>
         readCatalogSettingsUsageV1(token, operationSignal), signal);
+      // The SessionStore may refresh live roles without changing identity or
+      // bearer. Recheck VIEW after await: never deliver a late count to a
+      // principal whose permission was revoked while the request was in flight.
+      this.requirePermission(this.requireSession(), VIEW);
+      if (!this.isReadReady()) throw notReady();
+      return result;
     } catch (error) {
       this.confirmed = null;
       throw error;
