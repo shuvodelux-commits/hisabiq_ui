@@ -73,7 +73,7 @@ test('R09UI-04 only authenticated connected sale.invoice.view users can read lis
   assert.match(source, /readSalesInvoiceDetail\(token, selectedId, controller\.signal\)/);
   // Invoice GETs still require sale.invoice.view; only the optional posted-source
   // review action additionally uses the distinct sales.return.create role.
-  assert.match(source, /const canReviewReturnable = allowed && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
+  assert.match(source, /const canReviewReturnable = authenticated && allowed && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.doesNotMatch(source, /snapshot\.permissions\.includes\('sales\.return\.view'\)|purchase\.bill\.view/);
 });
 
