@@ -1,0 +1,214 @@
+# MOD-003 P2B2: test-only, source-pinned, isolated real browser acceptance.
+# Issue #540; no production route or backend changes. Both checkouts are pinned.
+name: MOD-003 real tenant inventory acceptance
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/mod003-real-inventory.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-postgres-rls-browser:
+    name: Two tenants / non-owner RLS / React-Nest-PG16
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mod003_ci_disposable_only
+          POSTGRES_DB: sher_mod003_p2b0_20261113
+        ports:
+          - 55693:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sher_mod003_p2b0_20261113"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "55693"
+      PGUSER: postgres
+      PGPASSWORD: mod003_ci_disposable_only
+      PGDATABASE: sher_mod003_p2b0_20261113
+      ADMIN_DATABASE_URL: postgres://postgres:mod003_ci_disposable_only@127.0.0.1:55693/sher_mod003_p2b0_20261113
+      JWT_SECRET: mod003-ci-only-disposable-long-jwt-secret
+      DATABASE_URL: postgres://sher_app:sher_app_test@127.0.0.1:55693/sher_mod003_p2b0_20261113
+      MOD003_P2B0_TEST_ONLY: MOD003_P2B0_DISPOSABLE_DB_ONLY_20261113
+      MOD003_P2B0_API_URL: http://127.0.0.1:55694
+      MOD003_P2B0_DB_URL: postgres://sher_app:sher_app_test@127.0.0.1:55693/sher_mod003_p2b0_20261113
+      MOD003_P2B0_BACKEND_DIR: /home/runner/work/hisabiq_ui/hisabiq_ui/backend
+
+    steps:
+      - name: Checkout approved P2B2 frontend test-only head
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/hisabiq_ui
+          ref: f8a259acad9ec3ebe68c6f8034488e252ac0f021
+          path: frontend
+          persist-credentials: false
+
+      - name: Checkout paired approved Nest backend
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/nestshererp
+          ref: 032a81f61a23f7e5fa94a1bfacf9f43ba6511856
+          path: backend
+          persist-credentials: false
+
+      - name: Fail closed if either source pin or checkout origin drifts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C frontend rev-parse HEAD)" = f8a259acad9ec3ebe68c6f8034488e252ac0f021
+          test "$(git -C backend rev-parse HEAD)" = 032a81f61a23f7e5fa94a1bfacf9f43ba6511856
+          test "$(git -C frontend remote get-url origin)" = https://github.com/shuvodelux-commits/hisabiq_ui
+          test "$(git -C backend remote get-url origin)" = https://github.com/shuvodelux-commits/nestshererp
+          test -f frontend/scripts/inventory-real-tenant-acceptance.cjs
+          test -f backend/apps/api/package.json
+          test "$(pwd)/backend" = "$MOD003_P2B0_BACKEND_DIR"
+          echo "Pinned frontend and backend sources verified."
+
+      - name: Node 20 / pnpm 9 for Nest
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+
+      - name: Install pinned backend dependencies
+        working-directory: backend
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify disposable database and provision restricted RLS principal
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$PGDATABASE" = sher_mod003_p2b0_20261113
+          test "$PGHOST" = 127.0.0.1
+          test "$PGPORT" = 55693
+          psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_database()' | grep -Fx sher_mod003_p2b0_20261113
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE sher_app LOGIN PASSWORD 'sher_app_test' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS"
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT rolname || '|' || rolsuper || '|' || rolbypassrls || '|' || rolcreatedb FROM pg_roles WHERE rolname='sher_app'" | grep -Fx 'sher_app|false|false|false'
+
+      - name: Build backend and migrate only disposable test DB
+        working-directory: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm --filter "@sher/api..." build
+          DATABASE_URL="$ADMIN_DATABASE_URL" node apps/api/dist/migrate.js
+
+      - name: Grant least-privilege business table access
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c 'GRANT CONNECT ON DATABASE sher_mod003_p2b0_20261113 TO sher_app'
+          psql -v ON_ERROR_STOP=1 -c 'GRANT USAGE ON SCHEMA public TO sher_app'
+          psql -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sher_app'
+          PGPASSWORD=sher_app_test PGUSER=sher_app psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_user' | grep -Fx sher_app
+          # TRUNCATE bypasses RLS; this runtime role must never be able to clear another tenant's table.
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT has_table_privilege('sher_app', 'public.products', 'TRUNCATE')" | grep -Fx f
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT pg_get_userbyid(datdba) <> 'sher_app' FROM pg_database WHERE datname=current_database()" | grep -Fx t
+
+      - name: Start isolated real Nest API and check 401 before writes
+        working-directory: backend
+        shell: bash
+        env:
+          PORT: "55694"
+          NODE_ENV: test
+          JWT_SECRET: mod003-ci-only-disposable-long-jwt-secret
+          ENTITLEMENT_SOURCE: subscription
+          SINGLE_TENANT_MODE: "false"
+          IDENTITY_VERIFIER: dev
+          BILLING_ENABLED: "true"
+          WEB_ORIGIN: http://127.0.0.1:55694
+        run: |
+          set -euo pipefail
+          nohup node apps/api/dist/main.js > "$RUNNER_TEMP/mod003-api.log" 2>&1 < /dev/null &
+          echo $! > "$RUNNER_TEMP/mod003-api.pid"
+          ready=0
+          for i in $(seq 1 50); do
+            code=$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:55694/api/v1/me || true)
+            if [ "$code" = 401 ]; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Real API did not return 401 before fixture writes."
+            exit 1
+          fi
+          echo "Real Nest API 401 preflight passed."
+
+      - name: Node 24 / npm for pinned React frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend + Chromium
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Reject incorrect marker, identity and target before fixture writes
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          expect_guard() {
+            local match="$1"; shift
+            local output
+            if output=$("$@" 2>&1); then
+              echo "Preflight guard unexpectedly allowed an unsafe target."
+              exit 1
+            fi
+            if ! grep -Fq "$match" <<< "$output"; then
+              echo "Preflight rejected for the wrong reason."
+              exit 1
+            fi
+          }
+          expect_guard "Explicit disposable-only marker required" env -u MOD003_P2B0_TEST_ONLY node scripts/inventory-real-tenant-acceptance.cjs
+          expect_guard "dedicated Nest API" env MOD003_P2B0_API_URL=http://localhost:55694 node scripts/inventory-real-tenant-acceptance.cjs
+          expect_guard "Never use a shared or default API port" env MOD003_P2B0_API_URL=http://127.0.0.1:3000 node scripts/inventory-real-tenant-acceptance.cjs
+          expect_guard "Only the exact disposable DB is allowed" env MOD003_P2B0_DB_URL=postgres://sher_app:sher_app_test@127.0.0.1:55693/postgres node scripts/inventory-real-tenant-acceptance.cjs
+          expect_guard "Explicit isolated backend path required" env -u MOD003_P2B0_BACKEND_DIR node scripts/inventory-real-tenant-acceptance.cjs
+          echo "All five fail-closed guard checks passed."
+
+      - name: Live two-tenant React to Nest to PostgreSQL16 RLS browser acceptance
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = f8a259acad9ec3ebe68c6f8034488e252ac0f021
+          node scripts/inventory-real-tenant-acceptance.cjs
+
+      - name: Save synthetic test screenshots only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mod003-p2b2-real-inventory-screenshots
+          path: /tmp/hisabiq-mod003-p2b2-real-*/*.png
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Stop only this job's Nest API
+        if: always()
+        shell: bash
+        run: |
+          if test -f "$RUNNER_TEMP/mod003-api.pid"; then
+            kill "$(cat "$RUNNER_TEMP/mod003-api.pid")" 2>/dev/null || true
+          fi
+          # Disposable PostgreSQL service is destroyed with this CI job.
