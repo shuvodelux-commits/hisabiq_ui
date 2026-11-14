@@ -1,5 +1,6 @@
 import {publishPreviewSettings} from '../documents/previewSettings';
 import { useSession } from '../integration/SessionProvider.tsx';
+import { watchConnectedAuthority } from './connectedAuthorityWatch.ts';
 import {
   connectedPersonalScope, personalStorageKey,
   readConnectedPersonal, writeConnectedPersonal,
@@ -73,6 +74,7 @@ type SettingsContextValue = {
   state: TenantSettings;
   personal: PersonalSettings;
   warning: string;
+  connectedAuthorizationPending: boolean;
   actorId: string;
   currentAuthority: () => {state:TenantSettings;actorId:string};
   setActorId: (id: string) => void;
@@ -96,8 +98,13 @@ function connectedStorage(): Storage | null {
   }
 }
 export function TenantSettingsProvider({ children }: { children: ReactNode }) {
-  const { mode, snapshot } = useSession();
+  const { mode, snapshot, store } = useSession();
   const connected = mode === 'connected';
+  const [connectedAuthorizationPending, setConnectedAuthorizationPending] = useState(false);
+  useEffect(() => {
+    if (!connected) return;
+    return watchConnectedAuthority(store, setConnectedAuthorizationPending, { document, window });
+  }, [connected, store]);
   // Never load legacy demo business or global personal keys in connected mode.
   // Business fixture state remains structurally required by legacy components;
   // the connected AppShell stays gated until a separate safe-route task.
@@ -273,6 +280,7 @@ export function TenantSettingsProvider({ children }: { children: ReactNode }) {
         state,
         personal,
         warning,
+        connectedAuthorizationPending: connected && connectedAuthorizationPending,
         actorId,
         currentAuthority,
         setActorId,

@@ -13,7 +13,8 @@ export type ServerSettingsRead =
  * A switch between tenants clears the rendered server data synchronously
  * before the prior request has time to settle or React's cleanup runs. */
 export function useServerSettingsRead(): ServerSettingsRead & { acceptWrite: (data: ServerSettings) => boolean } {
-  const { mode, snapshot } = useSession();
+  const { mode, snapshot, store } = useSession();
+  const { connectedAuthorizationPending } = useTenantSettings();
   const [last, setLast] = useState<{ key: string; state: ServerSettingsRead } | null>(null);
   const key = mode === 'connected' && snapshot.status === 'authenticated'
     ? `${snapshot.tenantId}:${snapshot.userId}:${snapshot.epoch}:${snapshot.accessToken}`
@@ -27,11 +28,12 @@ export function useServerSettingsRead(): ServerSettingsRead & { acceptWrite: (da
   // commit writes from the previous tenant or an abandoned navigation.
   const acceptWrite = useCallback((data: ServerSettings): boolean => {
     if (mode !== 'connected' || snapshot.status !== 'authenticated' ||
+        connectedAuthorizationPending ||
         !snapshot.permissions.includes('settings.setting.view') ||
         liveIdentity.current !== key) return false;
     setLast({ key, state: { status: 'ready', data } });
     return true;
-  }, [mode, key, snapshot.status === 'authenticated'
+  }, [mode, key, connectedAuthorizationPending, snapshot.status === 'authenticated'
     ? snapshot.permissions.includes('settings.setting.view') : false]);
 
   useEffect(() => {
@@ -42,8 +44,13 @@ export function useServerSettingsRead(): ServerSettingsRead & { acceptWrite: (da
     let active = true;
     const token = snapshot.accessToken;
     setLast({ key: identity, state: { status: 'loading', data: null } });
-    void readTenantSettings(token, controller.signal).then(response => {
-      if (!active || liveIdentity.current !== identity || controller.signal.aborted) return;
+    void readTenantSettings(token, controller.signal).then(async response => {
+      // A genuine pre-revocation HTTP 200 is not proof of permission *now*.
+      await store.revalidateAccess();
+      const current = store.getSnapshot();
+      if (!active || liveIdentity.current !== identity || controller.signal.aborted ||
+          current.status !== 'authenticated' || current.epoch !== snapshot.epoch ||
+          current.accessToken !== token || !current.permissions.includes('settings.setting.view')) return;
       setLast({ key: identity, state: { status: 'ready', data: response.data } });
     }).catch((error: unknown) => {
       if (!active || liveIdentity.current !== identity || controller.signal.aborted) return;
@@ -58,6 +65,7 @@ export function useServerSettingsRead(): ServerSettingsRead & { acceptWrite: (da
 
   if (mode === 'preview') return { status: 'preview', data: null, acceptWrite };
   if (snapshot.status === 'locked') return { status: 'locked', data: null, acceptWrite };
+  if (connectedAuthorizationPending) return { status: 'loading', data: null, acceptWrite };
   if (snapshot.status !== 'authenticated') return { status: 'waiting', data: null, acceptWrite };
   if (!snapshot.permissions.includes('settings.setting.view')) return { status: 'denied', data: null, acceptWrite };
   return { ...(last?.key === key ? last.state : { status: 'loading' as const, data: null }), acceptWrite };

@@ -61,7 +61,8 @@ const emptyTeamRead = <T,>(status: TeamReadState<T>['status']): TeamReadState<T>
  * A session epoch/tenant change synchronously invalidates old data, even
  * before effect cleanup. No local employees are used in connected mode. */
 function useVerifiedTeamReads() {
-  const { mode, snapshot } = useSession();
+  const { mode, snapshot, store } = useSession();
+  const { connectedAuthorizationPending } = useTenantSettings();
   const [userRecord, setUserRecord] = useState<TeamReadRecord<ServerUsersEnvelope['data']> | null>(null);
   const [roleRecord, setRoleRecord] = useState<TeamReadRecord<ServerRolesEnvelope['data']> | null>(null);
   const key = mode === 'connected' && snapshot.status === 'authenticated'
@@ -84,13 +85,19 @@ function useVerifiedTeamReads() {
       authorized: boolean,
       setter: React.Dispatch<React.SetStateAction<TeamReadRecord<T> | null>>,
       request: (token: string, signal?: AbortSignal) => Promise<{ data: T }>,
+      permission: 'user.account.view' | 'user.role.view',
     ) => {
       if (!authorized) return;
       const controller = new AbortController();
       controllers.push(controller);
       setter({ key: activeKey, status: 'loading', data: null });
-      void request(token, controller.signal).then(response => {
-        if (!active || liveIdentity.current !== activeKey || controller.signal.aborted) return;
+      void request(token, controller.signal).then(async response => {
+        // Older genuine HTTP200 responses must not survive a newer role change.
+        await store.revalidateAccess();
+        const current = store.getSnapshot();
+        if (!active || liveIdentity.current !== activeKey || controller.signal.aborted ||
+            current.status !== 'authenticated' || current.epoch !== snapshot.epoch ||
+            current.accessToken !== token || !current.permissions.includes(permission)) return;
         setter({ key: activeKey, status: 'ready', data: response.data });
       }).catch((error: unknown) => {
         if (!active || liveIdentity.current !== activeKey || controller.signal.aborted) return;
@@ -98,8 +105,8 @@ function useVerifiedTeamReads() {
         setter({ key: activeKey, status: denied ? 'denied' : 'error', data: null });
       });
     };
-    read(canReadUsers, setUserRecord, readTenantUsers);
-    read(canReadRoles, setRoleRecord, readTenantRoles);
+    read(canReadUsers, setUserRecord, readTenantUsers, 'user.account.view');
+    read(canReadRoles, setRoleRecord, readTenantRoles, 'user.role.view');
     return () => {
       active = false;
       for (const controller of controllers) controller.abort();
@@ -111,17 +118,20 @@ function useVerifiedTeamReads() {
   const users: TeamReadState<ServerUsersEnvelope['data']> = mode !== 'connected'
     ? emptyTeamRead('waiting')
     : snapshot.status !== 'authenticated' ? emptyTeamRead(snapshot.status === 'locked' ? 'locked' : 'waiting')
+    : connectedAuthorizationPending ? emptyTeamRead('loading')
     : !canReadUsers ? emptyTeamRead('denied')
     : userRecord?.key === key ? userRecord : emptyTeamRead(status(canReadUsers));
   const roleDetails: TeamReadState<ServerRolesEnvelope['data']> = mode !== 'connected'
     ? emptyTeamRead('waiting')
     : snapshot.status !== 'authenticated' ? emptyTeamRead(snapshot.status === 'locked' ? 'locked' : 'waiting')
+    : connectedAuthorizationPending ? emptyTeamRead('loading')
     : !canReadRoles ? emptyTeamRead('denied')
     : roleRecord?.key === key ? roleRecord : emptyTeamRead(status(canReadRoles));
   // Only the currently authorized tenant+session may adopt an UPDATE result.
   // Never splice a server response into preview staff or another tenant's list.
   const acceptUserWrite = (updated: ServerUser, requestIdentity: string): boolean => {
     if (mode !== 'connected' || snapshot.status !== 'authenticated' ||
+        connectedAuthorizationPending ||
         !snapshot.permissions.includes('user.account.view') ||
         !snapshot.permissions.includes('user.account.edit') ||
         liveIdentity.current !== requestIdentity || key !== requestIdentity ||
