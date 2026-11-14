@@ -134,7 +134,7 @@ function InventoryProbe() {
         data-status={visibleStatus}
         data-tenant={visibleData?.scope.split('/')[0] ?? ''}>
         {visibleData !== null
-          ? <pre id="p2b0-projection">{JSON.stringify(visibleData)}</pre>
+          ? <pre id="p2b0-projection" className="block max-w-full overflow-x-auto">{JSON.stringify(visibleData)}</pre>
           : <p id="p2b0-read-status">{read.state === 'failed' && visibleStatus === 'failed'
             ? read.error : visibleStatus}</p>}
       </section>
