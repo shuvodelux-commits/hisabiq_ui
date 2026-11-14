@@ -7,6 +7,7 @@ import { StatusBadge } from '../StatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../Table';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { useSession } from '../../integration/SessionProvider.tsx';
+import { canReadSalesInvoices } from '../../integration/sales-read-permissions.ts';
 import { ApiError } from '../../integration/errors.ts';
 import {
   readSalesInvoices,
@@ -42,7 +43,7 @@ const readError = (error: unknown): 'denied' | 'error' =>
  * later mount this separate panel; a verified server invoice ID is mandatory for
  * original detail. NO sale, return, refund, credit, cash, stock or journal writes.
  *
- * Uses Nest sale.view GET list/detail. inventory.cost.view additionally gates
+ * Uses canonical Nest sale.invoice.view GET list/detail. inventory.cost.view additionally gates
  * any optional cost/profit display; missing server costs never become zero.
  */
 export function ConnectedSalesInvoicesPanel({ onReviewReturnable }: {
@@ -61,7 +62,7 @@ export function ConnectedSalesInvoicesPanel({ onReviewReturnable }: {
 
   const authenticated = mode === 'connected' && snapshot.status === 'authenticated';
   const token = authenticated ? snapshot.accessToken : null;
-  const allowed = authenticated && snapshot.permissions.includes('sale.view');
+  const allowed = canReadSalesInvoices(mode, snapshot);
   const canViewCost = authenticated && snapshot.permissions.includes('inventory.cost.view');
   // This GET uses sales.return.create, not the separate sales.return.view permission.
   const canReviewReturnable = allowed && snapshot.permissions.includes('sales.return.create');
@@ -178,7 +179,7 @@ export function ConnectedSalesInvoicesPanel({ onReviewReturnable }: {
           </p>
         ) : !allowed ? (
           <p role="alert" className="text-sm text-danger">
-            {text('You do not have sale.view permission to inspect invoices.',
+            {text('You do not have permission to inspect invoices.',
               'আপনার বিক্রির চালান দেখার অনুমতি নেই।')}
           </p>
         ) : (
