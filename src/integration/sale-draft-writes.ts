@@ -172,7 +172,8 @@ export function decodeSaleDraftDetail(raw: unknown): SaleDraftDetailEnvelope {
     !object(raw.data) || !exact(raw.data, DETAIL_FIELDS) ||
     !version(raw.data.version) || !exactTimestamp(raw.data.updatedAt)) return protocol();
 
-  const eight = Object.fromEntries(DETAIL_FIELDS.slice(0, 8).map(key => [key, raw.data[key]]));
+  const detail = raw.data;
+  const eight = Object.fromEntries(DETAIL_FIELDS.slice(0, 8).map(key => [key, detail[key]]));
   const validated = decodeSaleDrafts({ data: [eight] }).data[0];
   if (!validated) return protocol();
   return { data: {
