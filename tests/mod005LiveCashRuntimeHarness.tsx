@@ -9,6 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { SessionProvider, useSession } from '../src/integration/SessionProvider.tsx';
 import { TenantSettingsProvider } from '../src/settings/TenantSettingsProvider.tsx';
 import { CashSessionProvider, useCashSession } from '../src/contexts/CashSessionContext.tsx';
+import { CashSessionDialog } from '../src/components/layout/CashSessionDialog.tsx';
 
 function LiveControls() {
   const { store, snapshot } = useSession();
@@ -44,12 +45,15 @@ function LiveControls() {
     <button id="close" onClick={() => execute('close', async () => {
       await cash.saveCount(cash.expectedCash, '', true, cash.revision, '');
     })}>Close real cash day</button>
+    <button id="open-cash-dialog" onClick={() => cash.setOpen(true)}>Open actual cash dialog</button>
+    <button id="confirm-pending" disabled={!cash.hasPendingOperation || cash.busy}
+      onClick={() => execute('confirm', () => cash.confirmPendingOperation())}>Confirm previous cash operation</button>
     <button id="reopen" onClick={() => execute('reopen', () =>
       cash.reopenSession('Closed by mistake in disposable QA'))}>Reopen real cash day</button>
     <p id="auth" data-status={snapshot.status}
       data-tenant={snapshot.status === 'authenticated' ? snapshot.tenantId : ''}
       data-epoch={snapshot.epoch}>{snapshot.status}</p>
-    <p id="cash" data-mode={cash.mode}
+    <p id="cash" data-busy={String(cash.busy)} data-pending={String(cash.hasPendingOperation)} data-mode={cash.mode}
       data-can-view={String(cash.canView)}
       data-can-start={String(cash.canStart)}
       data-open={String(cash.sessionOpen)}
@@ -61,6 +65,7 @@ function LiveControls() {
       data-history={String(cash.history.length)}>{cash.mode}</p>
     <p id="outcome" role="status">{outcome}</p>
     <p id="cash-error" role="alert">{cash.error ?? ''}</p>
+    <CashSessionDialog />
   </main>;
 }
 
