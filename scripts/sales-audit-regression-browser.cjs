@@ -50,7 +50,7 @@ async function main(){
     // Opening/cancelling a contextual child must preserve the partially entered parent return.
     await tab('Drafts & templates','খসড়া ও নমুনা');
     const templates=page.locator('section').filter({hasText:label('Sale templates','বিক্রির নমুনা')});
-    await click(templates.getByRole('button',{name:label('Actions','কাজ'),exact:true}).first());
+    await click(templates.getByRole('button',{name:/Monthly site supply/}).first());
     await click(page.getByRole('button',{name:label('Edit template','নমুনা বদলান'),exact:true}));
     let dialog=page.getByRole('dialog',{name:label('Edit template','নমুনা বদলান'),exact:true});await dialog.waitFor();
     const nameLabel=label('Template name','নমুনার নাম');
@@ -77,7 +77,7 @@ async function main(){
     await axe('new template dialog','[data-dialog-root]');
     await click(dialog.getByRole('button',{name:label('Save template','নমুনা রাখুন'),exact:true}));await dialog.waitFor({state:'hidden'});
     let card=templates.locator('.divide-y > div').filter({hasText:'QA Sales template'});
-    await click(card.getByRole('button',{name:label('Actions','কাজ'),exact:true}));
+    await click(card.getByRole('button',{name:/QA Sales template/}));
     await click(page.getByRole('button',{name:label('Edit template','নমুনা বদলান'),exact:true}));
     dialog=page.getByRole('dialog',{name:label('Edit template','নমুনা বদলান'),exact:true});await dialog.waitFor();
     await dialog.getByRole('textbox',{name:nameLabel}).fill('QA Edited template');
@@ -85,16 +85,16 @@ async function main(){
     assert.equal(await row.locator('[data-testid="compound-quantity"] input').nth(1).inputValue(),'5');
     await click(dialog.getByRole('button',{name:label('Save template','নমুনা রাখুন'),exact:true}));await dialog.waitFor({state:'hidden'});
     card=templates.locator('.divide-y > div').filter({hasText:'QA Edited template'});
-    await click(card.getByRole('button',{name:label('Actions','কাজ'),exact:true}));await click(page.getByRole('button',{name:label('Duplicate','নকল তৈরি'),exact:true}));
+    await click(card.getByRole('button',{name:/QA Edited template/}));await click(page.getByRole('button',{name:label('Duplicate','নকল তৈরি'),exact:true}));
     const copy=templates.locator('.divide-y > div').filter({hasText:'QA Edited template copy'});
     await click(copy.getByRole('button',{name:label('Use template','নমুনা দিয়ে বিক্রি করুন'),exact:true}));
-    await page.getByRole('heading',{name:'Template sale',exact:true}).waitFor();
+    await page.getByRole('heading',{name:label('Template sale','টেমপ্লেট বিক্রি'),exact:true}).waitFor();
     await page.waitForFunction(()=>document.querySelectorAll('[data-testid="pos-cart-row"]').length===1);
     assert.equal(await page.getByTestId('pos-cart-row').count(),1,'created/edited/copied template loads actual cart');
     assert.equal(await page.getByTestId('pos-cart-row').locator('[data-testid="compound-quantity"] input').first().inputValue(),'2');
-    await click(page.getByRole('button',{name:'Back to sales',exact:true}));
+    await click(page.getByRole('button',{name:label('Back to sales','বিক্রিতে ফিরুন'),exact:true}));
     await tab('Drafts & templates','খসড়া ও নমুনা');await copy.waitFor();
-    await click(copy.getByRole('button',{name:label('Actions','কাজ'),exact:true}));await click(page.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));await copy.waitFor({state:'hidden'});
+    await click(copy.getByRole('button',{name:/QA Edited template copy/}));await click(page.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));const recycle=page.getByRole('dialog',{name:label('Move to Recycle Bin?','রিসাইকেল বিনে সরাবেন?')});await recycle.waitFor();await click(recycle.getByRole('button',{name:label('Delete','মুছুন'),exact:true}));await copy.waitFor({state:'hidden'});
     // Arrange a real Sonner action toast and prove the shared pointer rule preserves its control.
     await page.evaluate(async()=>{
      const url=performance.getEntriesByType('resource').map(entry=>entry.name).find(name=>name.includes('/sonner.js?'));
