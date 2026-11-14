@@ -120,6 +120,15 @@ test('P7e: archive/usage-only diagnostics distinguish master roster from missing
   assert.equal(r.categories.length,2);
 });
 
+test('P7e: duplicate IDs in metadata are rejected before reconciliation', () => {
+  for (const kind of ['units', 'brands', 'categories'] as const) {
+    const a=metadata();
+    const original=a.data[kind][0]!;
+    (a.data[kind] as Array<typeof original>).push({...original});
+    assert.throws(()=>reconcileCatalogSettingsUsageEvidence(a,usage()),protocol);
+  }
+});
+
 test('P7e: strict decoders fail closed for invalid/duplicate/out-of-range payloads', () => {
   const invalid: [unknown,unknown][] = [
     [null,usage()],
