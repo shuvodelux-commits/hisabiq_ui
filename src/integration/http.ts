@@ -37,7 +37,7 @@ function requestUrl(path: string): URL {
     path.length > '/api/v1/'.length;
   const v2 = typeof path === 'string' && isPartyV2Path(path);
   if ((!v1 && !v2) ||
-      path.includes('#') || path.includes('\\\\') || invalidControls(path)) throw protocolError();
+      path.includes('#') || path.includes('\\') || invalidControls(path)) throw protocolError();
 
   // Inspect the supplied pathname before URL normalizes literal or encoded dot segments.
   const suppliedPathname = path.split('?', 1)[0];
