@@ -168,6 +168,7 @@ test('only V2 Party selected-role GETs cross the shared HTTP boundary', async ()
       '/api/v2/parties/' + id + '?role=SUPPLIER&foo=1',
       '/api/v2/parties/' + id + '/ledger?role=SUPPLIER',
       '/api/v2/parties#secret',
+      '/api/v2/parties?role=CUSTOMER&search=foo\\bar',
     ];
     for (const path of invalid) {
       await assert.rejects(
@@ -193,7 +194,7 @@ test('only same-origin api/v1 paths are accepted before fetch', async () => {
     '//foreign.test/api/v1/me', '/api/v2/me', '/api/v1',
     '/api/v1/../me', '/api/v1/%2e%2e/me', '/api/v1/%2F%2E%2E/me',
     '/api/v1/me#fragment', '/api/v1/me\\other', '/api/v1/me\nother',
-    '/api/v1/me%00',
+    '/api/v1/me%00', '/api/v1/me?x=foo\\bar',
   ];
   await withFetch(failIfFetched(), async () => {
     for (const path of invalid) {
