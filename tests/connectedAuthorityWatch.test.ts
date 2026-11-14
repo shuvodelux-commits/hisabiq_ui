@@ -17,7 +17,7 @@ function setup() {
   const pending: boolean[] = [];
   let status: 'authenticated' | 'locked' = 'authenticated';
   let checks = 0;
-  let validate: () => Promise<void> = async () => {};
+  let validate: () => Promise<void> = async () => undefined;
   const store = {
     getSnapshot: () => ({ status }),
     revalidateAccess: () => { checks++; return validate(); },
