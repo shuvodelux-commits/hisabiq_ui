@@ -16,6 +16,7 @@ assert.doesNotMatch(workspace, /CashSessionProvider|<AppShell|<TopBar|<Sidebar|d
 assert.match(workspace, /settings\.setting\.view/);
 assert.match(workspace, /user\.account\.view/);
 assert.match(workspace, /user\.role\.view/);
+assert.ok(workspace.includes('fieldset disabled'), 'Connected route must disable all live edit controls');
 console.log('PASS source isolation: connected /app is distinct from untouched preview AppShell');
 
 async function browserCheck() {
