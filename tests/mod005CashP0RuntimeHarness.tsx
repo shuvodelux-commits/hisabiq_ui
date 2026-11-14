@@ -12,7 +12,10 @@ function TestControls() {
   const { snapshot, store } = useSession();
   const cash = useCashSession();
   const [last, setLast] = useState('');
+  const [actionSequence, setActionSequence] = useState(0);
   function act(task: () => Promise<void>) {
+    setActionSequence(value => value + 1);
+    setLast('pending');
     void task().then(() => setLast('confirmed'), err => setLast('failed: ' + String(err)));
   }
   return (
@@ -22,6 +25,10 @@ function TestControls() {
       <button id="start" onClick={() => act(async () => {
         await cash.startSession('0', '', '', cash.revision, '');
       })}>Start cash day</button>
+      <button id="confirm-previous" onClick={() => act(() => cash.confirmPendingOperation())}>Confirm previous</button>
+      <button id="close" onClick={() => act(async () => {
+        await cash.saveCount(cash.expectedCash, '', true, cash.revision, '');
+      })}>Close real cash day</button>
       <button id="logout" onClick={() => act(() => store.logout())}>Logout</button>
       <p id="auth-status" data-status={snapshot.status}
         data-tenant={snapshot.status === 'authenticated' ? snapshot.tenantId : ''}
@@ -30,9 +37,9 @@ function TestControls() {
         data-access={cash.accountsAccess} data-history-access={cash.historyAccess}
         data-can-view={cash.canView ? 'yes':'no'}
         data-enabled={cash.enabled ? 'yes':'no'}
-        data-open={cash.sessionOpen ? 'yes':'no'}
+        data-open={cash.sessionOpen ? 'yes':'no'} data-pending={cash.hasPendingOperation ? 'yes':'no'}
         data-busy={cash.busy ? 'yes':'no'}>{cash.mode}</p>
-      <p id="result">{last}</p>
+      <p id="result" data-sequence={actionSequence}>{last}</p>
       <p id="cash-error">{cash.error ?? ''}</p>
     </main>
   );
