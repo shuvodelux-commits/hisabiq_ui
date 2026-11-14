@@ -63,17 +63,17 @@ test('R09UI-03 a selection must belong to the current verified page and source I
   assert.equal(salesInvoiceSelectedId(null, selected.listKey, [row]), null);
 });
 
-test('R09UI-04 only authenticated connected sale.view users can read list and detail', () => {
+test('R09UI-04 only authenticated connected sale.invoice.view users can read list and detail', () => {
   assert.match(source, /useSession\(\)/);
   assert.match(source, /mode === 'connected' && snapshot\.status === 'authenticated'/);
-  assert.match(source, /snapshot\.permissions\.includes\('sale\.view'\)/);
+  assert.match(source, /const allowed = canReadSalesInvoices\(mode, snapshot\)/);
   assert.match(source, /if \(!authenticated \|\| !allowed \|\| token === null\) return;/);
   assert.match(source, /if \(!authenticated \|\| !allowed \|\| token === null \|\| selectedId === null\) return;/);
   assert.match(source, /readSalesInvoices\(token,/);
   assert.match(source, /readSalesInvoiceDetail\(token, selectedId, controller\.signal\)/);
-  // Invoice GETs still require sale.view; only the optional posted-source
+  // Invoice GETs still require sale.invoice.view; only the optional posted-source
   // review action additionally uses the distinct sales.return.create role.
-  assert.match(source, /const canReviewReturnable = allowed && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
+  assert.match(source, /const canReviewReturnable = authenticated && allowed && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.doesNotMatch(source, /snapshot\.permissions\.includes\('sales\.return\.view'\)|purchase\.bill\.view/);
 });
 

@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { useSession } from '../../integration/SessionProvider.tsx';
+import { canReadSalesInvoices } from '../../integration/sales-read-permissions.ts';
 import { ConnectedSalesInvoicesPanel } from './ConnectedSalesInvoicesPanel';
 import { ConnectedSalesReturnHistoryPanel } from './ConnectedSalesReturnHistoryPanel';
 import { ConnectedSalesReturnSourceReview } from './ConnectedSalesReturnSourceReview';
@@ -28,9 +29,9 @@ export function ConnectedSalesReadWorkspace() {
   const [source, setSource] = useState<VerifiedSource | null>(null);
 
   const authenticated = mode === 'connected' && snapshot.status === 'authenticated';
-  const canViewInvoices = authenticated && snapshot.permissions.includes('sale.view');
+  const canViewInvoices = canReadSalesInvoices(mode, snapshot);
   // GET returnability currently requires create permission, NOT return.view.
-  const canReviewSource = canViewInvoices && snapshot.permissions.includes('sales.return.create');
+  const canReviewSource = authenticated && canViewInvoices && snapshot.permissions.includes('sales.return.create');
   const canViewHistory = authenticated && snapshot.permissions.includes('sales.return.view');
   const identity = authenticated
     ? JSON.stringify([
