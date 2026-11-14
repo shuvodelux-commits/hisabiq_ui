@@ -32,18 +32,22 @@ const settled = {
 
 const shared: TradingParty = {
   id, name: 'Same Identity Hardware', roles: ['CUSTOMER', 'SUPPLIER'],
-  phone: '01712345678', address: 'Private address', guardianName: 'Private guardian',
-  nid: '1234567890', email: 'secret@example.test', notes: 'Private note',
+  phone: '01712345678', readRole: 'CUSTOMER',
+  profile: { state: 'VISIBLE', data: {
+    address: 'Private address', guardianName: 'Private guardian',
+    nid: '1234567890', email: 'secret@example.test', notes: 'Private note',
+  } },
+  globalHistory: { state: 'VISIBLE', hasLedgerEntries: true },
   customerGroupId: secondId, customerGroupName: 'Retail',
   creditLimitMinor: 200_000, status: 'ACTIVE',
   isSystemReserved: false, version: 3,
-  balance: customerNet, hasLedgerEntries: true,
+  balance: customerNet,
 };
 
 function list(role: TradingRole, balance = customerNet as TradingParty['balance']): TradingPartyList {
   return {
     data: [{
-      ...shared, roles: role === 'VENDOR' ? ['VENDOR'] : ['CUSTOMER', 'SUPPLIER'],
+      ...shared, readRole: role, roles: role === 'VENDOR' ? ['VENDOR'] : ['CUSTOMER', 'SUPPLIER'],
       customerGroupId: role === 'CUSTOMER' ? shared.customerGroupId : null,
       customerGroupName: role === 'CUSTOMER' ? shared.customerGroupName : null,
       creditLimitMinor: role === 'CUSTOMER' ? shared.creditLimitMinor : null,
