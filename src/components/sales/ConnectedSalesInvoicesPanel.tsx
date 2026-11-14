@@ -65,7 +65,7 @@ export function ConnectedSalesInvoicesPanel({ onReviewReturnable }: {
   const allowed = canReadSalesInvoices(mode, snapshot);
   const canViewCost = authenticated && snapshot.permissions.includes('inventory.cost.view');
   // This GET uses sales.return.create, not the separate sales.return.view permission.
-  const canReviewReturnable = allowed && snapshot.permissions.includes('sales.return.create');
+  const canReviewReturnable = authenticated && allowed && snapshot.permissions.includes('sales.return.create');
   const identity = authenticated
     ? JSON.stringify([snapshot.tenantId, snapshot.userId, snapshot.epoch,
       snapshot.accessToken, snapshot.permissions])
