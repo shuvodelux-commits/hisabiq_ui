@@ -16,8 +16,8 @@
  * HISABIQ_R09_TENANT_A, HISABIQ_R09_USER_A, HISABIQ_R09_JWT_A, HISABIQ_R09_SALE_A
  * HISABIQ_R09_TENANT_B, HISABIQ_R09_USER_B, HISABIQ_R09_JWT_B, HISABIQ_R09_SALE_B
  *
- * A: sale.view, sales.return.create, sales.return.view.
- * B: sale.view, neither return permission.
+ * A: sale.invoice.view, sales.return.create, sales.return.view.
+ * B: sale.invoice.view, neither return permission.
  * Both posted sales MUST pre-exist and appear in first 20 server invoice rows.
  * Never enable in a production Vite route or GitHub CI without real disposable PG.
  */
@@ -148,7 +148,7 @@ async function preflight() {
     assert.equal(me.data?.data?.user?.id, person.userId, 'signed token user ' + who);
     assert.ok(Array.isArray(me.data?.data?.permissions));
     const permissions = me.data.data.permissions;
-    assert.ok(permissions.includes('sale.view'), 'sale.view required for both');
+    assert.ok(permissions.includes('sale.invoice.view'), 'sale.invoice.view required for both');
     if (who === 'a') {
       assert.ok(permissions.includes('sales.return.create') &&
         permissions.includes('sales.return.view'),
