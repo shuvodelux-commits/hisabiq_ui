@@ -37,6 +37,7 @@ jobs:
       PGPASSWORD: mod003_ci_disposable_only
       PGDATABASE: sher_mod003_p2b0_20261113
       ADMIN_DATABASE_URL: postgres://postgres:mod003_ci_disposable_only@127.0.0.1:55693/sher_mod003_p2b0_20261113
+      JWT_SECRET: mod003-ci-only-disposable-long-jwt-secret
       DATABASE_URL: postgres://sher_app:sher_app_test@127.0.0.1:55693/sher_mod003_p2b0_20261113
       MOD003_P2B0_TEST_ONLY: MOD003_P2B0_DISPOSABLE_DB_ONLY_20261113
       MOD003_P2B0_API_URL: http://127.0.0.1:55694
