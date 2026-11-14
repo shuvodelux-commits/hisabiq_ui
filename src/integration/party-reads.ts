@@ -16,16 +16,26 @@ export interface RoleBalance {
   outstandingMinor: number;
   advanceMinor: number;
 }
+/** Permission-aware V2 state. WITHHELD is NOT an absent or null value. */
+export type TradingPrivateProfile =
+  | { state: 'WITHHELD' }
+  | { state: 'VISIBLE'; data: {
+      address: string | null;
+      guardianName: string | null;
+      nid: string | null;
+      email: string | null;
+      notes: string | null;
+    } };
+export type TradingGlobalHistory =
+  | { state: 'WITHHELD' }
+  | { state: 'VISIBLE'; hasLedgerEntries: boolean };
+
 export interface TradingParty {
   id: string;
   name: string;
   roles: TradingRole[];
+  readRole: TradingRole;
   phone: string | null;
-  address: string | null;
-  guardianName: string | null;
-  nid: string | null;
-  email: string | null;
-  notes: string | null;
   customerGroupId: string | null;
   customerGroupName: string | null;
   creditLimitMinor: number | null;
@@ -33,7 +43,8 @@ export interface TradingParty {
   isSystemReserved: boolean;
   version: number;
   balance: RoleBalance;
-  hasLedgerEntries: boolean;
+  profile: TradingPrivateProfile;
+  globalHistory: TradingGlobalHistory;
 }
 export interface TradingPartyList {
   data: TradingParty[];
@@ -101,13 +112,11 @@ export interface TradingLedgerQuery {
 const roles: readonly TradingRole[] = ['CUSTOMER', 'SUPPLIER', 'VENDOR'];
 const ULID = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 const partyKeys = [
-  'id', 'name', 'roles', 'phone', 'address', 'guardianName', 'nid', 'email',
-  'notes', 'customerGroupId', 'customerGroupName', 'creditLimitMinor',
-  'status', 'isSystemReserved', 'version', 'balance', 'hasLedgerEntries',
+  'id', 'name', 'roles', 'readRole', 'phone',
+  'customerGroupId', 'customerGroupName', 'creditLimitMinor',
+  'status', 'isSystemReserved', 'version', 'balance', 'profile', 'globalHistory',
 ] as const;
-const optionalTextKeys = [
-  'phone', 'address', 'guardianName', 'nid', 'email', 'notes', 'customerGroupName',
-] as const;
+const privateKeys = ['address', 'guardianName', 'nid', 'email', 'notes'] as const;
 const balanceKeys = ['netMinor', 'direction', 'outstandingMinor', 'advanceMinor'] as const;
 const summaryKeys = [
   'total', 'active', 'inactive', 'ungrouped',
@@ -168,21 +177,37 @@ function balance(v: unknown): v is RoleBalance {
   return v.direction === 'SETTLED' && v.netMinor === 0 &&
     v.outstandingMinor === 0 && v.advanceMinor === 0;
 }
+function privateProfile(v: unknown): v is TradingPrivateProfile {
+  if (!record(v)) return false;
+  if (v.state === 'WITHHELD') return exact(v, ['state']);
+  if (v.state !== 'VISIBLE' || !exact(v, ['state', 'data']) ||
+      !record(v.data) || !exact(v.data, privateKeys)) return false;
+  return privateKeys.every(key => v.data !== null && record(v.data) &&
+    (v.data[key] === null || typeof v.data[key] === 'string'));
+}
+function globalHistory(v: unknown): v is TradingGlobalHistory {
+  if (!record(v)) return false;
+  if (v.state === 'WITHHELD') return exact(v, ['state']);
+  return v.state === 'VISIBLE' && exact(v, ['state', 'hasLedgerEntries']) &&
+    typeof v.hasLedgerEntries === 'boolean';
+}
 function party(v: unknown, selected: TradingRole): v is TradingParty {
   return record(v) && exact(v, partyKeys) && id(v.id) &&
     typeof v.name === 'string' && v.name.trim().length > 0 &&
     Array.isArray(v.roles) && v.roles.length >= 1 && v.roles.length <= 3 &&
     v.roles.every(role) && new Set(v.roles).size === v.roles.length &&
-    v.roles.includes(selected) && optionalTextKeys.every(k =>
-      v[k] === null || typeof v[k] === 'string') &&
+    v.readRole === selected && v.roles.includes(selected) &&
+    (v.phone === null || typeof v.phone === 'string') &&
+    (v.customerGroupName === null || typeof v.customerGroupName === 'string') &&
     (v.customerGroupId === null || id(v.customerGroupId)) &&
     (v.creditLimitMinor === null || natural(v.creditLimitMinor)) &&
-    // The server must not disclose Customer-only fields in other-role reads.
+    // A Supplier/Vendor read may never expose Customer-only metadata.
     (selected === 'CUSTOMER' || (v.customerGroupId === null &&
       v.customerGroupName === null && v.creditLimitMinor === null)) &&
     (v.status === 'ACTIVE' || v.status === 'INACTIVE') &&
     typeof v.isSystemReserved === 'boolean' &&
-    natural(v.version) && balance(v.balance) && typeof v.hasLedgerEntries === 'boolean';
+    natural(v.version) && balance(v.balance) &&
+    privateProfile(v.profile) && globalHistory(v.globalHistory);
 }
 function page(v: unknown): v is TradingPartyList['page'] {
   return record(v) && exact(v, ['nextCursor', 'hasMore']) &&
@@ -293,7 +318,7 @@ function listPath(selected: TradingRole, query: TradingPartyQuery): ApiRequest['
       params.set(key, v);
     }
   }
-  return ('/api/v1/parties?' + params.toString()) as ApiRequest['path'];
+  return ('/api/v2/parties?' + params.toString()) as ApiRequest['path'];
 }
 function ledgerPath(
   partyId: string,
@@ -350,7 +375,7 @@ export async function readTradingParty(
   token: string, partyId: string, selected: TradingRole,
   signal?: AbortSignal, timeoutMs?: number,
 ): Promise<TradingPartyDetail> {
-  const path = ('/api/v1/parties/' + checkedId(partyId) +
+  const path = ('/api/v2/parties/' + checkedId(partyId) +
     '?role=' + checkedRole(selected)) as ApiRequest['path'];
   return read(token, path, raw => decodeTradingPartyDetail(raw, selected), signal, timeoutMs);
 }
