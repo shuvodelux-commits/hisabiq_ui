@@ -405,7 +405,7 @@ test('revalidation adopts server-revoked role permissions with a new epoch, not 
     assert.equal(current.roleName, 'Sales');
   }
   assert.equal(calls.refresh, 0);
-  assert.equal(calls.me, 2);
+  assert.equal(meReads, 2);
   store.dispose();
 });
 
