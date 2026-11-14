@@ -30,11 +30,15 @@ const zero = {
 const customerList: TradingPartyList = {
   data: [{
     id: partyId, name: 'One Identity', roles: ['CUSTOMER', 'SUPPLIER'],
-    phone: '01712345678', address: 'Hidden', guardianName: 'Private',
-    nid: '1234567890', email: 'secret@example.test', notes: 'Sensitive',
+    readRole: 'CUSTOMER', phone: '01712345678',
+    profile: { state: 'VISIBLE', data: {
+      address: 'Hidden', guardianName: 'Private', nid: '1234567890',
+      email: 'secret@example.test', notes: 'Sensitive',
+    } },
+    globalHistory: { state: 'VISIBLE', hasLedgerEntries: true },
     customerGroupId: null, customerGroupName: null, creditLimitMinor: 500_000,
     status: 'ACTIVE', isSystemReserved: false, version: 1,
-    balance: positive, hasLedgerEntries: true,
+    balance: positive,
   }],
   summary: {
     total: 2, active: 2, inactive: 0, ungrouped: 2,
@@ -44,7 +48,7 @@ const customerList: TradingPartyList = {
 };
 const supplierList: TradingPartyList = {
   ...customerList,
-  data: [{ ...customerList.data[0]!, balance: negative,
+  data: [{ ...customerList.data[0]!, readRole: 'SUPPLIER', balance: negative,
     customerGroupId: null, customerGroupName: null, creditLimitMinor: null }],
   summary: { ...customerList.summary, ungrouped: null,
     totalOutstandingMinor: 0, totalAdvanceMinor: 300_000 },
