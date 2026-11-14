@@ -49,7 +49,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: shuvodelux-commits/hisabiq_ui
-          ref: b1c04748c5c3d36619502dcdb3cf18964fb29fd8
+          ref: f8a259acad9ec3ebe68c6f8034488e252ac0f021
           path: frontend
           persist-credentials: false
 
@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C frontend rev-parse HEAD)" = b1c04748c5c3d36619502dcdb3cf18964fb29fd8
+          test "$(git -C frontend rev-parse HEAD)" = f8a259acad9ec3ebe68c6f8034488e252ac0f021
           test "$(git -C backend rev-parse HEAD)" = 032a81f61a23f7e5fa94a1bfacf9f43ba6511856
           test "$(git -C frontend remote get-url origin)" = https://github.com/shuvodelux-commits/hisabiq_ui
           test "$(git -C backend remote get-url origin)" = https://github.com/shuvodelux-commits/nestshererp
@@ -190,7 +190,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = b1c04748c5c3d36619502dcdb3cf18964fb29fd8
+          test "$(git rev-parse HEAD)" = f8a259acad9ec3ebe68c6f8034488e252ac0f021
           node scripts/inventory-real-tenant-acceptance.cjs
 
       - name: Save synthetic test screenshots only
