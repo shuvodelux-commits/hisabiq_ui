@@ -16,6 +16,8 @@
  */
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { createRequire } = require('node:module');
 const { chromium } = require('playwright');
@@ -284,7 +286,15 @@ async function run() {
       return JSON.parse(await page.locator('#p2b0-projection').innerText());
     };
     const none = () => page.locator('#p2b0-projection').count();
+    const panel = page.locator('#p2b2-real-panel [data-mod003-panel]');
+    const panelReady = async state => {
+      await page.locator('#p2b2-real-panel [data-mod003-panel][data-view-state="' + state + '"]').waitFor();
+    };
+    const panelTab = async name => panel.getByRole('tab', { name, exact: true }).click();
+    const panelStockRow = productId => panel.locator('[data-product-id="' + productId + '"]');
+    const screenshots = fs.mkdtempSync(path.join(os.tmpdir(), 'hisabiq-mod003-p2b2-real-'));
     assert.equal(await none(), 0, 'signed-out must show no preview fixture');
+    assert.equal(await panel.locator('table').count(), 0, 'signed-out panel must contain no stock table');
     await login(a);
     const aResult = await projected();
     assert.equal(aResult.scope.split('/')[0], a.tenantId);
@@ -300,6 +310,67 @@ async function run() {
     assert.equal(aResult.lots.rows[0].batchNumber.state, 'unavailable');
     assert.equal('totalQty' in aResult, false);
 
+    // P2B2: assertions on the actual rendered, previously unmounted P2B1
+    // component, using real PostgreSQL rows through SessionStore/Nest.
+    await panelReady('ready');
+    await panelTab('Stock');
+    assert.ok(await panelStockRow(productA).count() >= 1,
+      'live server product must be displayed with its actual ULID');
+    const ownerStockRow = panelStockRow(productA).first();
+    const ownerSourceRow = testA.stock.find(row => row.productId === productA);
+    assert.ok(ownerSourceRow, 'source stock row must exist');
+    assert.equal(await ownerStockRow.getAttribute('data-location-id'),
+      ownerSourceRow.locationId ?? '', 'must preserve server location identity');
+    assert.ok((await ownerStockRow.innerText()).includes('8 ' + ownerSourceRow.baseUnitName),
+      'scale-3 on-hand quantity rendered as 8 base units');
+    assert.ok((await ownerStockRow.innerText()).includes('IN STOCK'),
+      'source stock status must not be inferred from partial movements');
+    assert.ok((await ownerStockRow.innerText()).includes('৳'),
+      'authorized stock value shown from server cost field');
+    await panelTab('Lots');
+    await page.locator('[data-lot-id="' + aResult.lots.rows[0].source.id + '"]').waitFor();
+    assert.equal(await panel.locator('[data-lot-id]').count(), aResult.lots.rows.length);
+    assert.equal(await panel.locator('[data-page-has-more]').getAttribute('data-page-has-more'),
+      String(aResult.lots.page.hasMore), 'UI must retain server cursor page boundary');
+    assert.ok((await panel.innerText()).includes(aResult.lots.rows[0].source.sourceNumber),
+      'actual source number is visible, not a manufactured batch number');
+    assert.ok((await panel.innerText()).includes('This is a filtered keyset page'),
+      'lot page must never claim to contain every lot');
+    assert.ok((await panel.innerText()).includes('unavailable'),
+      'batch, serial, manufacture and selling price remain unavailable');
+    await panelTab('Movements');
+    assert.ok(await panel.locator('[data-movement-id="' +
+      aResult.movements.rows[0].source.id + '"]').count() === 1);
+    assert.ok((await panel.innerText()).includes('Not provided by API'),
+      'no running balance or movement note invented');
+    await panelTab('Adjustments');
+    assert.ok(await panel.locator('[data-adjustment-id="' +
+      aResult.adjustments.rows[0].source.id + '"]').count() === 1);
+
+    await page.locator('#p2b2-language').selectOption('Bangla');
+    await panelTab('স্টক');
+    assert.ok((await panel.innerText()).includes('স্টকের সারাংশ'));
+    await page.evaluate(() => document.documentElement.classList.add('dark'));
+    for (const width of [320, 390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 850 });
+      const geometry = await page.evaluate(() =>
+        ({ viewport: window.innerWidth, scroll: document.documentElement.scrollWidth }));
+      assert.ok(geometry.scroll <= geometry.viewport + 2,
+        'real-data inventory panel should not overflow page at ' + width);
+      if (width === 320 || width === 1440) {
+        await page.screenshot({
+          path: path.join(screenshots, 'real-inventory-' + width + '-dark.png'),
+          fullPage: true,
+        });
+      }
+    }
+    await page.evaluate(() => document.documentElement.classList.remove('dark'));
+    await page.locator('#p2b2-language').selectOption('English + Bangla');
+    assert.ok((await panel.innerText()).includes('Stock · স্টক'),
+      'source-backed labels remain bilingual');
+    await page.locator('#p2b2-language').selectOption('English');
+    await page.setViewportSize({ width: 390, height: 844 });
+
     await login(blind);
     const blindResult = await projected();
     assert.equal(blindResult.scope.split('/')[0], a.tenantId);
@@ -311,6 +382,17 @@ async function run() {
       !Object.hasOwn(row.source, 'landedCostTotal')));
     assert.ok(blindResult.adjustments.rows.every(row =>
       !Object.hasOwn(row.source, 'valueMinor')));
+    await panelReady('ready');
+    await panelTab('Stock');
+    assert.equal(await panelStockRow(productA).count(), 1);
+    assert.ok(!(await panel.innerText()).includes('৳'),
+      'COST_VIEW-blind role must never see monetary stock values in DOM');
+    await panelTab('Lots');
+    assert.ok(!(await panel.innerText()).includes('৳'),
+      'cost-blind lots must have no purchase, actual, landed or lot values');
+    await panelTab('Adjustments');
+    assert.ok(!(await panel.innerText()).includes('৳'),
+      'cost-blind adjustment row must have no monetary value');
     await page.locator('#p2b0-foreign').fill(productB);
     await page.locator('#p2b0-foreign-check').click();
     await page.waitForFunction(() =>
@@ -321,6 +403,10 @@ async function run() {
     await page.locator('#p2b0-read[data-status="failed"]').waitFor();
     assert.equal(await none(), 0, 'LOT_VIEW refusal must not reveal partial inventory');
     assert.equal(await page.locator('#p2b0-read-status').innerText(), 'HTTP_403');
+    await panelReady('denied');
+    assert.equal(await panel.locator('table').count(), 0,
+      '403 must not leave previously permitted cost-bearing panel visible');
+    assert.ok((await panel.innerText()).includes('Permission denied'));
 
     await login(b);
     const bResult = await projected();
@@ -331,6 +417,14 @@ async function run() {
     assert.ok(bResult.stock.rows.every(row => row.source.productId !== productA));
     assert.equal(bResult.adjustments.rows.some(row =>
       row.source.productId === productA), false);
+    await panelReady('ready');
+    await panelTab('Stock');
+    assert.equal(await panelStockRow(productA).count(), 0,
+      'tenant B must not see tenant A product even as a transient DOM row');
+    assert.ok(await panelStockRow(productB).count() >= 1);
+    const emptyRow = panelStockRow(emptyProduct).first();
+    assert.ok((await emptyRow.innerText()).includes('0 '),
+      'source-provided zero must be rendered as zero, not an unknown value');
 
     // Reauthenticate tenant A, stall one live inventory GET, then immediately
     // switch to B. No A result may appear in B's active epoch.
@@ -343,18 +437,34 @@ async function run() {
       await hold;
       await route.continue().catch(() => undefined);
     });
+    // Do not allow a false-positive race: require an actual A-scoped GET to
+    // reach the interceptor before we reauthenticate tenant B.
+    const heldARequest = page.waitForRequest(request => request.method() === 'GET' &&
+      new URL(request.url()).pathname === '/api/v1/inventory');
     await login(a);
+    await heldARequest;
     await page.locator('#p2b0-read[data-status="loading"]').waitFor();
+    await panelReady('loading');
+    assert.equal(await panel.locator('table').count(), 0,
+      'old tenant inventory must be hidden before the stalled request resolves');
     await login(b);
+    assert.equal(await panelStockRow(productA).count(), 0,
+      'cross-tenant switch must mask prior tenant without waiting for passive effects');
     release();
     const afterSwitch = await projected();
     assert.equal(afterSwitch.scope.split('/')[0], b.tenantId);
     assert.equal(afterSwitch.stock.rows.some(row => row.source.productId === productA), false);
+    await panelReady('ready');
+    await panelTab('Stock');
+    assert.equal(await panelStockRow(productA).count(), 0);
+    assert.ok(await panelStockRow(productB).count() >= 1);
 
     await page.locator('#p2b0-logout').click();
     await page.waitForFunction(() =>
       document.querySelector('#p2b0-identity')?.getAttribute('data-status') === 'signed-out');
     assert.equal(await none(), 0, 'logout cannot retain tenant inventory');
+    assert.equal(await panel.locator('table').count(), 0,
+      'logout cannot leave a real stock panel with private tenant data');
     assert.equal((await page.evaluate(async () => {
       const { readInventoryOverview } = await import('/src/integration/inventory.ts');
       try {
@@ -371,6 +481,8 @@ async function run() {
     assert.deepEqual(writes, [], 'browser may only read business endpoints');
     assert.deepEqual(errors, [], 'unhandled React errors');
     console.log('MOD003_P2B0_REAL_PASS tenants=2 protected-reads=4 mobile-width=390');
+    console.log('MOD003_P2B2_REAL_RENDERED_PASS tenants=2 viewports=320,390,768,1440');
+    console.log('MOD003_P2B2_SCREENSHOTS=' + screenshots);
   } finally {
     if (browser) await browser.close();
     await vite.close();
