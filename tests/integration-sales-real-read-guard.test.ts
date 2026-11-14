@@ -91,3 +91,8 @@ test('R09REAL-08 browser checks desktop/mobile, source and role changes, without
   assert.match(script, /auth\/login.*method === 'POST'/);
   assert.match(fixture, /bootstrapped disposable auth fixture/);
 });
+
+test('R09REAL-09 signed Nest canonical invoice-view permission is required; legacy alias is forbidden', () => {
+  assert.match(script, /permissions\.includes\('sale\.invoice\.view'\)/);
+  assert.doesNotMatch(script, /permissions\.includes\('sale\.view'\)/);
+});
