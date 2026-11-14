@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ApiError } from '../../../integration/errors.ts';
 import { removeServerInvoiceLogo, uploadServerInvoiceLogo, type InvoiceLogoMime } from '../../../integration/invoice-logo.ts';
 import type { ServerInvoiceSettings } from '../../../integration/invoice-settings.ts';
@@ -123,7 +123,12 @@ export function ConnectedInvoiceLogoActions(props:Props){
  if(!controller.current)controller.current=createConnectedInvoiceLogoActionsController(next=>{
   setState(next);callbacks.current.onSelectedChange(next.selectedName!==null);callbacks.current.onBusyChange(next.busy);callbacks.current.onUnknownChange(next.unknown);if(next.denied)callbacks.current.onDenied();
  },data=>callbacks.current.onConfirmed(data));
- controller.current.configure({identityKey:props.identityKey,accessToken:props.accessToken,canEdit:props.canEdit,blocked:props.blocked});
+ // Do not synchronously emit parent setState callbacks during this component's
+ // render. Commit the access/identity change before paint and abort any pending
+ // operation through the controller's existing generation/unknown-outcome rules.
+ useLayoutEffect(()=>{
+  controller.current?.configure({identityKey:props.identityKey,accessToken:props.accessToken,canEdit:props.canEdit,blocked:props.blocked});
+ },[props.identityKey,props.accessToken,props.canEdit,props.blocked]);
  useEffect(()=>{controller.current?.serverRefreshed();},[props.refreshKey]);
  useEffect(()=>()=>{controller.current?.dispose();callbacks.current.onSelectedChange(false);callbacks.current.onBusyChange(false);},[]);
  const disabled=!props.canEdit||props.blocked||state.busy||state.unknown||state.denied;
