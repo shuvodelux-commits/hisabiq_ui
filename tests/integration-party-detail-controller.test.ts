@@ -13,19 +13,21 @@ const otherId = '01ARZ3NDEKTSV4RRFFQ69G5FAW';
 const customer: TradingPartyDetail = {
   data: {
     id, name: 'Shared Identity', roles: ['CUSTOMER', 'SUPPLIER'],
-    phone: '01712345678',
-    address: 'PRIVATE street',
-    guardianName: 'PRIVATE guardian',
-    nid: 'PRIVATE national identifier',
-    email: 'PRIVATE@example.invalid',
-    notes: 'PRIVATE note',
+    readRole: 'CUSTOMER', phone: '01712345678',
+    profile: { state: 'VISIBLE', data: {
+      address: 'PRIVATE street',
+      guardianName: 'PRIVATE guardian',
+      nid: 'PRIVATE national identifier',
+      email: 'PRIVATE@example.invalid',
+      notes: 'PRIVATE note',
+    } },
+    globalHistory: { state: 'VISIBLE', hasLedgerEntries: true },
     customerGroupId: null,
     customerGroupName: 'Retail',
     creditLimitMinor: 800_000,
     status: 'ACTIVE',
     isSystemReserved: false,
     version: 3,
-    hasLedgerEntries: true,
     balance: {
       netMinor: 500_000,
       direction: 'RECEIVABLE',
@@ -37,6 +39,7 @@ const customer: TradingPartyDetail = {
 const supplier: TradingPartyDetail = {
   data: {
     ...customer.data,
+    readRole: 'SUPPLIER',
     customerGroupId: null,
     customerGroupName: null,
     creditLimitMinor: null,

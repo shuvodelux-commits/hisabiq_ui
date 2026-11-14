@@ -2,7 +2,7 @@ import { ApiError } from './errors.ts';
 
 export interface ApiRequest {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  path: `/api/v1/${string}`;
+  path: `/api/v1/${string}` | `/api/v2/parties?${string}` | `/api/v2/parties/${string}`;
   body?: unknown;
   accessToken?: string;
   operationId?: string;
@@ -27,8 +27,16 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Keep V2 transport narrow: only authenticated Party list or selected-role detail GET. */
+function isPartyV2Path(path: string): boolean {
+  return path.startsWith('/api/v2/parties?') ||
+    /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\?role=(CUSTOMER|SUPPLIER|VENDOR)$/.test(path);
+}
 function requestUrl(path: string): URL {
-  if (typeof path !== 'string' || !path.startsWith('/api/v1/') || path.length <= '/api/v1/'.length ||
+  const v1 = typeof path === 'string' && path.startsWith('/api/v1/') &&
+    path.length > '/api/v1/'.length;
+  const v2 = typeof path === 'string' && isPartyV2Path(path);
+  if ((!v1 && !v2) ||
       path.includes('#') || path.includes('\\') || invalidControls(path)) throw protocolError();
 
   // Inspect the supplied pathname before URL normalizes literal or encoded dot segments.
@@ -50,8 +58,12 @@ function requestUrl(path: string): URL {
     const origin = globalThis.window?.location.origin ?? globalThis.location?.origin;
     if (!origin) throw protocolError();
     url = new URL(path, origin);
-    if (url.origin !== origin || !url.pathname.startsWith('/api/v1/') ||
-        url.pathname.length <= '/api/v1/'.length || url.username || url.password) throw protocolError();
+    if (url.origin !== origin || url.username || url.password ||
+        !(v1 ? url.pathname.startsWith('/api/v1/') &&
+          url.pathname.length > '/api/v1/'.length
+          : url.pathname === '/api/v2/parties' ||
+            /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(url.pathname)))
+      throw protocolError();
   } catch {
     throw protocolError();
   }
@@ -79,6 +91,9 @@ function parseHttpError(raw: unknown, status: number): ApiError {
 export async function requestJson<T>(input: ApiRequest, decode: (raw: unknown) => T): Promise<T> {
   const url = requestUrl(input.path);
   if (!methods.has(input.method) || !record(input) || 'headers' in input) throw protocolError();
+  if (isPartyV2Path(input.path) &&
+      (input.method !== 'GET' || input.body !== undefined || input.operationId !== undefined))
+    throw protocolError();
   if (input.accessToken !== undefined &&
       (typeof input.accessToken !== 'string' || !input.accessToken || /\s/.test(input.accessToken))) throw protocolError();
   if (input.operationId !== undefined &&
