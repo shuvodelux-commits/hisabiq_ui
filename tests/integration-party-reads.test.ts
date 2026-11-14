@@ -77,6 +77,28 @@ async function withFetch(mock: typeof fetch, run: () => Promise<void>): Promise<
   }
 }
 
+test('P3B-R RED: V2 WITHHELD list/detail and selected-role transport, no V1 fallback', async () => {
+  const { address: _a, guardianName: _g, nid: _n, email: _e, notes: _o,
+    hasLedgerEntries: _h, ...safe } = party;
+  const row = {
+    ...safe, readRole: 'CUSTOMER',
+    profile: { state: 'WITHHELD' },
+    globalHistory: { state: 'WITHHELD' },
+  };
+  const payload = { ...partyList, data: [row] };
+  assert.equal(decodeTradingPartyList(payload, 'CUSTOMER').data[0]?.profile.state, 'WITHHELD');
+  assert.equal(decodeTradingPartyDetail({ data: row }, 'CUSTOMER').data.globalHistory.state, 'WITHHELD');
+  const paths: string[] = [];
+  await withFetch((async (url) => {
+    paths.push(new URL(String(url)).pathname);
+    return json(paths.length === 1 ? payload : { data: row });
+  }) as typeof fetch, async () => {
+    await readTradingParties('role-reader', 'CUSTOMER');
+    await readTradingParty('role-reader', partyId, 'CUSTOMER');
+  });
+  assert.deepEqual(paths, ['/api/v2/parties', '/api/v2/parties/' + partyId]);
+});
+
 test('trading Party list sends an explicit CUSTOMER role with allowlisted filter/sort/cursor and bearer GET', async () => {
   let calls = 0;
   await withFetch((async (url, init) => {
