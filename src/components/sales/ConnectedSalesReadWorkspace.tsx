@@ -31,7 +31,7 @@ export function ConnectedSalesReadWorkspace() {
   const authenticated = mode === 'connected' && snapshot.status === 'authenticated';
   const canViewInvoices = canReadSalesInvoices(mode, snapshot);
   // GET returnability currently requires create permission, NOT return.view.
-  const canReviewSource = canViewInvoices && snapshot.permissions.includes('sales.return.create');
+  const canReviewSource = authenticated && canViewInvoices && snapshot.permissions.includes('sales.return.create');
   const canViewHistory = authenticated && snapshot.permissions.includes('sales.return.view');
   const identity = authenticated
     ? JSON.stringify([
