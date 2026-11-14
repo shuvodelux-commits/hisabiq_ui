@@ -137,6 +137,56 @@ test('malformed HTTP errors retain status but use a static safe message', async 
   }
 });
 
+test('only V2 Party selected-role GETs cross the shared HTTP boundary', async () => {
+  const id = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+  const urls: string[] = [];
+  await withFetch((async (url, init) => {
+    urls.push(String(url));
+    assert.equal(init?.method, 'GET');
+    assert.equal(init?.redirect, 'error');
+    assert.equal(init?.credentials, 'omit');
+    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer role-reader');
+    return json({ data: [] });
+  }) as typeof fetch, async () => {
+    for (const path of [
+      '/api/v2/parties?role=CUSTOMER&limit=20',
+      '/api/v2/parties/' + id + '?role=SUPPLIER',
+    ] as const) {
+      const raw = await requestJson({ method: 'GET', path, accessToken: 'role-reader' }, value => value);
+      assert.deepEqual(raw, { data: [] });
+    }
+  });
+  assert.deepEqual(urls, [
+    origin + '/api/v2/parties?role=CUSTOMER&limit=20',
+    origin + '/api/v2/parties/' + id + '?role=SUPPLIER',
+  ]);
+  await withFetch(failIfFetched(), async () => {
+    const invalid = [
+      '/api/v2/me', '/api/v2/parties', '/api/v2/partiesx?role=CUSTOMER',
+      '/api/v2/parties/../secret?role=CUSTOMER',
+      '/api/v2/parties/' + id + '?role=OWNER',
+      '/api/v2/parties/' + id + '?role=SUPPLIER&foo=1',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER',
+      '/api/v2/parties#secret',
+    ];
+    for (const path of invalid) {
+      await assert.rejects(
+        requestJson({ method: 'GET', path: path as any }, value => value),
+        (error: unknown) => error instanceof ApiError && error.kind === 'protocol',
+        path,
+      );
+    }
+    for (const method of ['POST', 'PATCH', 'DELETE'] as const) {
+      await assert.rejects(requestJson({
+        method, path: '/api/v2/parties?role=CUSTOMER',
+      }, value => value), ApiError);
+    }
+    await assert.rejects(requestJson({
+      method: 'GET', path: '/api/v2/parties?role=CUSTOMER', operationId: id,
+    }, value => value), ApiError);
+  });
+});
+
 test('only same-origin api/v1 paths are accepted before fetch', async () => {
   const invalid = [
     'https://hisabiq.test/api/v1/me', 'https://foreign.test/api/v1/me',
