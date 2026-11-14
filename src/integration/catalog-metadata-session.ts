@@ -1,8 +1,10 @@
 import { createCatalogMetadataV1, type CatalogMetadataV1CreateCommand } from './catalog-metadata-v1-create.ts';
 import {
+  fullEditCatalogMetadataV1,
   patchCatalogMetadataV1,
   readCatalogMetadataV1,
   type CatalogMetadataV1Envelope,
+  type CatalogMetadataV1FullEditCommand,
   type CatalogMetadataV1PatchCommand,
 } from './catalog-metadata-v1.ts';
 import { ApiError } from './errors.ts';
@@ -137,6 +139,33 @@ export class CatalogMetadataSessionBridge {
     try {
       return await this.request(snapshot, (token, operationSignal) =>
         patchCatalogMetadataV1(token, command, operationSignal), signal);
+    } catch (error) {
+      this.confirmed = null;
+      throw error;
+    }
+  }
+
+  /**
+   * Opt-in atomic English/Bengali catalog edit (P6e). The backend performs
+   * one versioned CAS; this bridge only binds it to the currently verified
+   * SessionStore identity/permission. Never mount a live Product Settings UI
+   * based on a successful edit alone: lifecycle and usage parity are separate.
+   *
+   * Any server refusal or ambiguous transport failure invalidates this
+   * preflight, requiring a fresh GET before another attempt. No automatic
+   * retry, preview fallback, or old English-only + metadata-only pair.
+   */
+  async fullEdit(
+    command: CatalogMetadataV1FullEditCommand,
+    signal?: AbortSignal,
+  ): Promise<CatalogMetadataV1Envelope> {
+    const snapshot = this.requireSession();
+    this.requirePermission(snapshot, VIEW);
+    this.requirePermission(snapshot, WRITE[command.kind]);
+    if (!this.isReadReady()) throw notReady();
+    try {
+      return await this.request(snapshot, (token, operationSignal) =>
+        fullEditCatalogMetadataV1(token, command, operationSignal), signal);
     } catch (error) {
       this.confirmed = null;
       throw error;
