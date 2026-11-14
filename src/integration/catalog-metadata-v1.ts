@@ -199,8 +199,11 @@ function englishName(value: unknown): string {
   // Normalise before applying the server's <=120 UTF-16-unit name bound.
   // The server also collapses internal whitespace before storing a name.
   const normalized = value.normalize('NFC').trim().replace(/\s+/gu, ' ');
-  if (normalized.length < 1 || normalized.length > 120 ||
-      /[\u0000-\u001f\u007f]/u.test(normalized)) return invalid();
+  if (normalized.length < 1 || normalized.length > 120) return invalid();
+  for (let index = 0; index < normalized.length; index += 1) {
+    const code = normalized.charCodeAt(index);
+    if (code < 32 || code === 127) return invalid();
+  }
   return normalized;
 }
 
