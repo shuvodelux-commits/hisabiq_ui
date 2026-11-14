@@ -1,3 +1,4 @@
+import { ApiError } from './errors.ts';
 import {
   decodeCatalogMetadataV1,
   type CatalogMetadataV1Brand,
@@ -64,6 +65,16 @@ export interface CatalogSettingsUsageEvidence {
   readonly categoryParentMismatches: readonly string[];
 }
 
+function requireUniqueMasterIds<T extends { id: string }>(rows: readonly T[]): void {
+  const seen = new Set<string>();
+  for (const row of rows) {
+    if (seen.has(row.id)) {
+      throw new ApiError('protocol', 'Catalog metadata contains duplicate master IDs');
+    }
+    seen.add(row.id);
+  }
+}
+
 function freezeIds(
   unitIds: readonly string[],
   brandIds: readonly string[],
@@ -98,9 +109,13 @@ export function reconcileCatalogSettingsUsageEvidence(
   usageRaw: unknown,
 ): CatalogSettingsUsageEvidence {
   // Decode BOTH before exposing partial data. Strict upstream decoders check
-  // exact wire keys, ULIDs, counts, category relation shapes and duplicates.
+  // exact wire keys, ULIDs, counts and category relation shapes. The metadata
+  // decoder does NOT itself check duplicate master IDs, so we do so here.
   const metadata = decodeCatalogMetadataV1(metadataRaw).data;
   const usage = decodeCatalogSettingsUsageV1(usageRaw).data;
+  requireUniqueMasterIds(metadata.units);
+  requireUniqueMasterIds(metadata.brands);
+  requireUniqueMasterIds(metadata.categories);
 
   const unitUsage: ReadonlyMap<string, CatalogSettingsUsageV1Count> =
     new Map(usage.units.map(row => [row.id, row]));
