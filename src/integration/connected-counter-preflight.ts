@@ -101,7 +101,9 @@ export async function resolveConnectedCounterPreflight(
   // SessionStore verifies the signed /me identity and current role privileges.
   await session.revalidateAccess();
   const captured = session.getSnapshot();
-  if (!sameScope(captured, before)) return denied('Counter session changed during verification');
+  if (!authenticated(captured) || !sameScope(captured, before)) {
+    return denied('Counter session changed during verification');
+  }
 
   const requirement = REQUIREMENTS[kind];
   if (!requirement || !requirement.permissions.every(permission =>
