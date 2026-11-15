@@ -5,7 +5,6 @@ import { SessionProvider, useSession } from '../../src/integration/SessionProvid
 import { TenantSettingsProvider } from '../../src/settings/TenantSettingsProvider.tsx';
 import { Purchases } from '../../src/pages/Purchases.tsx';
 import '../../src/index.css';
-
 /**
  * R09-PURCHASE-REAL-READ — test-only entry, not a production route.
  * Only the synthetic test-login POST is intercepted. GET /me, purchase sources,
@@ -22,7 +21,6 @@ function PurchaseReadFixture() {
       .then(() => setResult('success:' + who))
       .catch(() => setResult('failed:' + who));
   }
-
   return (
     <main className="mx-auto max-w-[1440px] space-y-4 p-3">
       <header className="flex flex-wrap items-center gap-3">
