@@ -19,7 +19,7 @@ assert.match(studio, /await store\.revalidateAccess\(\)/);
 assert.match(studio, /connectedAuthorizationPending/);
 assert.match(logo, /await confirmCurrent\(\)/);
 assert.match(studio, /current\.permissions\.includes\('sale\.invoice\.view'\)/);
-assert.match(logo, /sale\.invoice\.view/);
+assert.match(logo, /confirmCurrent \? await confirmCurrent\(\) : false/);
 assert.match(logo, /URL\.revokeObjectURL/);
 console.log('PASS source: invoice read permission, stale-response revalidation and read-only route');
 
