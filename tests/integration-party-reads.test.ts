@@ -148,7 +148,7 @@ test('multi-role identity gives independent CUSTOMER and SUPPLIER detail without
 
 test('historical opening is a nullable exact-role GET with no session or payment leg', async () => {
   await withFetch((async (url, init) => {
-    assert.equal(String(url), origin + '/api/v1/parties/' + partyId + '/opening?role=CUSTOMER');
+    assert.equal(String(url), origin + '/api/v2/parties/' + partyId + '/opening?role=CUSTOMER');
     assert.equal(init?.method, 'GET');
     assert.equal(init?.body, undefined);
     return json({ data: opening });
@@ -162,6 +162,72 @@ test('historical opening is a nullable exact-role GET with no session or payment
     assert.equal((await readHistoricalPartyOpening('A', partyId, 'CUSTOMER')).data, null);
   });
 });
+
+
+test('V2 historical opening only queries one selected role and never falls back to V1 on denial', async () => {
+  for (const [status, code] of [
+    [401, 'UNAUTHORIZED'],
+    [403, 'PERMISSION_DENIED'],
+    [403, 'FEATURE_DISABLED'],
+    [404, 'NOT_FOUND'],
+    [503, 'SERVICE_UNAVAILABLE'],
+  ] as const) {
+    const urls: string[] = [];
+    await withFetch((async (url, init) => {
+      urls.push(String(url));
+      assert.equal(init?.method, 'GET');
+      assert.equal(init?.body, undefined);
+      assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer A');
+      return json({
+        error: {
+          code, message: 'Selected opening not available',
+          details: {}, traceId: '01ARZ3NDEKTSV4RRFFQ69G5FAX',
+        },
+      }, status);
+    }) as typeof fetch, async () => {
+      await assert.rejects(
+        readHistoricalPartyOpening('A', partyId, 'SUPPLIER'),
+        (error: unknown) => error instanceof ApiError &&
+          error.kind === 'http' && error.status === status,
+      );
+    });
+    assert.deepEqual(urls, [origin + '/api/v2/parties/' + partyId + '/opening?role=SUPPLIER']);
+  }
+});
+
+test('V2 opening keeps true null absence, rejects private extra fields, and passes AbortSignal', async () => {
+  const signal = new AbortController().signal;
+  await withFetch((async (url, init) => {
+    assert.equal(String(url), origin + '/api/v2/parties/' + partyId + '/opening?role=VENDOR');
+    assert.ok(init?.signal instanceof AbortSignal);
+    assert.equal(init.signal.aborted, false);
+    return json({ data: null });
+  }) as typeof fetch, async () => {
+    assert.deepEqual(await readHistoricalPartyOpening('A', partyId, 'VENDOR', signal), { data: null });
+  });
+  const abortController = new AbortController();
+  await withFetch((async (_url, init) => {
+    assert.ok(init?.signal instanceof AbortSignal);
+    abortController.abort();
+    assert.equal(init.signal.aborted, true);
+    throw new DOMException('Interrupted', 'AbortError');
+  }) as typeof fetch, async () => {
+    await assert.rejects(readHistoricalPartyOpening('A', partyId, 'VENDOR', abortController.signal),
+      (error: unknown) => error instanceof ApiError && error.kind === 'network');
+  });
+  let fetched = 0;
+  await withFetch((async () => {
+    fetched += 1;
+    return json({ data: { ...opening, nid: 'private-field' } });
+  }) as typeof fetch, async () => {
+    await assert.rejects(
+      readHistoricalPartyOpening('A', partyId, 'CUSTOMER'),
+      (error: unknown) => error instanceof ApiError && error.kind === 'protocol',
+    );
+  });
+  assert.equal(fetched, 1);
+});
+
 
 test('ledger sends role/date/cursor and returns source-linked integer-poisha lines', async () => {
   await withFetch((async (url, init) => {

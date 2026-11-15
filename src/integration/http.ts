@@ -33,6 +33,11 @@ function isPartyV2Path(path: string): boolean {
   if (/^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\?role=(CUSTOMER|SUPPLIER|VENDOR)$/.test(path)) {
     return true;
   }
+  // The historical opening is a separate exact-role V2 GET, with no filters,
+  // alternate relationship or caller-supplied cash/session information.
+  if (/^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\/opening\?role=(CUSTOMER|SUPPLIER|VENDOR)$/.test(path)) {
+    return true;
+  }
   // Only the canonical role-first ledger query built by party-reads.ts is
   // permitted. Reject duplicate/unknown/reordered params and encoded escapes
   // instead of widening access to an arbitrary nested V2 resource.
@@ -68,7 +73,7 @@ function requestUrl(path: string): URL {
         !(v1 ? url.pathname.startsWith('/api/v1/') &&
           url.pathname.length > '/api/v1/'.length
           : url.pathname === '/api/v2/parties' ||
-            /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}(?:\/ledger)?$/.test(url.pathname)))
+            /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}(?:\/(?:ledger|opening))?$/.test(url.pathname)))
       throw protocolError();
   } catch {
     throw protocolError();
