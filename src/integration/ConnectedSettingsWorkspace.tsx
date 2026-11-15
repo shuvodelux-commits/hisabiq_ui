@@ -125,7 +125,7 @@ function ConnectedSettingsContent({ section }: { section: string }) {
               ) : section === 'team' ? (
                 <TeamSettings key={identity} canEdit={false} onDirtyChange={setDirty} />
               ) : (
-                <InvoiceStudio key={identity} canEdit={false} onDirtyChange={setDirty} />
+                <InvoiceStudio key={identity} canEdit={false} connectedReadOnly onDirtyChange={setDirty} />
               )}
             </fieldset>
           )}
