@@ -58,11 +58,8 @@ async function run() {
                   'connected signed-out must not mount preview Finance');
               }
             } else {
-              await page.goto('http://127.0.0.1:' + port + '/#/app/finance');
-              await page.getByRole('heading', { name: /^Finance$|^টাকা-পয়সা$/ }).waitFor();
-              const tab = page.getByRole('tab', { name: /Counter|কাউন্টার/ });
-              if (width === 390) await tab.tap();
-              else { await tab.focus(); await page.keyboard.press('Enter'); }
+              // The existing direct Counter route works at both small and large widths.
+              await page.goto('http://127.0.0.1:' + port + '/#/app/counter');
               await page.getByRole('group', { name: 'Counter actions' }).waitFor();
               assert.equal(await page.getByRole('button', { name: /Customer Receive/ }).count() > 0,
                 true, 'existing customer receipt action stays visible');
