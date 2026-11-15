@@ -43,6 +43,7 @@ async function api(path, method = 'GET', body, token) {
       !/^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\?role=SUPPLIER$/.test(path)) {
     refuse('unapproved test API path');
   }
+  process.stdout.write('T02-F2 request ' + method + ' ' + path.split('?')[0] + '\n');
   const res = await fetch(API + path, {
     method, redirect: 'error',
     headers: {
@@ -53,7 +54,7 @@ async function api(path, method = 'GET', body, token) {
         ? { 'Idempotency-Key': body?.operationId || id() } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(18000),
+    signal: AbortSignal.timeout(60000),
   });
   return { status: res.status, body: await res.json() };
 }
