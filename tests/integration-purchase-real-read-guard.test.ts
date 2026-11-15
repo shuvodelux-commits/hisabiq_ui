@@ -76,3 +76,32 @@ test('R09PUR-08 browser covers desktop, tablet, phone and unauthorized return ta
   assert.match(script, /getByText\(rowA\.supplierName\)\.count/);
   assert.match(script, /data-purchases-table/);
 });
+
+test('R09PUR-09 responsive supplier assertion must inspect visible rows, not hidden copies', () => {
+  const script = source(runner);
+  for (const who of ['A', 'B']) {
+    assert.match(script, new RegExp('table\\.getByText\\(row' + who +
+      '\\.supplierName\\)\\.filter\\(\\{ visible: true \\}\\)\\.first\\(\\)\\.waitFor\\(\\)'));
+  }
+  assert.doesNotMatch(script, /table\.getByText\(row[AB]\.supplierName\)\.first\(\)\.waitFor\(\)/);
+});
+
+test('R09PUR-10 Vite readiness waits for the React, Purchases and CSS responses', () => {
+  const script = source(runner);
+  for (const path of ['/tests/fixtures/connected-purchase-real-read.tsx',
+    '/src/pages/Purchases.tsx', '/src/index.css']) {
+    assert.ok(script.includes(path), 'warmup resource missing: ' + path);
+  }
+  assert.match(script, /await response\.arrayBuffer\(\)/);
+  assert.match(script, /redirect: 'error'/);
+  assert.match(script, /if \(ready\) return child/);
+  assert.doesNotMatch(script, /status === 200\)\s*return child/);
+});
+test('R09PUR-11 browser failure identifies only a safe viewport and stage', () => {
+  const script = source(runner);
+  assert.match(script, /R09_PURCHASE_BROWSER_PHASE_RED/);
+  assert.match(script, /const stage = \{/);
+  assert.match(script, /stage\.value = 'navigation'/);
+  assert.match(script, /stage\.value = 'tenant-b'/);
+  assert.doesNotMatch(script, /console\.(?:error|log)\([^;\n]*(?:e\.message|e\.stack|people\[.*\]\.token)/);
+});

@@ -173,8 +173,21 @@ async function startVite() {
   for (let i = 0; i < 100; i++) {
     if (child.exitCode !== null) refuse('test Vite exited');
     try {
-      if ((await fetch(fixture, { signal: AbortSignal.timeout(750) })).status === 200)
-        return child;
+      if ((await fetch(fixture, { redirect: 'error',
+        signal: AbortSignal.timeout(2000) })).status === 200) {
+        let ready = true;
+        for (const path of ['/tests/fixtures/connected-purchase-real-read.tsx',
+          '/src/pages/Purchases.tsx', '/src/index.css']) {
+          const response = await fetch(origin + path, { redirect: 'error',
+            signal: AbortSignal.timeout(30000) });
+          if (response.status !== 200 || new URL(response.url).origin !== origin) {
+            ready = false;
+            break;
+          }
+          await response.arrayBuffer();
+        }
+        if (ready) return child;
+      }
     } catch { /* isolated Vite is warming */ }
     await new Promise(ok => setTimeout(ok, 250));
   }
@@ -187,42 +200,57 @@ async function exercise(browser, width, preflightRecords) {
   const page = await context.newPage();
   page.setDefaultTimeout(25000);
   const log = [], violations = [], blocked = [], errors = [];
+  const stage = { value: 'setup' };
   page.on('pageerror', e => errors.push(e.name));
   intercept(page, log, violations, blocked);
   try {
-    await page.goto(fixture, { waitUntil: 'domcontentloaded' });
+    stage.value = 'navigation';
+    await page.goto(fixture, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    stage.value = 'tenant-a';
     await page.locator('[data-purchase-real-login-a]').click();
     await page.getByText('Verified:' + preflightRecords.a.access.businessName).waitFor();
     const rowA = preflightRecords.a.row, rowB = preflightRecords.b.row;
     const table = page.locator('[data-purchases-table]');
-    await table.getByText(rowA.supplierName).first().waitFor();
+    await table.getByText(rowA.supplierName).filter({ visible: true }).first().waitFor();
+    stage.value = 'bill-a';
     await page.getByRole('button', { name: 'View bill ' + rowA.number }).click();
     await page.getByRole('dialog', { name: 'Purchase bill details' }).waitFor();
     await page.keyboard.press('Escape');
+    stage.value = 'return-a';
     await page.getByRole('button',
       { name: 'Review returnable quantities ' + rowA.number }).click();
     await page.locator('[data-purchase-returnable-table]').waitFor();
+    stage.value = 'history-a';
     await page.getByRole('tab', { name: 'Return history' }).click();
     await page.locator('[data-purchase-return-history-table]').waitFor();
+    stage.value = 'tenant-b';
     await page.locator('[data-purchase-real-login-b]').click();
     await page.getByText('Verified:' + preflightRecords.b.access.businessName).waitFor();
     await page.getByRole('tab', { name: 'Purchases' }).click();
-    await table.getByText(rowB.supplierName).first().waitFor();
+    await table.getByText(rowB.supplierName).filter({ visible: true }).first().waitFor();
     assert.equal(await table.getByText(rowA.supplierName).count(), 0);
+    stage.value = 'bill-b';
     await page.getByRole('button', { name: 'View bill ' + rowB.number }).click();
     await page.getByRole('dialog', { name: 'Purchase bill details' }).waitFor();
     assert.ok(log.some(row => row.path === '/api/v1/purchases/' + people.b.purchaseId &&
       row.method === 'GET' && row.who === 'b'));
     await page.keyboard.press('Escape');
+    stage.value = 'denied-b';
     await page.getByRole('tab', { name: 'Purchase return' }).click();
     await page.getByText('You need purchase return permission to review returnable quantities.').waitFor();
     await page.getByRole('tab', { name: 'Return history' }).click();
     await page.getByText('You do not have permission to view supplier return history.').waitFor();
+    stage.value = 'checks';
     assert.deepEqual(violations, []);
     assert.deepEqual(errors, []);
     assert.ok(log.filter(x => x.method === 'GET' && x.path.startsWith('/api/v1/purchase')).length >= 6);
     assert.equal(log.some(x => x.who === 'b' && x.path.startsWith('/api/v1/purchase-returns')), false);
     console.log('PASS real signed purchase-return read @' + width + 'px');
+  } catch (error) {
+    const category = error?.name === 'TimeoutError' ? 'timeout' :
+      error?.name === 'AssertionError' ? 'assertion' : 'other';
+    console.error('R09_PURCHASE_BROWSER_PHASE_RED', width, stage.value, category);
+    throw error;
   } finally { await context.close(); }
 }
 async function main() {
