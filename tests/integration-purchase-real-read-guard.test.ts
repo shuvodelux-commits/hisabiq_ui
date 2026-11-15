@@ -122,3 +122,25 @@ test('R09PUR-13 missing source, cross-tenant returnable and B permission fail cl
   assert.ok(script.includes("assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.a.token)).status, 404)"));
   assert.ok(script.includes("assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.b.token)).status, 403)"));
 });
+
+test('R09PUR-14 requires a genuine expired tenant A JWT before real GET acceptance', () => {
+  const script = source(runner);
+  assert.match(script, /HISABIQ_R09_PURCHASE_EXPIRED_JWT_A/);
+  assert.match(script, /expired\.sub === people\.a\.userId/);
+  assert.match(script, /expired\.tid === people\.a\.tenantId/);
+  assert.match(script, /expired\.exp < Math\.floor\(Date\.now\(\) \/ 1000\)/);
+  assert.match(script, /assert\.equal\(\(await get\('\/api\/v1\/me', expiredToken\)\)\.status, 401\)/);
+  assert.match(script, /assert\.equal\(\(await get\('\/api\/v1\/purchases\?limit=25', expiredToken\)\)\.status, 401\)/);
+});
+test('R09PUR-15 expired bearer login cannot reveal purchases in rendered session', () => {
+  const script = source(runner);
+  const jsx = source(fixture);
+  assert.match(jsx, /data-purchase-real-login-expired/);
+  assert.match(script, /stage\.value = 'expired-login'/);
+  assert.match(script, /getByText\('failed:expired'\)\.waitFor\(\)/);
+  assert.match(script, /getByText\('Session:signed-out'\)\.waitFor\(\)/);
+  assert.match(script, /data-purchases-table.*count\(\)/);
+  assert.match(script, /path === '\/api\/v1\/me'/);
+  assert.match(script, /path === '\/api\/v1\/auth\/logout'/);
+  assert.match(script, /assert\.equal\(method, 'GET'/);
+});
