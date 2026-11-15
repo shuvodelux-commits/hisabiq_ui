@@ -105,3 +105,20 @@ test('R09PUR-11 browser failure identifies only a safe viewport and stage', () =
   assert.match(script, /stage\.value = 'tenant-b'/);
   assert.doesNotMatch(script, /console\.(?:error|log)\([^;\n]*(?:e\.message|e\.stack|people\[.*\]\.token)/);
 });
+
+
+test('R09PUR-12 real preflight must reject anonymous and forged bearer identity', () => {
+  const script = source(runner);
+  assert.match(script, /async function negativeReadPreflight\(/);
+  assert.ok(script.includes("assert.equal((await get('/api/v1/me')).status, 401)"));
+  assert.ok(script.includes("assert.equal((await get('/api/v1/me', forged.join('.'))).status, 401)"));
+  assert.match(script, /await negativeReadPreflight\(\)/);
+});
+test('R09PUR-13 missing source, cross-tenant returnable and B permission fail closed', () => {
+  const script = source(runner);
+  assert.ok(script.includes("const missing = '00000000000000000000000000'"));
+  assert.ok(script.includes("assert.equal((await get('/api/v1/purchases/' + missing, people.a.token)).status, 404)"));
+  assert.ok(script.includes("assert.equal((await get('/api/v1/purchase-returns/returnable/' + missing, people.a.token)).status, 404)"));
+  assert.ok(script.includes("assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.a.token)).status, 404)"));
+  assert.ok(script.includes("assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.b.token)).status, 403)"));
+});
