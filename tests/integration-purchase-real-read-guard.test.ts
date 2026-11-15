@@ -76,3 +76,12 @@ test('R09PUR-08 browser covers desktop, tablet, phone and unauthorized return ta
   assert.match(script, /getByText\(rowA\.supplierName\)\.count/);
   assert.match(script, /data-purchases-table/);
 });
+
+test('R09PUR-09 responsive supplier assertion must inspect visible rows, not hidden copies', () => {
+  const script = source(runner);
+  for (const who of ['A', 'B']) {
+    assert.match(script, new RegExp('table\\.getByText\\(row' + who +
+      '\\.supplierName\\)\\.filter\\(\\{ visible: true \\}\\)\\.first\\(\\)\\.waitFor\\(\\)'));
+  }
+  assert.doesNotMatch(script, /table\.getByText\(row[AB]\.supplierName\)\.first\(\)\.waitFor\(\)/);
+});
