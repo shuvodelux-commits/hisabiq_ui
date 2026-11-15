@@ -122,6 +122,7 @@ const connectedBoolLabels: Record<(typeof editableBooleanFields)[number], string
 function ConnectedInvoiceEditor({
   identityKey, accessToken, initialSaved, canEdit, onDirtyChange, onConfirmed,
 }: ConnectedInvoiceEditorProps) {
+  const { snapshot, store } = useSession();
   const [saved, setSaved] = useState(initialSaved);
   const [pending, setPending] = useState<InvoiceChoice | null>(null);
   const [busy, setBusy] = useState<'idle' | 'saving' | 'refreshing'>('idle');
@@ -264,6 +265,13 @@ function ConnectedInvoiceEditor({
           accessToken={accessToken}
           hasLogo={saved.hasLogo}
           refreshKey={logoRefresh}
+          confirmCurrent={async () => {
+            await store.revalidateAccess();
+            const current = store.getSnapshot();
+            return current.status === 'authenticated' && snapshot.status === 'authenticated' &&
+              current.tenantId === snapshot.tenantId && current.epoch === snapshot.epoch &&
+              current.accessToken === accessToken && current.permissions.includes('sale.invoice.view');
+          }}
         />
         <ConnectedInvoiceLogoActions
           identityKey={identityKey}
