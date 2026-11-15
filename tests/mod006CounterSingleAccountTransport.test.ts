@@ -95,6 +95,10 @@ test('customer BANK oldest-first POST uses exact Nest fields, token and stable o
   const result = await recordSingleAccountCounterSettlement(token, source);
   assert.equal(result.kind, 'CUSTOMER_RECEIPT');
   assert.equal(result.data.id, operation);
+  if (result.kind === 'CUSTOMER_RECEIPT') {
+    assert.equal(result.data.allocations[0].saleId, sale);
+    assert.equal(result.data.allocations[0].saleNumber, 'S-001');
+  }
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, 'https://erp.local.test/api/v1/customer-payments');
   assert.equal(calls[0].options.method, 'POST');
@@ -114,6 +118,10 @@ test('supplier BANK oldest-first POST uses source-specific route and settlement 
   }));
   assert.equal(result.kind, 'SUPPLIER_PAYMENT');
   assert.equal(result.data.outstandingAfterMinor, 7650);
+  if (result.kind === 'SUPPLIER_PAYMENT') {
+    assert.equal(result.data.allocations[0].purchaseId, sale);
+    assert.equal(result.data.allocations[0].purchaseNumber, 'P-001');
+  }
   assert.equal(calls[0].url, 'https://erp.local.test/api/v1/suppliers/payments');
   assert.deepEqual(JSON.parse(calls[0].options.body), {
     supplierPartyId: supplier, amountMinor: 2350, accountCode: 'BANK:' + shop,
