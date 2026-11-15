@@ -13,6 +13,8 @@ assert.match(workspace, /sale\.invoice\.view/);
 assert.match(workspace, /item\.id === 'invoices'/);
 assert.match(workspace, /section === 'invoices'/);
 assert.match(workspace, /<InvoiceStudio /);
+assert.match(workspace, /connectedReadOnly/);
+assert.match(studio, /verified\.canWrite && !connectedReadOnly/);
 assert.match(workspace, /<fieldset disabled/);
 assert.doesNotMatch(workspace, /<AppShell|CashSessionProvider|<TopBar|<Sidebar/);
 assert.match(studio, /await store\.revalidateAccess\(\)/);
