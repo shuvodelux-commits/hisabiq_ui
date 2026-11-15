@@ -23,6 +23,10 @@
 - Network: abort, timeout, offline and session revocation discard late results and disclose no private payload.
 - Non-applicable: migration, cash-session ON/OFF, financial rounding/posting, concurrency/idempotent write, offline POS, touch UI and mobile layout (no writes/UI code changed).
 
-**Exact changed paths:** `tests/integration-party-reads.test.ts`, `src/integration/party-reads.ts`, `docs/superpowers/plans/2026-11-15-mod004-react-v2-ledger-transport.md`. All other files protected.
+**Exact changed paths (amended for source-confirmed boundary):** `tests/integration-party-reads.test.ts`, `src/integration/party-reads.ts`, `tests/integrationHttp.test.ts`, `src/integration/http.ts`, `docs/superpowers/plans/2026-11-15-mod004-react-v2-ledger-transport.md`. All other files protected.
 
 **Security:** The remaining V1 historical opening GET is separately role-gated by backend PR #252, but V1 Party profile/list/write responses remain a known release blocker. ConnectedWorkspaceGate must remain closed.
+
+## TDD discovery and follow-on
+
+RED commit `6ca841559f3ac1be8f8f3fa63865ff8b6f6772e2`: 17 transport tests, 15 pass / 2 expected V1-route failures. First path-only GREEN candidate `74c445884e0fb02bce98fbfef91c64ecb6fe888c` encountered the shared `requestUrl/isPartyV2Path` deny-by-default gate, producing protocol errors. This is correct security behavior. Extend only the explicitly validated V2 ledger read URL pattern, preserve existing detail/list allowlist, reject unknown query/path/method. Add HTTP boundary tests before gate implementation; no V1 fallback. Do not count this candidate as GREEN.
