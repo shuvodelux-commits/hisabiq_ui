@@ -110,7 +110,7 @@ export function App() {
           <Route path="settings" element={<MagicPlatformSettings />} />
           <Route path="*" element={<Navigate to="/saas/home" replace />} />
         </Route>
-        <Route path="/app" element={integrationMode === 'connected' ? <ConnectedSettingsWorkspace /> : <ConnectedWorkspaceGate><AppShell /></ConnectedWorkspaceGate>}>
+        <Route path="/app" element={integrationMode === 'connected' ? <PageBoundary><ConnectedSettingsWorkspace /></PageBoundary> : <ConnectedWorkspaceGate><AppShell /></ConnectedWorkspaceGate>}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="subscription" element={<TenantSubscription />} /><Route path="support" element={<TenantSupport />} /><Route path="support/:id" element={<TenantSupport detail />} />
           <Route path="settings" element={<TenantSettingsPage />} />
