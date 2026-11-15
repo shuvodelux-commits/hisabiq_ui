@@ -6,7 +6,7 @@ const { randomBytes } = require('node:crypto');
 
 const app = readFileSync('src/App.tsx', 'utf8');
 const workspace = readFileSync('src/integration/ConnectedSettingsWorkspace.tsx', 'utf8');
-assert.match(app, /integrationMode === 'connected'\s*\?\s*<ConnectedSettingsWorkspace/);
+assert.ok(app.includes("integrationMode === 'connected' ? <PageBoundary>"), 'lazy connected route requires Suspense boundary');
 assert.match(app, /<ConnectedWorkspaceGate><AppShell \/><\/ConnectedWorkspaceGate>/);
 assert.match(workspace, /useSession/);
 assert.match(workspace, /TenantSettingsProvider/);
