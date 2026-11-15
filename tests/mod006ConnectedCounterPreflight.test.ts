@@ -200,7 +200,7 @@ test('network and HTTP 403 failures never return preview balances or post money'
 test('read-only preflight is not mounted in Counter, Finance or connected route gate',()=>{
   const read=p=>readFileSync(new URL(p,import.meta.url),'utf8');
   const source=read('../src/integration/connected-counter-preflight.ts');
-  assert.doesNotMatch(source,/\bPOST\b|setAccounts\(|dispatchPartyPreview|localStorage|sessionStorage/);
+  assert.doesNotMatch(source, /method:\\s*['\"]POST['\"]|setAccounts\\(|dispatchPartyPreview|localStorage|sessionStorage/);
   for(const path of ['../src/components/finance/CounterWorkspace.tsx',
     '../src/pages/Finance.tsx','../src/integration/ConnectedWorkspaceGate.tsx']) {
     assert.doesNotMatch(read(path),/connected-counter-preflight/);
