@@ -2,7 +2,7 @@ import { ApiError } from './errors.ts';
 
 export interface ApiRequest {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  path: `/api/v1/${string}` | `/api/v2/parties?${string}` | `/api/v2/parties/${string}`;
+  path: `/api/v1/${string}` | '/api/v2/parties' | `/api/v2/parties?${string}` | `/api/v2/parties/${string}`;
   body?: unknown;
   accessToken?: string;
   operationId?: string;
@@ -27,7 +27,7 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** V2 is an explicit allowlist of read-only Party routes, never arbitrary API paths. */
+/** Read-only V2 allowlist: an exact create POST is handled separately below. */
 function isPartyV2Path(path: string): boolean {
   if (path.startsWith('/api/v2/parties?')) return true;
   if (/^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\?role=(CUSTOMER|SUPPLIER|VENDOR)$/.test(path)) {
@@ -43,10 +43,15 @@ function isPartyV2Path(path: string): boolean {
   // instead of widening access to an arbitrary nested V2 resource.
   return /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\/ledger\?role=(CUSTOMER|SUPPLIER|VENDOR)(?:&fromDate=\d{4}-\d{2}-\d{2})?(?:&toDate=\d{4}-\d{2}-\d{2})?(?:&cursor=[0-7][0-9A-HJKMNP-TV-Z]{25})?(?:&limit=(?:[1-9]\d?|1\d\d|200))?$/.test(path);
 }
+/** The only versioned Party write transport currently approved in React. */
+function isPartyV2CreatePath(path: string): boolean {
+  return path === '/api/v2/parties';
+}
 function requestUrl(path: string): URL {
   const v1 = typeof path === 'string' && path.startsWith('/api/v1/') &&
     path.length > '/api/v1/'.length;
-  const v2 = typeof path === 'string' && isPartyV2Path(path);
+  const v2 = typeof path === 'string' &&
+    (isPartyV2Path(path) || isPartyV2CreatePath(path));
   if ((!v1 && !v2) ||
       path.includes('#') || path.includes('\\') || invalidControls(path)) throw protocolError();
 
@@ -104,6 +109,12 @@ export async function requestJson<T>(input: ApiRequest, decode: (raw: unknown) =
   if (!methods.has(input.method) || !record(input) || 'headers' in input) throw protocolError();
   if (isPartyV2Path(input.path) &&
       (input.method !== 'GET' || input.body !== undefined || input.operationId !== undefined))
+    throw protocolError();
+  // The V2 create path cannot be converted to an unsafe GET/PATCH/DELETE,
+  // anonymously called, or posted without an explicit caller-owned intent.
+  if (isPartyV2CreatePath(input.path) &&
+      (input.method !== 'POST' || !record(input.body) ||
+        input.accessToken === undefined || input.operationId === undefined))
     throw protocolError();
   if (input.accessToken !== undefined &&
       (typeof input.accessToken !== 'string' || !input.accessToken || /\s/.test(input.accessToken))) throw protocolError();
