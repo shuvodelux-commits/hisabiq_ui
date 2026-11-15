@@ -151,7 +151,7 @@ test('R09PUR-16 synthetic malformed list uses verified real A GET then fails pro
   assert.match(script, /faults\.injectMalformedList && who === 'a'/);
   assert.match(script, /response\.status === 200 && Array\.isArray\(response\.data\?\.data\)/);
   assert.match(script, /JSON\.stringify\(\{ data: \{ malformed: true \} \}\)/);
-  assert.match(script, /assert\.ok\(faults\.injected >= 1\)/);
+  assert.match(script, /assert\.ok\(faults\.injected >= 1,/);
 });
 test('R09PUR-17 malformed-list UI displays no preview purchases at each viewport', () => {
   const script = source(runner);
