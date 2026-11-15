@@ -37,9 +37,14 @@ export interface CounterSingleSettlementDraft {
   readonly discountReason?: string;
 }
 
-export interface SettlementAllocation {
-  readonly sourceId: string;
-  readonly sourceNumber: string;
+export interface CustomerSettlementAllocation {
+  readonly saleId: string;
+  readonly saleNumber: string;
+  readonly amountMinor: number;
+}
+export interface SupplierSettlementAllocation {
+  readonly purchaseId: string;
+  readonly purchaseNumber: string;
   readonly amountMinor: number;
 }
 
@@ -55,7 +60,7 @@ export interface CounterCustomerReceipt {
   readonly advanceMinor: number;
   readonly businessDate: string;
   readonly note: string | null;
-  readonly allocations: readonly SettlementAllocation[];
+  readonly allocations: readonly CustomerSettlementAllocation[];
   readonly status: 'POSTED' | 'VOIDED';
   readonly entryMode: string;
   readonly voidReason: string | null;
@@ -72,7 +77,7 @@ export interface CounterSupplierPayment {
   readonly amountMinor: number;
   readonly businessDate: string;
   readonly note: string | null;
-  readonly allocations: readonly SettlementAllocation[];
+  readonly allocations: readonly SupplierSettlementAllocation[];
   readonly outstandingAfterMinor: number;
   readonly createdAt: string;
   readonly status: 'POSTED' | 'VOIDED';
