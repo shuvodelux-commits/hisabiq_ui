@@ -51,12 +51,8 @@ const party = {
   id: customerId,
   name: 'Karim Traders',
   roles: ['CUSTOMER', 'SUPPLIER'],
+  readRole: 'CUSTOMER',
   phone: null,
-  address: null,
-  guardianName: null,
-  nid: null,
-  email: null,
-  notes: null,
   customerGroupId: null,
   customerGroupName: null,
   creditLimitMinor: null,
@@ -69,7 +65,8 @@ const party = {
     outstandingMinor: 2000,
     advanceMinor: 0,
   },
-  hasLedgerEntries: true,
+  profile: { state: 'WITHHELD' },
+  globalHistory: { state: 'WITHHELD' },
 };
 const directory = {
   data: [party],
@@ -306,7 +303,7 @@ test('customer directory forces role=CUSTOMER and active status, reads real iden
   await withFetch((async (url, init) => {
     calls++;
     const parsed = new URL(String(url));
-    assert.equal(parsed.pathname, '/api/v1/parties');
+    assert.equal(parsed.pathname, '/api/v2/parties');
     assert.equal(parsed.searchParams.get('role'), 'CUSTOMER');
     assert.equal(parsed.searchParams.get('status'), 'ACTIVE');
     assert.equal(parsed.searchParams.get('search'), 'Karim');
@@ -320,7 +317,11 @@ test('customer directory forces role=CUSTOMER and active status, reads real iden
       search: ' Karim ', cursor: customerId, limit: 50,
     });
     assert.equal(result.data[0]?.id, customerId);
-    assert.equal(result.data[0]?.roles.includes('SUPPLIER'), true);
+    assert.deepEqual(result.data[0]?.roles, ['CUSTOMER']);
+    for (const key of ['address', 'guardianName', 'nid', 'email', 'notes',
+      'hasLedgerEntries', 'profile', 'globalHistory', 'readRole']) {
+      assert.equal(Object.hasOwn(result.data[0]!, key), false);
+    }
     assert.equal(result.data[0]?.phone, null);
     assert.equal(result.data[0]?.balance.netMinor, 2000);
     assert.equal(result.summary.totalAdvanceMinor, 0);
@@ -339,6 +340,82 @@ test('customer directory rejects vendor-only, malformed roles, nested balances a
     { ...directory, page: { nextCursor: '../wrong', hasMore: true } },
     { ...directory, summary: { ...directory.summary, totalAdvanceMinor: -1 } },
   ]) assert.throws(() => decodeCustomerDirectory(bad), ApiError);
+});
+
+test('POS V2 Customer adapter also omits private profile and global history when server grants VISIBLE', () => {
+  const visible = {
+    ...party,
+    profile: { state: 'VISIBLE', data: {
+      address: 'Internal home', guardianName: 'Guardian', nid: 'NID-SECRET-123',
+      email: 'secret@example.test', notes: 'Do not show on POS',
+    } },
+    globalHistory: { state: 'VISIBLE', hasLedgerEntries: true },
+  };
+  const projected = decodeCustomerDirectory({ ...directory, data: [visible] });
+  assert.deepEqual(projected.data[0]?.roles, ['CUSTOMER']);
+  assert.equal(projected.data[0]?.name, 'Karim Traders');
+  assert.equal(projected.data[0]?.balance.netMinor, 2000);
+  assert.equal(JSON.stringify(projected).includes('NID-SECRET-123'), false);
+  assert.equal(JSON.stringify(projected).includes('Internal home'), false);
+  assert.equal(Object.hasOwn(projected.data[0]!, 'globalHistory'), false);
+  assert.equal(Object.hasOwn(projected.data[0]!, 'profile'), false);
+});
+
+test('POS V2 Customer directory handles zero/missing records and preserves server paging', () => {
+  const empty = decodeCustomerDirectory({
+    data: [], page: { nextCursor: null, hasMore: false },
+    summary: { ...directory.summary, total: 0, active: 0, ungrouped: 0,
+      totalOutstandingMinor: 0 },
+  });
+  assert.deepEqual(empty.data, []);
+  assert.equal(empty.summary.total, 0);
+  const paged = decodeCustomerDirectory({
+    ...directory,
+    page: { nextCursor: customerId, hasMore: true },
+  });
+  assert.equal(paged.page.nextCursor, customerId);
+  assert.equal(paged.page.hasMore, true);
+  assert.equal(paged.data[0]?.creditLimitMinor, null);
+  assert.throws(() => decodeCustomerDirectory({
+    ...directory, summary: { ...directory.summary, ungrouped: null },
+  }), ApiError);
+});
+
+test('POS V2 Customer directory rejects role mismatch, raw V1 leaks and injected fields', () => {
+  for (const bad of [
+    { ...party, readRole: 'SUPPLIER' },
+    { ...party, roles: ['SUPPLIER'] },
+    { ...party, address: 'unprojected V1 private field' },
+    { ...party, hasLedgerEntries: true },
+    { ...party, profile: { state: 'WITHHELD', nid: 'wrong' } },
+    { ...party, globalHistory: { state: 'VISIBLE', hasLedgerEntries: 'yes' } },
+    { ...party, balance: { ...party.balance, netMinor: -2000 } },
+  ]) assert.throws(() => decodeCustomerDirectory({
+    ...directory, data: [bad],
+  }), ApiError);
+});
+
+test('POS V2 Customer denial never retries V1 or exposes a fallback list', async () => {
+  for (const status of [401, 403, 404, 503]) {
+    const seen: string[] = [];
+    await withFetch((async (url, init) => {
+      seen.push(String(url));
+      assert.equal(init?.method, 'GET');
+      assert.equal(init?.body, undefined);
+      assert.equal(new Headers(init?.headers).get('authorization'), 'Bearer verified-A');
+      return json({ error: {
+        code: status === 403 ? 'PERMISSION_DENIED' : 'NOT_FOUND',
+        message: 'Customer list unavailable', details: {},
+        traceId: '01ARZ3NDEKTSV4RRFFQ69G5FAX',
+      } }, status);
+    }) as typeof fetch, async () => {
+      await assert.rejects(readPosCustomers('verified-A'),
+        (error: unknown) => error instanceof ApiError &&
+          error.kind === 'http' && error.status === status);
+    });
+    assert.deepEqual(seen,
+      [origin + '/api/v2/parties?role=CUSTOMER&status=ACTIVE']);
+  }
 });
 
 test('customer standing is journal-derived server truth, not invoice recomputation or cash', async () => {
