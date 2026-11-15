@@ -96,3 +96,13 @@ test('R09REAL-09 signed Nest canonical invoice-view permission is required; lega
   assert.match(script, /permissions\.includes\('sale\.invoice\.view'\)/);
   assert.doesNotMatch(script, /permissions\.includes\('sale\.view'\)/);
 });
+
+test('R09REAL-10 tenant-local invoice number collision must not cause false leakage failure', () => {
+  // Two separate tenants may legitimately issue the same invoice number.
+  // Verify distinct disposable customer snapshots, not a globally unique number.
+  assert.match(script, /assert\.notEqual\(results\.a\.row\.customerName, results\.b\.row\.customerName/);
+  assert.match(script, /getByText\(rowA\.customerName\)\.count\(\)/);
+  assert.doesNotMatch(script, /getByText\(rowA\.number\)\.count\(\)/);
+  assert.match(script, /getByText\(rowB\.customerName\)\.first\(\)\.waitFor\(\)/);
+  assert.match(script, /row\.path === '\/api\/v1\/sales\/' \+ identities\.b\.saleId/);
+});
