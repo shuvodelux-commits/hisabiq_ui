@@ -166,7 +166,7 @@ test('historical opening is a nullable exact-role GET with no session or payment
 test('ledger sends role/date/cursor and returns source-linked integer-poisha lines', async () => {
   await withFetch((async (url, init) => {
     const u = new URL(String(url));
-    assert.equal(u.pathname, '/api/v1/parties/' + partyId + '/ledger');
+    assert.equal(u.pathname, '/api/v2/parties/' + partyId + '/ledger');
     assert.equal(u.searchParams.get('role'), 'CUSTOMER');
     assert.equal(u.searchParams.get('fromDate'), '2026-01-01');
     assert.equal(u.searchParams.get('toDate'), '2026-11-13');
@@ -184,6 +184,29 @@ test('ledger sends role/date/cursor and returns source-linked integer-poisha lin
     assert.equal(actual.totalCreditMinor, 0);
   });
 });
+
+
+test('V2 ledger denial, hidden identity and server errors never retry legacy V1', async () => {
+  for (const status of [403, 404, 503]) {
+    const urls: string[] = [];
+    await withFetch((async (url, init) => {
+      urls.push(String(url));
+      assert.equal(init?.method, 'GET');
+      assert.equal(init?.body, undefined);
+      return json({
+        error: { code: status === 403 ? 'PERMISSION_DENIED' : status === 404 ? 'NOT_FOUND' : 'SERVICE_UNAVAILABLE',
+          message: 'No Party ledger is available', details: {}, traceId: '01ARZ3NDEKTSV4RRFFQ69G5FAX' },
+      }, status);
+    }) as typeof fetch, async () => {
+      await assert.rejects(
+        readTradingPartyLedger('A', partyId, 'SUPPLIER'),
+        (error: unknown) => error instanceof ApiError && error.kind === 'http' && error.status === status,
+      );
+    });
+    assert.deepEqual(urls, [origin + '/api/v2/parties/' + partyId + '/ledger?role=SUPPLIER']);
+  }
+});
+
 
 test('Supplier/Vendor ledger must use their own control account family, never AR', () => {
   const supplierLedger = {

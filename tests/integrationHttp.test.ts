@@ -151,6 +151,8 @@ test('only V2 Party selected-role GETs cross the shared HTTP boundary', async ()
     for (const path of [
       '/api/v2/parties?role=CUSTOMER&limit=20',
       '/api/v2/parties/' + id + '?role=SUPPLIER',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER',
+      '/api/v2/parties/' + id + '/ledger?role=CUSTOMER&fromDate=2026-01-01&toDate=2026-10-31&cursor=' + id + '&limit=25',
     ] as const) {
       const raw = await requestJson({ method: 'GET', path, accessToken: 'role-reader' }, value => value);
       assert.deepEqual(raw, { data: [] });
@@ -159,6 +161,8 @@ test('only V2 Party selected-role GETs cross the shared HTTP boundary', async ()
   assert.deepEqual(urls, [
     origin + '/api/v2/parties?role=CUSTOMER&limit=20',
     origin + '/api/v2/parties/' + id + '?role=SUPPLIER',
+    origin + '/api/v2/parties/' + id + '/ledger?role=SUPPLIER',
+    origin + '/api/v2/parties/' + id + '/ledger?role=CUSTOMER&fromDate=2026-01-01&toDate=2026-10-31&cursor=' + id + '&limit=25',
   ]);
   await withFetch(failIfFetched(), async () => {
     const invalid = [
@@ -166,7 +170,14 @@ test('only V2 Party selected-role GETs cross the shared HTTP boundary', async ()
       '/api/v2/parties/../secret?role=CUSTOMER',
       '/api/v2/parties/' + id + '?role=OWNER',
       '/api/v2/parties/' + id + '?role=SUPPLIER&foo=1',
-      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER',
+      '/api/v2/parties/' + id + '/ledger?role=OWNER',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER&foo=1',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER&role=CUSTOMER',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER&limit=0',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER&limit=201',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER&cursor=../../secret',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER&toDate=2026-01-01&fromDate=2025-01-01',
+      '/api/v2/parties/' + id + '/ledger?role=SUPPLIER#fragment',
       '/api/v2/parties#secret',
       '/api/v2/parties?role=CUSTOMER&search=foo\\bar',
     ];
@@ -185,6 +196,15 @@ test('only V2 Party selected-role GETs cross the shared HTTP boundary', async ()
     await assert.rejects(requestJson({
       method: 'GET', path: '/api/v2/parties?role=CUSTOMER', operationId: id,
     }, value => value), ApiError);
+    for (const method of ['POST', 'PATCH', 'DELETE'] as const) {
+      await assert.rejects(requestJson({
+        method, path: ('/api/v2/parties/' + id + '/ledger?role=CUSTOMER') as `/api/v2/parties/${string}`,
+      }, value => value), (error: unknown) => error instanceof ApiError && error.kind === 'protocol');
+    }
+    await assert.rejects(requestJson({
+      method: 'GET', path: ('/api/v2/parties/' + id + '/ledger?role=CUSTOMER') as `/api/v2/parties/${string}`,
+      operationId: id,
+    }, value => value), (error: unknown) => error instanceof ApiError && error.kind === 'protocol');
   });
 });
 
