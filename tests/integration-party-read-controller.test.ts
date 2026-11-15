@@ -361,3 +361,75 @@ test('role-invalid or party-ID-invalid ledger read fails before exposing unverif
   if (state.status === 'error') assert.equal(state.errorKind, 'protocol');
   controller.dispose();
 });
+
+
+test('capability revocation drops previously visible Party read data on same token', async () => {
+  const store = new FakeSession();
+  const controller = new TradingPartyReadController(store, reader());
+  await controller.loadDirectory('Customer');
+  assert.equal(controller.getSnapshot().status, 'directory');
+  store.set({ ...authenticated, permissions: [] });
+  assert.equal(controller.getSnapshot().status, 'idle');
+  assert.equal(JSON.stringify(controller.getSnapshot()).includes('One Identity'), false);
+  controller.dispose();
+});
+
+test('capability change aborts pending request even if transport ignores abort', async () => {
+  const store = new FakeSession();
+  const pending = deferred<TradingPartyList>();
+  let signal: AbortSignal | null = null;
+  const controller = new TradingPartyReadController(store, reader({
+    list: async (_token, _role, _query, abort) => {
+      signal = abort;
+      return pending.promise;
+    },
+  }));
+  const request = controller.loadDirectory('Customer');
+  store.set({ ...authenticated, permissions: [] });
+  assert.equal(signal?.aborted, true);
+  pending.resolve(customerList);
+  assert.equal(await request, null);
+  assert.equal(controller.getSnapshot().status, 'idle');
+  controller.dispose();
+});
+
+test('silent permission change cannot publish late Party response', async () => {
+  const store = new FakeSession();
+  const pending = deferred<TradingPartyList>();
+  const controller = new TradingPartyReadController(store, reader({
+    list: async () => pending.promise,
+  }));
+  const request = controller.loadDirectory('Customer');
+  store.setSilently({ ...authenticated, permissions: [] });
+  pending.resolve(customerList);
+  assert.equal(await request, null);
+  assert.equal(controller.getSnapshot().status, 'idle');
+  controller.dispose();
+});
+
+test('equivalent reordered capabilities remain stable while changed features and role invalidate', async () => {
+  const store = new FakeSession();
+  const allowed = {
+    ...authenticated,
+    permissions: ['customer.view', 'supplier.view'],
+    features: ['feature-a', 'feature-b'],
+  };
+  store.set(allowed);
+  const controller = new TradingPartyReadController(store, reader());
+  await controller.loadDirectory('Customer');
+  store.set({
+    ...allowed,
+    permissions: ['supplier.view', 'customer.view'],
+    features: ['feature-b', 'feature-a'],
+  });
+  assert.equal(controller.getSnapshot().status, 'directory',
+    'grant set order is not an authorization change');
+  store.set({ ...allowed, features: ['feature-a'] });
+  assert.equal(controller.getSnapshot().status, 'idle',
+    'feature entitlement change invalidates the previously loaded Party');
+  await controller.loadDirectory('Customer');
+  store.set({ ...allowed, roleName: 'Manager' });
+  assert.equal(controller.getSnapshot().status, 'idle',
+    'effective session role change invalidates previously loaded Party');
+  controller.dispose();
+});
