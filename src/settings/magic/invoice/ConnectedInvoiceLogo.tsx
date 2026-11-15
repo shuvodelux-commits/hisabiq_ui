@@ -9,7 +9,7 @@ type LogoSource = {
   accessToken: string | null;
   hasLogo: boolean;
 };
-type Props = LogoSource & { refreshKey?: number };
+type Props = LogoSource & { refreshKey?: number; confirmCurrent?: () => Promise<boolean> };
 
 /** Owns one private download and one browser object URL at a time. */
 export function createConnectedInvoiceLogoController(emit: (state: LogoState) => void) {
@@ -23,7 +23,7 @@ export function createConnectedInvoiceLogoController(emit: (state: LogoState) =>
     currentUrl = null;
   };
   return {
-    load(source: LogoSource) {
+    load(source: LogoSource, authorize?: () => Promise<boolean>) {
       release();
       const request = ++generation;
       if (!source.identityKey || !source.accessToken) {
@@ -37,7 +37,13 @@ export function createConnectedInvoiceLogoController(emit: (state: LogoState) =>
       const controller = new AbortController();
       operation = controller;
       emit({ status: 'loading' });
-      void readServerInvoiceLogo(source.accessToken, controller.signal).then(({ mime, bytes }) => {
+      void readServerInvoiceLogo(source.accessToken, controller.signal).then(async ({ mime, bytes }) => {
+        if (controller.signal.aborted || request !== generation) return;
+        // A private binary 200 may have been issued before the role was revoked.
+        if (authorize && !(await authorize())) {
+          if (!controller.signal.aborted && request === generation) emit({ status: 'denied' });
+          return;
+        }
         if (controller.signal.aborted || request !== generation) return;
         const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: mime }));
         if (controller.signal.aborted || request !== generation) {
@@ -69,7 +75,7 @@ export function createConnectedInvoiceLogoController(emit: (state: LogoState) =>
 }
 
 /** Display only. Logo bytes never enter a public image URL or shared cache. */
-export function ConnectedInvoiceLogo({ identityKey, accessToken, hasLogo, refreshKey }: Props) {
+export function ConnectedInvoiceLogo({ identityKey, accessToken, hasLogo, refreshKey, confirmCurrent }: Props) {
   const [record, setRecord] = useState<(LogoSource & { refreshKey?: number; state: LogoState }) | null>(null);
   const controller = useRef<ReturnType<typeof createConnectedInvoiceLogoController> | null>(null);
   useEffect(() => {
@@ -77,7 +83,9 @@ export function ConnectedInvoiceLogo({ identityKey, accessToken, hasLogo, refres
       setRecord({ identityKey, accessToken, hasLogo, refreshKey, state });
     });
     controller.current = next;
-    next.load({ identityKey, accessToken, hasLogo });
+    // Fail closed if an authenticated caller forgot the current-session validator.
+    next.load({ identityKey, accessToken, hasLogo }, async () =>
+      confirmCurrent ? await confirmCurrent() : false);
     return () => {
       next.dispose();
       if (controller.current === next) controller.current = null;
