@@ -195,7 +195,7 @@ async function exercise(browser, width, preflightRecords) {
     await page.getByText('Verified:' + preflightRecords.a.access.businessName).waitFor();
     const rowA = preflightRecords.a.row, rowB = preflightRecords.b.row;
     const table = page.locator('[data-purchases-table]');
-    await table.getByText(rowA.supplierName).first().waitFor();
+    await table.getByText(rowA.supplierName).filter({ visible: true }).first().waitFor();
     await page.getByRole('button', { name: 'View bill ' + rowA.number }).click();
     await page.getByRole('dialog', { name: 'Purchase bill details' }).waitFor();
     await page.keyboard.press('Escape');
@@ -207,7 +207,7 @@ async function exercise(browser, width, preflightRecords) {
     await page.locator('[data-purchase-real-login-b]').click();
     await page.getByText('Verified:' + preflightRecords.b.access.businessName).waitFor();
     await page.getByRole('tab', { name: 'Purchases' }).click();
-    await table.getByText(rowB.supplierName).first().waitFor();
+    await table.getByText(rowB.supplierName).filter({ visible: true }).first().waitFor();
     assert.equal(await table.getByText(rowA.supplierName).count(), 0);
     await page.getByRole('button', { name: 'View bill ' + rowB.number }).click();
     await page.getByRole('dialog', { name: 'Purchase bill details' }).waitFor();
