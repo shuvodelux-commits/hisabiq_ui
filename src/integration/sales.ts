@@ -112,7 +112,7 @@ function directoryPath(query: CustomerDirectoryQuery): ApiRequest['path'] {
     else if (key === 'cursor') params.set(key, canonicalId(value));
     else params.set(key, String(limitParam(value, 200)));
   }
-  return ('/api/v1/parties?' + params.toString()) as ApiRequest['path'];
+  return ('/api/v2/parties?' + params.toString()) as ApiRequest['path'];
 }
 
 /**
