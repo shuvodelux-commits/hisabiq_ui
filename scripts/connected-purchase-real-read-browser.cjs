@@ -75,6 +75,24 @@ async function get(path, token) {
   try { data = JSON.parse(raw); } catch { if (u.pathname !== '/health') refuse('bad JSON'); }
   return { status: response.status, data, raw, type: response.headers.get('content-type') };
 }
+async function negativeReadPreflight() {
+  // Genuine Nest GETs, with no login POST, DB writes, or response data in logs.
+  const forged = people.a.token.split('.');
+  assert.equal(forged.length, 3);
+  assert.ok(forged[2].length >= 32, 'signed bearer must include a signature');
+  forged[2] = (forged[2][0] === 'a' ? 'b' : 'a') + forged[2].slice(1);
+  assert.equal((await get('/api/v1/me')).status, 401);
+  assert.equal((await get('/api/v1/me', forged.join('.'))).status, 401);
+  // A syntactically valid missing ID probes source isolation without disclosure.
+  const missing = '00000000000000000000000000';
+  assert.notEqual(missing, people.a.purchaseId);
+  assert.notEqual(missing, people.b.purchaseId);
+  assert.equal((await get('/api/v1/purchases/' + missing, people.a.token)).status, 404);
+  assert.equal((await get('/api/v1/purchase-returns/returnable/' + missing, people.a.token)).status, 404);
+  assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.a.token)).status, 404);
+  assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.b.token)).status, 403);
+  console.log('PASS negative purchase reads: anonymous/forged 401; missing/foreign 404; denied 403');
+}
 async function preflight() {
   assert.equal((await get('/health')).status, 200);
   const results = {};
@@ -119,6 +137,7 @@ async function preflight() {
   assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId,
     people.b.token)).status, 403);
   assert.equal((await get('/api/v1/purchase-returns?limit=20', people.b.token)).status, 403);
+  await negativeReadPreflight();
   console.log('PASS purchase read preflight: signed /me, A/B source GET, cross-tenant 404, roles 200/403');
   return results;
 }
