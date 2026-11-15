@@ -24,7 +24,7 @@ import { ApiError } from '../../../integration/errors.ts';
 import { ConnectedInvoiceLogo } from './ConnectedInvoiceLogo';
 import { ConnectedInvoiceLogoActions } from './ConnectedInvoiceLogoActions';
 
-type Props = { canEdit: boolean; onDirtyChange: (dirty: boolean) => void };
+type Props = { canEdit: boolean; connectedReadOnly?: boolean; onDirtyChange: (dirty: boolean) => void };
 
 const langOptions = [
   { id: 'en', label: 'Full English' },
@@ -347,7 +347,7 @@ function ConnectedInvoiceEditor({
 }
 
 /** Invoices & printing → Invoice design: gallery, paper, language, color, content and a sticky live preview. */
-export function InvoiceStudio({ canEdit: previewCanEdit, onDirtyChange }: Props) {
+export function InvoiceStudio({ canEdit: previewCanEdit, connectedReadOnly = false, onDirtyChange }: Props) {
   const verified = useVerifiedInvoiceRead();
   const connected = verified.connected;
   const canEdit = !connected && previewCanEdit;
@@ -437,7 +437,7 @@ export function InvoiceStudio({ canEdit: previewCanEdit, onDirtyChange }: Props)
             identityKey={verified.identityKey}
             accessToken={verified.accessToken}
             initialSaved={server}
-            canEdit={verified.canWrite}
+            canEdit={verified.canWrite && !connectedReadOnly}
             onDirtyChange={onDirtyChange}
             onConfirmed={verified.acceptConfirmed}
           />
