@@ -338,7 +338,7 @@ function ledgerPath(
     else if (key === 'limit') params.set(key, checkedLimit(v));
     else params.set(key, v as string);
   }
-  return ('/api/v1/parties/' + checkedId(partyId) + '/ledger?' +
+  return ('/api/v2/parties/' + checkedId(partyId) + '/ledger?' +
     params.toString()) as ApiRequest['path'];
 }
 async function read<T>(
