@@ -199,10 +199,21 @@ test('V2 opening keeps true null absence, rejects private extra fields, and pass
   const signal = new AbortController().signal;
   await withFetch((async (url, init) => {
     assert.equal(String(url), origin + '/api/v2/parties/' + partyId + '/opening?role=VENDOR');
-    assert.equal(init?.signal, signal);
+    assert.ok(init?.signal instanceof AbortSignal);
+    assert.equal(init.signal.aborted, false);
     return json({ data: null });
   }) as typeof fetch, async () => {
     assert.deepEqual(await readHistoricalPartyOpening('A', partyId, 'VENDOR', signal), { data: null });
+  });
+  const abortController = new AbortController();
+  await withFetch((async (_url, init) => {
+    assert.ok(init?.signal instanceof AbortSignal);
+    abortController.abort();
+    assert.equal(init.signal.aborted, true);
+    throw new DOMException('Interrupted', 'AbortError');
+  }) as typeof fetch, async () => {
+    await assert.rejects(readHistoricalPartyOpening('A', partyId, 'VENDOR', abortController.signal),
+      (error: unknown) => error instanceof ApiError && error.kind === 'network');
   });
   let fetched = 0;
   await withFetch((async () => {
