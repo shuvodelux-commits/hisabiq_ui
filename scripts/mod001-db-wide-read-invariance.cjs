@@ -28,7 +28,7 @@ function hash(text) { return createHash('sha256').update(text).digest('hex'); }
 function assertDisposable() {
   assert.equal(process.env.CI, 'true', 'QA-only CI attestation required');
   assert.equal(process.env.MOD001_574_DISPOSABLE_ACK,
-    '574:pg16:55474:476cefcdecad55873ee33bd182f12943fb4b1127');
+    '574:pg16:55474:e7cfc2a2a64547ed964df11214655e64b6356024');
   assert.equal(root, 'http://127.0.0.1:3059');
   const a = new URL(process.env.MOD001_574_AUDIT_DATABASE_URL || '');
   const u = new URL(process.env.DATABASE_URL || '');
