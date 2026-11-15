@@ -23,6 +23,54 @@ assert.match(logo, /confirmCurrent \? await confirmCurrent\(\) : false/);
 assert.match(logo, /URL\.revokeObjectURL/);
 console.log('PASS source: invoice read permission, stale-response revalidation and read-only route');
 
+
+async function privateLogoGuardCheck() {
+  const { createServer } = await import('vite');
+  const server = await createServer({ server: { middlewareMode: true, hmr: false } });
+  const oldFetch = globalThis.fetch;
+  const oldWindow = globalThis.window;
+  const oldCreate = URL.createObjectURL;
+  const oldRevoke = URL.revokeObjectURL;
+  const made = [], revoked = [], states = [];
+  let decide;
+  try {
+    globalThis.window = { location: { origin: 'https://qa605.example' } };
+    globalThis.fetch = async () => new Response(
+      new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 0]),
+      { status: 200, headers: { 'Content-Type': 'image/png' } });
+    URL.createObjectURL = () => {
+      const url = 'blob:qa605-' + (made.length + 1);
+      made.push(url);
+      return url;
+    };
+    URL.revokeObjectURL = url => { revoked.push(url); };
+    const { createConnectedInvoiceLogoController } =
+      await server.ssrLoadModule('/src/settings/magic/invoice/ConnectedInvoiceLogo.tsx');
+    const ctl = createConnectedInvoiceLogoController(state => states.push(state));
+    const source = { identityKey: 'A:staff:1', accessToken: 'test-token', hasLogo: true };
+    ctl.load(source, () => new Promise(resolve => { decide = resolve; }));
+    for (let i = 0; i < 20 && !decide; i++) await new Promise(r => setTimeout(r, 5));
+    assert.equal(typeof decide, 'function', 'Real private binary GET must reach authorization check');
+    decide(false);
+    await new Promise(r => setTimeout(r, 10));
+    assert.equal(made.length, 0, 'revoked authorization must never create a private object URL');
+    assert.equal(states.at(-1).status, 'denied');
+    ctl.load(source, async () => true);
+    for (let i = 0; i < 20 && !made.length; i++) await new Promise(r => setTimeout(r, 5));
+    assert.equal(made.length, 1, 'fresh authorization may create exactly one logo URL');
+    ctl.dispose();
+    assert.deepEqual(revoked, made, 'unmount releases the authorized private URL');
+    console.log('PASS controller: late revoked binary blocked; authorized URL released');
+  } finally {
+    globalThis.fetch = oldFetch;
+    if (oldWindow === undefined) delete globalThis.window;
+    else globalThis.window = oldWindow;
+    URL.createObjectURL = oldCreate;
+    URL.revokeObjectURL = oldRevoke;
+    await server.close();
+  }
+}
+
 async function browserCheck() {
   if (process.argv.includes('--source-only')) return;
   process.env.VITE_HISABIQ_INTEGRATION_MODE = 'connected';
@@ -57,4 +105,7 @@ async function browserCheck() {
     await server.close();
   }
 }
-browserCheck().catch(error=>{console.error(error.stack||error);process.exitCode=1;});
+(async () => {
+  if (!process.argv.includes('--source-only')) await privateLogoGuardCheck();
+  await browserCheck();
+})().catch(error=>{console.error(error.stack||error);process.exitCode=1;});
