@@ -9,7 +9,7 @@ import {
 import { encodePurchaseEditorDraft } from '../src/integration/purchase-draft-editor.ts';
 import type { PurchaseDraftInput } from '../src/data/purchaseDraftsPreviewStore.ts';
 import type { ServerProduct } from '../src/integration/products.ts';
-import type { ServerPurchaseSupplier } from '../src/integration/purchase-suppliers.ts';
+import type { TradingParty } from '../src/integration/party-reads.ts';
 import type { ServerPurchaseDraft } from '../src/integration/purchase-drafts.ts';
 import type { SessionSnapshot } from '../src/integration/session.ts';
 
@@ -29,14 +29,17 @@ function session(changes: Record<string,unknown> = {}): SessionSnapshot {
     ...changes,
   } as SessionSnapshot;
 }
-function supplier(changes: Partial<ServerPurchaseSupplier> = {}): ServerPurchaseSupplier {
+function supplier(changes: Partial<TradingParty> = {}): TradingParty {
   return {
-    id:supplierId,name:'Rahman Traders',roles:['CUSTOMER','SUPPLIER'],
-    phone:null,address:null,guardianName:null,nid:null,email:null,notes:null,
-    customerGroupId:null,customerGroupName:null,creditLimitMinor:null,
-    status:'ACTIVE',isSystemReserved:false,version:1,
-    balance:{netMinor:0,direction:'SETTLED',outstandingMinor:0,advanceMinor:0},
-    hasLedgerEntries:false,...changes,
+    id: supplierId, name: 'Rahman Traders',
+    roles: ['CUSTOMER','SUPPLIER'], readRole: 'SUPPLIER',
+    phone: null, customerGroupId: null, customerGroupName: null,
+    creditLimitMinor: null, status: 'ACTIVE', isSystemReserved: false,
+    version: 1, balance: {
+      netMinor: 0, direction: 'SETTLED', outstandingMinor: 0, advanceMinor: 0,
+    },
+    profile: { state: 'WITHHELD' }, globalHistory: { state: 'WITHHELD' },
+    ...changes,
   };
 }
 function product(changes: Partial<ServerProduct> = {}): ServerProduct {
@@ -116,7 +119,7 @@ async function withFetch(fetcher:typeof fetch, run:()=>Promise<void>):Promise<vo
 }
 function mockedServer(options:{
   draft?:ServerPurchaseDraft;
-  supplier?:ServerPurchaseSupplier;
+  supplier?:TradingParty;
   product?:ServerProduct;
   onRead?:(path:string)=>void;
 }={}){
@@ -133,7 +136,7 @@ function mockedServer(options:{
     options.onRead?.(path);
     if(path==='/api/v1/purchases/drafts/'+draftId)
       return response({data:options.draft??stored()});
-    if(path==='/api/v1/parties/'+supplierId+'?role=SUPPLIER')
+    if(path==='/api/v2/parties/'+supplierId+'?role=SUPPLIER')
       return response({data:options.supplier??supplier()});
     if(path==='/api/v1/products/'+productId)
       return response({data:options.product??product()});
@@ -161,6 +164,11 @@ test('read-only resume preserves EVERY nested mixed-unit, serial, lot, price and
     assert.equal(out.draft.editor.lines[0]?.lotSellPrice,'36.125');
     assert.equal(out.draft.editor.payments[1]?.amount,'100');
     assert.equal(out.sources.sources.supplierNames.get(supplierId),'Rahman Traders');
+    assert.deepEqual(out.sources.supplier?.roles, ['SUPPLIER']);
+    for (const key of ['nid','guardianName','notes','address','email','profile',
+      'globalHistory','hasLedgerEntries','customerGroupId','readRole']) {
+      assert.equal(Object.hasOwn(out.sources.supplier!, key), false);
+    }
     assert.equal(out.sources.products.get(productId)?.purchasePriceMinor,1700);
     assert.ok(out.lineReviews[0]?.codes.includes('ADVANCED_UNITS_UNVERIFIED'));
     assert.ok(out.lineReviews[0]?.codes.includes('INDEPENDENT_PRICES_UNVERIFIED'));
@@ -171,7 +179,7 @@ test('read-only resume preserves EVERY nested mixed-unit, serial, lot, price and
   });
   assert.deepEqual(calls,[
     '/api/v1/purchases/drafts/'+draftId,
-    '/api/v1/parties/'+supplierId+'?role=SUPPLIER',
+    '/api/v2/parties/'+supplierId+'?role=SUPPLIER',
     '/api/v1/products/'+productId,
   ]);
 });
