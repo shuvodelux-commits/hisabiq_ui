@@ -6,6 +6,7 @@ import { useSession } from './SessionProvider.tsx';
 import { TenantSettingsProvider, useTenantSettings } from '../settings/TenantSettingsProvider';
 import { GeneralSettingsSection } from '../settings/magic/GeneralSettingsSection';
 import { TeamSettings } from '../settings/magic/TeamSettings';
+import { InvoiceStudio } from '../settings/magic/invoice/InvoiceStudio';
 import { settingsSections } from '../settings/magic/settingsSections';
 import { SettingsDialog } from '../settings/ui';
 
@@ -44,16 +45,19 @@ function ConnectedSettingsContent({ section }: { section: string }) {
   const canUsers = snapshot.permissions.includes('user.account.view');
   const canRoles = snapshot.permissions.includes('user.role.view');
   const canTeam = canUsers || canRoles;
+  const canInvoices = snapshot.permissions.includes('sale.invoice.view');
   const destinations = settingsSections.filter(item =>
-    (item.id === 'business' && canBusiness) || (item.id === 'team' && canTeam));
+    (item.id === 'business' && canBusiness) ||
+    (item.id === 'team' && canTeam) || (item.id === 'invoices' && canInvoices));
   if (!section && !connectedAuthorizationPending) {
     if (destinations.length > 0) {
       return <Navigate to={'/app/settings/' + destinations[0].id} replace />;
     }
   }
   const authorized = (section === 'business' && canBusiness) ||
-    (section === 'team' && canTeam);
-  const supported = section === 'business' || section === 'team';
+    (section === 'team' && canTeam) ||
+    (section === 'invoices' && canInvoices);
+  const supported = section === 'business' || section === 'team' || section === 'invoices';
   const business = settingsSections.find(item => item.id === 'business')!;
 
   const navigateWithDraft = (url: string, event: React.MouseEvent) => {
@@ -118,8 +122,10 @@ function ConnectedSettingsContent({ section }: { section: string }) {
               {section === 'business' ? (
                 <GeneralSettingsSection key={identity} section={business}
                   canEdit={false} onDirtyChange={setDirty} />
-              ) : (
+              ) : section === 'team' ? (
                 <TeamSettings key={identity} canEdit={false} onDirtyChange={setDirty} />
+              ) : (
+                <InvoiceStudio key={identity} canEdit={false} onDirtyChange={setDirty} />
               )}
             </fieldset>
           )}
