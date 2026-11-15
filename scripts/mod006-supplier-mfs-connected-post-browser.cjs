@@ -110,11 +110,12 @@ async function seed() {
   assert.match(mfs, isId);
   const supplier = await party(a, 'A supplier');
   const otherSupplier = await party(b, 'B supplier');
-  const unit = ok(await api('/api/v1/catalog/units', 'POST', {
-    name: 'Piece',
-  }, a.token), 201, 'catalog unit');
+  const catalog = ok(await api('/api/v1/catalog', 'GET', undefined, a.token),
+    200, 'signup-provisioned catalog');
+  const piece = catalog.data.units.find(row => row.name === 'Piece');
+  assert.ok(piece && isId.test(piece.id), 'real signup-provisioned Piece unit required');
   const product = ok(await api('/api/v1/products', 'POST', {
-    name: 'T02F2 trade bolt', baseUnitId: unit.data.units[0].id,
+    name: 'T02F2 trade bolt', baseUnitId: piece.id,
     purchasePriceMinor: 10000, sellingPriceMinor: 12000, minStockQty: 0,
     brandId: null, categoryId: null, sku: null, barcode: null,
     description: null, defaultDiscountType: null, defaultDiscountValue: null,
