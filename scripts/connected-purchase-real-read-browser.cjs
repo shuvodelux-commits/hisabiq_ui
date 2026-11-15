@@ -211,7 +211,7 @@ function intercept(page, log, violations, blocked, faults = null) {
       const response = await get(path + u.search, people[who].token);
       // Fault injection affects the browser-only response AFTER the genuine
       // signed Nest GET succeeds. Never falsify server evidence or data writes.
-      if (faults?.injectMalformedList && who === 'a' &&
+      if (faults && faults.injectMalformedList && who === 'a' &&
           path === '/api/v1/purchases' && response.status === 200 && Array.isArray(response.data?.data)) {
         assert.ok(response.data.data.some(row => row.id === people.a.purchaseId),
           'malformed injection requires a real signed A source purchase');
