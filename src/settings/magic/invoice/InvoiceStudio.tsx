@@ -11,6 +11,7 @@ import { SettingCard } from '../../ui';
 import { SaveBar } from '../SaveBar';
 import { DesignGallery } from './DesignGallery';
 import { useSession } from '../../../integration/SessionProvider.tsx';
+import { useTenantSettings } from '../../TenantSettingsProvider';
 import {
   readInvoiceSettings, updateServerInvoicePreference,
   type ServerInvoiceSettings, type ServerInvoicePreferenceField,
@@ -44,7 +45,8 @@ type LiveInvoiceRead = InvoiceRead & {
  * A refresh or tenant switch hides the previous record *during render*, before
  * effect cleanup. No browser-preview invoice data is a connected fallback. */
 function useVerifiedInvoiceRead(): LiveInvoiceRead {
-  const { mode, snapshot } = useSession();
+  const { mode, snapshot, store } = useSession();
+  const { connectedAuthorizationPending } = useTenantSettings();
   const connected = mode === 'connected';
   const identityKey = verifiedInvoiceEditorIdentity(mode, snapshot);
   const key = identityKey ?? `${mode}:${snapshot.status}:${snapshot.epoch}`;
@@ -53,7 +55,7 @@ function useVerifiedInvoiceRead(): LiveInvoiceRead {
   const [record, setRecord] = useState<{
     key: string; status: 'loading' | 'ready' | 'denied' | 'error'; data: ServerInvoiceSettings | null;
   } | null>(null);
-  const canRead = connected && identityKey !== null &&
+  const canRead = connected && !connectedAuthorizationPending && identityKey !== null &&
     snapshot.status === 'authenticated' &&
     snapshot.permissions.includes('sale.invoice.view');
   const canWrite = canRead && snapshot.status === 'authenticated' &&
@@ -72,21 +74,29 @@ function useVerifiedInvoiceRead(): LiveInvoiceRead {
     const controller = new AbortController();
     const requestKey = key;
     setRecord({ key: requestKey, status: 'loading', data: null });
-    void readInvoiceSettings(snapshot.accessToken, controller.signal).then(response => {
-      if (!controller.signal.aborted && identity.current === requestKey) {
-        setRecord({ key: requestKey, status: 'ready', data: response.data });
-      }
+    const token = snapshot.accessToken;
+    const epoch = snapshot.epoch;
+    void readInvoiceSettings(token, controller.signal).then(async response => {
+      // A pre-revocation HTTP 200 is not authorization to show private data now.
+      await store.revalidateAccess();
+      const current = store.getSnapshot();
+      if (controller.signal.aborted || identity.current !== requestKey ||
+          current.status !== 'authenticated' || current.epoch !== epoch ||
+          current.accessToken !== token ||
+          !current.permissions.includes('sale.invoice.view')) return;
+      setRecord({ key: requestKey, status: 'ready', data: response.data });
     }).catch((error: unknown) => {
       if (controller.signal.aborted || identity.current !== requestKey) return;
       const denied = error instanceof ApiError && (error.status === 401 || error.status === 403);
       setRecord({ key: requestKey, status: denied ? 'denied' : 'error', data: null });
     });
     return () => controller.abort();
-  }, [canRead, key]);
+  }, [canRead, key, store]);
 
   if (!connected) return { connected, status: 'waiting', data: null, ...extra };
   if (snapshot.status === 'locked') return { connected, status: 'locked', data: null, ...extra };
   if (snapshot.status !== 'authenticated') return { connected, status: 'waiting', data: null, ...extra };
+  if (connectedAuthorizationPending) return { connected, status: 'loading', data: null, ...extra };
   if (!canRead) return { connected, status: 'denied', data: null, ...extra };
   return { connected, ...extra, ...(record?.key === key ? record : { status: 'loading' as const, data: null }) };
 }
