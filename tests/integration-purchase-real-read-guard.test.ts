@@ -144,3 +144,21 @@ test('R09PUR-15 expired bearer login cannot reveal purchases in rendered session
   assert.match(script, /path === '\/api\/v1\/auth\/logout'/);
   assert.match(script, /assert\.equal\(method, 'GET'/);
 });
+
+test('R09PUR-16 synthetic malformed list uses verified real A GET then fails protocol closed', () => {
+  const script = source(runner);
+  assert.match(script, /async function exerciseMalformedPurchaseList\(/);
+  assert.match(script, /faults\.injectMalformedList && who === 'a'/);
+  assert.match(script, /response\.status === 200 && Array\.isArray\(response\.data\?\.data\)/);
+  assert.match(script, /JSON\.stringify\(\{ data: \{ malformed: true \} \}\)/);
+  assert.match(script, /assert\.ok\(faults\.injected >= 1\)/);
+});
+test('R09PUR-17 malformed-list UI displays no preview purchases at each viewport', () => {
+  const script = source(runner);
+  assert.match(script, /Could not verify purchases from the server\. No preview data was loaded\./);
+  assert.match(script, /await page\.locator\('\[data-purchases-table\]'\)\.count\(\)/);
+  assert.match(script, /assert\.deepEqual\(violations, \[\]\)/);
+  for (const width of [1280, 768, 390]) {
+    assert.ok(script.includes('exerciseMalformedPurchaseList(browser, ' + width + ', preflightRecords)'));
+  }
+});
