@@ -15,7 +15,7 @@ function PurchaseReadFixture() {
   const { snapshot, store } = useSession();
   const [result, setResult] = useState('ready');
 
-  function select(who: 'a' | 'b') {
+  function select(who: 'a' | 'b' | 'expired') {
     setResult('loading:' + who);
     void store.loginWithPassword('r09-purchase-' + who, 'test-only-password')
       .then(() => setResult('success:' + who))
@@ -30,6 +30,9 @@ function PurchaseReadFixture() {
         </button>
         <button type="button" data-purchase-real-login-b="" onClick={() => select('b')}>
           Sign in disposable purchase tenant B
+        </button>
+        <button type="button" data-purchase-real-login-expired="" onClick={() => select('expired')}>
+          Check expired disposable tenant A session
         </button>
       </header>
       <output data-purchase-real-login-result="" aria-live="polite">{result}</output>
