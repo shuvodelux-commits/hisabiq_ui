@@ -14,6 +14,7 @@ import { AppShell } from './components/layout/AppShell';
 import { readIntegrationMode } from './integration/config.ts';
 import { SessionProvider } from './integration/SessionProvider.tsx';
 import { ConnectedWorkspaceGate } from './integration/ConnectedWorkspaceGate.tsx';
+const ConnectedSettingsWorkspace = lazy(() => import('./integration/ConnectedSettingsWorkspace').then(module => ({ default: module.ConnectedSettingsWorkspace })));
 
 const TenantSettingsPage = lazy(() => import('./settings/TenantSettingsPage').then(module => ({ default: module.TenantSettingsPage })));
 const TenantSubscription = lazy(() => import('./saas/TenantPortal').then(module => ({ default: module.TenantSubscription })));
@@ -109,7 +110,7 @@ export function App() {
           <Route path="settings" element={<MagicPlatformSettings />} />
           <Route path="*" element={<Navigate to="/saas/home" replace />} />
         </Route>
-        <Route path="/app" element={<ConnectedWorkspaceGate><AppShell /></ConnectedWorkspaceGate>}>
+        <Route path="/app" element={integrationMode === 'connected' ? <PageBoundary><ConnectedSettingsWorkspace /></PageBoundary> : <ConnectedWorkspaceGate><AppShell /></ConnectedWorkspaceGate>}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="subscription" element={<TenantSubscription />} /><Route path="support" element={<TenantSupport />} /><Route path="support/:id" element={<TenantSupport detail />} />
           <Route path="settings" element={<TenantSettingsPage />} />
