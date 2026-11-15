@@ -383,7 +383,7 @@ export async function readHistoricalPartyOpening(
   token: string, partyId: string, selected: TradingRole,
   signal?: AbortSignal, timeoutMs?: number,
 ): Promise<HistoricalPartyOpeningEnvelope> {
-  const path = ('/api/v1/parties/' + checkedId(partyId) +
+  const path = ('/api/v2/parties/' + checkedId(partyId) +
     '/opening?role=' + checkedRole(selected)) as ApiRequest['path'];
   return read(token, path, raw => decodeHistoricalPartyOpening(raw, selected), signal, timeoutMs);
 }
