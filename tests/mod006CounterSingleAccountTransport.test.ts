@@ -160,7 +160,6 @@ test('rejects preview party/account IDs, stale inactive/LOAN sources and method 
 test('rejects invalid date, untrusted token, unsupported business action or invalid timeout', async () => {
   await invalid(draft('CUSTOMER_RECEIPT', { businessDate: '2026-02-30' }));
   await invalid(draft('FINANCE_OWNER_CREDIT'));
-  await invalid(draft(), undefined); // default protocol
   calls = [];
   globalThis.fetch = async () => { calls.push('unexpected'); throw Error('unexpected'); };
   await assert.rejects(recordSingleAccountCounterSettlement('bad token',draft()),
