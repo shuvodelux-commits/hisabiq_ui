@@ -16,15 +16,15 @@ test('R09B-01 workspace composes verified server reads; adds no custom transport
   assert.doesNotMatch(workspace, /method:\s*['"](?:POST|PATCH|PUT|DELETE)['"]|createSalesReturn|createSale\(|refund\(|postStock|journal/);
 });
 
-test('R09B-02 invoice view requires sale.view and verified connected authentication', () => {
+test('R09B-02 invoice view requires sale.invoice.view and verified connected authentication', () => {
   assert.match(workspace, /mode === 'connected' && snapshot\.status === 'authenticated'/);
-  assert.match(workspace, /snapshot\.permissions\.includes\('sale\.view'\)/);
+  assert.match(workspace, /const canViewInvoices = canReadSalesInvoices\(mode, snapshot\)/);
   assert.match(workspace, /disabled: !canViewInvoices/);
-  assert.match(invoicePanel, /snapshot\.permissions\.includes\('sale\.view'\)/);
+  assert.match(invoicePanel, /const allowed = canReadSalesInvoices\(mode, snapshot\)/);
 });
 
 test('R09B-03 returnability GET requires sales.return.create, not return-history permission', () => {
-  assert.match(workspace, /canViewInvoices && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
+  assert.match(workspace, /authenticated && canViewInvoices && snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.match(invoicePanel, /snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.match(sourcePanel, /snapshot\.permissions\.includes\('sales\.return\.create'\)/);
   assert.doesNotMatch(workspace, /canReviewSource.*sales\.return\.view/);
