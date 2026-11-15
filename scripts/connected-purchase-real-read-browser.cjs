@@ -50,8 +50,9 @@ if (typeof expiredToken !== 'string' ||
 let expired;
 try { expired = JSON.parse(Buffer.from(expiredToken.split('.')[1], 'base64url').toString('utf8')); }
 catch { refuse('expired test JWT payload is invalid'); }
-if (!expired || expired.sub !== people.a.userId || expired.tid !== people.a.tenantId ||
-    expired.tz !== 'Asia/Dhaka' || !Number.isSafeInteger(expired.exp) ||
+const correctIdentity = expired && expired.sub === people.a.userId &&
+  expired.tid === people.a.tenantId;
+if (!correctIdentity || expired.tz !== 'Asia/Dhaka' || !Number.isSafeInteger(expired.exp) ||
     !(expired.exp < Math.floor(Date.now() / 1000)) ||
     expired.exp < Math.floor(Date.now() / 1000) - 86_400)
   refuse('expired test JWT must bind tenant A and a recent past expiry');
