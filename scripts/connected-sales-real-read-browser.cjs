@@ -178,6 +178,10 @@ async function preflight() {
     }
     results[who] = { row, access: me.data.data };
   }
+  // Invoice numbers are tenant-scoped; they may legitimately be identical.
+  // Distinct test customer labels allow a visible no-residue assertion instead.
+  assert.notEqual(results.a.row.customerName, results.b.row.customerName,
+    'A/B disposable customer snapshots must be distinct for the UI isolation check');
   const crossA = await backendGet('/api/v1/sales/' + identities.a.saleId, identities.b.token);
   const crossB = await backendGet('/api/v1/sales/' + identities.b.saleId, identities.a.token);
   assertHttp(crossA, 404, 'B cannot see A source invoice');
@@ -332,10 +336,14 @@ async function exercise(browser, width, preflightRecords) {
     await workspace.getByRole('tab', { name: /Invoices/ }).click();
     const rowB = preflightRecords.b.row;
     await workspace.getByText(rowB.number).first().waitFor();
-    assert.equal(await workspace.getByText(rowA.number).count(), 0,
-      'A invoice must disappear when B logs in');
+    await workspace.getByText(rowB.customerName).first().waitFor();
+    assert.equal(await workspace.getByText(rowA.customerName).count(), 0,
+      'A unique customer snapshot must disappear when tenant B logs in');
     await workspace.getByRole('button', { name: 'View original invoice: ' + rowB.number }).click();
     await workspace.locator('[data-connected-sales-invoice-lines]').waitFor();
+    assert.ok(log.some(row => row.path === '/api/v1/sales/' + identities.b.saleId &&
+      row.who === 'b' && row.method === 'GET'),
+    'tenant B must fetch its own source-ID detail, regardless of invoice number collision');
     assert.equal(await workspace.getByRole('button',
       { name: /Review returnable source/ }).count(), 0);
     if (!hasPermission(preflightRecords.b.access, 'inventory.cost.view')) {
