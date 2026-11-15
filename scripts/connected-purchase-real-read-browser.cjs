@@ -40,6 +40,22 @@ function setup() {
   return identities;
 }
 const people = setup();
+// A separately issued, genuinely signed but expired JWT is required by the
+// disposable QA invocation. Never regenerate or sign test credentials in code.
+const expiredToken = process.env.HISABIQ_R09_PURCHASE_EXPIRED_JWT_A;
+if (typeof expiredToken !== 'string' ||
+    !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(expiredToken) ||
+    expiredToken === people.a.token || expiredToken === people.b.token)
+  refuse('independent expired test bearer is required');
+let expired;
+try { expired = JSON.parse(Buffer.from(expiredToken.split('.')[1], 'base64url').toString('utf8')); }
+catch { refuse('expired test JWT payload is invalid'); }
+const correctIdentity = expired && expired.sub === people.a.userId &&
+  expired.tid === people.a.tenantId;
+if (!correctIdentity || expired.tz !== 'Asia/Dhaka' || !Number.isSafeInteger(expired.exp) ||
+    !(expired.exp < Math.floor(Date.now() / 1000)) ||
+    expired.exp < Math.floor(Date.now() / 1000) - 86_400)
+  refuse('expired test JWT must bind tenant A and a recent past expiry');
 const inspected = spawnSync('podman', ['inspect', '--format', '{{json .}}', CONTAINER],
   { encoding: 'utf8', timeout: 8000 });
 if (inspected.status !== 0 || !inspected.stdout) refuse('disposable PG16 container unavailable');
@@ -83,6 +99,8 @@ async function negativeReadPreflight() {
   forged[2] = (forged[2][0] === 'a' ? 'b' : 'a') + forged[2].slice(1);
   assert.equal((await get('/api/v1/me')).status, 401);
   assert.equal((await get('/api/v1/me', forged.join('.'))).status, 401);
+  assert.equal((await get('/api/v1/me', expiredToken)).status, 401);
+  assert.equal((await get('/api/v1/purchases?limit=25', expiredToken)).status, 401);
   // A syntactically valid missing ID probes source isolation without disclosure.
   const missing = '00000000000000000000000000';
   assert.notEqual(missing, people.a.purchaseId);
@@ -91,7 +109,7 @@ async function negativeReadPreflight() {
   assert.equal((await get('/api/v1/purchase-returns/returnable/' + missing, people.a.token)).status, 404);
   assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.a.token)).status, 404);
   assert.equal((await get('/api/v1/purchase-returns/returnable/' + people.b.purchaseId, people.b.token)).status, 403);
-  console.log('PASS negative purchase reads: anonymous/forged 401; missing/foreign 404; denied 403');
+  console.log('PASS negative purchase reads: anonymous/forged/expired 401; missing/foreign 404; denied 403');
 }
 async function preflight() {
   assert.equal((await get('/health')).status, 200);
@@ -154,18 +172,34 @@ function intercept(page, log, violations, blocked) {
   page.route('**/api/v1/**', async route => {
     const request = route.request(), u = new URL(request.url());
     const path = u.pathname, method = request.method(), who = bearer(request);
+    const expiredBearer = request.headers().authorization === 'Bearer ' + expiredToken;
     try {
       assert.equal(u.origin, origin);
       log.push({ path, method, who });
       if (method === 'POST' && path === '/api/v1/auth/login') {
         const q = request.postDataJSON();
         const alias = q?.identifier === 'r09-purchase-a' ? 'a' :
-          q?.identifier === 'r09-purchase-b' ? 'b' : null;
+          q?.identifier === 'r09-purchase-b' ? 'b' :
+          q?.identifier === 'r09-purchase-expired' ? 'expired' : null;
         assert.ok(alias && q?.password === 'test-only-password');
         return route.fulfill({ status: 200, contentType: 'application/json',
-          body: JSON.stringify({ data: { accessToken: people[alias].token,
+          body: JSON.stringify({ data: { accessToken: alias === 'expired' ? expiredToken : people[alias].token,
             refreshToken: 'r09-purchase-test-only-' + alias,
-            user: { id: people[alias].userId, username: q.identifier } } }) });
+            user: { id: alias === 'expired' ? people.a.userId : people[alias].userId,
+              username: q.identifier } } }) });
+      }
+      // SessionStore revokes a failed candidate; this synthetic logout is
+      // acknowledged locally, never forwarded to Nest or business endpoints.
+      if (method === 'POST' && path === '/api/v1/auth/logout' &&
+          request.postDataJSON()?.refreshToken === 'r09-purchase-test-only-expired') {
+        return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+      }
+      if (expiredBearer) {
+        assert.equal(path, '/api/v1/me', 'expired identity must never read business sources');
+        assert.equal(method, 'GET', 'expired identity must not post any business data');
+        const response = await get(path, expiredToken);
+        return route.fulfill({ status: response.status,
+          contentType: response.type || 'application/json', body: response.raw });
       }
       assert.ok(who, 'actual signed disposable bearer required');
       assert.equal(method, 'GET', 'no business writes can reach Nest');
@@ -225,6 +259,15 @@ async function exercise(browser, width, preflightRecords) {
   try {
     stage.value = 'navigation';
     await page.goto(fixture, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    stage.value = 'expired-login';
+    await page.locator('[data-purchase-real-login-expired]').click();
+    await page.getByText('failed:expired').waitFor();
+    await page.getByText('Session:signed-out').waitFor();
+    assert.equal(await page.locator('[data-purchases-table]').count(), 0);
+    assert.ok(log.some(row => row.path === '/api/v1/me' && row.method === 'GET' && row.who === null),
+      'expired signed bearer must be verified and denied by actual Nest');
+    assert.equal(log.some(row => row.path.startsWith('/api/v1/purchases')), false,
+      'expired session must not request authenticated Purchases');
     stage.value = 'tenant-a';
     await page.locator('[data-purchase-real-login-a]').click();
     await page.getByText('Verified:' + preflightRecords.a.access.businessName).waitFor();
