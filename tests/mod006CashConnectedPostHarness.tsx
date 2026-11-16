@@ -1,14 +1,13 @@
 /** MOD-006 T02-G2 — isolated CASH ON/OFF source-owned POST acceptance ONLY.
  * NEVER import into CounterWorkspace, Finance, App or a production route.
- * The real Nest writer rechecks Cash Day policy inside the source transaction.
+ * Calls the reusable, still-unmounted signed Counter coordinator; Nest alone
+ * rechecks Cash Day policy inside the financial transaction.
  */
 import React, { useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useSession, SessionProvider } from '../src/integration/SessionProvider.tsx';
-import { resolveConnectedCashSessionEligibility } from '../src/integration/connected-counter-cash-day.ts';
 import { readMoneyAccounts } from '../src/integration/accounts.ts';
-import { readTradingParty } from '../src/integration/party-reads.ts';
-import { recordSingleAccountCounterSettlement } from '../src/integration/counter-single-account.ts';
+import { recordConnectedCounterSettlement } from '../src/integration/connected-counter-settlement.ts';
 import type { CounterSingleSettlementDraft } from '../src/integration/counter-single-account.ts';
 
 type Action = 'LOGIN' | 'LOGOUT' | 'POST';
@@ -52,60 +51,33 @@ function CashHarness() {
       } else {
         const captured = store.getSnapshot();
         if (captured.status !== 'authenticated') throw Error('Authenticated signed session required');
-        const eligibility = await resolveConnectedCashSessionEligibility(store, accountId);
-        const current = store.getSnapshot();
-        if (current.status !== 'authenticated' ||
-            current.tenantId !== eligibility.scope.tenantId ||
-            current.userId !== eligibility.scope.userId ||
-            current.epoch !== eligibility.scope.epoch ||
-            current.accessToken !== captured.accessToken) {
-          throw Error('Cash session identity changed before POST');
-        }
-        const role = kind === 'CUSTOMER_RECEIPT' ? 'CUSTOMER' : 'SUPPLIER';
-        const party = await readTradingParty(current.accessToken, partyId, role);
-        if (party.data.id !== partyId || party.data.status !== 'ACTIVE' ||
-            !party.data.roles.includes(role) || party.data.isSystemReserved) {
-          throw Error('Active source-owned Party required');
-        }
-        const beforePost = store.getSnapshot();
-        if (beforePost.status !== 'authenticated' ||
-            beforePost.tenantId !== captured.tenantId ||
-            beforePost.userId !== captured.userId ||
-            beforePost.epoch !== captured.epoch ||
-            beforePost.accessToken !== captured.accessToken) {
-          throw Error('Session changed during Party read');
+        // This QA-only component supplies just a real account selection.
+        // The reusable production coordinator verifies /me, Party, account and
+        // Cash Session ON/OFF; it alone decides when a financial POST may occur.
+        const money = await readMoneyAccounts(captured.accessToken, {});
+        const account = money.accounts.find(item =>
+          item.id === accountId && item.type === 'CASH' && item.status === 'ACTIVE');
+        if (!account) throw Error('Active source-owned CASH account required');
+        const updated = store.getSnapshot();
+        if (updated.status !== 'authenticated' ||
+            updated.tenantId !== captured.tenantId ||
+            updated.userId !== captured.userId ||
+            updated.epoch !== captured.epoch ||
+            updated.accessToken !== captured.accessToken) {
+          throw Error('Cash session identity changed before coordinator');
         }
         const draft: CounterSingleSettlementDraft = {
-          kind, partyId, operationId, businessDate: eligibility.businessDate,
-          sources: [{ method: 'Cash', account: eligibility.account, amount }],
+          kind, partyId, operationId,
+          sources: [{ method: 'Cash', account, amount }],
         };
-        // This test calls the existing source-owned transport, NOT the
-        // production BANK/MFS coordinator or a preview store.
-        const payment = await recordSingleAccountCounterSettlement(current.accessToken, draft);
-        const afterPost = store.getSnapshot();
-        if (afterPost.status !== 'authenticated' ||
-            afterPost.epoch !== captured.epoch ||
-            afterPost.tenantId !== captured.tenantId ||
-            afterPost.userId !== captured.userId ||
-            afterPost.accessToken !== captured.accessToken) {
-          throw Error('Payment might have committed; reconcile original operation ID');
-        }
-        const [accounts, detail] = await Promise.all([
-          readMoneyAccounts(current.accessToken, {}),
-          readTradingParty(current.accessToken, partyId, role),
-        ]);
-        const currentAccount = accounts.accounts.find(a =>
-          a.id === eligibility.account.id && a.type === 'CASH' && a.status === 'ACTIVE');
-        if (!currentAccount || detail.data.id !== partyId ||
-            detail.data.status !== 'ACTIVE') {
-          throw Error('Payment might have committed; source reconciliation required');
-        }
+        const posted = await recordConnectedCounterSettlement(store, draft);
+        if (!posted.cashDay) throw Error('Signed source Cash Day result required');
         setResult({
-          status: 'posted', completed, paymentId: payment.data.id,
-          balance: String(currentAccount.balanceMinor),
-          partyBalance: String(detail.data.balance.netMinor),
-          mode: eligibility.mode, sessionId: eligibility.sessionId ?? '',
-          message: eligibility.scope.tenantId,
+          status: 'posted', completed, paymentId: posted.payment.data.id,
+          balance: String(posted.account.balanceMinor),
+          partyBalance: String(posted.party.balance.netMinor),
+          mode: posted.cashDay.mode, sessionId: posted.cashDay.sessionId ?? '',
+          message: posted.scope.tenantId,
         });
       }
     } catch (error) {
