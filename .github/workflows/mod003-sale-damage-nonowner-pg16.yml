@@ -1,0 +1,208 @@
+# MOD-003 #627: isolated real PostgreSQL16 SALE × DAMAGE source acceptance.
+# No live Products mount, backend code/schema edit, or production database.
+name: MOD-003 strict nonowner sale-vs-damage PG16 QA
+on:
+  pull_request:
+    paths:
+      - scripts/mod003-sale-damage-nonowner-crossprocess.cjs
+      - .github/workflows/mod003-sale-damage-nonowner-pg16.yml
+permissions:
+  contents: read
+jobs:
+  real-crossprocess:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'shuvodelux-commits/hisabiq_ui' && startsWith(github.event.pull_request.head.ref, 'test/mod003-627-') }}
+    name: Two Nest Node20 processes / signed SALE × DAMAGE / no-TRUNCATE PG16
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mod003_627_disposable
+          POSTGRES_DB: sher_mod003_p2c_627_20261116
+        ports:
+          - 55741:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sher_mod003_p2c_627_20261116"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "55741"
+      PGUSER: postgres
+      PGPASSWORD: mod003_627_disposable
+      PGDATABASE: sher_mod003_p2c_627_20261116
+      ADMIN_DATABASE_URL: postgres://postgres:mod003_627_disposable@127.0.0.1:55741/sher_mod003_p2c_627_20261116
+      DATABASE_URL: postgres://sher_app:sher_app_test@127.0.0.1:55741/sher_mod003_p2c_627_20261116
+      MOD003_627_TEST_ONLY: MOD003_627_ISOLATED_PG16_ONLY
+      MOD003_627_DB_URL: postgres://sher_app:sher_app_test@127.0.0.1:55741/sher_mod003_p2c_627_20261116
+      MOD003_627_API_A: http://127.0.0.1:55742
+      MOD003_627_API_B: http://127.0.0.1:55743
+      MOD003_627_BACKEND_DIR: /home/runner/work/hisabiq_ui/hisabiq_ui/backend
+      JWT_SECRET: mod003-627-isolated-long-jwt-secret-only
+      ENTITLEMENT_SOURCE: subscription
+      SINGLE_TENANT_MODE: "false"
+      IDENTITY_VERIFIER: dev
+      BILLING_ENABLED: "true"
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout exact PR source and reject mutable-main fallback
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/hisabiq_ui
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          path: frontend
+          persist-credentials: false
+      - name: Checkout immutable adopted Nest backend
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/nestshererp
+          ref: 57585270eda42f89748bbd01b134a5e1ed805f6b
+          path: backend
+          persist-credentials: false
+      - name: Fail closed on source pin or remote/checkout drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C frontend rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "$(git -C backend rev-parse HEAD)" = 57585270eda42f89748bbd01b134a5e1ed805f6b
+          test "$(git -C frontend merge-base HEAD d94b86b493e2b337c05c7862c7b0a28a10b0d655)" = d94b86b493e2b337c05c7862c7b0a28a10b0d655
+          test "$(git -C frontend remote get-url origin)" = https://github.com/shuvodelux-commits/hisabiq_ui
+          test "$(git -C backend remote get-url origin)" = https://github.com/shuvodelux-commits/nestshererp
+          test "$PWD/backend" = "$MOD003_627_BACKEND_DIR"
+          test -f frontend/scripts/mod003-sale-damage-nonowner-crossprocess.cjs
+          test -f frontend/src/integration/inventory-adjustment-command.ts
+          test -f backend/apps/api/package.json
+          echo "Immutable source pair checked: frontend $(git -C frontend rev-parse HEAD), backend $(git -C backend rev-parse HEAD)"
+
+      - name: Node20 / pnpm9 backend toolchain
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - name: Build Nest backend on Node20
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          test "$(node --version | cut -d. -f1)" = v20
+          pnpm install --frozen-lockfile
+          pnpm --filter "@sher/api..." build
+
+      - name: Preflight disposable PostgreSQL16 owner identity and create runtime role
+        run: |
+          set -euo pipefail
+          test "$PGHOST" = 127.0.0.1
+          test "$PGPORT" = 55741
+          test "$PGDATABASE" = sher_mod003_p2c_627_20261116
+          psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_database()' | grep -Fx sher_mod003_p2c_627_20261116
+          psql -v ON_ERROR_STOP=1 -Atqc 'SHOW server_version_num' | grep -E '^16[0-9]{4}$'
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE sher_app LOGIN PASSWORD 'sher_app_test' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS"
+
+      - name: Apply migrations ONLY to the identified disposable admin DB
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          test "$ADMIN_DATABASE_URL" = postgres://postgres:mod003_627_disposable@127.0.0.1:55741/sher_mod003_p2c_627_20261116
+          DATABASE_URL="$ADMIN_DATABASE_URL" node apps/api/dist/migrate.js
+      - name: Restrict runtime to DML and assert zero TRUNCATE privileges
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c 'GRANT CONNECT ON DATABASE sher_mod003_p2c_627_20261116 TO sher_app'
+          psql -v ON_ERROR_STOP=1 -c 'GRANT USAGE ON SCHEMA public TO sher_app'
+          psql -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sher_app'
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND has_table_privilege('sher_app',c.oid,'TRUNCATE')" | grep -Fx 0
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT pg_get_userbyid(datdba) <> 'sher_app' FROM pg_database WHERE datname=current_database()" | grep -Fx t
+          PGPASSWORD=sher_app_test PGUSER=sher_app psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_user' | grep -Fx sher_app
+
+      - name: Launch two isolated real Nest API OS processes and demand unsigned 401
+        working-directory: backend
+        env:
+          WEB_ORIGIN: http://127.0.0.1:55742
+        run: |
+          set -euo pipefail
+          PORT=55742 nohup node apps/api/dist/main.js > "$RUNNER_TEMP/mod003-627-a.log" 2>&1 < /dev/null &
+          echo $! > "$RUNNER_TEMP/mod003-627-a.pid"
+          PORT=55743 nohup node apps/api/dist/main.js > "$RUNNER_TEMP/mod003-627-b.log" 2>&1 < /dev/null &
+          echo $! > "$RUNNER_TEMP/mod003-627-b.pid"
+          test "$(cat "$RUNNER_TEMP/mod003-627-a.pid")" -ne "$(cat "$RUNNER_TEMP/mod003-627-b.pid")"
+          for port in 55742 55743; do
+            ready=0
+            for i in $(seq 1 50); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$port/api/v1/me" || true)
+              if [ "$code" = 401 ]; then ready=1; break; fi
+              sleep 2
+            done
+            if [ "$ready" -ne 1 ]; then
+              echo "Nest $port did not return unauthenticated 401"
+              exit 1
+            fi
+          done
+          echo "Two independent Node20 Nest processes ready on 55742 and 55743."
+
+      - name: Node24 typed React transport runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend unchanged lockfile
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          test "$(node --version | cut -d. -f1)" = v24
+          npm ci --no-audit --no-fund
+
+      - name: RED guard tests — reject unsafe targets BEFORE any synthetic writes
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          reject() {
+            expected="$1"; shift
+            if output=$("$@" 2>&1); then echo "Unsafe target accepted"; exit 1; fi
+            if ! grep -Fq "$expected" <<< "$output"; then
+              echo "Guard failed for incorrect reason"; echo "$output"; exit 1
+            fi
+          }
+          reject "Disposable marker required" env -u MOD003_627_TEST_ONLY node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          reject "Loopback API only" env MOD003_627_API_A=http://localhost:55742 node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          reject "Dedicated API port only" env MOD003_627_API_B=http://127.0.0.1:3000 node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          reject "Disposable database name required" env MOD003_627_DB_URL=postgres://sher_app:sher_app_test@127.0.0.1:55741/postgres node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          reject "Unprivileged runtime identity required" env MOD003_627_DB_URL=postgres://postgres:dummy@127.0.0.1:55741/sher_mod003_p2c_627_20261116 node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          reject "Dedicated database port required" env MOD003_627_DB_URL=postgres://sher_app:sher_app_test@127.0.0.1:5432/sher_mod003_p2c_627_20261116 node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          reject "Isolated backend checkout required" env -u MOD003_627_BACKEND_DIR node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          node scripts/mod003-sale-damage-nonowner-crossprocess.cjs --guard-only
+          echo "Seven fail-closed guard negatives and positive preflight passed."
+
+      - name: Three real signed cross-process SALE × DAMAGE races and Golden Accounting invariants
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          node --experimental-strip-types scripts/mod003-sale-damage-nonowner-crossprocess.cjs
+
+      - name: Emit synthetic-only diagnostics if a test fails
+        if: failure()
+        shell: bash
+        run: |
+          for name in a b; do
+            log="$RUNNER_TEMP/mod003-627-$name.log"
+            if test -f "$log"; then tail -70 "$log" | sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[redacted]/g'; fi
+          done
+      - name: Stop only these two hosted Nest processes
+        if: always()
+        shell: bash
+        run: |
+          for name in a b; do
+            file="$RUNNER_TEMP/mod003-627-$name.pid"
+            if test -f "$file"; then kill "$(cat "$file")" 2>/dev/null || true; fi
+          done
+          # PostgreSQL16 service is destroyed with this GitHub Actions job.
