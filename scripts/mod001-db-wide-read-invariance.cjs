@@ -28,7 +28,7 @@ function hash(text) { return createHash('sha256').update(text).digest('hex'); }
 function assertDisposable() {
   assert.equal(process.env.CI, 'true', 'QA-only CI attestation required');
   assert.equal(process.env.MOD001_574_DISPOSABLE_ACK,
-    '574:pg16:55474:e7cfc2a2a64547ed964df11214655e64b6356024');
+    '574:pg16:55474:57585270eda42f89748bbd01b134a5e1ed805f6b');
   assert.equal(root, 'http://127.0.0.1:3059');
   const a = new URL(process.env.MOD001_574_AUDIT_DATABASE_URL || '');
   const u = new URL(process.env.DATABASE_URL || '');
@@ -212,6 +212,105 @@ async function main() {
     assert.deepEqual(writes,[], 'Connected read-only UI must send no settings/user/role writes');
     assert.deepEqual(errors,[], 'No browser JavaScript errors');
     await page.close();
+
+    // QA #629: real invoice read-only authorization, not #548 logo mutations.
+    const invoiceA=(await call('GET','/sales/invoice-settings',a.token)).data;
+    const invoiceB=(await call('GET','/sales/invoice-settings',b.token)).data;
+    assert.equal(typeof invoiceA.showLogo,'boolean');
+    assert.equal(typeof invoiceB.showLogo,'boolean');
+    assert.equal(invoiceA.hasLogo,false);
+    assert.equal(invoiceB.hasLogo,false);
+    const invoiceRole=await call('POST','/roles',a.token,{
+      name:'QA Invoice Read Only',permissions:['sale.invoice.view'],
+      confirmPassword:a.password
+    },201);
+    const invoiceRoleId=invoiceRole.data.id;
+    const invoicePhone=uniquePhone();
+    await call('POST','/users',a.token,{
+      displayName:'QA Invoice Viewer',username:'qaInvoice'+invoicePhone.slice(-6),
+      identifier:invoicePhone,roleId:invoiceRoleId,confirmPassword:a.password
+    },201);
+    const invoiceOtp=await call('POST','/auth/password/otp',null,{identifier:invoicePhone});
+    assert.match(invoiceOtp.data.devCode,/^[0-9]{6}$/);
+    const invoicePassword=pass();
+    await call('POST','/auth/password/reset',null,{
+      identifier:invoicePhone,otpCode:invoiceOtp.data.devCode,password:invoicePassword
+    },204);
+    const invoiceLogin=await call('POST','/auth/login',null,{
+      identifier:invoicePhone,password:invoicePassword
+    });
+    const invoiceToken=invoiceLogin.data.accessToken;
+    const invoiceMe=(await call('GET','/me',invoiceToken)).data;
+    assert.ok(invoiceMe.permissions.includes('sale.invoice.view'));
+    assert.ok(!invoiceMe.permissions.includes('settings.setting.edit'));
+    const invoiceStaff=(await call('GET','/sales/invoice-settings',invoiceToken)).data;
+    assert.equal(invoiceStaff.hasLogo,invoiceA.hasLogo);
+    assert.ok(!JSON.stringify(invoiceStaff).includes(b.businessName));
+    mark('invoice GET is real Nest and tenant scoped for A, B and least-privilege staff');
+
+    const invoicePage=await browser.newPage({viewport:{width:390,height:844}});
+    const invoiceWrites=[],invoiceErrors=[];
+    invoicePage.on('pageerror',error=>invoiceErrors.push(error.message));
+    invoicePage.on('request',request=>{
+      if(/\/api\/v1\/sales\/(invoice-settings|invoice-logo)(?:\/|$)/.test(request.url()) &&
+        request.method()!=='GET') invoiceWrites.push(request.method());
+    });
+    await invoicePage.goto('http://127.0.0.1:4299/#/login');
+    await invoicePage.locator('#auth-phone').fill(invoicePhone);
+    await invoicePage.locator('#auth-password').fill(invoicePassword);
+    const verifiedInvoice=invoicePage.waitForResponse(response=>
+      response.url().endsWith('/api/v1/me') && response.status()===200);
+    await invoicePage.getByRole('button',{name:'Sign in',exact:true}).click();
+    await verifiedInvoice;
+    await invoicePage.goto('http://127.0.0.1:4299/#/app/settings/invoices');
+    await invoicePage.locator('[data-settings-live-invoice-editor]').waitFor({timeout:25000});
+    assert.ok((await invoicePage.locator('[data-connected-settings-workspace]').innerText())
+      .includes(a.businessName));
+    assert.ok(!(await invoicePage.locator('[data-connected-settings-workspace]').innerText())
+      .includes(b.businessName));
+    assert.equal(await invoicePage.locator('[data-connected-settings-workspace] fieldset[disabled]').count(),1);
+    for(const width of [320,390,1440]){
+      await invoicePage.setViewportSize({width,height:850});
+      assert.ok(await invoicePage.locator('[data-settings-live-invoice-editor]').isVisible());
+    }
+    assert.deepEqual(invoiceWrites,[]);
+    mark('real invoice-only staff React 320/390/1440, server data and disabled UI writes');
+
+    await invoicePage.goto('http://127.0.0.1:4299/#/app/settings/data');
+    await invoicePage.getByText('This section is not yet connected.',{exact:false}).waitFor();
+    let releaseInvoice=null,notifyInvoice=null,invoiceHttpStatus=null;
+    const gotInvoice=new Promise(resolve=>{notifyInvoice=resolve});
+    await invoicePage.route('**/api/v1/sales/invoice-settings',async route=>{
+      try{
+        const response=await route.fetch();
+        invoiceHttpStatus=response.status();
+        notifyInvoice();
+        await new Promise(resolve=>{releaseInvoice=resolve});
+        await route.fulfill({response}).catch(()=>undefined);
+      }catch(error){notifyInvoice();await route.abort().catch(()=>undefined)}
+    });
+    await invoicePage.goto('http://127.0.0.1:4299/#/app/settings/invoices');
+    await Promise.race([
+      gotInvoice,
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Invoice real GET not intercepted')),12000))
+    ]);
+    assert.equal(invoiceHttpStatus,200,'Held invoice HTTP response must be actual Nest 200');
+    await call('PATCH','/roles/'+invoiceRoleId,a.token,{
+      name:'QA Invoice Read Only',permissions:[],confirmPassword:a.password
+    });
+    await call('GET','/sales/invoice-settings',invoiceToken,null,403);
+    await invoicePage.waitForFunction(()=>
+      !document.querySelector('[data-settings-live-invoice-editor]') &&
+      !Array.from(document.querySelectorAll('a')).some(a=>
+        a.getAttribute('href')?.includes('/app/settings/invoices')),null,{timeout:9000});
+    releaseInvoice();
+    await invoicePage.waitForTimeout(300);
+    assert.equal(await invoicePage.locator('[data-settings-live-invoice-editor]').count(),0);
+    assert.deepEqual(invoiceWrites,[]);
+    assert.deepEqual(invoiceErrors,[]);
+    await invoicePage.unroute('**/api/v1/sales/invoice-settings');
+    await invoicePage.close();
+    mark('real invoice HTTP 200 held across role revoke cannot restore data; Nest returns 403');
   } finally { await browser?.close(); await new Promise(resolve => server.httpServer.close(resolve)); }
 
   // Read-only GET/403 audit: seed/login/role mutations are deliberately outside snapshot.
