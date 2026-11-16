@@ -536,6 +536,85 @@ async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
     await context.close();
   }
 }
+async function exercisePurchaseAccessibleNavigation(browser, width, preflightRecords, input) {
+  assert.ok(input === 'keyboard' || input === 'touch');
+  const context = await browser.newContext({ viewport: { width, height: 860 },
+    reducedMotion: 'reduce', hasTouch: input === 'touch',
+    isMobile: input === 'touch' });
+  const page = await context.newPage();
+  page.setDefaultTimeout(25000);
+  const log = [], violations = [], blocked = [], errors = [];
+  let stage = 'navigation';
+  page.on('pageerror', e => errors.push(e.name));
+  intercept(page, log, violations, blocked);
+  try {
+    await page.goto(fixture, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    stage = 'signed-a-login';
+    const login = page.locator('[data-purchase-real-login-a]');
+    if (input === 'touch') await login.tap(); else await login.click();
+    await page.getByText('Verified:' + preflightRecords.a.access.businessName).waitFor();
+    const row = preflightRecords.a.row;
+    await page.locator('[data-purchases-table]').getByText(row.supplierName)
+      .filter({ visible: true }).first().waitFor();
+    const tabs = page.getByRole('tablist', { name: 'Purchase sections' });
+    assert.equal(await tabs.getByRole('tab').count(), 3,
+      'all three read-only purchase sections require labeled tabs');
+    const purchasesTab = tabs.getByRole('tab', { name: 'Purchases' });
+    assert.equal(await purchasesTab.getAttribute('aria-selected'), 'true');
+    const review = page.getByRole('button', {
+      name: 'Review returnable quantities ' + row.number });
+    await review.waitFor();
+    stage = 'returnable-action';
+    if (input === 'touch') {
+      const size = await review.boundingBox();
+      assert.ok(size && size.width >= 24 && size.height >= 24,
+        'mobile return review target must be at least 24px per axis');
+      await review.tap();
+    } else {
+      await review.focus();
+      assert.equal(await review.evaluate(node => node === document.activeElement), true,
+        'returnable review button must accept keyboard focus');
+      await review.press('Enter');
+    }
+    await page.locator('[data-purchase-returnable-table]').waitFor();
+    const returnTab = tabs.getByRole('tab', { name: 'Purchase return' });
+    assert.equal(await returnTab.getAttribute('aria-selected'), 'true');
+    stage = 'return-history-tab';
+    const historyTab = tabs.getByRole('tab', { name: 'Return history' });
+    if (input === 'touch') await historyTab.tap();
+    else {
+      await historyTab.focus();
+      assert.equal(await historyTab.evaluate(node => node === document.activeElement), true,
+        'history tab must accept keyboard focus');
+      await historyTab.press('Enter');
+    }
+    await page.locator('[data-purchase-return-history-table]').waitFor();
+    assert.equal(await historyTab.getAttribute('aria-selected'), 'true');
+    stage = 'return-to-purchases';
+    if (input === 'touch') await purchasesTab.tap();
+    else {
+      await purchasesTab.focus();
+      await purchasesTab.press('Enter');
+    }
+    assert.equal(await purchasesTab.getAttribute('aria-selected'), 'true');
+    await page.locator('[data-purchases-table]').getByText(row.supplierName)
+      .filter({ visible: true }).first().waitFor();
+    assert.ok(log.some(entry => entry.who === 'a' &&
+      entry.path === '/api/v1/purchase-returns/returnable/' + people.a.purchaseId));
+    assert.ok(log.some(entry => entry.who === 'a' &&
+      entry.path === '/api/v1/purchase-returns'));
+    assert.equal(log.some(entry => entry.method !== 'GET' && entry.path !== '/api/v1/auth/login'),
+      false, 'all Nest business calls must remain read-only');
+    assert.deepEqual(violations, []);
+    assert.deepEqual(errors, []);
+    console.log('PASS signed purchase keyboard/touch access: ' + input + ' @' + width + 'px');
+  } catch (error) {
+    const category = error?.name === 'TimeoutError' ? 'timeout' :
+      error?.name === 'AssertionError' ? 'assertion' : 'other';
+    console.error('R09_PURCHASE_ACCESSIBILITY_RED', width, input, stage, category);
+    throw error;
+  } finally { await context.close(); }
+}
 async function main() {
   const preflightRecords = await preflight();
   let vite, browser;
@@ -563,6 +642,10 @@ async function main() {
     await exerciseStaleReturnRead(browser, 1280, preflightRecords, 'history');
     await exerciseStaleReturnRead(browser, 768, preflightRecords, 'history');
     await exerciseStaleReturnRead(browser, 390, preflightRecords, 'history');
+    await exercisePurchaseAccessibleNavigation(browser, 1280, preflightRecords, 'keyboard');
+    await exercisePurchaseAccessibleNavigation(browser, 768, preflightRecords, 'keyboard');
+    await exercisePurchaseAccessibleNavigation(browser, 390, preflightRecords, 'keyboard');
+    await exercisePurchaseAccessibleNavigation(browser, 390, preflightRecords, 'touch');
     console.log('PASS signed purchase-return Nest/PG16 GET acceptance; no business writes');
   } finally {
     await browser?.close();
