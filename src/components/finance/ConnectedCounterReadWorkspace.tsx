@@ -5,7 +5,7 @@ import { useUiCopy } from '../../i18n/useUiCopy';
 import { useSession } from '../../integration/SessionProvider.tsx';
 import { ApiError } from '../../integration/errors.ts';
 import { readTradingParties, type TradingParty, type TradingPartyList, type TradingRole } from '../../integration/party-reads.ts';
-import { readMoneyAccounts, type ServerMoneyAccount, type ServerMoneyAccountList } from '../../integration/accounts.ts';
+import { readMoneyAccounts, type ServerMoneyAccountList } from '../../integration/accounts.ts';
 import { fetchCashDay, type CashDayStatus } from '../../services/cashSessionApi.ts';
 
 /**
