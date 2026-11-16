@@ -163,7 +163,7 @@ function bearer(request) {
   const h = request.headers().authorization || '';
   return ['a', 'b'].find(w => h === 'Bearer ' + people[w].token) ?? null;
 }
-function intercept(page, log, violations, blocked) {
+function intercept(page, log, violations, blocked, faults = null) {
   page.route('**/*', route => {
     const u = new URL(route.request().url());
     if (u.origin !== origin) { blocked.push(u.origin); return route.abort('blockedbyclient'); }
@@ -209,6 +209,16 @@ function intercept(page, log, violations, blocked) {
       if (returnId) { assert.equal(who, 'a'); assert.equal(returnId[1], people.a.purchaseId); }
       if (path === '/api/v1/purchase-returns') assert.equal(who, 'a');
       const response = await get(path + u.search, people[who].token);
+      // Fault injection affects the browser-only response AFTER the genuine
+      // signed Nest GET succeeds. Never falsify server evidence or data writes.
+      if (faults && faults.injectMalformedList && who === 'a' &&
+          path === '/api/v1/purchases' && response.status === 200 && Array.isArray(response.data?.data)) {
+        assert.ok(response.data.data.some(row => row.id === people.a.purchaseId),
+          'malformed injection requires a real signed A source purchase');
+        faults.injected += 1;
+        return route.fulfill({ status: 200, contentType: 'application/json',
+          body: JSON.stringify({ data: { malformed: true } }) });
+      }
       return route.fulfill({ status: response.status,
         contentType: response.type || 'application/json', body: response.raw });
     } catch {
@@ -315,6 +325,39 @@ async function exercise(browser, width, preflightRecords) {
     throw error;
   } finally { await context.close(); }
 }
+async function exerciseMalformedPurchaseList(browser, width, preflightRecords) {
+  const context = await browser.newContext({ viewport: { width, height: 860 },
+    reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  page.setDefaultTimeout(25000);
+  const log = [], violations = [], blocked = [], errors = [];
+  const faults = { injectMalformedList: true, injected: 0 };
+  let stage = 'navigation';
+  page.on('pageerror', e => errors.push(e.name));
+  intercept(page, log, violations, blocked, faults);
+  try {
+    await page.goto(fixture, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    stage = 'malformed-list';
+    await page.locator('[data-purchase-real-login-a]').click();
+    await page.getByText('Verified:' + preflightRecords.a.access.businessName).waitFor();
+    await page.getByText('Could not verify purchases from the server. No preview data was loaded.').waitFor();
+    assert.equal(await page.locator('[data-purchases-table]').count(), 0,
+      'invalid signed purchase list cannot render a live or sample table');
+    assert.equal(await page.getByText(preflightRecords.a.row.supplierName).count(), 0,
+      'malformed signed response must not reveal the fixture supplier');
+    assert.ok(faults.injected >= 1, 'actual signed Nest list must be replaced after real GET');
+    assert.ok(log.some(row => row.path === '/api/v1/purchases' &&
+      row.method === 'GET' && row.who === 'a'));
+    assert.deepEqual(violations, []);
+    assert.deepEqual(errors, []);
+    console.log('PASS malformed signed purchase-list 200 fails closed @' + width + 'px');
+  } catch (error) {
+    const category = error?.name === 'TimeoutError' ? 'timeout' :
+      error?.name === 'AssertionError' ? 'assertion' : 'other';
+    console.error('R09_PURCHASE_MALFORMED_LIST_RED', width, stage, category);
+    throw error;
+  } finally { await context.close(); }
+}
 async function main() {
   const preflightRecords = await preflight();
   let vite, browser;
@@ -327,6 +370,9 @@ async function main() {
     await exercise(browser, 1280, preflightRecords);
     await exercise(browser, 768, preflightRecords);
     await exercise(browser, 390, preflightRecords);
+    await exerciseMalformedPurchaseList(browser, 1280, preflightRecords);
+    await exerciseMalformedPurchaseList(browser, 768, preflightRecords);
+    await exerciseMalformedPurchaseList(browser, 390, preflightRecords);
     console.log('PASS signed purchase-return Nest/PG16 GET acceptance; no business writes');
   } finally {
     await browser?.close();
