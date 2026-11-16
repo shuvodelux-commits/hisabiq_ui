@@ -43,15 +43,33 @@ function isPartyV2Path(path: string): boolean {
   // instead of widening access to an arbitrary nested V2 resource.
   return /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}\/ledger\?role=(CUSTOMER|SUPPLIER|VENDOR)(?:&fromDate=\d{4}-\d{2}-\d{2})?(?:&toDate=\d{4}-\d{2}-\d{2})?(?:&cursor=[0-7][0-9A-HJKMNP-TV-Z]{25})?(?:&limit=(?:[1-9]\d?|1\d\d|200))?$/.test(path);
 }
-/** The only versioned Party write transport currently approved in React. */
+/** One exact create endpoint; a separate single-party name/phone PATCH only. */
 function isPartyV2CreatePath(path: string): boolean {
   return path === '/api/v2/parties';
+}
+function isPartyV2EditPath(path: string): boolean {
+  return /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(path);
+}
+/** Fail closed even if requestJson is invoked without the dedicated edit adapter. */
+function isPartyV2EditBody(value: unknown): boolean {
+  if (!record(value)) return false;
+  const keys = ['selectedRole', 'version', 'name', 'phone'];
+  return Object.keys(value).length === keys.length &&
+    keys.every(key => Object.prototype.hasOwnProperty.call(value, key)) &&
+    (value.selectedRole === 'CUSTOMER' || value.selectedRole === 'SUPPLIER' ||
+      value.selectedRole === 'VENDOR') &&
+    typeof value.version === 'number' && Number.isSafeInteger(value.version) &&
+    value.version > 0 && value.version < Number.MAX_SAFE_INTEGER &&
+    typeof value.name === 'string' &&
+    value.name.trim().length >= 1 && value.name.trim().length <= 200 &&
+    (value.phone === null ||
+      (typeof value.phone === 'string' && value.phone.trim().length <= 30));
 }
 function requestUrl(path: string): URL {
   const v1 = typeof path === 'string' && path.startsWith('/api/v1/') &&
     path.length > '/api/v1/'.length;
   const v2 = typeof path === 'string' &&
-    (isPartyV2Path(path) || isPartyV2CreatePath(path));
+    (isPartyV2Path(path) || isPartyV2CreatePath(path) || isPartyV2EditPath(path));
   if ((!v1 && !v2) ||
       path.includes('#') || path.includes('\\') || invalidControls(path)) throw protocolError();
 
@@ -115,6 +133,12 @@ export async function requestJson<T>(input: ApiRequest, decode: (raw: unknown) =
   if (isPartyV2CreatePath(input.path) &&
       (input.method !== 'POST' || !record(input.body) ||
         input.accessToken === undefined || input.operationId === undefined))
+    throw protocolError();
+  // Unlike CREATE, PATCH has no idempotency key; only a versioned directory DTO
+  // is allowed, and no other method can reinterpret the same bare Party URL.
+  if (isPartyV2EditPath(input.path) &&
+      (input.method !== 'PATCH' || !isPartyV2EditBody(input.body) ||
+        input.accessToken === undefined || input.operationId !== undefined))
     throw protocolError();
   if (input.accessToken !== undefined &&
       (typeof input.accessToken !== 'string' || !input.accessToken || /\s/.test(input.accessToken))) throw protocolError();
