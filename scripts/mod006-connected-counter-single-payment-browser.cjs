@@ -15,10 +15,10 @@ const id = () => '0' + [...crypto.randomBytes(25)].map(x => letters[x % 32]).joi
 const isId = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 function fail(message) { throw Error('H2 FINANCIAL TEST SAFETY: ' + message); }
 function guard() {
-  if (process.env.MOD006_H1_ACK !== ACK ||
-      process.env.MOD006_H1_ORIGIN !== API ||
-      process.env.MOD006_H1_DB !== DB ||
-      process.env.MOD006_H1_CONTAINER !== CONTAINER) {
+  if (process.env.MOD006_H2_ACK !== ACK ||
+      process.env.MOD006_H2_ORIGIN !== API ||
+      process.env.MOD006_H2_DB !== DB ||
+      process.env.MOD006_H2_CONTAINER !== CONTAINER) {
     fail('explicit disposable database identity not acknowledged');
   }
   const result = spawnSync('podman', ['inspect', '--format', '{{json .}}', CONTAINER], {
