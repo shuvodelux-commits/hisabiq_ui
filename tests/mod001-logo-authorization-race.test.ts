@@ -28,7 +28,7 @@ const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 
 async function withController(run: (make: any) => Promise<void>) {
   const cacheDir = await mkdtemp(join(tmpdir(), 'mod001-logo-authorization-'));
-  const server = await createServer({ cacheDir, server: { middlewareMode: true, hmr: false } });
+  const server = await createServer({ configFile: false, cacheDir, server: { middlewareMode: true, hmr: false } });
   const previousWindow = (globalThis as any).window;
   const previousFetch = globalThis.fetch;
   (globalThis as any).window = { location: { origin: 'https://hisabiq-mod001.test' } };
@@ -52,7 +52,7 @@ test('revoking edit permission during file read cancels the selection before a P
     globalThis.fetch = (async () => { calls++; return ok(true); }) as typeof fetch;
     const states: any[] = [], confirmed: any[] = [];
     const controller = make((s: any) => states.push(s), (v: any) => confirmed.push(v));
-    controller.configure({ identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false });
+    controller.configure({ identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false, confirmCurrent: async () => true });
     controller.select(file(() => reading));
     const pending = controller.upload();
     assert.equal(states.at(-1).busy, true, 'file verification is in progress');
@@ -82,7 +82,7 @@ test('blocking an in-flight upload aborts it and retains unknown-outcome lock un
     }) as typeof fetch;
     const states: any[] = [], confirmed: any[] = [];
     const controller = make((s: any) => states.push(s), (v: any) => confirmed.push(v));
-    const editable = { identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false };
+    const editable = { identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false, confirmCurrent: async () => true };
     controller.configure(editable);
     controller.select(file());
     const pending = controller.upload();
@@ -101,7 +101,7 @@ test('blocking an in-flight upload aborts it and retains unknown-outcome lock un
     controller.select(file());
     await controller.upload();
     assert.equal(requests, 1, 'unblocking cannot replay an unknown write');
-    controller.serverRefreshed(); // Called only after a verified GET by the parent.
+    await controller.serverRefreshed(); // Called only after a verified GET by the parent.
     controller.select(file());
     await controller.upload();
     assert.equal(requests, 2, 'explicit refresh allows one new deliberate action');
@@ -122,7 +122,7 @@ test('revoking edit permission during a DELETE aborts it and forbids stale confi
     }) as typeof fetch;
     const states: any[] = [], confirmed: any[] = [];
     const controller = make((s: any) => states.push(s), (v: any) => confirmed.push(v));
-    const editable = { identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false };
+    const editable = { identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false, confirmCurrent: async () => true };
     controller.configure(editable);
     controller.requestDelete();
     const pending = controller.remove();
@@ -150,7 +150,7 @@ test('unknown upload outcome remains locked after unrelated UI blocking toggles'
     globalThis.fetch = (async () => { calls++; throw new TypeError('connection lost after send'); }) as typeof fetch;
     const states: any[] = [];
     const controller = make((s: any) => states.push(s), () => assert.fail('unknown outcome cannot confirm'));
-    const editable = { identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false };
+    const editable = { identityKey: 'tenant-A:session-1', accessToken: 'token-A', canEdit: true, blocked: false, confirmCurrent: async () => true };
     controller.configure(editable);
     controller.select(file());
     await controller.upload();
@@ -161,6 +161,77 @@ test('unknown upload outcome remains locked after unrelated UI blocking toggles'
     await controller.upload();
     assert.equal(calls, 1);
     assert.equal(states.at(-1).unknown, true);
+    controller.dispose();
+  });
+});
+
+for (const action of ['upload', 'remove']) test(`${action}: fresh authorization rejects stale success and preserves uncertainty across remount`, async () => {
+  await withController(async make => {
+    let authorized = true, checks = 0, writes = 0;
+    const states: any[] = [], confirmed: any[] = [];
+    globalThis.fetch = (async () => { writes++; authorized = false; return ok(action === 'upload'); }) as typeof fetch;
+    const context = { identityKey: 'A:user:1', uncertaintyKey: `race-${action}`, accessToken: 'token', canEdit: true, blocked: false,
+      confirmCurrent: async () => { checks++; return authorized; } };
+    const first = make((s: any) => states.push(s), (v: any) => confirmed.push(v));
+    first.configure(context);
+    if (action === 'upload') first.select(file()); else first.requestDelete();
+    await first[action]();
+    assert.equal(writes, 1);
+    assert.equal(checks, 2, 'check immediately before dispatch and after response');
+    assert.equal(confirmed.length, 0, 'held HTTP200 is not fresh authorization');
+    assert.equal(states.at(-1).unknown, true);
+    first.dispose();
+    const second = make((s: any) => states.push(s), () => assert.fail('must reconcile first'));
+    authorized = true;
+    second.configure({ ...context, identityKey: 'A:user:2', accessToken: 'rotated' });
+    second.select(file()); await second.upload();
+    assert.equal(writes, 1, 'remount and token rotation must not unlock uncertain writes');
+    assert.equal(states.at(-1).unknown, true);
+    await second.serverRefreshed(); second.dispose();
+  });
+});
+
+for (const action of ['upload', 'remove']) test(`${action}: denied fresh grant sends nothing`, async () => {
+  await withController(async make => {
+    let writes = 0;
+    globalThis.fetch = (async () => { writes++; return ok(true); }) as typeof fetch;
+    const controller = make(() => { return; }, () => assert.fail('denied action cannot confirm'));
+    controller.configure({ identityKey: 'denied:user:1', accessToken: 'token', canEdit: true, blocked: false,
+      confirmCurrent: async () => false });
+    if (action === 'upload') controller.select(file()); else controller.requestDelete();
+    await controller[action]();
+    assert.equal(writes, 0);
+    controller.dispose();
+  });
+});
+
+test('manual refresh cannot clear uncertainty with a stale or denied grant', async () => {
+  await withController(async make => {
+    let authorized = true;
+    const states: any[] = [];
+    globalThis.fetch = (async () => { throw new TypeError('lost response'); }) as typeof fetch;
+    const controller = make((s: any) => states.push(s), () => assert.fail('unconfirmed'));
+    controller.configure({ identityKey: 'refresh:user:1', uncertaintyKey: 'refresh:user', accessToken: 'token', canEdit: true, blocked: false,
+      confirmCurrent: async () => authorized });
+    controller.select(file()); await controller.upload();
+    authorized = false;
+    await controller.serverRefreshed();
+    assert.equal(states.at(-1).unknown, true);
+    authorized = true;
+    await controller.serverRefreshed();
+    assert.equal(states.at(-1).unknown, false);
+    controller.dispose();
+  });
+});
+
+ test('missing fresh-authorization callback fails closed', async () => {
+  await withController(async make => {
+    let writes = 0;
+    globalThis.fetch = (async () => { writes++; return ok(true); }) as typeof fetch;
+    const controller = make(() => { return; }, () => assert.fail('missing grant'));
+    controller.configure({identityKey:'missing:user:1',accessToken:'token',canEdit:true,blocked:false});
+    controller.select(file()); await controller.upload();
+    assert.equal(writes, 0);
     controller.dispose();
   });
 });
