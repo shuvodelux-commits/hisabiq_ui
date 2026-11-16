@@ -186,7 +186,7 @@ async function accounting(pool, tenant, productId, api, token, winner) {
     sale_audits: sale, adjustment_audits: damage,
     sale_events: sale, adjustment_events: damage,
     inventory: 30000, cogs: 70000 * sale, variance: 70000 * damage,
-    receivable: 84000 * sale, revenue: -84000 * sale,
+    receivable: 84000 * sale, revenue: sale === 1 ? -84000 : 0,
   });
   const journals = await transaction(pool, tenant,
     'SELECT j.id,coalesce(sum(l.amount_minor),0)::bigint AS sum ' +
