@@ -219,6 +219,21 @@ function intercept(page, log, violations, blocked, faults = null) {
         return route.fulfill({ status: 200, contentType: 'application/json',
           body: JSON.stringify({ data: { malformed: true } }) });
       }
+      if (faults && faults.injectMalformedReturnable && who === 'a' && returnId &&
+          response.status === 200 && response.data?.data?.purchaseId === people.a.purchaseId &&
+          Array.isArray(response.data.data.lines)) {
+        faults.injected += 1;
+        return route.fulfill({ status: 200, contentType: 'application/json',
+          body: JSON.stringify({ data: { malformed: true } }) });
+      }
+      if (faults && faults.injectMalformedHistory && who === 'a' &&
+          path === '/api/v1/purchase-returns' && response.status === 200 &&
+          Array.isArray(response.data?.returns) &&
+          response.data.returns.some(item => item.purchaseId === people.a.purchaseId)) {
+        faults.injected += 1;
+        return route.fulfill({ status: 200, contentType: 'application/json',
+          body: JSON.stringify({ returns: { malformed: true } }) });
+      }
       return route.fulfill({ status: response.status,
         contentType: response.type || 'application/json', body: response.raw });
     } catch {
@@ -358,6 +373,56 @@ async function exerciseMalformedPurchaseList(browser, width, preflightRecords) {
     throw error;
   } finally { await context.close(); }
 }
+async function exerciseMalformedReturnView(browser, width, preflightRecords, kind) {
+  assert.ok(kind === 'returnable' || kind === 'history');
+  const context = await browser.newContext({ viewport: { width, height: 860 },
+    reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  page.setDefaultTimeout(25000);
+  const log = [], violations = [], blocked = [], errors = [];
+  const faults = { injectMalformedReturnable: kind === 'returnable',
+    injectMalformedHistory: kind === 'history', injected: 0 };
+  let stage = 'navigation';
+  page.on('pageerror', e => errors.push(e.name));
+  intercept(page, log, violations, blocked, faults);
+  try {
+    await page.goto(fixture, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    stage = 'tenant-a';
+    await page.locator('[data-purchase-real-login-a]').click();
+    await page.getByText('Verified:' + preflightRecords.a.access.businessName).waitFor();
+    await page.locator('[data-purchases-table]')
+      .getByText(preflightRecords.a.row.supplierName)
+      .filter({ visible: true }).first().waitFor();
+    if (kind === 'returnable') {
+      stage = 'malformed-returnable';
+      await page.getByRole('button', {
+        name: 'Review returnable quantities ' + preflightRecords.a.row.number }).click();
+      await page.getByText('Could not verify returnable quantities. No preview values were loaded.').waitFor();
+    } else {
+      stage = 'malformed-history';
+      await page.getByRole('tab', { name: 'Return history' }).click();
+      await page.getByText('Could not verify supplier returns. No preview entries were loaded.').waitFor();
+    }
+    assert.equal(await page.locator('[data-purchase-returnable-table]').count(), 0,
+      'malformed source must not expose source-line preview');
+    assert.equal(await page.locator('[data-purchase-return-history-table]').count(), 0,
+      'malformed history must not expose return-history preview');
+    assert.ok(faults.injected >= 1, 'injected response must follow a real signed Nest GET');
+    const matched = kind === 'returnable'
+      ? '/api/v1/purchase-returns/returnable/' + people.a.purchaseId
+      : '/api/v1/purchase-returns';
+    assert.ok(log.some(row => row.path === matched && row.method === 'GET' &&
+      row.who === 'a'), 'actual signed source GET required');
+    assert.deepEqual(violations, []);
+    assert.deepEqual(errors, []);
+    console.log('PASS malformed signed purchase ' + kind + ' fails closed @' + width + 'px');
+  } catch (error) {
+    const category = error?.name === 'TimeoutError' ? 'timeout' :
+      error?.name === 'AssertionError' ? 'assertion' : 'other';
+    console.error('R09_PURCHASE_MALFORMED_RETURN_RED', width, kind, stage, category);
+    throw error;
+  } finally { await context.close(); }
+}
 async function main() {
   const preflightRecords = await preflight();
   let vite, browser;
@@ -373,6 +438,12 @@ async function main() {
     await exerciseMalformedPurchaseList(browser, 1280, preflightRecords);
     await exerciseMalformedPurchaseList(browser, 768, preflightRecords);
     await exerciseMalformedPurchaseList(browser, 390, preflightRecords);
+    await exerciseMalformedReturnView(browser, 1280, preflightRecords, 'returnable');
+    await exerciseMalformedReturnView(browser, 768, preflightRecords, 'returnable');
+    await exerciseMalformedReturnView(browser, 390, preflightRecords, 'returnable');
+    await exerciseMalformedReturnView(browser, 1280, preflightRecords, 'history');
+    await exerciseMalformedReturnView(browser, 768, preflightRecords, 'history');
+    await exerciseMalformedReturnView(browser, 390, preflightRecords, 'history');
     console.log('PASS signed purchase-return Nest/PG16 GET acceptance; no business writes');
   } finally {
     await browser?.close();
