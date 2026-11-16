@@ -302,7 +302,7 @@ async function run() {
     }
     const bankB=await postReviewed('23.50','/api/v1/customer-payments');
     assert.equal(queryPg("SELECT coalesce(session_id::text,'NULL') FROM customer_receipts WHERE id='"+bankB+"' AND tenant_id='"+b.tenant+"'"),'NULL');
-    assert.equal(queryPg("SELECT balance_minor FROM money_accounts WHERE id='"+b.bank+"' AND tenant_id='"+b.tenant+"'"),'32350');
+    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,b.token),200,'post source balance').accounts.find(a=>a.id===b.bank)?.balanceMinor,32350);
     console.log('H2_BANK_RECEIPT_SOURCE_JOURNAL_PASS');
     await choose('CUSTOMER',b.customer,b.mfs);
     const mfsB=await postReviewed('5.00','/api/v1/customer-payments');
@@ -311,7 +311,7 @@ async function run() {
     await choose('CUSTOMER',b.customer,b.cash);
     const cashB=await postReviewed('12.50','/api/v1/customer-payments');
     assert.equal(queryPg("SELECT coalesce(session_id::text,'NULL') FROM customer_receipts WHERE id='"+cashB+"' AND tenant_id='"+b.tenant+"'"),'NULL');
-    assert.equal(queryPg("SELECT balance_minor FROM money_accounts WHERE id='"+b.cash+"' AND tenant_id='"+b.tenant+"'"),'51250');
+    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,b.token),200,'post source balance').accounts.find(a=>a.id===b.cash)?.balanceMinor,51250);
     console.log('H2_CASH_OFF_RECEIPT_NULL_SESSION_PASS');
 
     await page.locator('#h1-logout').click();
@@ -321,7 +321,7 @@ async function run() {
     await choose('SUPPLIER',a.supplier,a.cash);
     const supplierA=await postReviewed('200.00','/api/v1/suppliers/payments');
     assert.equal(queryPg("SELECT coalesce(session_id::text,'NULL') FROM supplier_payments WHERE id='"+supplierA+"' AND tenant_id='"+a.tenant+"'"),started);
-    assert.equal(queryPg("SELECT balance_minor FROM money_accounts WHERE id='"+a.cash+"' AND tenant_id='"+a.tenant+"'"),'30000');
+    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,a.token),200,'post source balance').accounts.find(a=>a.id===a.cash)?.balanceMinor,30000);
     console.log('H2_CASH_ON_SUPPLIER_LINKED_SESSION_PASS');
     await choose('CUSTOMER',a.customer,a.cash);
     const customerA=await postReviewed('20.00','/api/v1/customer-payments');
@@ -339,7 +339,7 @@ async function run() {
     assert.equal(rejectedResponse.status(),400,'source must reject insufficient CASH drawer');
     await page.locator('[data-h2-state="rejected"]').waitFor();
     assert.equal(financial().length,negativeBefore+1);
-    assert.equal(queryPg("SELECT balance_minor FROM money_accounts WHERE id='"+a.cash+"' AND tenant_id='"+a.tenant+"'"),'32000');
+    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,a.token),200,'post source balance').accounts.find(a=>a.id===a.cash)?.balanceMinor,32000);
     console.log('H2_CASH_SHORTAGE_ROLLBACK_PASS');
 
     // Simulate the first GET after a real source commit being lost: no auto retry,
