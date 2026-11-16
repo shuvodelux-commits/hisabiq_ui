@@ -24,6 +24,8 @@ import { ApiError } from '../../../integration/errors.ts';
 import { ConnectedInvoiceLogo } from './ConnectedInvoiceLogo';
 import { ConnectedInvoiceLogoActions } from './ConnectedInvoiceLogoActions';
 
+const connectedLogoWritesEnabled = (import.meta as ImportMeta & { env: Record<string, string | undefined> }).env.VITE_CONNECTED_INVOICE_LOGO_WRITES === 'true';
+
 type Props = { canEdit: boolean; connectedReadOnly?: boolean; onDirtyChange: (dirty: boolean) => void };
 
 const langOptions = [
@@ -106,6 +108,7 @@ type ConnectedInvoiceEditorProps = {
   accessToken: string;
   initialSaved: ServerInvoiceSettings;
   canEdit: boolean;
+  canEditLogo: boolean;
   onDirtyChange: (dirty: boolean) => void;
   onConfirmed: (identityKey: string, data: ServerInvoiceSettings) => void;
 };
@@ -120,7 +123,7 @@ const connectedBoolLabels: Record<(typeof editableBooleanFields)[number], string
 
 /** Verified server-only controls. No preview design, fake plan or sample invoice. */
 function ConnectedInvoiceEditor({
-  identityKey, accessToken, initialSaved, canEdit, onDirtyChange, onConfirmed,
+  identityKey, accessToken, initialSaved, canEdit, canEditLogo, onDirtyChange, onConfirmed,
 }: ConnectedInvoiceEditorProps) {
   const { snapshot, store } = useSession();
   const [saved, setSaved] = useState(initialSaved);
@@ -149,7 +152,17 @@ function ConnectedInvoiceEditor({
   }, [onDirtyChange]);
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
 
-  const allowEdits = canEdit && !writeDenied && !needsRefresh && !logoSelected && !logoBusy && !logoUnknown && busy === 'idle';
+  const canEditPreferences = false;
+  const allowEdits = false;
+  const confirmLogoCurrent = async (requireWrite = true) => {
+    await store.revalidateAccess();
+    const current = store.getSnapshot();
+    return current.status === 'authenticated' && snapshot.status === 'authenticated' &&
+      current.tenantId === snapshot.tenantId && current.userId === snapshot.userId &&
+      current.epoch === snapshot.epoch && current.accessToken === accessToken &&
+      current.permissions.includes('sale.invoice.view') &&
+      (!requireWrite || (connectedLogoWritesEnabled && current.permissions.includes('settings.setting.edit')));
+  };
   const selectValue = (field: ServerInvoicePreferenceField) =>
     pending?.field === field ? pending.value : saved[field];
   const inputDisabled = (field: ServerInvoicePreferenceField) =>
@@ -167,6 +180,7 @@ function ConnectedInvoiceEditor({
       : 'Draft discarded. Server settings unchanged. · পরিবর্তন বাতিল হয়েছে।');
   };
   const save = async () => {
+    if (!canEditPreferences) return;
     if (!canSaveInvoiceChoice(pending, canEdit && !writeDenied && !logoSelected && !logoBusy && !logoUnknown, busy !== 'idle' || logoBusyRef.current, needsRefresh) ||
         pending === null) return;
     const choice = pending;
@@ -213,7 +227,9 @@ function ConnectedInvoiceEditor({
     activeOperation.current = operation;
     setBusy('refreshing');
     try {
+      if (!await confirmLogoCurrent(logoUnknown)) return;
       const response = await readInvoiceSettings(accessToken, operation.signal);
+      if (!await confirmLogoCurrent(logoUnknown)) return;
       if (!mounted.current || operation.signal.aborted ||
           activeIdentity.current !== requestIdentity) return;
       setSaved(response.data);
@@ -278,7 +294,9 @@ function ConnectedInvoiceEditor({
           accessToken={accessToken}
           hasLogo={saved.hasLogo}
           refreshKey={logoRefresh}
-          canEdit={canEdit && !writeDenied}
+          uncertaintyKey={snapshot.status === 'authenticated' ? `${snapshot.tenantId}:${snapshot.userId}` : identityKey}
+          confirmCurrent={confirmLogoCurrent}
+          canEdit={canEditLogo && !writeDenied}
           blocked={pending !== null || busy !== 'idle' || needsRefresh || logoUnknown}
           onSelectedChange={setLogoSelected}
           onBusyChange={value => { logoBusyRef.current = value; setLogoBusy(value); }}
@@ -291,6 +309,7 @@ function ConnectedInvoiceEditor({
             onConfirmed(identityKey, confirmed);
           }}
         />
+        <fieldset disabled className="m-0 min-w-0 border-0 p-0">
         <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-3">
           {enumControls.map(item => (
             <label key={item.field} className="block min-w-0 text-[12px] font-medium text-ink-700">
@@ -323,6 +342,7 @@ function ConnectedInvoiceEditor({
             </div>
           ))}
         </div>
+        </fieldset>
         <div className="mt-3 flex flex-wrap justify-end">
           <Button kind="outline" disabled={busy !== 'idle' || logoBusy || (logoSelected && !logoUnknown)} onClick={() => void refresh()}>
             {busy === 'refreshing' ? 'Refreshing…' : 'Refresh from server'}
@@ -337,10 +357,10 @@ function ConnectedInvoiceEditor({
         error={needsRefresh || writeDenied ? feedback : undefined}
         onSave={() => void save()}
         onDiscard={discard}
-        saveDisabled={!canSaveInvoiceChoice(pending, canEdit && !writeDenied && !logoSelected && !logoBusy && !logoUnknown, busy !== 'idle' || logoBusyRef.current, needsRefresh)}
+        saveDisabled={!canEditPreferences || !canSaveInvoiceChoice(pending, canEdit && !writeDenied && !logoSelected && !logoBusy && !logoUnknown, busy !== 'idle' || logoBusyRef.current, needsRefresh)}
         saveLabel="Save change"
         // A denied save still permits the local draft to be discarded.
-        readOnly={!canEdit}
+        readOnly={!canEditPreferences}
       />
     </div>
   );
@@ -438,6 +458,7 @@ export function InvoiceStudio({ canEdit: previewCanEdit, connectedReadOnly = fal
             accessToken={verified.accessToken}
             initialSaved={server}
             canEdit={verified.canWrite && !connectedReadOnly}
+            canEditLogo={connectedLogoWritesEnabled && verified.canWrite}
             onDirtyChange={onDirtyChange}
             onConfirmed={verified.acceptConfirmed}
           />
