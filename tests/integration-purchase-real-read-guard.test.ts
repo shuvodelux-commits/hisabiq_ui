@@ -220,3 +220,27 @@ test('R09PUR-22 stale A return result may not expose table after tenant B login'
     }
   }
 });
+
+test('R09PUR-23 true browser transport abort must be observed, not inferred from route response', () => {
+  const script = source(runner);
+  assert.match(script, /page\.on\('requestfailed'/);
+  assert.match(script, /request\.failure\(\)\?\.errorText/);
+  assert.match(script, /request\.headers\(\)\.authorization === 'Bearer ' \+ people\.a\.token/);
+  assert.match(script, /requestFailures\.push/);
+  assert.match(script, /assert\.ok\(requestFailures\.some/);
+  assert.match(script, /ERR_ABORTED/);
+});
+test('R09PUR-24 cancellation verification retains source-scoped GET and fail-closed tenant B tests', () => {
+  const script = source(runner);
+  assert.match(script, /faults\.held, 1/);
+  assert.match(script, /faults\.release\(\)/);
+  assert.match(script, /getByText\('Verified:' \+ preflightRecords\.b\.access\.businessName\)\.waitFor\(\)/);
+  assert.match(script, /requestFailures\.some\(\(failure\) => failure\.path === target/);
+  assert.match(script, /assert\.equal\(log\.some\(x => x\.who === 'b'/);
+  for (const width of [1280, 768, 390]) {
+    for (const kind of ['returnable', 'history']) {
+      assert.ok(script.includes("exerciseStaleReturnRead(browser, " + width +
+        ", preflightRecords, '" + kind + "')"));
+    }
+  }
+});

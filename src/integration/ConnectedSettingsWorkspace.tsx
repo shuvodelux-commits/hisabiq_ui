@@ -113,6 +113,8 @@ function ConnectedSettingsContent({ section }: { section: string }) {
             <p role="alert" className="rounded-md border border-ink-100 p-4 text-sm text-ink-600">
               You do not have permission to view this section. · এই অংশ দেখার অনুমতি নেই।
             </p>
+          ) : section === 'invoices' ? (
+            <InvoiceStudio key={identity} canEdit={false} connectedReadOnly onDirtyChange={setDirty} />
           ) : (
             <fieldset disabled className="m-0 min-w-0 border-0 p-0">
               <p role="status" className="mb-3 rounded-md border border-ink-100 bg-ink-50 p-3 text-xs text-ink-600">
@@ -122,10 +124,8 @@ function ConnectedSettingsContent({ section }: { section: string }) {
               {section === 'business' ? (
                 <GeneralSettingsSection key={identity} section={business}
                   canEdit={false} onDirtyChange={setDirty} />
-              ) : section === 'team' ? (
-                <TeamSettings key={identity} canEdit={false} onDirtyChange={setDirty} />
               ) : (
-                <InvoiceStudio key={identity} canEdit={false} connectedReadOnly onDirtyChange={setDirty} />
+                <TeamSettings key={identity} canEdit={false} onDirtyChange={setDirty} />
               )}
             </fieldset>
           )}

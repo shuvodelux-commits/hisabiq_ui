@@ -16,6 +16,7 @@ assert.match(workspace, /<InvoiceStudio /);
 assert.match(workspace, /connectedReadOnly/);
 assert.match(studio, /verified\.canWrite && !connectedReadOnly/);
 assert.match(workspace, /<fieldset disabled/);
+require('./mod001-connected-logo-write-gate.cjs');
 assert.doesNotMatch(workspace, /<AppShell|CashSessionProvider|<TopBar|<Sidebar/);
 assert.match(studio, /await store\.revalidateAccess\(\)/);
 assert.match(studio, /connectedAuthorizationPending/);

@@ -6,6 +6,10 @@ import {
   type CounterSettlementResult, type CounterSingleSettlementDraft,
 } from './counter-single-account.ts';
 import { resolveConnectedCounterPreflight } from './connected-counter-preflight.ts';
+import {
+  resolveConnectedCashSessionEligibility,
+  type CounterCashDayEligibility,
+} from './connected-counter-cash-day.ts';
 import type { SessionStore, SessionSnapshot } from './session.ts';
 
 /**
@@ -13,7 +17,9 @@ import type { SessionStore, SessionSnapshot } from './session.ts';
  *
  * This is NOT an authorization to activate the connected Counter or financial
  * UI. The existing Nest payment service is the only ledger/journal writer.
- * CASH remains blocked until Cash Session ON/OFF browser+PG acceptance. A POST
+ * The legacy BANK/MFS entry point still blocks CASH; the explicitly named
+ * connected entry point requires the genuine Cash Day ON/OFF server gate.
+ * A POST
  * might commit even when its response, a subsequent GET, or the session is lost.
  * The caller MUST retain the original draft and operationId, reconcile source
  * history, and never invent a second idempotency key to retry.
@@ -23,6 +29,8 @@ export interface ConnectedCounterPostedAndRefreshed {
   readonly payment: CounterSettlementResult;
   readonly account: ServerMoneyAccount;
   readonly party: TradingParty;
+  /** Informative Cash Day server GET only; Nest's payment POST rechecks under tenant lock. */
+  readonly cashDay?: CounterCashDayEligibility;
 }
 type SessionReader = Pick<SessionStore, 'getSnapshot' | 'subscribe' | 'revalidateAccess'>;
 type Authenticated = Extract<SessionSnapshot, { status: 'authenticated' }>;
@@ -49,9 +57,9 @@ function validDate(value: string): boolean {
   const d = new Date(value + 'T00:00:00.000Z');
   return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === value;
 }
-function checkedDraft(draft: CounterSingleSettlementDraft): {
+function checkedDraft(draft: CounterSingleSettlementDraft, allowCash: boolean): {
   accountId: string;
-  accountType: 'BANK' | 'MFS';
+  accountType: 'CASH' | 'BANK' | 'MFS';
 } {
   if (!draft || typeof draft !== 'object' ||
       (draft.kind !== 'CUSTOMER_RECEIPT' && draft.kind !== 'SUPPLIER_PAYMENT') ||
@@ -72,8 +80,9 @@ function checkedDraft(draft: CounterSingleSettlementDraft): {
     return invalid('A verified active money account is required');
   }
   if (!((source.method === 'Bank' && source.account.type === 'BANK') ||
-        (source.method === 'Mobile Banking' && source.account.type === 'MFS'))) {
-    return invalid('Only verified single-account BANK/MFS is enabled; CASH needs session acceptance');
+        (source.method === 'Mobile Banking' && source.account.type === 'MFS') ||
+        (allowCash && source.method === 'Cash' && source.account.type === 'CASH'))) {
+    return invalid('Only verified single-account BANK/MFS, or CASH with server Cash Day verification, is supported');
   }
   counterTakaToMinor(source.amount);
   return { accountId: source.account.id, accountType: source.account.type };
@@ -90,13 +99,38 @@ function mayHavePosted(): never {
  * bookkeeping. A single successful response is followed by independent source
  * reads, but that read must not be treated as another payment operation.
  */
+/** Legacy BANK/MFS-only contract remains unchanged, including rejection of CASH. */
 export async function recordConnectedBankCounterSettlement(
   session: SessionReader,
   draft: CounterSingleSettlementDraft,
   signal?: AbortSignal,
   timeoutMs = 12_000,
 ): Promise<ConnectedCounterPostedAndRefreshed> {
-  const { accountId, accountType } = checkedDraft(draft);
+  return recordVerifiedCounterSettlement(session, draft, false, signal, timeoutMs);
+}
+
+/**
+ * G3: explicitly opted-in single-tender CASH/BANK/MFS coordinator, still
+ * UNMOUNTED. A successful Cash Day GET is never final authorization: the real
+ * Nest source-owned financial transaction rechecks its own locked policy.
+ */
+export async function recordConnectedCounterSettlement(
+  session: SessionReader,
+  draft: CounterSingleSettlementDraft,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<ConnectedCounterPostedAndRefreshed> {
+  return recordVerifiedCounterSettlement(session, draft, true, signal, timeoutMs);
+}
+
+async function recordVerifiedCounterSettlement(
+  session: SessionReader,
+  draft: CounterSingleSettlementDraft,
+  allowCash: boolean,
+  signal?: AbortSignal,
+  timeoutMs = 12_000,
+): Promise<ConnectedCounterPostedAndRefreshed> {
+  const { accountId, accountType } = checkedDraft(draft, allowCash);
   if (!session || typeof session.getSnapshot !== 'function' ||
       typeof session.subscribe !== 'function' ||
       typeof session.revalidateAccess !== 'function' ||
@@ -131,13 +165,33 @@ export async function recordConnectedBankCounterSettlement(
     if (preflight.scope.tenantId !== initial.tenantId ||
         preflight.scope.userId !== initial.userId || preflight.scope.epoch !== initial.epoch ||
         preflight.account.type !== accountType ||
-        preflight.requiresCashSessionVerification) return invalid();
+        preflight.requiresCashSessionVerification !== (accountType === 'CASH')) return invalid();
 
-    // Use only the freshly verified Nest account, not the older UI snapshot.
+    // The CASH check re-reads current signed /me, account and day. Never trust
+    // the caller's account, an older preview day or a stale business date.
+    let cashDay: CounterCashDayEligibility | undefined;
+    if (accountType === 'CASH') {
+      if (!allowCash) return invalid('CASH is unavailable in BANK/MFS-only coordinator');
+      cashDay = await resolveConnectedCashSessionEligibility(
+        session, accountId, draft.businessDate, controller.signal, timeoutMs,
+      );
+      onChange();
+      if (stale || controller.signal.aborted) return invalid('Counter session changed during Cash Day verification');
+      if (cashDay.scope.tenantId !== initial.tenantId ||
+          cashDay.scope.userId !== initial.userId ||
+          cashDay.scope.epoch !== initial.epoch ||
+          cashDay.account.id !== preflight.account.id ||
+          cashDay.account.type !== 'CASH' ||
+          cashDay.account.status !== 'ACTIVE') return invalid();
+    }
+
+    // Only the latest verified Nest account enters the writer; for CASH the
+    // source date is the server's business date, never the browser clock.
     const originalTender = draft.sources[0]!;
     const verifiedDraft: CounterSingleSettlementDraft = {
       ...draft,
-      sources: [{ ...originalTender, account: preflight.account }],
+      ...(cashDay ? { businessDate: cashDay.businessDate } : {}),
+      sources: [{ ...originalTender, account: cashDay?.account ?? preflight.account }],
     };
     const payment = await recordSingleAccountCounterSettlement(
       initial.accessToken, verifiedDraft, controller.signal, timeoutMs,
@@ -163,6 +217,7 @@ export async function recordConnectedBankCounterSettlement(
     return {
       scope: Object.freeze({ tenantId: initial.tenantId, userId: initial.userId, epoch: initial.epoch }),
       payment, account, party,
+      ...(cashDay ? { cashDay } : {}),
     };
   } catch (error) {
     if (stale || posted) return mayHavePosted();
