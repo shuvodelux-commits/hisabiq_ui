@@ -162,3 +162,35 @@ test('R09PUR-17 malformed-list UI displays no preview purchases at each viewport
     assert.ok(script.includes('exerciseMalformedPurchaseList(browser, ' + width + ', preflightRecords)'));
   }
 });
+
+test('R09PUR-18 malformed returnable source requires genuine signed A GET before injection', () => {
+  const script = source(runner);
+  assert.match(script, /faults\.injectMalformedReturnable/);
+  assert.match(script, /response\.data\?\.data\?\.purchaseId === people\.a\.purchaseId/);
+  assert.match(script, /Array\.isArray\(response\.data\.data\.lines\)/);
+  assert.match(script, /JSON\.stringify\(\{ data: \{ malformed: true \} \}\)/);
+  assert.match(script, /returnId/);
+});
+test('R09PUR-19 malformed supplier return history requires genuine A return record', () => {
+  const script = source(runner);
+  assert.match(script, /faults\.injectMalformedHistory/);
+  assert.match(script, /response\.data\.returns\.some\(item => item\.purchaseId === people\.a\.purchaseId\)/);
+  assert.match(script, /JSON\.stringify\(\{ returns: \{ malformed: true \} \}\)/);
+  assert.match(script, /path === '\/api\/v1\/purchase-returns'/);
+});
+test('R09PUR-20 malformed returnable and history views suppress preview at all viewports', () => {
+  const script = source(runner);
+  assert.match(script, /async function exerciseMalformedReturnView\(/);
+  assert.ok(script.includes('Could not verify returnable quantities. No preview values were loaded.'));
+  assert.ok(script.includes('Could not verify supplier returns. No preview entries were loaded.'));
+  assert.ok(script.includes("page.locator('[data-purchase-returnable-table]').count()"));
+  assert.ok(script.includes("page.locator('[data-purchase-return-history-table]').count()"));
+  assert.match(script, /assert\.deepEqual\(violations, \[\]\)/);
+  assert.match(script, /assert\.deepEqual\(errors, \[\]\)/);
+  for (const width of [1280, 768, 390]) {
+    for (const kind of ['returnable', 'history']) {
+      assert.ok(script.includes("exerciseMalformedReturnView(browser, " + width +
+        ", preflightRecords, '" + kind + "')"));
+    }
+  }
+});
