@@ -1,0 +1,194 @@
+# MOD-003 #624: source-pinned test-only real signed adjustment PG16 QA.
+name: MOD-003 real signed inventory adjustment PG16
+on:
+  pull_request:
+    paths:
+      - .github/workflows/mod003-adjustment-real-pg16.yml
+      - scripts/mod003-adjustment-real-tenant-acceptance.cjs
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  signed-adjustment:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'shuvodelux-commits/hisabiq_ui' && startsWith(github.event.pull_request.head.ref, 'test/mod003-624-') }}
+    name: Two signed tenants / nonowner RLS / no-TRUNCATE PG16
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mod003_t02p2_disposable_only
+          POSTGRES_DB: sher_mod003_t02p2_20261116
+        ports:
+          - 55723:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sher_mod003_t02p2_20261116"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "55723"
+      PGUSER: postgres
+      PGPASSWORD: mod003_t02p2_disposable_only
+      PGDATABASE: sher_mod003_t02p2_20261116
+      ADMIN_DATABASE_URL: postgres://postgres:mod003_t02p2_disposable_only@127.0.0.1:55723/sher_mod003_t02p2_20261116
+      DATABASE_URL: postgres://sher_app:sher_app_test@127.0.0.1:55723/sher_mod003_t02p2_20261116
+      JWT_SECRET: mod003-t02p2-disposable-only-source-pinned
+      MOD003_T02P2_TEST_ONLY: MOD003_T02P2_DISPOSABLE_ONLY_20261116
+      MOD003_T02P2_API_URL: http://127.0.0.1:55724
+      MOD003_T02P2_DB_URL: postgres://sher_app:sher_app_test@127.0.0.1:55723/sher_mod003_t02p2_20261116
+      MOD003_T02P2_BACKEND_DIR: /home/runner/work/hisabiq_ui/hisabiq_ui/backend
+    steps:
+      - name: Checkout exact same-repository PR head
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/hisabiq_ui
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          path: frontend
+          persist-credentials: false
+      - name: Checkout approved immutable Nest adoption source
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/nestshererp
+          ref: e9b7f8d63eecda064eaf64b9d5a8f1d7bcabe10f
+          path: backend
+          persist-credentials: false
+      - name: Verify source pair, exact ancestry and both HTTPS origins
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C frontend rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "$(git -C backend rev-parse HEAD)" = e9b7f8d63eecda064eaf64b9d5a8f1d7bcabe10f
+          test "$(git -C frontend merge-base HEAD e9a56169de060a2680daafe3e732b8fe74e76c02)" = e9a56169de060a2680daafe3e732b8fe74e76c02
+          test "$(git -C frontend remote get-url origin)" = https://github.com/shuvodelux-commits/hisabiq_ui
+          test "$(git -C backend remote get-url origin)" = https://github.com/shuvodelux-commits/nestshererp
+          test -f frontend/src/integration/inventory-adjustment-command.ts
+          test -f frontend/scripts/mod003-adjustment-real-tenant-acceptance.cjs
+          test -f backend/apps/api/package.json
+          test "$PWD/backend" = "$MOD003_T02P2_BACKEND_DIR"
+          echo "Source pair verified: $(git -C frontend rev-parse HEAD) / $(git -C backend rev-parse HEAD)"
+      - name: Node20 and pnpm9 for Nest
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - name: Build pinned Nest and verify Node20
+        working-directory: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node -v | cut -d. -f1)" = v20
+          pnpm install --frozen-lockfile
+          pnpm --filter "@sher/api..." build
+      - name: Verify disposable PG16 and provision restricted runtime role
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$PGHOST" = 127.0.0.1
+          test "$PGPORT" = 55723
+          test "$PGDATABASE" = sher_mod003_t02p2_20261116
+          psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_database()' | grep -Fx sher_mod003_t02p2_20261116
+          psql -v ON_ERROR_STOP=1 -Atqc 'SHOW server_version_num' | grep -E '^16[0-9]{4}$'
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE sher_app LOGIN PASSWORD 'sher_app_test' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS"
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT rolsuper || '|' || rolbypassrls || '|' || rolcreatedb FROM pg_roles WHERE rolname='sher_app'" | grep -Fx 'false|false|false'
+      - name: Migrate only the owner-controlled disposable database
+        working-directory: backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ADMIN_DATABASE_URL" = postgres://postgres:mod003_t02p2_disposable_only@127.0.0.1:55723/sher_mod003_t02p2_20261116
+          DATABASE_URL="$ADMIN_DATABASE_URL" node apps/api/dist/migrate.js
+      - name: Grant only SELECT INSERT UPDATE DELETE and assert no TRUNCATE
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c 'GRANT CONNECT ON DATABASE sher_mod003_t02p2_20261116 TO sher_app'
+          psql -v ON_ERROR_STOP=1 -c 'GRANT USAGE ON SCHEMA public TO sher_app'
+          psql -v ON_ERROR_STOP=1 -c 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sher_app'
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND has_table_privilege('sher_app',c.oid,'TRUNCATE')" | grep -Fx 0
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT pg_get_userbyid(datdba) <> 'sher_app' FROM pg_database WHERE datname=current_database()" | grep -Fx t
+          PGPASSWORD=sher_app_test PGUSER=sher_app psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_user' | grep -Fx sher_app
+      - name: Start real Node20 Nest, demand 401 before synthetic writes
+        working-directory: backend
+        shell: bash
+        env:
+          NODE_ENV: test
+          PORT: "55724"
+          ENTITLEMENT_SOURCE: subscription
+          SINGLE_TENANT_MODE: "false"
+          IDENTITY_VERIFIER: dev
+          BILLING_ENABLED: "true"
+          WEB_ORIGIN: http://127.0.0.1:55724
+        run: |
+          set -euo pipefail
+          nohup node apps/api/dist/main.js > "$RUNNER_TEMP/mod003-t02p2-api.log" 2>&1 < /dev/null &
+          echo $! > "$RUNNER_TEMP/mod003-t02p2-api.pid"
+          ready=0
+          for i in $(seq 1 50); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:55724/api/v1/me || true)
+            if [ "$code" = 401 ]; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Refusing writes: real Nest API did not return unauthenticated 401"
+            tail -70 "$RUNNER_TEMP/mod003-t02p2-api.log" || true
+            exit 1
+          fi
+      - name: Node24/npm for HisabIQ command transport
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install unchanged frontend lockfile
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          test "$(node -v | cut -d. -f1)" = v24
+          npm ci --no-audit --no-fund
+      - name: Six unsafe-target negative preflight tests
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          reject() {
+            expected="$1"; shift
+            if output=$("$@" 2>&1); then echo "Unsafe input accepted"; exit 1; fi
+            if ! grep -Fq "$expected" <<< "$output"; then echo "$output"; exit 1; fi
+          }
+          reject "Explicit disposable-only marker required" env -u MOD003_T02P2_TEST_ONLY node scripts/mod003-adjustment-real-tenant-acceptance.cjs --guard-only
+          reject "dedicated Nest API hostname" env MOD003_T02P2_API_URL=http://localhost:55724 node scripts/mod003-adjustment-real-tenant-acceptance.cjs --guard-only
+          reject "Never use shared or default API port" env MOD003_T02P2_API_URL=http://127.0.0.1:3000 node scripts/mod003-adjustment-real-tenant-acceptance.cjs --guard-only
+          reject "Only exact disposable database is allowed" env MOD003_T02P2_DB_URL=postgres://sher_app:sher_app_test@127.0.0.1:55723/postgres node scripts/mod003-adjustment-real-tenant-acceptance.cjs --guard-only
+          reject "Only nonowner application role is allowed" env MOD003_T02P2_DB_URL=postgres://postgres:sher_app_test@127.0.0.1:55723/sher_mod003_t02p2_20261116 node scripts/mod003-adjustment-real-tenant-acceptance.cjs --guard-only
+          reject "Explicit isolated backend path required" env -u MOD003_T02P2_BACKEND_DIR node scripts/mod003-adjustment-real-tenant-acceptance.cjs --guard-only
+          node scripts/mod003-adjustment-real-tenant-acceptance.cjs --guard-only
+          echo "All six unsafe-target guards rejected before fixture writes."
+      - name: Live signed React transport to Nest/PG16 no-TRUNCATE posting and reconciliation
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          node --experimental-strip-types scripts/mod003-adjustment-real-tenant-acceptance.cjs
+      - name: Print synthetic test-only API log tail on failure
+        if: failure()
+        run: |
+          if test -f "$RUNNER_TEMP/mod003-t02p2-api.log"; then
+            tail -100 "$RUNNER_TEMP/mod003-t02p2-api.log" | sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[redacted]/g'
+          fi
+      - name: Stop only this job's Nest API
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/mod003-t02p2-api.pid"; then
+            kill "$(cat "$RUNNER_TEMP/mod003-t02p2-api.pid")" 2>/dev/null || true
+          fi
+          # Dedicated PG16 service disappears when the hosted runner is destroyed.
