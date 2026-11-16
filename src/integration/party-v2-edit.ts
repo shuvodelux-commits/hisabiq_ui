@@ -105,7 +105,7 @@ export async function editTradingPartyNamePhoneV2(
   try {
     return await requestJson({
       method: 'PATCH',
-      path: '/api/v2/parties/' + partyId,
+      path: `/api/v2/parties/${partyId}`,
       accessToken,
       body: input,
       signal: controller.signal,
