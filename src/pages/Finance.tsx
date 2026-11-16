@@ -35,6 +35,7 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { CounterWorkspace } from '../components/finance/CounterWorkspace';
+import { ConnectedCounterReadWorkspace } from '../components/finance/ConnectedCounterReadWorkspace';
 import { financePreviewRelationshipSummary, getFinancePreviewSnapshot, subscribeFinancePreview, updateFinancePreview } from '../data/financePreviewStore';
 import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog, ConnectedMoneyAccountActionDialog, type ConnectedMoneyAccountSelection } from '../components/finance/FinanceRecordDialogs';
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
@@ -1723,6 +1724,7 @@ export function Finance(props: { counterOnly?: boolean; moneyAccountsOnly?: bool
   const { mode } = useSession();
   if (mode === 'connected') {
     if (props.moneyAccountsOnly) return <ConnectedMoneyAccountsRead />;
+    if (props.counterOnly) return <ConnectedCounterReadWorkspace />;
     return <main role="status" className="rounded-lg border border-border bg-card p-4 text-sm text-ink-500">
       Connected finance posting and related workspaces are not enabled yet. 
       সার্ভারের টাকার লেনদেন ও সংশ্লিষ্ট কাজ এখনো চালু হয়নি।
