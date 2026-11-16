@@ -123,6 +123,15 @@ function snapshot() {
   ].map(name => "'" + name + "', (SELECT count(*) FROM " + name + ")").join(', ')
   + ')::text'));
 }
+function setDisposableUsername(tenant, user, who) {
+  assert.match(tenant, ULID);
+  assert.match(user, ULID);
+  const username = who === 'A' ? 'p6posted-a-647' : 'p6posted-b-647';
+  const query = "UPDATE users SET username='" + username + "' " +
+    "WHERE tenant_id='" + tenant + "' AND id='" + user + "' RETURNING username";
+  assert.equal(sql(query), username,
+    'P6 posted QA fixture username update failed');
+}
 function grant(tenant, user, permission) {
   assert.match(tenant, ULID);
   assert.match(user, ULID);
@@ -201,6 +210,7 @@ async function main() {
   for (const who of whoKeys) {
     const tenant = E['HISABIQ_P5D_TENANT_' + who];
     const user = E['HISABIQ_P5D_USER_' + who];
+    setDisposableUsername(tenant, user, who);
     grant(tenant, user, 'purchase.bill.view');
     if (who === 'A') {
       grant(tenant, user, 'purchase.return.create');
