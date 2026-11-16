@@ -203,7 +203,22 @@ async function accounting(pool, tenant, productId, api, token, winner) {
   assert.equal(valuation.differenceMinor, 0);
   assert.equal(valuation.reconciled, true);
 }
-async function overlap(pool, tenant, product, sale, damage) {
+async function waitForQueuedCostStateWriters(pool, expected, label) {
+  // Real PG16 observations, not mocked promises or an assumed request order.
+  // Both Nest processes share the same deliberately isolated sher_app role.
+  for (let attempt = 0; attempt < 70; attempt++) {
+    const rows = (await pool.query(
+      "SELECT count(*)::int AS waiting FROM pg_stat_activity " +
+      "WHERE datname=current_database() AND usename=current_user " +
+      "AND pid <> pg_backend_pid() AND wait_event_type='Lock' " +
+      "AND query ILIKE '%product_cost_state%'"
+    )).rows;
+    if (rows[0].waiting >= expected) return;
+    await delay(100);
+  }
+  throw Error('Real PG16 '+label+' writer never queued at cost-state row lock');
+}
+async function overlap(pool, tenant, product, sale, damage, damageFirst) {
   const client = await pool.connect();
   let writes;
   try {
@@ -213,8 +228,19 @@ async function overlap(pool, tenant, product, sale, damage) {
       'SELECT id FROM product_cost_state WHERE tenant_id=$1 AND product_id=$2 FOR UPDATE',
       [tenant, product]);
     assert.equal(locked.rows.length, 1, 'Real PG row lock barrier required');
-    writes = Promise.all([sale(), damage()]);
-    await delay(400);
+    if (damageFirst) {
+      // Exercise the genuinely missing branch: DAMAGE must queue before SALE.
+      // Catch to avoid an unhandled rejection while watching PG lock queue.
+      const queuedDamage = damage().catch(error => ({
+        status: 0, error: { message: String(error) },
+      }));
+      await waitForQueuedCostStateWriters(pool, 1, 'DAMAGE-first');
+      writes = Promise.all([sale(), queuedDamage]);
+      await waitForQueuedCostStateWriters(pool, 2, 'SALE-after-DAMAGE');
+    } else {
+      writes = Promise.all([sale(), damage()]);
+      await delay(400);
+    }
     await client.query('COMMIT');
     return await writes;
   } catch (e) {
@@ -262,10 +288,12 @@ async function run() {
           return {status:error.status,error:{code:error.code,message:error.message}};
         }
       };
-      const [s,d] = await overlap(pool,owner.tenantId,productId,sale,damage);
+      const [s,d] = await overlap(pool,owner.tenantId,productId,sale,damage,i===2);
       assert.equal([s.status,d.status].filter(status=>status===201).length,1,
         'Only one of two 7/10 owned-stock writers may succeed');
       const winner = s.status===201?'SALE':'DAMAGE';
+      if (i === 2) assert.equal(winner, 'DAMAGE',
+        'With real queued DAMAGE-first PG source lock, SALE must lose');
       if (winner==='SALE') {
         assert.equal(d.status,400,'Losing DAMAGE must report actual shortage');
         assert.equal(d.error?.code,'VALIDATION_FAILED');
