@@ -109,7 +109,7 @@ function ulid() {
 }
 function sql(command) {
   const proc = spawnSync('podman', ['exec', NAME, 'psql', '-U', 'postgres',
-    '-d', 'sher_test', '-v', 'ON_ERROR_STOP=1', '-t', '-A', '-c', command],
+    '-d', 'sher_test', '-v', 'ON_ERROR_STOP=1', '-t', '-A', '-q', '-c', command],
   { encoding: 'utf8', timeout: 12000, maxBuffer: 1024 * 1024 });
   assert.equal(proc.status, 0, 'P6 posted QA isolated PG query failed');
   return proc.stdout.trim();
