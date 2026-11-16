@@ -18,8 +18,25 @@ async function main(){
         })),language);
         await page.goto('http://127.0.0.1:4403/#/app/purchases');
         await page.getByRole('heading',{name:bn?'ক্রয়':'Purchases',exact:true}).waitFor();
-        await page.getByRole('button',{name:bn?'ফিল্টার মুছুন':'Reset filters',exact:true}).waitFor();
-        await page.getByRole('textbox',{name:bn?'কেনাকাটা খুঁজুন':'Search purchases',exact:true}).waitFor();
+        const search = page.getByRole('textbox',{name:bn?'কেনাকাটা খুঁজুন':'Search purchases',exact:true});
+        await search.waitFor();
+        // On phones the Reset control is intentionally inside the collapsed
+        // Advanced filters panel. Test the user path instead of a hidden button.
+        if (width < 1024) {
+          const toggle = page.getByRole('button',{
+            name:bn?'আরও ফিল্টার':'Advanced filters',exact:true,
+          });
+          assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+          await toggle.click();
+          assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+        }
+        const reset = page.locator('[data-purchases-filterbar]').getByRole('button',{
+          name:bn?'ফিল্টার মুছুন':'Reset filters',exact:true,
+        });
+        await reset.waitFor();
+        await search.fill('NO-MATCH-P6');
+        await reset.click();
+        assert.equal(await search.inputValue(),'','Reset filters clears the purchase search');
         const actions=page.getByRole('button',{name:new RegExp(bn?'কাজ:':'Actions for')});
         assert.ok(await actions.count()>0,'purchase source actions exist');
         await actions.first().click();
