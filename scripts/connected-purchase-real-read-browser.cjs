@@ -234,6 +234,30 @@ function intercept(page, log, violations, blocked, faults = null) {
         return route.fulfill({ status: 200, contentType: 'application/json',
           body: JSON.stringify({ returns: { malformed: true } }) });
       }
+      if (faults && who === 'a' && response.status === 200 &&
+          ((faults.holdReturnable && returnId &&
+            response.data?.data?.purchaseId === people.a.purchaseId &&
+            Array.isArray(response.data.data.lines)) ||
+           (faults.holdHistory && path === '/api/v1/purchase-returns' &&
+            Array.isArray(response.data?.returns) &&
+            response.data.returns.some(item => item.purchaseId === people.a.purchaseId)))) {
+        // Hold a true, completed, tenant-scoped Nest GET before fulfilling it
+        // into the test browser; the parent test switches identity first.
+        faults.held += 1;
+        const released = new Promise(resolve => { faults.release = resolve; });
+        faults.reached();
+        await released;
+        assert.equal(faults.switched, true, 'old A answer released only after tenant B verified');
+        try {
+          return await route.fulfill({ status: response.status,
+            contentType: response.type || 'application/json', body: response.raw });
+        } catch {
+          // The React AbortController may have cancelled the old browser GET.
+          // This is permitted only after the test confirms B took over.
+          faults.aborted += 1;
+          return;
+        }
+      }
       return route.fulfill({ status: response.status,
         contentType: response.type || 'application/json', body: response.raw });
     } catch {
@@ -423,6 +447,77 @@ async function exerciseMalformedReturnView(browser, width, preflightRecords, kin
     throw error;
   } finally { await context.close(); }
 }
+async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
+  assert.ok(kind === 'returnable' || kind === 'history');
+  const context = await browser.newContext({ viewport: { width, height: 860 },
+    reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  page.setDefaultTimeout(25000);
+  const log = [], violations = [], blocked = [], errors = [];
+  const faults = { holdReturnable: kind === 'returnable',
+    holdHistory: kind === 'history', held: 0, aborted: 0, switched: false,
+    release: null, reached: null };
+  faults.pending = new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('source GET did not reach hold')), 20000);
+    faults.reached = () => { clearTimeout(timeout); resolve(); };
+  });
+  let stage = 'navigation';
+  page.on('pageerror', e => errors.push(e.name));
+  intercept(page, log, violations, blocked, faults);
+  try {
+    await page.goto(fixture, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    stage = 'tenant-a';
+    await page.locator('[data-purchase-real-login-a]').click();
+    await page.getByText('Verified:' + preflightRecords.a.access.businessName).waitFor();
+    const rowA = preflightRecords.a.row;
+    await page.locator('[data-purchases-table]').getByText(rowA.supplierName)
+      .filter({ visible: true }).first().waitFor();
+    stage = 'hold-real-a-get';
+    if (kind === 'returnable') {
+      await page.getByRole('button', { name: 'Review returnable quantities ' + rowA.number }).click();
+    } else {
+      await page.getByRole('tab', { name: 'Return history' }).click();
+    }
+    await faults.pending;
+    assert.equal(faults.held, 1, 'must hold exactly one source-linked real Nest GET');
+    stage = 'tenant-b-switch';
+    await page.locator('[data-purchase-real-login-b]').click();
+    await page.getByText('Verified:' + preflightRecords.b.access.businessName).waitFor();
+    faults.switched = true;
+    faults.release();
+    // Wait for the old response or cancellation to settle without activating
+    // any data from tenant A, even if it completes after tenant B is verified.
+    await page.waitForTimeout(180);
+    assert.equal(await page.locator('[data-purchase-returnable-table]').count(), 0,
+      'old A source must not populate tenant B returnable');
+    assert.equal(await page.locator('[data-purchase-return-history-table]').count(), 0,
+      'old A history must not populate tenant B history');
+    assert.equal(await page.getByText(rowA.supplierName).count(), 0,
+      'old A supplier must not remain visible to tenant B');
+    if (kind === 'returnable') {
+      await page.getByText('You need purchase return permission to review returnable quantities.').waitFor();
+    } else {
+      await page.getByText('You do not have permission to view supplier return history.').waitFor();
+    }
+    assert.ok(log.some(x => x.method === 'GET' && x.who === 'a' &&
+      x.path === (kind === 'returnable'
+        ? '/api/v1/purchase-returns/returnable/' + people.a.purchaseId
+        : '/api/v1/purchase-returns')));
+    assert.equal(log.some(x => x.who === 'b' &&
+      x.path.startsWith('/api/v1/purchase-returns')), false);
+    assert.deepEqual(violations, []);
+    assert.deepEqual(errors, []);
+    console.log('PASS stale signed A purchase ' + kind + ' rejected after B switch @' + width + 'px');
+  } catch (error) {
+    const category = error?.name === 'TimeoutError' ? 'timeout' :
+      error?.name === 'AssertionError' ? 'assertion' : 'other';
+    console.error('R09_PURCHASE_STALE_EPOCH_RED', width, kind, stage, category);
+    throw error;
+  } finally {
+    if (faults.release) faults.release();
+    await context.close();
+  }
+}
 async function main() {
   const preflightRecords = await preflight();
   let vite, browser;
@@ -444,6 +539,12 @@ async function main() {
     await exerciseMalformedReturnView(browser, 1280, preflightRecords, 'history');
     await exerciseMalformedReturnView(browser, 768, preflightRecords, 'history');
     await exerciseMalformedReturnView(browser, 390, preflightRecords, 'history');
+    await exerciseStaleReturnRead(browser, 1280, preflightRecords, 'returnable');
+    await exerciseStaleReturnRead(browser, 768, preflightRecords, 'returnable');
+    await exerciseStaleReturnRead(browser, 390, preflightRecords, 'returnable');
+    await exerciseStaleReturnRead(browser, 1280, preflightRecords, 'history');
+    await exerciseStaleReturnRead(browser, 768, preflightRecords, 'history');
+    await exerciseStaleReturnRead(browser, 390, preflightRecords, 'history');
     console.log('PASS signed purchase-return Nest/PG16 GET acceptance; no business writes');
   } finally {
     await browser?.close();

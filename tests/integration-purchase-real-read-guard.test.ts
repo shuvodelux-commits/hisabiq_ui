@@ -194,3 +194,29 @@ test('R09PUR-20 malformed returnable and history views suppress preview at all v
     }
   }
 });
+
+
+test('R09PUR-21 delayed genuine A source/history GET must be held until tenant B takes over', () => {
+  const script = source(runner);
+  assert.match(script, /async function exerciseStaleReturnRead\(/);
+  assert.match(script, /faults\.holdReturnable/);
+  assert.match(script, /faults\.holdHistory/);
+  assert.match(script, /response\.data\?\.data\?\.purchaseId === people\.a\.purchaseId/);
+  assert.match(script, /response\.data\.returns\.some\(item => item\.purchaseId === people\.a\.purchaseId\)/);
+  assert.match(script, /await faults\.pending/);
+  assert.match(script, /faults\.release\(\)/);
+});
+test('R09PUR-22 stale A return result may not expose table after tenant B login', () => {
+  const script = source(runner);
+  assert.match(script, /stage = 'tenant-b-switch'/);
+  assert.match(script, /getByText\('Verified:' \+ preflightRecords\.b\.access\.businessName\)\.waitFor\(\)/);
+  assert.match(script, /page\.locator\('\[data-purchase-returnable-table\]'\)\.count\(\)/);
+  assert.match(script, /page\.locator\('\[data-purchase-return-history-table\]'\)\.count\(\)/);
+  assert.match(script, /assert\.deepEqual\(violations, \[\]\)/);
+  for (const width of [1280, 768, 390]) {
+    for (const kind of ['returnable', 'history']) {
+      assert.ok(script.includes("exerciseStaleReturnRead(browser, " + width +
+        ", preflightRecords, '" + kind + "')"));
+    }
+  }
+});
