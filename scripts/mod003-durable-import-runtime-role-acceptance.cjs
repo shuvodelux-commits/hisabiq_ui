@@ -194,6 +194,146 @@ async function checkSource(pool,tenant,operationId,name,expectedResponse,csv) {
   assert.equal(JSON.stringify(opRows[0]).includes(csv),false,'No raw CSV retained');
   return opRows[0].request_fingerprint;
 }
+
+/** #650: Reuse the real nonowner role, tenant auth and Nest pair for opening stock. */
+async function openingFixtureProduct(api,actor,name,purchaseMinor,sellingMinor,unitId) {
+  const product=posted(await http(api,'/api/v1/products',{
+    name,baseUnitId:unitId,purchasePriceMinor:purchaseMinor,
+    sellingPriceMinor:sellingMinor,minStockQty:1000,
+    brandId:null,categoryId:null,sku:null,barcode:null,description:null,
+    defaultDiscountType:null,defaultDiscountValue:null,
+    offerEnabled:false,offerPriceMinor:null,offerStartDate:null,offerEndDate:null,
+    tracksExpiry:false,tracksSerial:false,conversionUnitId:null,
+    conversionFactorQty:null,
+  },actor.token,ulid()),201,'Real product for opening import');
+  assert.match(product.id,ULID);
+  return product.id;
+}
+async function openingSourceSnapshot(pool,actor,productIds,operationId) {
+  const ids=productIds;
+  const [source]=await tenantRows(pool,actor.tenantId,[
+    'SELECT',
+    '(SELECT count(*)::int FROM stock_openings WHERE product_id IN ($1,$2)) AS openings,',
+    "(SELECT count(*)::int FROM inventory_lots WHERE product_id IN ($1,$2) AND owner_type='OWNED' AND source_document_type='OPENING_STOCK') AS lots,",
+    "(SELECT COALESCE(sum(qty_remaining),0)::bigint FROM inventory_lots WHERE product_id IN ($1,$2) AND owner_type='OWNED' AND source_document_type='OPENING_STOCK') AS lot_qty,",
+    '(SELECT COALESCE(sum(qty_on_hand),0)::bigint FROM product_cost_state WHERE product_id IN ($1,$2)) AS stock_qty,',
+    "(SELECT count(*)::int FROM stock_movements WHERE product_id IN ($1,$2) AND source_document_type='OPENING_STOCK') AS movements,",
+    "(SELECT count(*)::int FROM journal_entries WHERE source_document_type='OPENING_STOCK') AS journals,",
+    "(SELECT count(*)::int FROM audit_events WHERE entity_type='stock_opening') AS opening_audits,",
+    "(SELECT count(*)::int FROM outbox WHERE event_type='inventory.opening-recorded') AS opening_events,",
+    "(SELECT count(*)::int FROM audit_events WHERE entity_type='data_import' AND entity_id=$3) AS import_audits,",
+    "(SELECT count(*)::int FROM outbox WHERE event_type='data.imported' AND aggregate_id=$3) AS import_events,",
+    '(SELECT count(*)::int FROM import_operations WHERE operation_id=$3) AS permanent_claims',
+  ].join(' '),[...ids,operationId]);
+  const openingRows=await tenantRows(pool,actor.tenantId,
+    'SELECT product_id,qty,value_minor FROM stock_openings WHERE product_id IN ($1,$2) ORDER BY product_id',
+    ids);
+  const journal=await tenantRows(pool,actor.tenantId,[
+    'SELECT j.id AS journal_id,',
+    'count(l.id)::int AS lines,',
+    'COALESCE(sum(l.amount_minor),0)::bigint AS net,',
+    "COALESCE(sum(CASE WHEN l.account_code='INVENTORY' THEN l.amount_minor ELSE 0 END),0)::bigint AS inventory,",
+    "COALESCE(sum(CASE WHEN l.account_code<>'INVENTORY' THEN l.amount_minor ELSE 0 END),0)::bigint AS other",
+    'FROM journal_entries j JOIN journal_lines l ON l.journal_entry_id=j.id',
+    "WHERE j.source_document_type='OPENING_STOCK' GROUP BY j.id ORDER BY j.id",
+  ].join(' '));
+  return {
+    ...Object.fromEntries(Object.entries(source).map(([key,value])=>[key,Number(value)])),
+    products:openingRows.map(r=>({
+      productId:r.product_id.trim(),qty:Number(r.qty),valueMinor:Number(r.value_minor),
+    })),
+    journal:journal.map(r=>({
+      id:r.journal_id.trim(),lines:r.lines,net:Number(r.net),
+      inventory:Number(r.inventory),other:Number(r.other),
+    })),
+  };
+}
+async function proveOpeningImport(pool,cfg,owner,otherTenant) {
+  const catalog=posted(await http(cfg.a,'/api/v1/catalog',undefined,
+    owner.token,undefined,'GET'),200,'Actual catalog');
+  const piece=catalog.units.find(unit=>unit.name==='Piece');
+  assert.ok(piece,'Actual onboarded Piece unit required');
+
+  const rice='Opening Rice 650',dal='Opening Dal 650';
+  const riceId=await openingFixtureProduct(cfg.a,owner,rice,10000,12000,piece.id);
+  const dalId=await openingFixtureProduct(cfg.a,owner,dal,5000,7000,piece.id);
+  const ids=[riceId,dalId];
+  const openingKey=ulid();
+  const openingHeader='Product Name,Product Code,Quantity,Unit Cost,Opening Date,Expiry Date';
+  const csv=[openingHeader,rice+',,10,,,',dal+',,5,60.00,,'].join('\r\n');
+  const changed=[openingHeader,rice+',,10,,,',dal+',,6,60.00,,'].join('\r\n');
+  assert.equal(csv.length,changed.length,'Changed opening CSV must have equal length');
+
+  // Preview must remain read-only even for a financially posting import type.
+  const preview=posted(await http(cfg.a,'/api/v1/imports/preview',
+    {type:'OPENING_STOCK',csv},owner.token),200,'Opening preview');
+  assert.equal(preview.validRows,2);
+  assert.equal(preview.invalidRows,0);
+  const untouched=await openingSourceSnapshot(pool,owner,ids,openingKey);
+  for(const key of ['openings','lots','lot_qty','stock_qty','movements','journals',
+    'opening_audits','opening_events','import_audits','import_events','permanent_claims']) {
+    assert.equal(untouched[key],0,'Preview must not mutate '+key);
+  }
+  assert.deepEqual(untouched.products,[]);
+  assert.deepEqual(untouched.journal,[]);
+
+  const expected={type:'OPENING_STOCK',rows:2,imported:2};
+  const submitA=()=>http(cfg.a,'/api/v1/imports',
+    {type:'OPENING_STOCK',csv},owner.token,openingKey);
+  const submitB=()=>http(cfg.b,'/api/v1/imports',
+    {type:'OPENING_STOCK',csv},owner.token,openingKey);
+  const [left,right]=await Promise.all([submitA(),submitB()]);
+  assert.deepEqual(posted(left,201,'Nest A opening import'),expected);
+  assert.deepEqual(posted(right,201,'Nest B same-key opening import'),expected);
+
+  const stable=await openingSourceSnapshot(pool,owner,ids,openingKey);
+  for(const key of ['openings','lots','movements','journals',
+    'opening_audits','opening_events']) {
+    assert.equal(stable[key],2,'Exactly two '+key+' for two CSV rows');
+  }
+  assert.equal(stable.lot_qty,15000);
+  assert.equal(stable.stock_qty,15000);
+  for(const key of ['import_audits','import_events','permanent_claims']) {
+    assert.equal(stable[key],1,'Exactly one import source '+key);
+  }
+  assert.deepEqual(stable.products.sort((a,b)=>a.productId.localeCompare(b.productId)),[
+    {productId:riceId,qty:10000,valueMinor:100000},
+    {productId:dalId,qty:5000,valueMinor:30000},
+  ].sort((a,b)=>a.productId.localeCompare(b.productId)));
+  assert.equal(stable.journal.length,2);
+  assert.ok(stable.journal.every(j=>j.lines===2&&j.net===0),
+    'Every opening journal has exactly two balanced lines');
+  assert.equal(stable.journal.reduce((n,j)=>n+j.inventory,0),130000);
+  assert.equal(stable.journal.reduce((n,j)=>n+j.other,0),-130000);
+
+  const valuation=posted(await http(cfg.a,'/api/v1/inventory/valuation',
+    undefined,owner.token,undefined,'GET'),200,'Valuation after opening import');
+  assert.equal(valuation.totalValueMinor,130000);
+  assert.equal(valuation.inventoryAccountMinor,130000);
+  assert.equal(valuation.differenceMinor,0);
+  assert.equal(valuation.reconciled,true);
+  assert.equal((await tenantRows(pool,otherTenant.tenantId,
+    'SELECT id FROM stock_openings WHERE product_id IN ($1,$2)',ids)).length,0,
+    'Foreign tenant must not see opening sources');
+  assert.equal((await tenantRows(pool,otherTenant.tenantId,
+    'SELECT id FROM import_operations WHERE operation_id=$1',[openingKey])).length,0,
+    'Foreign tenant must not see opening import claim');
+
+  // Retention may prune only the fast key, never the durable import document.
+  await assertNoPermanentDelete(pool,owner.tenantId,openingKey);
+  await pruneOnlyFastCache(pool,owner.tenantId,openingKey);
+  assert.deepEqual(posted(await submitB(),201,'Late opening import replay'),expected);
+  const refused=await http(cfg.a,'/api/v1/imports',
+    {type:'OPENING_STOCK',csv:changed},owner.token,openingKey);
+  assert.equal(refused.status,409,'Different opening CSV must not reuse operation');
+  assert.equal(refused.error?.code,'IDEMPOTENCY_KEY_REUSED');
+  assert.deepEqual(await openingSourceSnapshot(pool,owner,ids,openingKey),stable,
+    'Pruned retry and refused changed CSV cannot add source, lot or journal');
+  assert.deepEqual(posted(await http(cfg.a,'/api/v1/inventory/valuation',
+    undefined,owner.token,undefined,'GET'),200,'Post-replay valuation'),valuation);
+  console.log('MOD003_650_OPENING_PASS pg16=true role-no-delete-truncate=true two-nest=true opening-sources=2 lot-qty=15000 inventory-minor=130000 journals-balanced=true late-replay=true changed-409=true rls=true');
+}
+
 async function execute() {
   const cfg=environment();
   if(process.argv.includes('--guard-only')) {
@@ -258,6 +398,7 @@ async function execute() {
       assert.deepEqual(rows[0],{stock:0,openings:0});
     }
     console.log('MOD003_643_REAL_PASS pg16=true separate-nest-processes=2 tenants=2 permanent-claims=2 no-delete=true no-truncate=true late-replay=true changed-file-409=true accounting-zero=true');
+    await proveOpeningImport(pool,cfg,a,b);
   } finally {await pool.end();}
 }
 execute().catch(error=>{
