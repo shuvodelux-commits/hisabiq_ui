@@ -65,11 +65,26 @@ function isPartyV2EditBody(value: unknown): boolean {
     (value.phone === null ||
       (typeof value.phone === 'string' && value.phone.trim().length <= 30));
 }
+/** Strict V2 identity-wide status POST; never allow a query or another verb. */
+function isPartyV2StatusPath(path: string): boolean {
+  return /^/api/v2/parties/[0-7][0-9A-HJKMNP-TV-Z]{25}/status$/.test(path);
+}
+function isPartyV2StatusBody(value: unknown): boolean {
+  if (!record(value)) return false;
+  const keys = ['selectedRole', 'version', 'status'];
+  return Object.keys(value).length === keys.length &&
+    keys.every(key => Object.prototype.hasOwnProperty.call(value, key)) &&
+    (value.selectedRole === 'CUSTOMER' || value.selectedRole === 'SUPPLIER' ||
+      value.selectedRole === 'VENDOR') &&
+    typeof value.version === 'number' && Number.isSafeInteger(value.version) &&
+    value.version > 0 && value.version < Number.MAX_SAFE_INTEGER &&
+    (value.status === 'ACTIVE' || value.status === 'INACTIVE');
+}
 function requestUrl(path: string): URL {
   const v1 = typeof path === 'string' && path.startsWith('/api/v1/') &&
     path.length > '/api/v1/'.length;
   const v2 = typeof path === 'string' &&
-    (isPartyV2Path(path) || isPartyV2CreatePath(path) || isPartyV2EditPath(path));
+    (isPartyV2Path(path) || isPartyV2CreatePath(path) || isPartyV2EditPath(path) || isPartyV2StatusPath(path));
   if ((!v1 && !v2) ||
       path.includes('#') || path.includes('\\') || invalidControls(path)) throw protocolError();
 
@@ -96,7 +111,7 @@ function requestUrl(path: string): URL {
         !(v1 ? url.pathname.startsWith('/api/v1/') &&
           url.pathname.length > '/api/v1/'.length
           : url.pathname === '/api/v2/parties' ||
-            /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}(?:\/(?:ledger|opening))?$/.test(url.pathname)))
+            /^\/api\/v2\/parties\/[0-7][0-9A-HJKMNP-TV-Z]{25}(?:\/(?:ledger|opening|status))?$/.test(url.pathname)))
       throw protocolError();
   } catch {
     throw protocolError();
@@ -138,6 +153,12 @@ export async function requestJson<T>(input: ApiRequest, decode: (raw: unknown) =
   // is allowed, and no other method can reinterpret the same bare Party URL.
   if (isPartyV2EditPath(input.path) &&
       (input.method !== 'PATCH' || !isPartyV2EditBody(input.body) ||
+        input.accessToken === undefined || input.operationId !== undefined))
+    throw protocolError();
+  // Explicitly constrain identity-wide status. No V1 fallback, anonymous POST,
+  // raw Party DTO, idempotency key or reinterpreted nested V2 resource.
+  if (isPartyV2StatusPath(input.path) &&
+      (input.method !== 'POST' || !isPartyV2StatusBody(input.body) ||
         input.accessToken === undefined || input.operationId !== undefined))
     throw protocolError();
   if (input.accessToken !== undefined &&
