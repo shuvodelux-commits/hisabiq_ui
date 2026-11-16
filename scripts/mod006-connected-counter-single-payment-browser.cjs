@@ -321,7 +321,7 @@ async function run() {
     await choose('SUPPLIER',a.supplier,a.cash);
     const supplierA=await postReviewed('200.00','/api/v1/suppliers/payments');
     assert.equal(queryPg("SELECT coalesce(session_id::text,'NULL') FROM supplier_payments WHERE id='"+supplierA+"' AND tenant_id='"+a.tenant+"'"),started);
-    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,a.token),200,'post source balance').accounts.find(a=>a.id===a.cash)?.balanceMinor,30000);
+    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,a.token),200,'post source balance').accounts.find(account=>account.id===a.cash)?.balanceMinor,30000);
     console.log('H2_CASH_ON_SUPPLIER_LINKED_SESSION_PASS');
     await choose('CUSTOMER',a.customer,a.cash);
     const customerA=await postReviewed('20.00','/api/v1/customer-payments');
@@ -339,7 +339,7 @@ async function run() {
     assert.equal(rejectedResponse.status(),400,'source must reject insufficient CASH drawer');
     await page.locator('[data-h2-state="rejected"]').waitFor();
     assert.equal(financial().length,negativeBefore+1);
-    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,a.token),200,'post source balance').accounts.find(a=>a.id===a.cash)?.balanceMinor,32000);
+    assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,a.token),200,'post source balance').accounts.find(account=>account.id===a.cash)?.balanceMinor,32000);
     console.log('H2_CASH_SHORTAGE_ROLLBACK_PASS');
 
     // Simulate the first GET after a real source commit being lost: no auto retry,
