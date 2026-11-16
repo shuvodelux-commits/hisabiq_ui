@@ -305,7 +305,7 @@ export function ConnectedCounterReadWorkspace() {
         <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
           <h2 className="text-sm font-semibold">{text('Payment review', 'পেমেন্ট যাচাই')}</h2>
           <p className="mt-2 text-xs text-ink-500">
-            {text('Posting, split tenders, invoice allocation and discounts are not connected yet. Existing preview forms remain available in preview mode.', 'সার্ভারের পেমেন্ট, একাধিক মাধ্যম, বিলের সমন্বয় ও ছাড় এখনো যুক্ত হয়নি। নমুনার ফর্ম প্রিভিউ মোডে আগের মতো আছে।')}
+            {text('Only the reviewed single-source payment is staged below. Split tenders, invoice allocation, discounts, expenses and transfers remain unavailable. Preview forms are unchanged.', 'নিচে শুধু যাচাই করা এক মাধ্যমের পেমেন্ট প্রস্তুত। একাধিক মাধ্যম, বিল সমন্বয়, ছাড়, খরচ ও স্থানান্তর এখনো চালু নয়। প্রিভিউ ফর্ম অপরিবর্তিত।')}
           </p>
           <Button disabled className="mt-3 w-full" data-counter-submit-disabled="">
             {text('Split / invoice / discount — unavailable', 'একাধিক মাধ্যম / বিল / ছাড় — এখনো চালু নয়')}
