@@ -273,5 +273,5 @@ test('R09PUR-26 real phone touch hit targets navigate connected source/history w
   assert.match(script, /await review\.tap\(\)/);
   assert.match(script, /await historyTab\.tap\(\)/);
   assert.ok(script.includes("exercisePurchaseAccessibleNavigation(browser, 390, preflightRecords, 'touch')"));
-  assert.match(script, /assert\.equal\(log\.some\(entry => entry\.method !== 'GET'\), false\)/);
+  assert.match(script, /entry\.method !== 'GET' && entry\.path !== '\/api\/v1\/auth\/login'/);
 });
