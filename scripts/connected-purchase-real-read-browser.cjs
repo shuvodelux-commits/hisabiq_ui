@@ -454,6 +454,7 @@ async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
   const page = await context.newPage();
   page.setDefaultTimeout(25000);
   const log = [], violations = [], blocked = [], errors = [];
+  const requestFailures = [];
   const faults = { holdReturnable: kind === 'returnable',
     holdHistory: kind === 'history', held: 0, aborted: 0, switched: false,
     release: null, reached: null };
@@ -463,6 +464,14 @@ async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
   });
   let stage = 'navigation';
   page.on('pageerror', e => errors.push(e.name));
+  page.on('requestfailed', request => {
+    if (request.method() !== 'GET' ||
+        request.headers().authorization !== 'Bearer ' + people.a.token) return;
+    const u = new URL(request.url());
+    if (u.origin !== origin || !u.pathname.startsWith('/api/v1/purchase-returns')) return;
+    requestFailures.push({ path: u.pathname,
+      reason: request.failure()?.errorText || 'unknown' });
+  });
   intercept(page, log, violations, blocked, faults);
   try {
     await page.goto(fixture, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -487,7 +496,16 @@ async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
     faults.release();
     // Wait for the old response or cancellation to settle without activating
     // any data from tenant A, even if it completes after tenant B is verified.
-    await page.waitForTimeout(180);
+    const target = kind === 'returnable'
+      ? '/api/v1/purchase-returns/returnable/' + people.a.purchaseId
+      : '/api/v1/purchase-returns';
+    for (let attempt = 0; attempt < 30 &&
+         !requestFailures.some((failure) => failure.path === target); attempt++) {
+      await page.waitForTimeout(50);
+    }
+    assert.ok(requestFailures.some((failure) => failure.path === target &&
+      /ERR_ABORTED|NS_BINDING_ABORTED/.test(failure.reason)),
+      'must observe actual cancelled A browser request, not just blocked route.fulfill');
     assert.equal(await page.locator('[data-purchase-returnable-table]').count(), 0,
       'old A source must not populate tenant B returnable');
     assert.equal(await page.locator('[data-purchase-return-history-table]').count(), 0,
