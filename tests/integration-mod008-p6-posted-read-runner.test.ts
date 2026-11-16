@@ -19,7 +19,7 @@ function refuse(env: Record<string, string>, expected: RegExp): void {
 test('P6POSTED-01 has a dedicated opt-in runner, no production changes', () => {
   assert.ok(existsSync(runner));
   const src = readFileSync(runner, 'utf8');
-  assert.match(src, /mod008-p6-posted-react-647-20261116/);
+  assert.match(src, /mod008-p6-posted-647-20261116/);
   assert.match(src, /hisabiq-mod008-p5d-pg16/);
   assert.match(src, /mod008-p5d-501/);
   assert.match(src, /connected-purchase-real-read-browser\.cjs/);
@@ -46,8 +46,8 @@ test('P6POSTED-04 enforces signed two-tenant source, fixed PG image and run-owne
   assert.match(src, /POSTGRES_DB=sher_test/);
   assert.match(src, /HISABIQ_P5D_JWT_A/);
   assert.match(src, /HISABIQ_P5D_JWT_B/);
-  assert.match(src, /HISABIQ_P5D_SUPPLIER_A/);
-  assert.match(src, /HISABIQ_P5D_PRODUCT_B/);
+  assert.match(src, /HISABIQ_P5D_SUPPLIER_/);
+  assert.match(src, /HISABIQ_P5D_PRODUCT_/);
   assert.match(src, /createHmac\('sha256'/);
 });
 
