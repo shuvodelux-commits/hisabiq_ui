@@ -231,6 +231,9 @@ async function run() {
     await page.setViewportSize({width:390,height:844});
     await signIn(b);
     await page.locator('[data-counter-cash-status="OFF"]').waitFor();
+    const secondRoleButtons=page.locator('[role="group"][aria-label="Connected Counter actions"] button');
+    await secondRoleButtons.nth(0).click();
+    await page.locator('[data-counter-party="'+b.customer+'"]').waitFor();
     assert.equal(await page.locator('[data-counter-party="'+a.customer+'"]').count(),0);
     assert.equal(await page.locator('[data-counter-party="'+b.customer+'"]').count(),1);
     await page.locator('[data-counter-party="'+b.customer+'"]').click();
