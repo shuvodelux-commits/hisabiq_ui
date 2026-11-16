@@ -39,5 +39,6 @@ test('amount formatting is source minor-unit aware and not optimistic local debi
   assert.match(code,/BigInt/);
   assert.doesNotMatch(code,/balanceMinor\s*[+\-]=|\.balanceMinor\s*\+|\.balanceMinor\s*-/);
   assert.match(code,/role === 'CUSTOMER'/);
-  assert.match(code,/role === 'SUPPLIER'/);
+  assert.match(code,/role === 'CUSTOMER'\s*\?/);
+  assert.match(code,/Supplier advance/);
 });
