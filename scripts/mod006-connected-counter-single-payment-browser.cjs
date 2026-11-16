@@ -207,7 +207,7 @@ async function run() {
       await page.locator('[data-connected-counter][data-read-only="true"]').waitFor();
       await page.locator('[data-counter-party-state="ready"]').waitFor();
       await page.locator('#connected-counter-account[data-counter-account-state="ready"]').waitFor();
-      await page.locator('[data-counter-cash-status="NOT_STARTED"],[data-counter-cash-status="OFF"]').waitFor();
+      await page.locator('[data-counter-cash-status="NOT_STARTED"],[data-counter-cash-status="OFF"],[data-counter-cash-status="OPEN"]').waitFor();
       assert.equal(await page.locator('[data-counter-submit-disabled]').isDisabled(),true);
     }
     await signIn(a);
@@ -218,6 +218,7 @@ async function run() {
     assert.equal(await page.locator('[data-counter-source-party]').getAttribute('data-counter-source-party'),a.customer);
     await page.locator('#connected-counter-account').selectOption(a.cash);
     assert.match(await page.locator('[data-counter-source-balance]').innerText(),/500\.00/);
+    assert.equal(await page.locator('[data-h2-review]').isDisabled(),true,'ON unopened drawer cannot review a CASH payment');
     await page.locator('#connected-counter-party-search').fill('Nothing-match-h1');
     await page.locator('[data-counter-party-state="ready"]').waitFor();
     assert.equal(await page.locator('[data-counter-party]').count(),0);
@@ -293,7 +294,7 @@ async function run() {
       assert.equal(response.status(),201,'real Nest source HTTP201');
       const result=await response.json();
       assert.match(result.data.id,isId);
-      await page.locator('[data-h2-posted-result]').waitFor();
+      await page.locator('[data-h2-posted-result]').filter({hasText:result.data.number}).waitFor();
       assert.equal(financial().length,count+1,'one user confirmation sends one payment');
       assert.match(financial().at(-1).key,isId,'cryptographic operation key');
       assert.equal(await page.locator('[data-h2-confirm]').count(),0,'confirm cannot double-submit');
