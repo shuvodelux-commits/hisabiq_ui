@@ -2255,6 +2255,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/finance/ConnectedCounterSinglePayment.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedCounterSinglePayment"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/finance/CounterWorkspace.tsx",
       "kind": "component",
       "exports": [
