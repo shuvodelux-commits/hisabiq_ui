@@ -2247,6 +2247,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/finance/ConnectedCounterReadWorkspace.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedCounterReadWorkspace"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/finance/CounterWorkspace.tsx",
       "kind": "component",
       "exports": [
