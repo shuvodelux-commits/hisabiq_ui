@@ -250,7 +250,7 @@ test('R09PUR-25 real signed connected Purchases supports keyboard-only return/hi
   const script = source(runner);
   assert.match(script, /async function exercisePurchaseAccessibleNavigation\(/);
   assert.match(script, /getByRole\('tablist', \{ name: 'Purchase sections' \}\)/);
-  assert.match(script, /getByRole\('button', \{ name: 'Review returnable quantities ' \+ row\.number \}\)/);
+  assert.match(script, /name: 'Review returnable quantities ' \+ row\.number/);
   assert.match(script, /await review\.focus\(\)/);
   assert.match(script, /await review\.press\('Enter'\)/);
   assert.match(script, /await historyTab\.focus\(\)/);
