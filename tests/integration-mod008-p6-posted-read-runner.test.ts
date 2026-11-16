@@ -48,6 +48,7 @@ test('P6POSTED-04 enforces signed two-tenant source, fixed PG image and run-owne
   assert.match(src, /HISABIQ_P5D_JWT_B/);
   assert.match(src, /HISABIQ_P5D_SUPPLIER_/);
   assert.match(src, /HISABIQ_P5D_PRODUCT_/);
+  assert.match(src, /UPDATE users SET username/);
   assert.match(src, /createHmac\('sha256'/);
 });
 
