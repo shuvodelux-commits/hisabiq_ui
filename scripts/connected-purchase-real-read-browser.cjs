@@ -457,7 +457,10 @@ async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
   const faults = { holdReturnable: kind === 'returnable',
     holdHistory: kind === 'history', held: 0, aborted: 0, switched: false,
     release: null, reached: null };
-  faults.pending = new Promise(resolve => { faults.reached = resolve; });
+  faults.pending = new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('source GET did not reach hold')), 20000);
+    faults.reached = () => { clearTimeout(timeout); resolve(); };
+  });
   let stage = 'navigation';
   page.on('pageerror', e => errors.push(e.name));
   intercept(page, log, violations, blocked, faults);
