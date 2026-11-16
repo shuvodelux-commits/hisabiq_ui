@@ -29,9 +29,10 @@ test('H2 exact backend source method and role and one-tender mapping',()=>{
   const code=read(panel);
   assert.match(code,/CUSTOMER_RECEIPT/);
   assert.match(code,/SUPPLIER_PAYMENT/);
-  assert.match(code,/method:\s*'Cash'/);
-  assert.match(code,/method:\s*'Bank'/);
-  assert.match(code,/method:\s*'Mobile Banking'/);
+  assert.match(code,/return 'Cash'/);
+  assert.match(code,/return 'Bank'/);
+  assert.match(code,/return 'Mobile Banking'/);
+  assert.match(code,/method: method\(account\)/);
   assert.match(code,/sources:\s*\[/);
   assert.doesNotMatch(code,/discount:\s*\d|invoiceId:\s*[^n]|splitPayment/);
 });
