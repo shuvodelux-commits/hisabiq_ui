@@ -161,6 +161,17 @@ test('reject untrusted source envelopes, cost leakage, inconsistent quantity/rea
   }
 });
 
+test('empty 204 cannot silently confirm a stock mutation without a source document', async () => {
+  let calls = 0;
+  await withFetch((async () => {
+    calls++;
+    return new Response(null, { status: 204 });
+  }) as typeof fetch, async () => {
+    await assert.rejects(submitInventoryAdjustment('tenant-owner', operationId, command), protocol);
+  });
+  assert.equal(calls, 1);
+});
+
 test('HTTP 401/403/404/409/422/500 preserve one response and never silently fallback to preview or retry', async () => {
   for (const status of [401, 403, 404, 409, 422, 500]) {
     let calls = 0;
