@@ -37,7 +37,7 @@ test('real connected workspace global gate stays CLOSED and never mounts preview
 test('amount formatting is source minor-unit aware and not optimistic local debit/credit',()=>{
   const code=read(target);
   assert.match(code,/BigInt/);
-  assert.doesNotMatch(code,/balanceMinor\s*[+\-]=|\.balanceMinor\s*\+|\.balanceMinor\s*-/);
+  assert.doesNotMatch(code,/balanceMinor\s*[+-]=|\.balanceMinor\s*\+|\.balanceMinor\s*-/);
   assert.match(code,/role === 'CUSTOMER'/);
   assert.match(code,/role === 'CUSTOMER'\s*\?/);
   assert.match(code,/Supplier advance/);
