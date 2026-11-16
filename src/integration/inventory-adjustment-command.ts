@@ -60,7 +60,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 function hasExactKeys(value: Record<string, unknown>, allowed: ReadonlySet<string>,
   required: readonly string[]): boolean {
-  return required.every(key => Object.hasOwn(value, key)) &&
+  return required.every(key => Object.prototype.hasOwnProperty.call(value, key)) &&
     Object.keys(value).every(key => allowed.has(key));
 }
 function isUlid(value: unknown): value is string {
@@ -90,13 +90,13 @@ export function validateInventoryAdjustmentCommand(raw: unknown): InventoryAdjus
   if (!isUlid(raw.productId) || !isInteger(raw.qtyDelta) || raw.qtyDelta === 0 ||
     !isReason(raw.reason) || !(raw.note === null ||
     (typeof raw.note === 'string' && raw.note.length <= 500))) return invalid();
-  if (Object.hasOwn(raw, 'businessDate') && !isDate(raw.businessDate)) return invalid();
+  if (Object.prototype.hasOwnProperty.call(raw, 'businessDate') && !isDate(raw.businessDate)) return invalid();
 
   const command: InventoryAdjustmentCommand = {
     productId: raw.productId, qtyDelta: raw.qtyDelta, reason: raw.reason,
     note: raw.note,
   };
-  if (Object.hasOwn(raw, 'businessDate')) command.businessDate = raw.businessDate as string;
+  if (Object.prototype.hasOwnProperty.call(raw, 'businessDate')) command.businessDate = raw.businessDate as string;
   return Object.freeze(command);
 }
 
@@ -122,7 +122,7 @@ export function decodeInventoryAdjustmentResponse(raw: unknown,
     !isInteger(data.qtyOnHandAfter) || !isReason(data.reason) ||
     !(data.note === null || typeof data.note === 'string') ||
     !isDate(data.businessDate)) return invalid();
-  if (Object.hasOwn(data, 'valueMinor') && !isInteger(data.valueMinor)) return invalid();
+  if (Object.prototype.hasOwnProperty.call(data, 'valueMinor') && !isInteger(data.valueMinor)) return invalid();
   if (data.direction !== (data.qtyDelta > 0 ? 'IN' : 'OUT') ||
     data.productId !== command.productId || data.qtyDelta !== command.qtyDelta ||
     data.reason !== command.reason ||
@@ -137,7 +137,7 @@ export function decodeInventoryAdjustmentResponse(raw: unknown,
     qty: data.qty, reason: data.reason, note: data.note as string | null,
     businessDate: data.businessDate, qtyOnHandAfter: data.qtyOnHandAfter,
   };
-  if (Object.hasOwn(data, 'valueMinor')) record.valueMinor = data.valueMinor as number;
+  if (Object.prototype.hasOwnProperty.call(data, 'valueMinor')) record.valueMinor = data.valueMinor as number;
   return { data: record };
 }
 
