@@ -89,6 +89,9 @@ async function register(label,mode) {
   ok(await api('/api/v1/settings/value','POST',{
     key:'cash_session_enabled',value:mode==='ON'?'on':'off',
   },token),201,'cash setting '+mode);
+  ok(await api('/api/v1/settings/value','POST',{
+    key:'bank_accounts_enabled',value:'on',
+  },token),201,'activate test banking');
   const cash=ok(await api('/api/v1/money/accounts','POST',{
     name:'H1 '+label+' drawer',type:'CASH',
     holderName:null,reference:null,isDrawer:true,
