@@ -16,14 +16,17 @@ test('selection is dirty but inert; validated upload and confirmed delete each s
  try{
   const {createConnectedInvoiceLogoActionsController}=await server.ssrLoadModule('/src/settings/magic/invoice/ConnectedInvoiceLogoActions.tsx');
   const states:any[]=[];const confirmed:any[]=[];
+  let freshChecks=0;
+  const confirmCurrent=async()=>{freshChecks++;return true;};
   const c=createConnectedInvoiceLogoActionsController((s:any)=>states.push(s),(d:any)=>confirmed.push(d));
-  c.configure({identityKey:'tenant-A:user:1',accessToken:'token-A',canEdit:true,blocked:false});
+  c.configure({identityKey:'tenant-A:user:1',accessToken:'token-A',canEdit:true,blocked:false,confirmCurrent});
   c.select(file('logo.png','image/png',png));
   assert.equal(calls.length,0);assert.equal(states.at(-1).selectedName,'logo.png');
   await c.upload();assert.equal(calls.length,1);assert.equal(calls[0].method,'POST');assert.equal(calls[0].token,'Bearer token-A');assert.equal(calls[0].body.mime,'image/png');assert.equal(calls[0].body.dataBase64,png.toString('base64'));assert.equal(confirmed[0].hasLogo,true);
   assert.equal(states.at(-1).selectedName,null);
   await c.remove();assert.equal(calls.length,1,'delete requires explicit confirmation');
   c.requestDelete();assert.equal(calls.length,1);await c.remove();assert.equal(calls.length,2);assert.equal(calls[1].method,'DELETE');assert.equal(calls[1].body,null);assert.equal(confirmed[1].hasLogo,false);
+  assert.equal(freshChecks,4,'upload and delete each verify current grants before and after the real transport');
   c.dispose();
  }finally{globalThis.fetch=oldFetch;if(oldWindow===undefined)delete (globalThis as any).window;else (globalThis as any).window=oldWindow;await server.close();}
 });
@@ -37,16 +40,17 @@ test('invalid files, guards, unknown outcomes and identity changes fail closed',
  try{
   const {createConnectedInvoiceLogoActionsController}=await server.ssrLoadModule('/src/settings/magic/invoice/ConnectedInvoiceLogoActions.tsx');
   const states:any[]=[];const confirmed:any[]=[];
+  const confirmCurrent=async()=>true;
   const c=createConnectedInvoiceLogoActionsController((s:any)=>states.push(s),(d:any)=>confirmed.push(d));
-  c.configure({identityKey:'A',accessToken:'token-A',canEdit:true,blocked:false});
+  c.configure({identityKey:'A',accessToken:'token-A',canEdit:true,blocked:false,confirmCurrent});
   for(const bad of [file('x.svg','image/svg+xml',png),file('x.jpg','image/jpeg',png),file('x.png','image/png',new Uint8Array()),file('x.png','image/png',new Uint8Array(256*1024+1)),file('x.png','image/png',new Uint8Array([1,2,3,4,5,6,7,8]))]){c.select(bad);await c.upload();}
   assert.equal(calls,0);
   c.configure({identityKey:'A',accessToken:'token-A',canEdit:false,blocked:false});c.select(file('x.png','image/png',png));await c.upload();assert.equal(calls,0);
-  c.configure({identityKey:'A',accessToken:'token-A',canEdit:true,blocked:true});c.select(file('x.png','image/png',png));await c.upload();assert.equal(calls,0);
-  c.configure({identityKey:'A',accessToken:'token-A',canEdit:true,blocked:false});c.select(file('x.png','image/png',png));status=0;await c.upload();assert.equal(calls,1);await c.upload();assert.equal(calls,1,'unknown result cannot retry');assert.equal(states.at(-1).unknown,true);
-  c.serverRefreshed();status=403;await c.upload();assert.equal(calls,2);assert.equal(states.at(-1).denied,true);await c.upload();assert.equal(calls,2);
-  c.configure({identityKey:'B',accessToken:'token-B',canEdit:true,blocked:false});assert.equal(states.at(-1).selectedName,null);assert.equal(states.at(-1).denied,false);
-  status=200;hold=(_response:Response)=>{ /* response is retained until identity changes */ };c.select(file('x.png','image/png',png));const pending=c.upload();await tick();c.configure({identityKey:'C',accessToken:'token-C',canEdit:true,blocked:false});hold?.(new Response(JSON.stringify({data:{...base,hasLogo:true}}),{headers:{'Content-Type':'application/json'}}));await pending;assert.equal(confirmed.length,0);assert.equal(states.at(-1).selectedName,null);
+  c.configure({identityKey:'A',accessToken:'token-A',canEdit:true,blocked:true,confirmCurrent});c.select(file('x.png','image/png',png));await c.upload();assert.equal(calls,0);
+  c.configure({identityKey:'A',accessToken:'token-A',canEdit:true,blocked:false,confirmCurrent});c.select(file('x.png','image/png',png));status=0;await c.upload();assert.equal(calls,1);await c.upload();assert.equal(calls,1,'unknown result cannot retry');assert.equal(states.at(-1).unknown,true);
+  await c.serverRefreshed();status=403;await c.upload();assert.equal(calls,2);assert.equal(states.at(-1).denied,true);await c.upload();assert.equal(calls,2);
+  c.configure({identityKey:'B',accessToken:'token-B',canEdit:true,blocked:false,confirmCurrent});assert.equal(states.at(-1).selectedName,null);assert.equal(states.at(-1).denied,false);
+  status=200;hold=(_response:Response)=>{ /* response is retained until identity changes */ };c.select(file('x.png','image/png',png));const pending=c.upload();await tick();assert.equal(calls,3,'held response must follow a dispatched write');c.configure({identityKey:'C',accessToken:'token-C',canEdit:true,blocked:false,confirmCurrent});hold?.(new Response(JSON.stringify({data:{...base,hasLogo:true}}),{headers:{'Content-Type':'application/json'}}));await pending;assert.equal(confirmed.length,0);assert.equal(states.at(-1).selectedName,null);
   c.dispose();
  }finally{globalThis.fetch=oldFetch;if(oldWindow===undefined)delete (globalThis as any).window;else (globalThis as any).window=oldWindow;await server.close();}
 });
