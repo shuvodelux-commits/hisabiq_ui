@@ -118,13 +118,13 @@ export function ConnectedCounterSinglePayment({
   }
   async function confirm() {
     if (!reviewed || phase !== 'review' || inFlight.current || locked ||
-        signedIdentity(store.getSnapshot()) !== review.identity) return;
+        signedIdentity(store.getSnapshot()) !== reviewed.identity) return;
     inFlight.current = true; // synchronous guard against double click/touch
     setPhase('posting');
     setMessage('');
     try {
       const source = await recordConnectedCounterSettlement(store, reviewed.draft);
-      if (signedIdentity(store.getSnapshot()) !== review.identity) {
+      if (signedIdentity(store.getSnapshot()) !== reviewed.identity) {
         throw new ApiError('protocol', 'Payment may have posted after session change');
       }
       setPhase('done');
