@@ -465,8 +465,8 @@ async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
   let stage = 'navigation';
   page.on('pageerror', e => errors.push(e.name));
   page.on('requestfailed', request => {
-    if (request.method() !== 'GET' ||
-        request.headers().authorization !== 'Bearer ' + people.a.token) return;
+    const verifiedA = request.headers().authorization === 'Bearer ' + people.a.token;
+    if (request.method() !== 'GET' || !verifiedA) return;
     const u = new URL(request.url());
     if (u.origin !== origin || !u.pathname.startsWith('/api/v1/purchase-returns')) return;
     requestFailures.push({ path: u.pathname,
