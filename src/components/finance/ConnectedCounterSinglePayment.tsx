@@ -184,7 +184,7 @@ export function ConnectedCounterSinglePayment({
       {text('A previous payment result is uncertain. Reconcile source history before another operation.',
         'আগের পেমেন্টের ফল নিশ্চিত নয়। নতুন লেনদেনের আগে সার্ভারের হিসাব মিলিয়ে নিন।')}
     </p>}
-    {!reviewed && phase !== 'unknown' && phase !== 'done' &&
+    {(phase === 'editing' || phase === 'rejected') &&
       <button type="button" data-h2-review="" disabled={!canReview}
         onClick={prepareReview}
         className="min-h-12 w-full rounded-md bg-sidebar-primary px-3 text-sm font-semibold text-sidebar-primary-foreground disabled:cursor-not-allowed disabled:opacity-50">
