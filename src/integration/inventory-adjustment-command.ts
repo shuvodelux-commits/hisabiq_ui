@@ -172,6 +172,7 @@ export async function submitInventoryAdjustment(
     if (controller.signal.aborted) {
       throw new ApiError('network', 'Inventory adjustment request cancelled');
     }
+    if (result === undefined) return invalid();
     return result;
   } finally {
     clearTimeout(deadline);
