@@ -24,7 +24,7 @@ interface CatalogLifecycleV1Base {
 export interface CatalogLifecycleV1Unit extends CatalogLifecycleV1Base {
   symbol: string | null;
 }
-export interface CatalogLifecycleV1Brand extends CatalogLifecycleV1Base {}
+export type CatalogLifecycleV1Brand = CatalogLifecycleV1Base;
 export interface CatalogLifecycleV1Category extends CatalogLifecycleV1Base {
   parentId: string | null;
 }
@@ -87,7 +87,7 @@ function validTimestamp(value: unknown): value is string {
   const second = Number(match[6]);
   const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
   const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  if (month < 1 || month > 12 || day < 1 || day > days[month - 1]! ||
+  if (month < 1 || month > 12 || day < 1 || day > (days[month - 1] ?? 0) ||
       hour > 23 || minute > 59 || second > 59) return false;
   return Number.isFinite(Date.parse(value));
 }
