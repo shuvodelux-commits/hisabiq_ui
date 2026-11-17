@@ -1,3 +1,5 @@
+import {RowActionMenu} from '../components/layout/RowActionMenu';
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/Dialog';
@@ -34,6 +36,13 @@ import { ActionMenuList, ActionMenuItem, ActionMenuDivider, ActionMenuTrigger } 
 import { Eye, Printer, Pencil, Banknote, CornerUpLeft, History } from 'lucide-react';
 import { printReport, downloadReport } from '../utils/reportOutput';
 import { availableProducts } from '../data/erpDemoStore';
+import { useSession } from '../integration/SessionProvider.tsx';
+import { ApiError } from '../integration/errors.ts';
+import { readPurchase, readPurchases, type ServerPurchaseEnvelope, type ServerPurchaseList, type ServerPurchaseListRow } from '../integration/purchases.ts';
+import { ConnectedPurchaseDraftsPanel } from '../components/purchases/ConnectedPurchaseDraftsPanel';
+import { purchaseMoney, purchaseSettlement, purchaseVisibleState, type IdentityBoundPurchaseState } from '../integration/purchases-read-model.ts';
+import { readReturnablePurchase, type ReturnablePurchaseEnvelope } from '../integration/returns.ts';
+import { readPurchaseReturnHistory, type ServerPurchaseReturnHistory } from '../integration/purchase-return-history.ts';
 
 type Tab = 'purchases' | 'return' | 'return-history';
 
@@ -69,7 +78,586 @@ function ReceiptThumb({ src, onClick }: { src?: string; onClick: () => void }) {
   );
 }
 
+/**
+ * Keep preview business stores entirely unmounted in connected mode.
+ * ConnectedWorkspaceGate remains authoritative for route activation.
+ */
 export function Purchases() {
+  const { mode } = useSession();
+  return mode === 'connected' ? <ConnectedPurchasesRead /> : <PreviewPurchases />;
+}
+
+type PurchaseTab = 'purchases' | 'return' | 'return-history';
+const allowedTab = (value: string | null): PurchaseTab =>
+  value === 'return' || value === 'return-history' ? value : 'purchases';
+const reportError = (error: unknown): 'denied' | 'error' =>
+  error instanceof ApiError && (error.status === 401 || error.status === 403) ? 'denied' : 'error';
+
+function Settlement({ row }: { row: ServerPurchaseListRow }) {
+  const { text } = useUiCopy();
+  const value = purchaseSettlement(row);
+  if (value === 'VOIDED') return <StatusBadge tone="neutral">{text('Voided', 'বাতিল')}</StatusBadge>;
+  if (value === 'HIDDEN') return <span aria-label={text('Cost hidden', 'মূল্য দেখার অনুমতি নেই')}>—</span>;
+  if (value === 'PAID') return <StatusBadge tone="success" dot>{text('Paid', 'পরিশোধ')}</StatusBadge>;
+  if (value === 'PARTIAL') return <StatusBadge tone="warning" dot>{text('Partial', 'আংশিক')}</StatusBadge>;
+  return <StatusBadge tone="danger" dot>{text('Due', 'বাকি')}</StatusBadge>;
+}
+
+/**
+ * Connected view is a separate React component from PreviewPurchases.
+ * This component never accesses preview ERP stores; PreviewPurchases mounts separately.
+ *
+ * Important: ConnectedWorkspaceGate currently prevents /app from mounting
+ * for connected users; THIS component does not override that global gate.
+ * It becomes reachable only in a later approved workspace activation task.
+ */
+function ConnectedPurchasesRead() {
+  const { text } = useUiCopy();
+  const { mode, snapshot } = useSession();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = allowedTab(searchParams.get('tab'));
+  const chooseTab = (next: PurchaseTab) => {
+    setSearchParams(previous => {
+      const params = new URLSearchParams(previous);
+      if (next === 'purchases') params.delete('tab');
+      else params.set('tab', next);
+      return params;
+    }, { replace: true });
+  };
+  const [search, setSearch] = useState(() => (searchParams.get('q') ?? '').slice(0, 80));
+  const [settlement, setSettlement] = useState<'ALL' | 'PAID' | 'UNPAID'>('ALL');
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ identity: string; id: string } | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [list, setList] = useState<IdentityBoundPurchaseState<ServerPurchaseList> | null>(null);
+  const [detail, setDetail] = useState<IdentityBoundPurchaseState<ServerPurchaseEnvelope> | null>(null);
+  const [returnSelection, setReturnSelection] = useState<{ identity: string; id: string } | null>(null);
+  const [returnable, setReturnable] = useState<IdentityBoundPurchaseState<ReturnablePurchaseEnvelope> | null>(null);
+  const [returnRetry, setReturnRetry] = useState(0);
+  const [historyCursor, setHistoryCursor] = useState<string | null>(null);
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const [history, setHistory] = useState<IdentityBoundPurchaseState<ServerPurchaseReturnHistory> | null>(null);
+
+  const authenticated = mode === 'connected' && snapshot.status === 'authenticated';
+  const token = authenticated ? snapshot.accessToken : null;
+  const allowed = authenticated && snapshot.permissions.includes('purchase.bill.view');
+  const canReviewReturns = allowed && snapshot.permissions.includes('purchase.return.create');
+  const canViewHistory = allowed && snapshot.permissions.includes('purchase.return.view');
+  const identity = authenticated
+    ? [snapshot.tenantId, snapshot.userId, snapshot.epoch, snapshot.accessToken].join(':')
+    : [mode, snapshot.status, snapshot.epoch].join(':');
+  const selectedId = selected?.identity === identity ? selected.id : null;
+  const returnId = returnSelection?.identity === identity ? returnSelection.id : null;
+  const returnKey = [identity, 'returnable', returnId ?? 'none', returnRetry].join(':');
+  const historyKey = [identity, 'return-history', historyCursor ?? 'first', historyRevision].join(':');
+  const listKey = [identity, 'list', search.trim(), settlement, cursor ?? 'first', retryVersion].join(':');
+  const detailKey = [identity, 'detail', selectedId ?? 'none'].join(':');
+  const visibleList = purchaseVisibleState(list, listKey);
+  const visibleDetail = purchaseVisibleState(detail, detailKey);
+  const visibleReturnable = purchaseVisibleState(returnable, returnKey);
+  const visibleHistory = purchaseVisibleState(history, historyKey);
+
+  useEffect(() => {
+    if (!authenticated || token === null) return;
+    if (!allowed) {
+      setList({ key: listKey, status: 'denied', data: null });
+      return;
+    }
+    const controller = new AbortController();
+    setList({ key: listKey, status: 'loading', data: null });
+    void readPurchases(token, {
+      ...(search.trim() ? { search: search.trim() } : {}),
+      settlement,
+      ...(cursor ? { cursor } : {}),
+      limit: 25,
+    }, controller.signal).then(data => {
+      if (!controller.signal.aborted) setList({ key: listKey, status: 'ready', data });
+    }).catch(error => {
+      if (!controller.signal.aborted) setList({ key: listKey, status: reportError(error), data: null });
+    });
+    return () => controller.abort();
+  }, [authenticated, token, allowed, listKey, search, settlement, cursor]);
+
+  useEffect(() => {
+    if (!authenticated || !allowed || token === null || selectedId === null) return;
+    const controller = new AbortController();
+    setDetail({ key: detailKey, status: 'loading', data: null });
+    void readPurchase(token, selectedId, controller.signal).then(data => {
+      if (!controller.signal.aborted) setDetail({ key: detailKey, status: 'ready', data });
+    }).catch(error => {
+      if (!controller.signal.aborted) setDetail({ key: detailKey, status: reportError(error), data: null });
+    });
+    return () => controller.abort();
+  }, [authenticated, allowed, token, detailKey, selectedId]);
+
+  // Keep a returnability read tied to the verified tenant/user/session and bill.
+  // No preview store or mutation is involved; opening a different bill invalidates
+  // the previous result synchronously through returnKey even before abort cleanup.
+  useEffect(() => {
+    if (!authenticated || !canReviewReturns || token === null || returnId === null || tab !== 'return') return;
+    const controller = new AbortController();
+    setReturnable({ key: returnKey, status: 'loading', data: null });
+    void readReturnablePurchase(token, returnId, controller.signal).then(data => {
+      if (!controller.signal.aborted) setReturnable({ key: returnKey, status: 'ready', data });
+    }).catch(error => {
+      if (!controller.signal.aborted) setReturnable({ key: returnKey, status: reportError(error), data: null });
+    });
+    return () => controller.abort();
+  }, [authenticated, canReviewReturns, token, returnId, returnKey, tab]);
+
+  // This tab is an independently authorized GET, not a return-create action.
+  // In-flight answers are tenant/session/cursor-keyed and discarded on switch.
+  useEffect(() => {
+    if (!authenticated || !canViewHistory || token === null || tab !== 'return-history') return;
+    const controller = new AbortController();
+    setHistory({ key: historyKey, status: 'loading', data: null });
+    void readPurchaseReturnHistory(token, { cursor: historyCursor, limit: 20 }, controller.signal)
+      .then(data => {
+        if (!controller.signal.aborted) setHistory({ key: historyKey, status: 'ready', data });
+      }).catch(error => {
+        if (!controller.signal.aborted) setHistory({
+          key: historyKey, status: reportError(error), data: null,
+        });
+      });
+    return () => controller.abort();
+  }, [authenticated, canViewHistory, token, tab, historyKey, historyCursor]);
+
+  const reviewReturn = (id: string) => {
+    setReturnSelection({ identity, id });
+    setReturnRetry(0);
+    setSelected(null);
+    chooseTab('return');
+  };
+
+  const updateSearch = (value: string) => { setSearch(value.slice(0, 80)); setCursor(null); };
+  const updateSettlement = (value: string) => {
+    if (value !== 'ALL' && value !== 'PAID' && value !== 'UNPAID') return;
+    setSettlement(value);
+    setCursor(null);
+  };
+  const reset = () => { setSearch(''); setSettlement('ALL'); setCursor(null); };
+  const rows = authenticated && allowed && visibleList.status === 'ready'
+    ? visibleList.data?.data ?? [] : [];
+  const summary = authenticated && allowed && visibleList.status === 'ready'
+    ? visibleList.data?.summary : null;
+  const currentDetail = authenticated && allowed && selectedId &&
+    visibleDetail.status === 'ready' ? visibleDetail.data?.data : null;
+  const historyRows = authenticated && canViewHistory && visibleHistory.status === 'ready'
+    ? visibleHistory.data?.returns ?? [] : [];
+  const blocked = !authenticated || !allowed;
+  const errorText = !authenticated
+    ? text('Your connected session must be verified to read purchases.', 'ক্রয় দেখতে যাচাইকৃত সেশন লাগবে।')
+    : !allowed || visibleList.status === 'denied'
+      ? text('You do not have permission to view purchase bills.', 'ক্রয় বিল দেখার অনুমতি নেই।')
+      : text('Could not verify purchases from the server. No preview data was loaded.', 'সার্ভার থেকে ক্রয় যাচাই করা যায়নি। কোনো নমুনা তথ্য দেখানো হয়নি।');
+
+  const tabs: [PurchaseTab, string][] = [
+    ['purchases', text('Purchases', 'ক্রয়')],
+    ['return', text('Purchase return', 'ক্রয় ফেরত')],
+    ['return-history', text('Return history', 'ফেরতের ইতিহাস')],
+  ];
+
+  return (
+    <div className="mx-auto max-w-[1440px] space-y-4">
+      <PageHeader
+        title="Purchases" titleBn="ক্রয়"
+        description="Purchase stock, manage supplier bills, update purchases and handle purchase returns."
+        descriptionBn="পণ্য কেনা, সরবরাহকারীর বিল ও ফেরত দেখুন।"
+        actions={<>
+          <ConnectedPurchaseDraftsPanel />
+          <Button variant="outline" size="sm" disabled title={text('Supplier ledger integration is pending.', 'সরবরাহকারীর খাতা এখনও সংযুক্ত নয়।')}>
+            {text('Supplier ledger', 'সরবরাহকারীর খাতা')}
+          </Button>
+          <Button size="sm" disabled title={text('Server purchase confirmation is not connected.', 'সার্ভারের ক্রয় নিশ্চিতকরণ এখনও সংযুক্ত নয়।')}>
+            <Plus className="size-4" /> {text('New purchase', 'নতুন ক্রয়')}
+          </Button>
+        </>}
+      />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          [text('Purchase total', 'ক্রয়ের মোট'), purchaseMoney(summary?.periodTotalMinor)],
+          [text('Due to suppliers', 'সরবরাহকারীর দেনা'), purchaseMoney(summary?.unpaidTotalMinor)],
+          [text('Overdue', 'মেয়াদোত্তীর্ণ দেনা'), purchaseMoney(summary?.overdueTotalMinor)],
+          [text('Purchase invoices', 'ক্রয় বিল'), summary?.purchaseCount?.toString() ?? '—'],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+            <p className="text-[12.5px] text-ink-500">{label}</p>
+            <p className="mt-0.5 text-lg font-semibold text-ink">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-xl border border-border bg-card shadow-card">
+        <div role="tablist" aria-label={text('Purchase sections', 'ক্রয় বিভাগ')} className="flex flex-wrap gap-1 border-b border-border px-3">
+          {tabs.map(([value, label]) => (
+            <button key={value} type="button" role="tab" aria-selected={tab === value}
+              className={'px-2.5 py-2.5 text-[13px] font-medium ' +
+                (tab === value ? 'border-b-2 border-teal-600 text-ink' : 'text-ink-500 hover:text-ink')}
+              onClick={() => chooseTab(value)}>{label}</button>
+          ))}
+        </div>
+        {tab === 'return' ? (
+          <div data-purchase-returnable-review="" className="space-y-3 p-4">
+            <p className="text-xs text-ink-500">
+              {text('Read-only source review. Supplier refunds, credits and stock returns are not connected for posting.',
+                'শুধু মূল বিলের ফেরতযোগ্য তথ্য দেখা যাবে। সরবরাহকারীর টাকা, জমা ও স্টক ফেরত এখনও পোস্ট করা যাবে না।')}
+            </p>
+            {!authenticated || !allowed ? (
+              <p role="alert" className="text-sm text-danger">{errorText}</p>
+            ) : !canReviewReturns ? (
+              <p role="alert" className="text-sm text-danger">
+                {text('You need purchase return permission to review returnable quantities.',
+                  'ফেরতযোগ্য পরিমাণ দেখতে ক্রয় ফেরতের অনুমতি প্রয়োজন।')}
+              </p>
+            ) : returnId === null ? (
+              <p role="status" className="text-sm text-ink-500">
+                {text('Open Purchases and choose Review returnable quantities on a posted bill.',
+                  'ক্রয় তালিকা থেকে পোস্ট করা বিলের ফেরতযোগ্য পরিমাণ যাচাই করুন।')}
+              </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-ink">
+                    {text('Original purchase return review', 'মূল ক্রয়ের ফেরত যাচাই')}
+                  </p>
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => setReturnRetry(revision => revision + 1)}>
+                    <RotateCcw aria-hidden className="size-3.5" />
+                    {text('Refresh source', 'মূল বিল আবার যাচাই')}
+                  </Button>
+                </div>
+                {visibleReturnable.status === 'loading' && (
+                  <p role="status" className="text-sm text-ink-500">
+                    {text('Checking the original bill and available stock…',
+                      'মূল বিল ও অবশিষ্ট স্টক যাচাই করা হচ্ছে…')}
+                  </p>
+                )}
+                {(visibleReturnable.status === 'denied' || visibleReturnable.status === 'error') && (
+                  <p role="alert" className="text-sm text-danger">
+                    {visibleReturnable.status === 'denied'
+                      ? text('Returnability is not authorized for this session.',
+                        'এই সেশনে ফেরতযোগ্য তথ্য দেখার অনুমতি নেই।')
+                      : text('Could not verify returnable quantities. No preview values were loaded.',
+                        'ফেরতযোগ্য পরিমাণ যাচাই করা যায়নি। কোনো নমুনা তথ্য দেখানো হয়নি।')}
+                  </p>
+                )}
+                {visibleReturnable.status === 'ready' && visibleReturnable.data && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap justify-between gap-2 text-xs text-ink-500">
+                      <span className="font-medium text-ink">{visibleReturnable.data.data.number} · {visibleReturnable.data.data.supplierName}</span>
+                      <span>{visibleReturnable.data.data.businessDate}</span>
+                      <span>{text('Bill outstanding', 'বিলের বকেয়া')}: {purchaseMoney(visibleReturnable.data.data.outstandingMinor)}</span>
+                    </div>
+                    <Table data-purchase-returnable-table=""
+                      scrollRegionLabel={text('Returnable purchase source lines', 'ক্রয় ফেরতযোগ্য পণ্যের তালিকা')}>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="h-9 text-xs">{text('Product', 'পণ্য')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Received', 'কেনা হয়েছে')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Already returned', 'আগে ফেরত')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Unreturned', 'ফেরত বাকি')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('In stock', 'বর্তমান স্টক')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Reviewable now', 'এখন যাচাইযোগ্য')}</TableHead>
+                          <TableHead className="h-9 text-right text-xs">{text('Credit already posted', 'আগের জমা')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {visibleReturnable.data.data.lines.map(line => (
+                          <TableRow key={line.purchaseLineId} className="text-[13px]">
+                            <TableCell className="py-2">
+                              <span className="font-medium text-ink">{line.productName}</span>
+                            </TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyReceived / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyReturned / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyReturnable / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right">{line.qtyRemainingInLot / 1000} {line.unitName}</TableCell>
+                            <TableCell className="py-2 text-right font-medium">
+                              {Math.min(line.qtyReturnable, line.qtyRemainingInLot) / 1000} {line.unitName}
+                            </TableCell>
+                            <TableCell className="py-2 text-right">{purchaseMoney(line.valueReturnedMinor)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <p className="text-xs text-ink-500">
+                      {text('Quantities use the current base-unit label; historical compound units and final supplier settlement are not yet connected.',
+                        'পরিমাণ বর্তমান মূল এককে দেখানো হয়েছে; আগের যৌগিক একক ও সরবরাহকারীর চূড়ান্ত নিষ্পত্তি এখনও সংযুক্ত নয়।')}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ) : tab === 'return-history' ? (
+          <div data-purchase-return-history="" className="space-y-3 p-4">
+            <p className="text-xs text-ink-500">
+              {text('Read-only server return records. No supplier refund, credit, void or inventory movement can be posted here.',
+                'এখানে সার্ভারের ফেরতের ইতিহাস শুধু দেখা যাবে। টাকা, জমা, বাতিল বা স্টক পরিবর্তন করা যাবে না।')}
+            </p>
+            {!authenticated || !allowed ? (
+              <p role="alert" className="text-sm text-danger">{errorText}</p>
+            ) : !canViewHistory ? (
+              <p role="alert" className="text-sm text-danger">
+                {text('You do not have permission to view supplier return history.',
+                  'সরবরাহকারীর ফেরতের ইতিহাস দেখার অনুমতি নেই।')}
+              </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-ink">
+                    {text('Supplier return history', 'সরবরাহকারীর ফেরতের ইতিহাস')}
+                  </h3>
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => setHistoryRevision(value => value + 1)}>
+                    <RotateCcw aria-hidden className="size-3.5" />
+                    {text('Refresh history', 'ইতিহাস আবার দেখুন')}
+                  </Button>
+                </div>
+                {visibleHistory.status === 'loading' && (
+                  <p role="status" className="text-sm text-ink-500">
+                    {text('Loading verified supplier returns…',
+                      'যাচাইকৃত সরবরাহকারী ফেরতের তালিকা আনা হচ্ছে…')}
+                  </p>
+                )}
+                {(visibleHistory.status === 'denied' || visibleHistory.status === 'error') && (
+                  <p role="alert" className="text-sm text-danger">
+                    {visibleHistory.status === 'denied'
+                      ? text('You are not authorized to read this supplier return history.',
+                        'সরবরাহকারীর এই ফেরতের ইতিহাস দেখার অনুমতি নেই।')
+                      : text('Could not verify supplier returns. No preview entries were loaded.',
+                        'সরবরাহকারীর ফেরত যাচাই করা যায়নি। কোনো নমুনা তথ্য দেখানো হয়নি।')}
+                  </p>
+                )}
+                {visibleHistory.status === 'ready' && visibleHistory.data && (
+                  <>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-500">
+                      <span>{text('Return value', 'ফেরতের মূল্য')}: <strong className="text-ink">
+                        {purchaseMoney(visibleHistory.data.totalValueMinor)}
+                      </strong></span>
+                      <span>{text('Actual money received', 'বাস্তবে টাকা পাওয়া')}: <strong className="text-ink">
+                        {purchaseMoney(visibleHistory.data.totalReceivedMinor)}
+                      </strong></span>
+                    </div>
+                    {historyRows.length === 0 ? (
+                      <p role="status" className="rounded-md border border-border p-4 text-sm text-ink-500">
+                        {text('No verified supplier returns on this page.', 'এই পৃষ্ঠায় কোনো যাচাইকৃত সরবরাহকারীর ফেরত নেই।')}
+                      </p>
+                    ) : (
+                      <Table data-purchase-return-history-table=""
+                        scrollRegionLabel={text('Supplier returns history table', 'সরবরাহকারী ফেরতের তালিকা')}>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="h-9 text-xs">{text('Return / source', 'ফেরত / মূল বিল')}</TableHead>
+                            <TableHead className="h-9 text-xs">{text('Supplier', 'সরবরাহকারী')}</TableHead>
+                            <TableHead className="h-9 text-right text-xs">{text('Return value', 'ফেরতের মূল্য')}</TableHead>
+                            <TableHead className="h-9 text-right text-xs">{text('Money received', 'টাকা পাওয়া')}</TableHead>
+                            <TableHead className="h-9 text-right text-xs">{text('Supplier credit', 'সরবরাহকারীর জমা')}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {historyRows.map(item => (
+                            <TableRow key={item.id} className="text-[13px]">
+                              <TableCell className="py-2">
+                                <span className="block font-medium text-ink">{item.number}</span>
+                                <span className="block text-[11px] text-ink-500">
+                                  {item.purchaseNumber} · {item.businessDate}
+                                </span>
+                                {item.lines.map(line => (
+                                  <span key={line.id} className="block text-[11px] text-ink-500">
+                                    {line.productName} · {line.qty / 1000} {line.unitName}
+                                  </span>
+                                ))}
+                              </TableCell>
+                              <TableCell className="py-2">{item.supplierName}</TableCell>
+                              <TableCell className="py-2 text-right">{purchaseMoney(item.returnValueMinor)}</TableCell>
+                              <TableCell className="py-2 text-right">{purchaseMoney(item.receivedMinor)}</TableCell>
+                              <TableCell className="py-2 text-right">{purchaseMoney(item.creditMinor)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Button type="button" size="sm" variant="outline"
+                        disabled={historyCursor === null} onClick={() => setHistoryCursor(null)}>
+                        {text('First page', 'প্রথম পৃষ্ঠা')}
+                      </Button>
+                      <Button type="button" size="sm" variant="outline"
+                        disabled={!visibleHistory.data.nextCursor}
+                        onClick={() => setHistoryCursor(visibleHistory.data?.nextCursor ?? null)}>
+                        {text('Next', 'পরবর্তী')}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-ink-500">
+                      {text('Amounts are server-recorded. Dates and quantities use source base units; this list does not establish whether a return was later voided.',
+                        'অঙ্ক সার্ভারের রেকর্ড থেকে এসেছে। পরিমাণ মূল এককে; কোনো ফেরত পরে বাতিল হয়েছে কি না, এই তালিকা তা নিশ্চিত করে না।')}
+                    </p>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          <>
+            <div data-purchases-filterbar="" className="grid grid-cols-[minmax(0,1fr)_160px_36px] items-center gap-2 border-b border-border p-3 max-[450px]:grid-cols-[minmax(0,1fr)_120px_36px]">
+              <div className="relative min-w-0">
+                <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-400" />
+                <Input className="pl-8" aria-label={text('Search purchases', 'ক্রয় খুঁজুন')}
+                  placeholder={text('Purchase ID or supplier', 'ক্রয় নম্বর বা সরবরাহকারী')}
+                  value={search} onChange={e => updateSearch(e.target.value)} />
+              </div>
+              <FormSelect aria-label={text('Purchase settlement', 'ক্রয়ের পরিশোধ অবস্থা')}
+                value={settlement} onChange={e => updateSettlement(e.target.value)}
+                options={[
+                  { value: 'ALL', label: text('All status', 'সব অবস্থা') },
+                  { value: 'PAID', label: text('Paid', 'পরিশোধ') },
+                  { value: 'UNPAID', label: text('Due / partial', 'বাকি / আংশিক') },
+                ]} />
+              <Button type="button" variant="outline" size="icon" aria-label={text('Reset filters', 'ফিল্টার মুছুন')}
+                className="size-9" onClick={reset}><RotateCcw className="size-4" /></Button>
+            </div>
+            {(blocked || visibleList.status === 'denied' || visibleList.status === 'error') && (
+              <div role="alert" className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-4 text-sm text-danger">
+                <span>{errorText}</span>
+                {!blocked && visibleList.status === 'error' &&
+                  <Button variant="outline" size="sm" onClick={() => setRetryVersion(version => version + 1)}>
+                    {text('Retry', 'আবার চেষ্টা করুন')}
+                  </Button>}
+              </div>
+            )}
+            {!blocked && visibleList.status === 'loading' && <p role="status" className="p-4 text-sm text-ink-500">
+              {text('Loading verified purchases…', 'যাচাইকৃত ক্রয় আনা হচ্ছে…')}
+            </p>}
+            {!blocked && visibleList.status === 'ready' && (
+              <>
+                <Table data-purchases-table="" className="table-fixed md:table-auto" scrollRegionLabel={text('Purchases table', 'ক্রয়ের তালিকা')}>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="h-9 pl-3 pr-1 text-xs md:px-4">{text('Purchase', 'ক্রয়')}</TableHead>
+                      <TableHead className="hidden h-9 text-xs md:table-cell">{text('Supplier', 'সরবরাহকারী')}</TableHead>
+                      <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Items', 'পণ্য')}</TableHead>
+                      <TableHead className="h-9 text-right text-xs">{text('Total', 'মোট')}</TableHead>
+                      <TableHead className="hidden h-9 text-right text-xs md:table-cell">{text('Paid', 'পরিশোধ')}</TableHead>
+                      <TableHead className="hidden h-9 text-right text-xs md:table-cell">{text('Due', 'বাকি')}</TableHead>
+                      <TableHead className="hidden h-9 text-xs lg:table-cell">{text('Status', 'অবস্থা')}</TableHead>
+                      <TableHead className="h-9 text-right text-xs">{text('Action', 'কাজ')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map(row => (
+                      <TableRow key={row.id} className="text-[13px]">
+                        <TableCell className="py-2 pl-3 pr-1 md:px-4">
+                          <span className="block font-medium text-ink">{row.number}</span>
+                          <span data-table-helper="" className="block text-[11px] text-ink-400">{row.businessDate}</span>
+                          <span className="block text-xs text-teal-700 md:hidden">{row.supplierName}</span>
+                        </TableCell>
+                        <TableCell className="hidden py-2 md:table-cell">{row.supplierName}</TableCell>
+                        <TableCell className="hidden py-2 lg:table-cell">{row.lineCount}</TableCell>
+                        <TableCell className="py-2 text-right font-medium">{purchaseMoney(row.grandTotalMinor)}</TableCell>
+                        <TableCell className="hidden py-2 text-right md:table-cell">{purchaseMoney(row.paidMinor)}</TableCell>
+                        <TableCell className="hidden py-2 text-right md:table-cell">{purchaseMoney(row.dueMinor)}</TableCell>
+                        <TableCell className="hidden py-2 lg:table-cell"><Settlement row={row} /></TableCell>
+                        <TableCell className="py-2 pr-3 text-right">
+                          <Button type="button" variant="ghost" size="sm"
+                            aria-label={text('View bill', 'বিল দেখুন') + ' ' + row.number}
+                            onClick={() => setSelected({ identity, id: row.id })}>
+                            <Eye aria-hidden className="size-4" />
+                            <span className="sr-only">{text('View bill', 'বিল দেখুন')}</span>
+                          </Button>
+                          {canReviewReturns && row.status === 'POSTED' && (
+                            <Button type="button" variant="ghost" size="sm"
+                              aria-label={text('Review returnable quantities', 'ফেরতযোগ্য পরিমাণ যাচাই') + ' ' + row.number}
+                              onClick={() => reviewReturn(row.id)}>
+                              <CornerUpLeft aria-hidden className="size-4" />
+                              <span className="sr-only">{text('Review returnable quantities', 'ফেরতযোগ্য পরিমাণ যাচাই')}</span>
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {rows.length === 0 && <TableRow><TableCell colSpan={8} className="p-5 text-center text-sm text-ink-500">
+                      {text('No verified purchases match these filters.', 'এই ফিল্টারে কোনো যাচাইকৃত ক্রয় পাওয়া যায়নি।')}
+                    </TableCell></TableRow>}
+                  </TableBody>
+                </Table>
+                <div className="flex justify-end gap-2 border-t border-border p-3">
+                  <Button variant="outline" size="sm" disabled={cursor === null} onClick={() => setCursor(null)}>
+                    {text('First page', 'প্রথম পৃষ্ঠা')}
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={!visibleList.data?.page.nextCursor}
+                    onClick={() => setCursor(visibleList.data?.page.nextCursor ?? null)}>
+                    {text('Next', 'পরবর্তী')}
+                  </Button>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      <Dialog open={selectedId !== null} onOpenChange={open => { if (!open) setSelected(null); }}>
+        <DialogContent role="dialog" aria-label={text('Purchase bill details', 'ক্রয় বিলের বিবরণ')}
+          className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{currentDetail?.number ?? text('Purchase bill', 'ক্রয় বিল')}</DialogTitle>
+            <DialogDescription>{currentDetail
+              ? [currentDetail.businessDate, currentDetail.supplierName].join(' · ')
+              : text('Reading source bill…', 'মূল বিল যাচাই করা হচ্ছে…')}</DialogDescription>
+          </DialogHeader>
+          {selectedId && !blocked && visibleDetail.status === 'loading' &&
+            <p role="status" className="text-sm text-ink-500">{text('Loading verified bill…', 'যাচাইকৃত বিল আনা হচ্ছে…')}</p>}
+          {selectedId && (blocked || visibleDetail.status === 'denied' || visibleDetail.status === 'error') &&
+            <p role="alert" className="text-sm text-danger">{text('Could not verify this bill. No preview bill was displayed.',
+              'এই বিল যাচাই করা যায়নি। কোনো নমুনা বিল দেখানো হয়নি।')}</p>}
+          {currentDetail && (
+            <div className="space-y-3 text-sm">
+              <p>{text('Supplier', 'সরবরাহকারী')}: <strong>{currentDetail.supplierName}</strong></p>
+              {currentDetail.supplierBillRef &&
+                <p>{text('Supplier reference', 'সরবরাহকারীর রেফারেন্স')}: {currentDetail.supplierBillRef}</p>}
+              <div className="grid grid-cols-3 gap-2 rounded-md border border-border p-3">
+                <div>{text('Total', 'মোট')}<p className="font-semibold">{purchaseMoney(currentDetail.grandTotalMinor)}</p></div>
+                <div>{text('Paid', 'পরিশোধ')}<p className="font-semibold">{purchaseMoney(currentDetail.paidMinor)}</p></div>
+                <div>{text('Due', 'বাকি')}<p className="font-semibold">{purchaseMoney(currentDetail.dueMinor)}</p></div>
+              </div>
+              <div className="divide-y divide-border rounded-md border border-border">
+                {currentDetail.lines.map(line => (
+                  <div key={line.id} className="flex flex-wrap items-start justify-between gap-2 p-3 text-xs">
+                    <div><p className="font-medium text-ink">{line.productName}</p>
+                      <p className="text-ink-500">{line.qty / 1000} {line.unitName}
+                        {line.expiryDate ? ' · ' + text('Expiry', 'মেয়াদ') + ': ' + line.expiryDate : ''}</p>
+                    </div>
+                    <div className="text-right">{purchaseMoney(line.lineTotalMinor)}</div>
+                  </div>
+                ))}
+              </div>
+              {currentDetail.payments && currentDetail.payments.length > 0 && (
+                <section className="rounded-md border border-border">
+                  <h3 className="border-b border-border px-3 py-2 font-medium">{text('Payments', 'পরিশোধ')}</h3>
+                  {currentDetail.payments.map(payment => (
+                    <div key={payment.id} className="flex justify-between gap-2 px-3 py-2 text-xs">
+                      <span>{payment.number} · {payment.accountName}</span>
+                      <span>{purchaseMoney(payment.amountMinor)}</span>
+                    </div>
+                  ))}
+                </section>
+              )}
+              {canReviewReturns && currentDetail.status === 'POSTED' && (
+                <Button type="button" variant="outline" size="sm" onClick={() => reviewReturn(currentDetail.id)}>
+                  <CornerUpLeft aria-hidden className="size-4" />
+                  {text('Review returnable quantities', 'ফেরতযোগ্য পরিমাণ যাচাই')}
+                </Button>
+              )}
+              <p className="text-xs text-ink-500">{text('This is a read-only server bill. Posting, payment and correction require separate integration.',
+                'এটি সার্ভারের শুধু দেখার বিল। নতুন ক্রয়, পরিশোধ ও সংশোধন আলাদা সংযোগে হবে।')}</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function PreviewPurchases() {
   const {text,language}=useUiCopy();
   const pl=(s:string)=>purchaseLabel(language,s);
   const navigate = useNavigate();
@@ -291,7 +879,7 @@ export function Purchases() {
                               <ActionMenuDivider />
                               <ActionMenuItem icon={Banknote} disabled={!sourceEditable(p)||position(p).due<=0} title={pl('Payment needs a complete source bill with supplier due')} onClick={()=>{close();setSourceAction({purchase:p,mode:'payment'});}}>{text('Pay due','বাকি দিন')}</ActionMenuItem>
                               <ActionMenuItem icon={CornerUpLeft} onClick={() => {close();reviewReturn(p);}}>{text('Review return','ফেরত যাচাই')}</ActionMenuItem>
-                              <ActionMenuItem icon={History} onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</ActionMenuItem>
+                              <ActionMenuItem icon={History} onClick={()=>{close();setHistorySource(p);}}>{text('Source history','পরিবর্তনের ইতিহাস')}</ActionMenuItem><SourceDeleteAction reason="Purchase cancellation is not connected. Payment allocations, returns and stock lots need a source-owned reversal." reasonBn="ক্রয় বাতিল সংযুক্ত নয়। পেমেন্ট, ফেরত ও স্টক লট একসাথে মূল লেনদেনে উল্টো করতে হবে।"/>
                             </ActionMenuList>}
                           </FloatingPanel>
                         </div>
@@ -404,7 +992,7 @@ export function Purchases() {
                   <TableHead className="h-9 text-xs" >{text('Supplier','সরবরাহকারী')}</TableHead>
                   <TableHead className="h-9 text-xs">{pl('Returned items')}</TableHead>
                   <TableHead className="h-9 text-xs">{pl('Refund method')}</TableHead>
-                  <TableHead className="h-9 pr-4 text-right text-xs">{pl('Amount')}</TableHead>
+                  <TableHead className="h-9 pr-4 text-right text-xs">{pl('Amount')}</TableHead><TableHead>{text('Actions','কাজ')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -420,7 +1008,7 @@ export function Purchases() {
                     <TableCell className="py-2">
                       <StatusBadge tone={item.method === 'Cash refund' ? 'success' : 'neutral'}>{purchaseReturnMethod(language,item.method)}</StatusBadge>
                     </TableCell>
-                    <TableCell className="py-2 pr-4 text-right font-medium">{taka(item.amount)}</TableCell>
+                    <TableCell className="py-2 pr-4 text-right font-medium">{taka(item.amount)}</TableCell><TableCell><RowActionMenu label={text('Actions for','কাজ')+' '+item.id}>{()=> <SourceDeleteAction reason="Purchase return reversal is not connected. Supplier credit/refund allocations and stock must be reviewed together."/>}</RowActionMenu></TableCell>
                   </TableRow>
                 ))}
               </TableBody>

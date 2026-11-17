@@ -3,6 +3,7 @@ import {erpNavigation, type ErpNavChild} from '../navigation/erpNavigation.ts';
 import {getVisibleNavigation,type NavigationContext} from '../navigation/resolveErpNavigation.ts';
 
 const summaries:Record<string,string>={
+ 'recycle-bin':'Restore eligible deleted records from the current preview session.',
  general:'Business profile, defaults and everyday ERP preferences.',
  users:'Employees, access and role settings for this business.',
  notifications:'ERP-wide SMS event rules and templates. Preview only — no SMS sent.',

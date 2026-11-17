@@ -1,11 +1,10 @@
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
+import {useRecoveryDelete} from '../recovery/useRecoveryDelete';
 import {MultiUnitQuantityInput} from '../components/transactions/MultiUnitQuantityInput';
 import {unitQuantitiesBase, type UnitQuantityMap} from '../utils/multiUnitTransactions';
 import {unitSymbol} from '../data/productUnits';
 import {useModuleColumns} from '../settings/useModuleColumns';
 import {InvoicePresentationEditor} from '../settings/InvoicePresentationEditor';
-import {useTenantSettings} from '../settings/TenantSettingsProvider';
-import {canManage} from '../settings/model';
-import {deleteSalesDraft,restoreSalesDraft} from '../data/salesPreviewStore';
 import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
 import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord, SalesMobileDisclosure } from '../components/sales/SalesMobileLayout';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -245,6 +244,7 @@ function InvoiceActions({
           {invoice.partyId && <ActionMenuItem icon={UserRound} onClick={() => { close(); navigate(`/app/parties?id=${invoice.partyId}`); }}>{sl('Customer ledger')}</ActionMenuItem>}
           <ActionMenuDivider />
           <ActionMenuItem icon={Printer} onClick={() => { close(); printInvoice(invoice,language); }}>{sl('Print')}</ActionMenuItem>
+          <SourceDeleteAction reason="Sale reversal is not connected to this invoice store. Keep the invoice; use Return items for eligible quantities." reasonBn="এই বিলের মূল স্টোরে উল্টো করার নির্দেশ সংযুক্ত নয়। বিল রাখুন; যোগ্য পণ্যের জন্য ফেরত ব্যবহার করুন।"/>
         </ActionMenuList>
       )}
     </FloatingPanel>
@@ -681,7 +681,7 @@ function CreditActionDialog({
 }
 
 export function Sales() {
-  const settings=useTenantSettings();
+ const recoveryDelete=useRecoveryDelete();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
   const {text,language,showHelper}=useUiCopy();
@@ -699,7 +699,6 @@ export function Sales() {
   const setInvoices=(update:(items:SalesInvoice[])=>SalesInvoice[])=>updateSalesPreview('invoices',update);
   const setReturns=(update:(items:SalesReturn[])=>SalesReturn[])=>updateSalesPreview('returns',update);
   const setCredits=(update:(items:CustomerCredit[])=>CustomerCredit[])=>updateSalesPreview('credits',update);
-  const setTemplates=(update:(items:SaleTemplate[])=>SaleTemplate[])=>updateSalesPreview('templates',update);
   const [templateEditor,setTemplateEditor]=useState<{template:SaleTemplate|null}|null>(null);
   const [returnDetail, setReturnDetail] = useState<SalesReturn | null>(null);
 
@@ -1026,7 +1025,7 @@ export function Sales() {
                             close();setReturnCustomer(item.customer);setReturnInvoiceIds([]);
                             setReturnQty({});setReturnUnitQuantities({});setReturnReason({});setReturnSerials({});
                             chooseTab('return');
-                          }}>{sl('Start another return')}</ActionMenuItem>
+                          }}>{sl('Start another return')}</ActionMenuItem><SourceDeleteAction reason="Return reversal is not connected. Linked credits, refunds and stock history must be reviewed together."/>
                         </ActionMenuList>
                       )}
                     </FloatingPanel>
@@ -1051,7 +1050,7 @@ export function Sales() {
                             <ActionMenuItem icon={Banknote} disabled={credit.balance <= 0}
                               onClick={() => { close(); setCreditAction({ credit, mode: 'refund' }); }}>{sl('Refund credit')}</ActionMenuItem>
                             <ActionMenuDivider />
-                            <ActionMenuItem icon={BookOpen} onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}>{sl('Customer ledger')}</ActionMenuItem>
+                            <ActionMenuItem icon={BookOpen} onClick={() => { close(); navigate(credit.customerId ? `/app/parties?id=${credit.customerId}` : '/app/parties'); }}>{sl('Customer ledger')}</ActionMenuItem><SourceDeleteAction kind="projection"/>
                           </ActionMenuList>
                         )}
                       </FloatingPanel>
@@ -1696,9 +1695,8 @@ export function Sales() {
                             <ActionMenuItem icon={Copy} onClick={() => { close(); toast(`${draft.label} ${sl('duplicated')}`); navigate(`/app/pos?mode=duplicate-draft&draft=${draft.id}`); }}>{sl('Duplicate')}</ActionMenuItem>
                             <ActionMenuDivider /><ActionMenuItem icon={Trash2} tone="destructive" onClick={() => {
                               close();
-                              const ctx={tenantId:settings.state.tenantId,actorId:settings.actorId,allowed:canManage(settings.state,settings.actorId,'sales')};
-                              try{deleteSalesDraft(draft.id,ctx,new Date().toISOString());toast('Draft moved to Recycle Bin',{action:{label:'Undo',onClick:()=>{try{restoreSalesDraft(draft.id,ctx,new Date().toISOString());}catch(error){toast.error(error instanceof Error?error.message:'Could not restore.');}}}});}catch(error){toast.error(error instanceof Error?error.message:'Could not archive draft.');}
-                            }}>{sl('Archive')}</ActionMenuItem>
+                              recoveryDelete.request({kind:'sales-draft',id:draft.id,label:draft.label,revision:JSON.stringify(draft)});
+                            }}>{sl('Delete')}</ActionMenuItem>
                           </ActionMenuList>
                         )}
                       </FloatingPanel>
@@ -1753,8 +1751,7 @@ export function Sales() {
                             }}>{sl('Duplicate')}</ActionMenuItem>
                             <ActionMenuDivider /><ActionMenuItem icon={Trash2} tone="destructive" onClick={() => {
                               close();
-                              setTemplates((items) => items.filter((item) => item.id !== template.id));
-                              toast.error(`${template.name} ${sl('deleted')}`);
+                              recoveryDelete.request({kind:'sale-template',id:template.id,label:template.name,revision:JSON.stringify(template)});
                             }}>{sl('Delete')}</ActionMenuItem>
                           </ActionMenuList>
                         )}
@@ -1782,6 +1779,7 @@ export function Sales() {
         onSave={savePayment}
       />
 
+      {recoveryDelete.dialog}
       {templateEditor&&<SaleTemplateDialog template={templateEditor.template} onClose={()=>setTemplateEditor(null)}/> }
       <CustomerPaymentDialog
         open={customerPaymentOpen}

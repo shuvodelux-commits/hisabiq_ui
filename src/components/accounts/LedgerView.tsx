@@ -1,3 +1,5 @@
+import {RowActionMenu} from '../layout/RowActionMenu';
+import {SourceDeleteAction} from '../../deletion/SourceDeleteAction';
 import {useTenantSettings} from '../../settings/TenantSettingsProvider';
 import {outputProfileDefaults} from '../../documents/outputProfile';
 import {documentLabel} from '../../i18n/documentCopy';
@@ -162,7 +164,7 @@ export function LedgerView({
             <div className="rounded-lg bg-ink-50 p-3"><p className="text-[10.5px] text-ink-400">{financial.label('credit')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.credit ? taka(selected.credit) : '—'}</p></div>
             <div className="rounded-lg bg-ink-50 p-3 sm:col-span-2"><p className="text-[10.5px] text-ink-400">{text('Details','বিবরণ')}</p><p className="mt-0.5 text-[12.5px] font-medium">{selected.description}</p><p className="mt-1 text-[10.5px] text-ink-400">{selected.postingId}</p></div>
           </div>}
-          <DialogFooter><Button variant="outline" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button><Button onClick={() => setSelected(null)}>{text('Close','বন্ধ করুন')}</Button></DialogFooter>
+          <RowActionMenu label={text('Ledger source actions','খাতার মূল লেনদেনের কাজ')}>{()=> <SourceDeleteAction kind="projection"/>}</RowActionMenu><DialogFooter><Button variant="outline" onClick={printLedger}><Printer className="size-4" /> {text('Print','প্রিন্ট')}</Button><Button onClick={() => setSelected(null)}>{text('Close','বন্ধ করুন')}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

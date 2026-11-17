@@ -1,3 +1,4 @@
+import {SourceDeleteAction} from '../../deletion/SourceDeleteAction';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import { useMemo, useState } from 'react';
 import { MoreHorizontal, Pencil, Plus, Power, Search } from 'lucide-react';
@@ -144,7 +145,7 @@ export function ChartOfAccountsView({
                       <ActionMenuItem icon={Pencil} onClick={() => { close(); openEdit(account); }}>Edit</ActionMenuItem>
                       <ActionMenuDivider />
                       <ActionMenuItem icon={Power} onClick={() => { close(); toggleStatus(account); }}>{account.active ? 'Deactivate' : 'Activate'}</ActionMenuItem>
-                    </ActionMenuList>}
+                    <SourceDeleteAction kind="setup"/></ActionMenuList>}
                   </FloatingPanel>
                 </TableCell>
               </TableRow>

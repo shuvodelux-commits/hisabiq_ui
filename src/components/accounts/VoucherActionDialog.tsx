@@ -1,3 +1,5 @@
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {sourceDeleteErrorCopy} from '../../deletion/errorCopy';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Copy, ExternalLink, Pencil, Printer, Save, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,6 +18,7 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
 
 export function VoucherActionDialog({
   source,
+  initialMode='view',
   posting,
   onClose,
   onUpdate,
@@ -23,6 +26,7 @@ export function VoucherActionDialog({
   onDuplicate,
   onGoToSource
 }: {
+  initialMode?: 'view'|'delete';
   source: AccountingSourceTransaction | null;
   posting?: Posting;
   onClose: () => void;
@@ -31,6 +35,7 @@ export function VoucherActionDialog({
   onDuplicate: (source: AccountingSourceTransaction) => void;
   onGoToSource: (source: AccountingSourceTransaction) => void;
 }) {
+  const {text}=useUiCopy();
   const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');
   const [date, setDate] = useState('');
   const [reference, setReference] = useState('');
@@ -40,13 +45,13 @@ export function VoucherActionDialog({
 
   useEffect(() => {
     if (!source) return;
-    setMode('view');
+    setMode(initialMode);
     setDate(source.transactionDate);
     setReference(source.reference);
     setDescription(source.description ?? '');
     setAmount(String(source.amount));
     setReason('');
-  }, [source]);
+  }, [source,initialMode]);
 
   const accountMap = useMemo(() => new Map(accountingAccounts.map((item) => [item.id, item.name])), []);
   if (!source) return null;
@@ -89,9 +94,8 @@ export function VoucherActionDialog({
   };
 
   const confirmDelete = () => {
-    if (!reason.trim()) return toast.error('Enter a reason for deleting this entry');
-    onDelete(source, reason.trim());
-    onClose();
+    if (!reason.trim()) return toast.error(sourceDeleteErrorCopy(new Error('Enter a reason for deleting this entry'),text));
+    try{onDelete(source, reason.trim());onClose();}catch(e){toast.error(sourceDeleteErrorCopy(e,text));}
   };
 
   return (
@@ -145,7 +149,7 @@ export function VoucherActionDialog({
 
         {mode === 'delete' && (
           <div className="space-y-3">
-            <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5"><p className="text-[13px] font-medium text-danger">Delete complete voucher?</p><p className="mt-1 font-bn text-[11px] text-ink-500">এক পাশ নয়—পুরো balanced posting একসাথে Deleted হবে এবং audit তথ্য থাকবে।</p></div>
+            <div className="rounded-lg border border-danger/20 bg-danger/5 px-3 py-2.5"><p className="text-[13px] font-medium text-danger">Delete complete voucher?</p><p className="mt-1 text-[12px] text-ink-600">UI preview only: the complete local balanced posting is excluded from projections; original identity, amounts and audit reason remain. No backend ledger posting.</p><p className="mt-1 font-bn text-[11px] text-ink-500">এক পাশ নয়—পুরো balanced posting একসাথে Deleted হবে এবং audit তথ্য থাকবে।</p></div>
             <label className="text-[13px] font-medium text-ink">Reason for delete <span className="font-bn text-[11px] font-normal text-ink-400">· কেন মুছছেন</span><Input className="mt-1.5" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="e.g. Duplicate voucher" /></label>
           </div>
         )}

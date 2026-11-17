@@ -1,0 +1,133 @@
+name: MOD-001 Disposable DB-wide Read Invariance
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/mod001-db-wide-read-invariance.yml'
+      - 'scripts/mod001-db-wide-read-invariance.cjs'
+      - 'src/integration/ConnectedSettingsWorkspace.tsx'
+      - 'src/integration/SessionProvider.tsx'
+      - 'src/settings/TenantSettingsProvider.tsx'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mod001-db-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  disposable-pg16:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mod001_574_admin_ci_only
+          POSTGRES_DB: hisabiq_mod001_574_ci
+        ports:
+          - 127.0.0.1:55474:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d hisabiq_mod001_574_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      CI: 'true'
+      PORT: '3059'
+      WEB_ORIGIN: http://127.0.0.1:4299
+      NODE_ENV: development
+      IDENTITY_VERIFIER: dev
+      SINGLE_TENANT_MODE: 'false'
+      ENTITLEMENT_SOURCE: subscription
+      JWT_SECRET: mod001_574_disposable_only_ci_jwt_key_20261115
+      DATABASE_URL: postgres://sher_app:mod001_574_app_ci_only@127.0.0.1:55474/hisabiq_mod001_574_ci
+      MOD001_574_TEST_API_ORIGIN: http://127.0.0.1:3059
+      MOD001_574_DISPOSABLE_ACK: 574:pg16:55474:57585270eda42f89748bbd01b134a5e1ed805f6b
+    steps:
+      - name: Checkout exact frontend head
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Checkout immutable approved Nest source
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/nestshererp
+          ref: 57585270eda42f89748bbd01b134a5e1ed805f6b
+          path: backend
+          persist-credentials: false
+      - name: Assert frontend and backend source pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C frontend rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git -C backend rev-parse HEAD)" = 57585270eda42f89748bbd01b134a5e1ed805f6b
+      - name: Install PostgreSQL 16 client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-16
+          pg_dump --version
+      - name: Backend Node 20 + pnpm 9
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+      - name: Frozen Nest install and build
+        working-directory: backend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter "@sher/api..." build
+      - name: Node 24 frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend and headless Chromium
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          VITE_HISABIQ_INTEGRATION_MODE=connected npm run build
+          node scripts/mod001-db-wide-read-invariance.cjs --self-test
+      - name: Create test-only RLS app identity in disposable PG16
+        shell: bash
+        run: |
+          set -euo pipefail
+          ADMIN_URL='postgres://postgres:mod001_574_admin_ci_only@127.0.0.1:55474/hisabiq_mod001_574_ci'
+          psql "$ADMIN_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE sher_app LOGIN PASSWORD 'mod001_574_app_ci_only' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+          ALTER DATABASE hisabiq_mod001_574_ci OWNER TO sher_app;
+          ALTER ROLE sher_app IN DATABASE hisabiq_mod001_574_ci SET app.tenant_id = '';
+          SQL
+      - name: Real API, held-response browser and DB-wide invariance
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node ../backend/apps/api/dist/migrate.js
+          node ../backend/apps/api/dist/main.js > "$RUNNER_TEMP/mod001-574-api.log" 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3059/api/v1/settings || true)"
+            if [ "$code" = 401 ]; then break; fi
+            sleep 2
+          done
+          test "$code" = 401 || { tail -n 60 "$RUNNER_TEMP/mod001-574-api.log"; exit 1; }
+          # Only the snapshot-test process receives the disposable DBA connection.
+          MOD001_574_AUDIT_DATABASE_URL='postgres://postgres:mod001_574_admin_ci_only@127.0.0.1:55474/hisabiq_mod001_574_ci' \
+            node scripts/mod001-db-wide-read-invariance.cjs
+      - name: Report unmodified source checkouts
+        if: always()
+        run: |
+          git -C frontend status --porcelain
+          git -C backend status --porcelain

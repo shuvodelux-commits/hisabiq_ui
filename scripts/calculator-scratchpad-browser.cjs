@@ -61,17 +61,39 @@ async function main() {
       assert.match(await surface.innerText(),/invalid line/);
       await surface.getByRole('button',{name:'Next calculation line'}).click();
       await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='Calculation line 4');
+      // A centered popover can move while its fourth row is committed.
+      // Observe the list and both rows in the same browser rendering tick;
+      // independent boundingBox awaits may compare coordinates from
+      // different dialog positions even when all four rows fit correctly.
       await page.waitForFunction(() => {
         const list=document.querySelector('[data-calculator-lines]');
-        return list && list.getBoundingClientRect().height>=166;
+        const rows=list?.querySelectorAll('[data-calculator-line]');
+        if(!list || !rows || rows.length!==4) return false;
+        const area=list.getBoundingClientRect();
+        const first=rows[0].getBoundingClientRect();
+        const fourth=rows[3].getBoundingClientRect();
+        return area.height>=166 &&
+          first.y>=area.y-2 &&
+          fourth.bottom<=area.bottom+2;
       },null,{timeout:10000});
-      const fourArea=await surface.locator('[data-calculator-lines]').boundingBox();
-      const fourRows=await surface.locator('[data-calculator-line]').all();
-      const fourthRow=await fourRows[3].boundingBox();
-      const firstRow=await fourRows[0].boundingBox();
-      assert.equal(fourRows.length,4,'Four real lines appear only after Enter creates them');
+      const geometry=await area.evaluate(list => {
+        const rows=[...list.querySelectorAll('[data-calculator-line]')];
+        const rect=node => {
+          const {x,y,width,height}=node.getBoundingClientRect();
+          return {x,y,width,height};
+        };
+        return {
+          count:rows.length,
+          fourArea:rect(list),
+          firstRow:rows[0] ? rect(rows[0]) : null,
+          fourthRow:rows[3] ? rect(rows[3]) : null,
+          scroll:list.scrollTop
+        };
+      });
+      const {count,firstRow,fourthRow,fourArea,scroll}=geometry;
+      assert.equal(count,4,'Four real lines appear only after Enter creates them');
       assert.ok(fourArea && firstRow && fourthRow && firstRow.y>=fourArea.y-2 && fourthRow.y+fourthRow.height<=fourArea.y+fourArea.height+2,
-        'At least four calculation lines fit visibly once present: '+JSON.stringify({width,height,firstRow,fourthRow,fourArea,scroll:await surface.locator('[data-calculator-lines]').evaluate(el=>el.scrollTop)}));
+        'At least four calculation lines fit visibly once present: '+JSON.stringify({width,height,firstRow,fourthRow,fourArea,scroll}));
       for(let i=0;i<13;i++) await surface.getByRole('button',{name:'Next calculation line'}).click();
       const current=surface.locator('[data-calculator-line][data-active="true"]');
       const listBox=await surface.locator('[data-calculator-lines]').boundingBox();

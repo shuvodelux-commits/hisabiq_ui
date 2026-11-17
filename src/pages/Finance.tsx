@@ -1,6 +1,10 @@
+import {reverseFinancePreview} from '../data/financePreviewStore';
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../deletion/authority';
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
-import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownLeft,
@@ -31,8 +35,9 @@ import { FormSelect } from '../components/FormSelect';
 import { Input } from '../components/Input';
 import { PageHeader } from '../components/PageHeader';
 import { CounterWorkspace } from '../components/finance/CounterWorkspace';
+import { ConnectedCounterReadWorkspace } from '../components/finance/ConnectedCounterReadWorkspace';
 import { financePreviewRelationshipSummary, getFinancePreviewSnapshot, subscribeFinancePreview, updateFinancePreview } from '../data/financePreviewStore';
-import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog } from '../components/finance/FinanceRecordDialogs';
+import { FinanceAccountActionDialog, FinancePeopleManagerDialog, FinanceTransactionActionDialog, FinanceTransferActionDialog, ConnectedMoneyAccountActionDialog, type ConnectedMoneyAccountSelection } from '../components/finance/FinanceRecordDialogs';
 import { ChequeDialog } from '../components/finance/ChequeDialogs';
 import { ChequeActionDialog } from '../components/finance/ChequeActionDialog';
 import { CashSessionDetailsDialog } from '../components/finance/CashSessionDetailsDialog';
@@ -45,9 +50,12 @@ import { AnimatedAdvancedFilters } from '../components/layout/AnimatedAdvancedFi
 import { ActionMenuItem, ActionMenuDivider } from '../components/layout/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/Table';
 import { useCashSession } from '../contexts/CashSessionContext';
+import { useSession } from '../integration/SessionProvider.tsx';
+import { readMoneyAccounts, type ServerMoneyAccount, type ServerMoneyAccountList } from '../integration/accounts.ts';
+import { ApiError } from '../integration/errors.ts';
 import {
   accountTransfers as seedTransfers,
-  cashSessions,
+  cashSessions as sampleCashSessions,
   financePersonOptionLabel,
   financeAccounts as seedAccounts,
   financeTransactions as seedTransactions,
@@ -517,10 +525,11 @@ function TransferDialog({
   );
 }
 
-export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { counterOnly?: boolean; moneyAccountsOnly?: boolean } = {}) {
+function FinancePreview({ counterOnly = false, moneyAccountsOnly = false }: { counterOnly?: boolean; moneyAccountsOnly?: boolean } = {}) {
+  const {currentAuthority}=useTenantSettings();
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
-  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount } = useCashSession();
+  const { setOpen: setCashDialogOpen, sessionOpen, openingCash, expectedCash, lastCount, history, canView:canViewCash, canStart:canStartCash, canClose:canCloseCash, enabled:cashEnabled, startBlocked, mode: cashMode } = useCashSession();
   const [searchParams, setSearchParams] = useSearchParams();
   const routeTab = searchParams.get('tab');
   const financeTabs: Tab[] = ['overview','transactions','cheques','cash'];
@@ -542,6 +551,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   const setAccounts: React.Dispatch<React.SetStateAction<FinanceAccount[]>> = (change) => updateFinancePreview('accounts', change);
   const setTransactions: React.Dispatch<React.SetStateAction<FinanceTransaction[]>> = (change) => updateFinancePreview('transactions', change);
   const setPeople: React.Dispatch<React.SetStateAction<FinancePerson[]>> = (change) => updateFinancePreview('people', change);
+  const reversedTransfers=useRef(new Set<string>());
   const [transfers, setTransfers] = useState<AccountTransfer[]>(() => seedTransfers.map((transfer) => ({
     ...transfer,
     fromAccountId: transferAccountId(transfer, 'from', seedAccounts),
@@ -566,7 +576,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const openTransactionActions = (item: FinanceTransaction, mode: 'view' | 'edit' | 'reverse') => { setTransactionActionMode(mode); setTransactionAction(item); };
   const openAccountActions = (item: FinanceAccount, mode: 'ledger' | 'edit' | 'manual' | 'status') => { setAccountActionMode(mode); setAccountAction(item); };
-  const openTransferActions = (item: AccountTransfer, mode: 'view' | 'reverse') => { setTransferActionMode(mode); setTransferAction({ ...item, from: transferAccountLabel(item, 'from', accounts), to: transferAccountLabel(item, 'to', accounts) }); };
+  const openTransferActions = (item: AccountTransfer, mode: 'view' | 'reverse') => { setTransferActionMode(mode); setTransferAction(item); };
   const openChequeActions = (item: ChequeRecord, mode: 'view' | 'edit') => { setChequeActionMode(mode); setChequeAction(item); };
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All transaction types');
@@ -596,11 +606,8 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     toast.success('Finance transaction updated', { description: updated.id });
   };
 
-  const reverseFinanceTransaction = (transaction: FinanceTransaction) => {
-    if (transaction.status === 'Reversed') return;
-    const reversed = { ...transaction, status: 'Reversed' as const };
-    setAccounts((current) => applyTransactionMovement(current, transaction, -1));
-    setTransactions((current) => current.map((item) => item.id === transaction.id ? reversed : item));
+  const reverseFinanceTransaction = (transaction: FinanceTransaction, reason:string) => {
+    const reversed=reverseFinancePreview(transaction.id,JSON.stringify(transaction),reason,currentAuthority());
     setTransactionActionMode('view');
     setTransactionAction(reversed);
     toast.success('Transaction reversed', { description: transaction.id + ' remains in the audit history' });
@@ -694,9 +701,14 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
     return true;
   };
 
-  const reverseAccountTransfer = (transfer: AccountTransfer) => {
-    if (transfer.status === 'Reversed') return;
-    const reversed = { ...transfer, status: 'Reversed' as const };
+  const reverseAccountTransfer = (transfer: AccountTransfer, reason:string) => {
+    const audit=sourceDeleteAuthority(currentAuthority(),'money',transfer.id,reason);
+    const live=transfers.find(t=>t.id===transfer.id);
+    if(!live||JSON.stringify(live)!==JSON.stringify(transfer))throw Error('Transfer changed. Reopen source review.');
+    if(!transferAccountId(transfer,'from',accounts)||!transferAccountId(transfer,'to',accounts))throw Error('Both original account identities are required.');
+    if (transfer.status === 'Reversed'||reversedTransfers.current.has(transfer.id))throw Error('Transfer is already reversed.');
+    reversedTransfers.current.add(transfer.id);
+    const reversed = { ...transfer, status: 'Reversed' as const, reversal: audit };
     setTransfers((current) => current.map((item) => item.id === transfer.id ? reversed : item));
     setAccounts((current) => current.map((account) => {
       if (account.id === transferAccountId(transfer, 'from', accounts)) return { ...account, balance: account.balance + transfer.amount, lastActivity: 'Just now' };
@@ -730,6 +742,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
   const pdcCount = chequeRecords.filter((item) => item.chequeDate > '2026-10-07' && !['Cleared', 'Cancelled', 'Returned', 'Stopped', 'Bounced'].includes(item.status)).length;
   const bouncedCount = chequeRecords.filter((item) => item.status === 'Bounced' || item.status === 'Returned').length;
+  const cashSessions=canViewCash?[...history,...(cashMode==='preview'?sampleCashSessions:[])]:[];
   const varianceSessions = cashSessions.filter((item) => item.status === 'Closed' && (item.variance ?? 0) !== 0).length;
 
   const pendingChequeAmount = chequeRecords
@@ -1011,7 +1024,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                             <ActionMenuItem icon={Pencil} onClick={() => { close(); openTransactionActions(item, 'edit'); }}>{text('Edit','সংশোধন')}</ActionMenuItem>
                             <ActionMenuDivider />
                             <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransactionActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
-                          </>}
+                          </>}<SourceDeleteAction kind="immutable" onReview={item.status==='Active'?()=>{close();openTransactionActions(item,'reverse');}:undefined}/>
                         </>}
                       </RowActionMenu>
                     </TableCell>
@@ -1104,7 +1117,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <ActionMenuItem icon={ArrowLeftRight} onClick={() => { close(); openTransfer(account); }}>{text('Transfer','টাকা স্থানান্তর')}</ActionMenuItem>
                         {account.type !== 'Cash' && <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent(account.name)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>}
                         <ActionMenuDivider />
-                        <ActionMenuItem icon={Power} tone={account.status === 'Active' ? 'destructive' : 'neutral'} onClick={() => { close(); openAccountActions(account, 'status'); }}>{text(account.status === 'Active' ? 'Deactivate' : 'Activate', account.status === 'Active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন')}</ActionMenuItem>
+                        <ActionMenuItem icon={Power} tone={account.status === 'Active' ? 'destructive' : 'neutral'} onClick={() => { close(); openAccountActions(account, 'status'); }}>{text(account.status === 'Active' ? 'Deactivate' : 'Activate', account.status === 'Active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন')}</ActionMenuItem><SourceDeleteAction kind="setup"/>
                       </>}
                     </RowActionMenu>
                   </div>
@@ -1151,7 +1164,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                             {item.status === 'Completed' && <>
                               <ActionMenuDivider />
                               <ActionMenuItem icon={RotateCcw} tone="destructive" onClick={() => { close(); openTransferActions(item, 'reverse'); }}>{text('Review reversal','উল্টো করা যাচাই')}</ActionMenuItem>
-                            </>}
+                            </>}<SourceDeleteAction kind="immutable" onReview={item.status==='Completed'?()=>{close();openTransferActions(item,'reverse');}:undefined}/>
                           </>}
                         </RowActionMenu>
                       </TableCell>
@@ -1210,7 +1223,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                           <RowActionMenu label={text('Actions for','কাজ') + ' ' + cheque.id}>
                             {close => <>
                               <ActionMenuItem icon={Eye} onClick={() => { close(); openChequeActions(cheque, 'view'); }}>{text('View cheque','চেক দেখুন')}</ActionMenuItem>
-                              {chequeLifecycleActions(cheque).length > 0 && <ActionMenuItem icon={Pencil} onClick={() => { close(); openChequeActions(cheque, 'edit'); }}>{text('Edit cheque','চেক সংশোধন')}</ActionMenuItem>}
+                              {chequeLifecycleActions(cheque).length > 0 && <ActionMenuItem icon={Pencil} onClick={() => { close(); openChequeActions(cheque, 'edit'); }}>{text('Edit cheque','চেক সংশোধন')}</ActionMenuItem>}<SourceDeleteAction reason="Cheque history is retained. Use the eligible cheque lifecycle correction; deletion is not connected."/>
                             </>}
                           </RowActionMenu>
                         </TableCell>
@@ -1249,14 +1262,15 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                       </div>
                     </div>
                   </div>
-                  <Button className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>{text('Count / close cash session','ক্যাশ গুনুন / সেশন বন্ধ করুন')}</Button>
+                  <Button disabled={!canViewCash} className="mt-3 w-full" onClick={() => setCashDialogOpen(true)}>{text('Count / close cash session','ক্যাশ গুনুন / সেশন বন্ধ করুন')}</Button>
                 </>
               ) : (
-                <Button className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>{text('Open cash session','ক্যাশ সেশন খুলুন')}</Button>
+                <Button disabled={!canStartCash||startBlocked} className="mt-4 w-full" onClick={() => setCashDialogOpen(true)}>{text('Start cash session','ক্যাশ সেশন শুরু করুন')}</Button>
               )}
 
+              {(!cashEnabled||!canViewCash||startBlocked||!canCloseCash)&&<p role="status" className="mt-3 text-xs text-warning">{!cashEnabled?text('Cash sessions are disabled in Settings.','সেটিংসে ক্যাশ সেশন বন্ধ রয়েছে।'):!canViewCash?text('Cash session view permission is required.','ক্যাশ সেশন দেখার অনুমতি প্রয়োজন।'):startBlocked?text('This business date is closed; preview cannot reopen it.','এই ব্যবসার দিন বন্ধ; নমুনায় আবার খোলা যাবে না।'):text('Cash count / close permission is required.','ক্যাশ গোনা / বন্ধ করার অনুমতি প্রয়োজন।')}</p>}
               {lastCount&&<p className="mt-3 text-xs text-ink-600" role="status">{text('Last count:','শেষ গুনেছেন:')} {taka(lastCount.counted)} · {lastCount.closed?financeLabel(language,'Closed'):text('Saved','সংরক্ষিত')}{lastCount.note?' · '+lastCount.note:''}</p>}
-              <button onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
+              <button disabled={!canViewCash} onClick={() => setCashDialogOpen(true)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-ink-600 hover:bg-ink-50">
                 <RefreshCw className="size-3.5" /> {text('Cash reconciliation','ক্যাশ মিলানো')}
               </button>
             </section>
@@ -1283,7 +1297,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                   {cashSessions.map((session) => (
                     <TableRow key={session.id} className="text-[13px]">
                       <TableCell className="py-2 pl-4">
-                        <p className="font-medium text-ink">{session.id}</p>
+                        <p className="font-medium text-ink">{session.id}</p><p className="text-[11px] text-ink-500">{session.preview?text('Current preview','বর্তমান নমুনা'):text('Sample history','নমুনা ইতিহাস')}</p>
                         <p data-table-helper="" className="text-[10.5px] text-ink-400">{session.date}</p>
                       </TableCell>
                       <TableCell className="py-2 text-ink-500">{session.openedAt}{session.closedAt ? ` → ${session.closedAt}` : ' → now'}</TableCell>
@@ -1302,7 +1316,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
                         <RowActionMenu label={text('Actions for','কাজ') + ' ' + session.id}>
                           {close => <>
                             <ActionMenuItem icon={Eye} onClick={() => { close(); setCashSessionAction(session); }}>{text('View cash session','ক্যাশ সেশন দেখুন')}</ActionMenuItem>
-                            <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>
+                            <ActionMenuItem icon={RefreshCw} onClick={() => { close(); navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`); }}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem><SourceDeleteAction kind="immutable"/>
                           </>}
                         </RowActionMenu>
                       </TableCell>
@@ -1391,7 +1405,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
       />
 
       <CashSessionDetailsDialog
-        session={cashSessionAction}
+        session={canViewCash?cashSessionAction:null}
         onClose={() => setCashSessionAction(null)}
         onReconcile={(session) => navigate(`/app/reconciliation?account=${encodeURIComponent('Main Cash Counter')}&session=${encodeURIComponent(session.id)}`)}
       />
@@ -1422,6 +1436,7 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
 
       <FinanceTransferActionDialog
         transfer={transferAction}
+        accounts={accounts}
         initialMode={transferActionMode}
         onClose={() => setTransferAction(null)}
         onReverse={reverseAccountTransfer}
@@ -1430,3 +1445,290 @@ export function Finance({ counterOnly = false, moneyAccountsOnly = false }: { co
   );
 }
 
+
+
+/** MOD-006 P2-B — AUTHENTICATED READ VIEW ONLY.
+ * Not a connected posting route: global ConnectedWorkspaceGate remains closed.
+ * Keep the original FinancePreview body and its handlers untouched in preview.
+ */
+type ConnectedAccountsPage = {
+  scope: symbol;
+  status: 'loading' | 'ready' | 'permission-denied' | 'error';
+  data?: ServerMoneyAccountList;
+};
+
+/** Format exact server poisha, never treat a LOAN amount as spendable money. */
+function serverMoney(value: number | bigint): string {
+  if (typeof value === 'number' && !Number.isSafeInteger(value)) throw new RangeError('Unsafe money value');
+  const exact = typeof value === 'bigint' ? value : BigInt(value);
+  const magnitude = exact < 0n ? -exact : exact;
+  return (exact < 0n ? '−' : '') + '৳' + (magnitude / 100n).toLocaleString('en-IN') +
+    (magnitude % 100n === 0n ? '' : '.' + (magnitude % 100n).toString().padStart(2, '0'));
+}
+
+function ConnectedMoneyAccountsRead() {
+  const { mode, snapshot } = useSession();
+  const { text } = useUiCopy();
+  const [includeInactive, setIncludeInactive] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const scope = useMemo(() =>
+    mode === 'connected' && snapshot.status === 'authenticated'
+      ? Symbol('verified-money-account-list') : null,
+    [mode, snapshot, includeInactive, retry]);
+  const [page, setPage] = useState<ConnectedAccountsPage | null>(null);
+  const [opened, setOpened] = useState<{ scope: symbol; selection: ConnectedMoneyAccountSelection } | null>(null);
+
+  useEffect(() => {
+    if (!scope || snapshot.status !== 'authenticated' || mode !== 'connected') return;
+    const controller = new AbortController();
+    let active = true;
+    setPage({ scope, status: 'loading' });
+    void readMoneyAccounts(snapshot.accessToken, { includeInactive }, controller.signal).then(
+      data => {
+        if (!active) return;
+        setPage({ scope, status: 'ready', data });
+      },
+      error => {
+        if (!active) return;
+        setPage({
+          scope,
+          status: error instanceof ApiError && error.kind === 'http' && error.status === 403
+            ? 'permission-denied' : 'error',
+        });
+      },
+    );
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [scope, mode, includeInactive, snapshot]);
+
+  // A verified refresh always supplies a NEW SessionStore snapshot object,
+  // invalidating this scope *during render* even before effect cleanup runs.
+  const current = page?.scope === scope && scope !== null ? page : null;
+  const data = current?.status === 'ready' ? current.data : undefined;
+  const safeSelection = opened?.scope === scope && data?.accounts.some(
+    account => account.id === opened.selection.account.id
+  ) ? opened.selection : null;
+  const noWrites = text(
+    'Read-only server view. Create, edit, money movement, status changes and reconciliation are not connected yet.',
+    'শুধু সার্ভারের হিসাব দেখা যাবে। নতুন হিসাব, সংশোধন, টাকা স্থানান্তর, অবস্থা পরিবর্তন ও মিলানোর কাজ এখনো যুক্ত হয়নি।',
+  );
+  const unavailable = text('Available after verified server integration', 'সার্ভারের যাচাইকৃত সংযোগের পর চালু হবে');
+
+  const selectAccount = (account: ServerMoneyAccount) => {
+    if (!scope || snapshot.status !== 'authenticated' || mode !== 'connected') return;
+    setOpened({ scope, selection: {
+      account,
+      tenantId: snapshot.tenantId,
+      userId: snapshot.userId,
+      epoch: snapshot.epoch,
+    } });
+  };
+
+  if (!scope) return (
+    <section role="status" className="rounded-lg border border-border bg-card p-4 text-sm text-ink-500">
+      {text('Sign in to view verified money accounts.', 'যাচাইকৃত টাকার হিসাব দেখতে লগইন করুন।')}
+    </section>
+  );
+
+  const permitted = data?.accounts ?? [];
+  const liquid = permitted.filter(account => account.type !== 'LOAN');
+  const loans = permitted.filter(account => account.type === 'LOAN');
+  const summary = data ? [
+    { label: text('Visible cash', 'দেখার অনুমতি থাকা ক্যাশ'), amount: data.totalCashMinor, icon: Banknote },
+    { label: text('Visible bank', 'দেখার অনুমতি থাকা ব্যাংক'), amount: data.totalBankMinor, icon: Landmark },
+    { label: text('Visible mobile banking', 'দেখার অনুমতি থাকা মোবাইল ব্যাংকিং'), amount: data.totalMfsMinor, icon: WalletCards },
+  ] : [];
+  const renderCards = (entries: ServerMoneyAccount[]) => entries.map(account => {
+    const loan = account.type === 'LOAN';
+    const typeLabel = account.type === 'CASH' ? text('Cash', 'নগদ') :
+      account.type === 'BANK' ? text('Bank', 'ব্যাংক') :
+      account.type === 'MFS' ? text('Mobile banking', 'মোবাইল ব্যাংকিং') :
+      account.balanceMinor > 0
+        ? text('Lender overpaid · negative payable', 'ঋণদাতাকে বেশি পরিশোধ · ঋণাত্মক দেনা')
+        : text('Lender loan · liability', 'ঋণদাতার পাওনা · দায়');
+    const Icon = account.type === 'CASH' ? Banknote : account.type === 'BANK' ? Landmark :
+      account.type === 'MFS' ? WalletCards : ArrowDownLeft;
+    return (
+      <div key={account.id} data-connected-money-account={account.id}
+        data-money-account-type={account.type}
+        className="min-w-0 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+            <Icon className="size-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13px] font-semibold text-ink">{account.name}</p>
+            <p className="text-[10.5px] text-ink-400">{typeLabel}
+              {account.isDrawer && ' · ' + text('Cash drawer','ক্যাশ ড্রয়ার')}
+              {account.reference && ' · ' + account.reference}
+            </p>
+            {account.holderName && <p className="truncate text-[10.5px] text-ink-400">{account.holderName}</p>}
+          </div>
+          <StatusBadge tone={account.status === 'ACTIVE' ? 'success' : 'neutral'} dot>
+            {account.status === 'ACTIVE' ? text('Active', 'সক্রিয়') : text('Inactive', 'নিষ্ক্রিয়')}
+          </StatusBadge>
+        </div>
+        <p className={'mt-4 text-2xl font-semibold ' + (loan ? (account.balanceMinor > 0 ? 'text-teal-700' : 'text-danger') : 'text-ink')}>
+          {serverMoney(loan ? -BigInt(account.balanceMinor) : account.balanceMinor)}
+        </p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10.5px] text-ink-400">
+          <span>{text('Opening', 'শুরুর জের')} {account.openingAmountMinor === null
+            ? text('Not recorded', 'দেওয়া নেই') : serverMoney(account.openingAmountMinor)}</span>
+          <span>{loan ? text('Not available for payments', 'পেমেন্টে ব্যবহার করা যাবে না') :
+            account.openingDate ? text('Opening date:', 'শুরুর তারিখ:') + ' ' + account.openingDate :
+              text('Opening date not recorded', 'শুরুর তারিখ দেওয়া নেই')}</span>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
+          <Button variant="outline" size="sm"
+            aria-label={text('View ledger for', 'খাতা দেখুন') + ' ' + account.name + ' · ' + account.type + ' · ' + account.id}
+            onClick={() => selectAccount(account)}>
+            <BookOpen className="size-4" /> {text('Ledger','খাতা')}
+          </Button>
+          {!loan && account.type !== 'CASH' && (
+            <Button variant="outline" size="sm" disabled title={unavailable}>
+              <CheckCircle2 className="size-4" /> {text('Reconcile', 'মিলিয়ে দেখুন')}
+            </Button>
+          )}
+          {(account.type === 'BANK' || account.type === 'MFS') && (
+            <Button variant="outline" size="sm" disabled title={unavailable}>
+              <Landmark className="size-4" /> {text('Bank Entry','ব্যাংক এন্ট্রি')}
+            </Button>
+          )}
+          <RowActionMenu label={text('Actions for', 'কাজ') + ' ' + account.name + ' · ' + account.type + ' · ' + account.id}
+            className="ml-auto inline-block" width={230}>
+            {close => <>
+              <ActionMenuItem icon={BookOpen} onClick={() => { close(); selectAccount(account); }}>
+                {text('View ledger', 'খাতা দেখুন')}
+              </ActionMenuItem>
+              <ActionMenuItem icon={Pencil} disabled title={unavailable}>{text('Edit account','হিসাব সংশোধন')}</ActionMenuItem>
+              <ActionMenuItem icon={Banknote} disabled title={unavailable}>{text('Money in / out','টাকা আসা / যাওয়া')}</ActionMenuItem>
+              <ActionMenuItem icon={ArrowLeftRight} disabled title={unavailable}>{text('Transfer','টাকা স্থানান্তর')}</ActionMenuItem>
+              {!loan && account.type !== 'CASH' &&
+                <ActionMenuItem icon={RefreshCw} disabled title={unavailable}>{text('Reconcile','মিলিয়ে দেখুন')}</ActionMenuItem>}
+              <ActionMenuDivider />
+              <ActionMenuItem icon={Power} disabled title={unavailable}>
+                {account.status === 'ACTIVE' ? text('Deactivate','নিষ্ক্রিয় করুন') : text('Activate','সক্রিয় করুন')}
+              </ActionMenuItem>
+              <ActionMenuItem icon={RotateCcw} disabled title={unavailable}>{text('Delete','মুছুন')}</ActionMenuItem>
+            </>}
+          </RowActionMenu>
+        </div>
+      </div>
+    );
+  });
+
+  return (
+    <div data-connected-money-accounts="" className="p-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-[13px] font-medium text-ink">{text('Money accounts','টাকার হিসাব')}</p>
+          <p className="text-[11px] text-ink-500">
+            {text('Verified account balances and server journal. Only accounts your role may view are shown.',
+              'যাচাইকৃত সার্ভারের জের ও খাতা। আপনার অনুমতির হিসাবগুলোই দেখানো হয়।')}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" disabled title={unavailable}>
+            <ArrowLeftRight className="size-4" /> {text('Transfer','ট্রান্সফার')}
+          </Button>
+          <Button size="sm" disabled title={unavailable}>
+            <Plus className="size-4" /> {text('Add account','হিসাব যোগ করুন')}
+          </Button>
+        </div>
+      </div>
+      <p className="mb-3 text-[11px] text-ink-500" role="note">{noWrites}</p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <label className="flex items-center gap-2 text-xs text-ink-600">
+          <input type="checkbox" checked={includeInactive}
+            onChange={event => setIncludeInactive(event.target.checked)}
+            className="size-4 accent-teal-600" />
+          {text('Include inactive accounts','বন্ধ হিসাবও দেখুন')}
+        </label>
+        <Button variant="outline" size="sm" onClick={() => setRetry(value => value + 1)}>
+          <RefreshCw className="size-4" /> {text('Refresh','আবার আনুন')}
+        </Button>
+      </div>
+      {current?.status === 'permission-denied' ? (
+        <p role="alert" className="rounded-md border border-border p-4 text-sm text-danger">
+          {text('Account-list permission is required. Ask the business owner for access.',
+            'হিসাবের তালিকা দেখার অনুমতি নেই। মালিকের কাছে অনুমতি চান।')}
+        </p>
+      ) : current?.status === 'error' ? (
+        <p role="alert" className="rounded-md border border-border p-4 text-sm text-danger">
+          {text('Verified money accounts could not be loaded. Use Refresh; preview balances will not be substituted.',
+            'সার্ভার থেকে হিসাব আনা যায়নি। আবার আনুন; নমুনা জের দেখানো হবে না।')}
+        </p>
+      ) : !data ? (
+        <p role="status" className="rounded-md border border-border p-4 text-sm text-ink-500">
+          {text('Loading verified money accounts…', 'সার্ভার থেকে যাচাইকৃত টাকার হিসাব আনা হচ্ছে…')}
+        </p>
+      ) : (
+        <>
+          <div data-connected-money-summary="" className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {summary.map(({label, amount, icon: Icon}) => (
+              <div key={label} className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2 text-[12px] text-ink-500">
+                  <span>{label}</span><Icon className="size-4" aria-hidden="true" />
+                </div>
+                <p className="mt-1 text-base font-semibold text-ink">{serverMoney(amount)}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {renderCards(liquid)}
+          </div>
+          {loans.length > 0 && (
+            <section data-connected-money-liabilities="" className="mt-5">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-[13px] font-semibold text-ink">{text('Lender balances · payable / overpayment', 'ঋণদাতার জের · দেনা / বেশি পরিশোধ')}</p>
+                  <p className="text-[11px] text-ink-500">
+                    {text('Net lender payable; negative means overpaid. Never included in liquid money.', 'ঋণদাতার মোট দেনা; ঋণাত্মক হলে বেশি পরিশোধ। ব্যবহারযোগ্য টাকার সঙ্গে যোগ হয় না।')}
+                  </p>
+                </div>
+                <p className="text-sm font-semibold text-danger">{serverMoney(data.totalLoanMinor)}</p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{renderCards(loans)}</div>
+            </section>
+          )}
+          {permitted.length === 0 && <p className="rounded-lg border border-border p-4 text-sm text-ink-500">
+            {text('No permitted accounts to display.', 'দেখার অনুমতি থাকা কোনো হিসাব পাওয়া যায়নি।')}
+          </p>}
+          <section className="mt-5 rounded-xl border border-border">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-ink">{text('Transfer history','ট্রান্সফারের ইতিহাস')}</p>
+                <p className="text-[11px] text-ink-500">
+                  {text('Transfer history is not connected to a verified server API yet. No sample transfers are displayed.',
+                    'ট্রান্সফারের ইতিহাস এখনো সার্ভারের সঙ্গে যুক্ত নয়। কোনো নমুনা ট্রান্সফার দেখানো হচ্ছে না।')}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" disabled title={unavailable}>
+                <Plus className="size-4" /> {text('New transfer','নতুন ট্রান্সফার')}
+              </Button>
+            </div>
+          </section>
+        </>
+      )}
+      <ConnectedMoneyAccountActionDialog selection={safeSelection} onClose={() => setOpened(null)} />
+    </div>
+  );
+}
+
+/** All preview behavior, routes and writers remain in the unchanged FinancePreview.
+ * Connected other finance routes stay unavailable; P2-B is account reads only.
+ */
+export function Finance(props: { counterOnly?: boolean; moneyAccountsOnly?: boolean } = {}) {
+  const { mode } = useSession();
+  if (mode === 'connected') {
+    if (props.moneyAccountsOnly) return <ConnectedMoneyAccountsRead />;
+    if (props.counterOnly) return <ConnectedCounterReadWorkspace />;
+    return <main role="status" className="rounded-lg border border-border bg-card p-4 text-sm text-ink-500">
+      Connected finance posting and related workspaces are not enabled yet. 
+      সার্ভারের টাকার লেনদেন ও সংশ্লিষ্ট কাজ এখনো চালু হয়নি।
+    </main>;
+  }
+  return <FinancePreview {...props} />;
+}

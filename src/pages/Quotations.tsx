@@ -1,10 +1,13 @@
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
+import {RowActionMenu} from '../components/layout/RowActionMenu';
+import {useRecoveryContext} from '../recovery/useRecoveryContext';
 import { SalesWideToolbar } from '../components/sales/SalesWideToolbar';
 import { SalesMobileSummary, SalesMobileToolbar, SalesMobileMore, SalesMobileRecord } from '../components/sales/SalesMobileLayout';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import {useMemo,useState,useSyncExternalStore} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Copy,FileText,Plus,Printer,Search,Trash2,Pencil,Check,Send, X} from 'lucide-react';
+import {Copy,FileText,Plus,Printer,Search,Pencil,Check,Send, X} from 'lucide-react';
 import {toast} from 'sonner';
 import {PageHeader} from '../components/PageHeader';
 import {Button} from '../components/Button';
@@ -190,12 +193,13 @@ function QuotationDetail({quote,onClose,onEdit,onDuplicate,onTransition,onDelete
       <Button size="sm" disabled={status==='Expired'} onClick={()=>onTransition(quote,'Accepted')}><Check className="size-4"/> {ql("Accepted")}</Button>
      </>}
     {quote.status==='Accepted'&&<Button size="sm" onClick={()=>onCreateOrder(quote)}>{ql("Create online order")}</Button>}
-    {quote.status==='Draft'&&<Button size="sm" variant="outline" onClick={()=>onDelete(quote)}><Trash2 className="size-4"/> {ql("Delete draft")}</Button>}
+    <RowActionMenu label={ql('Actions')+' '+quote.number}>{close=><SourceDeleteAction module="sales" onReview={quote.status==='Draft'?()=>{close();onDelete(quote);}:undefined} reason="Published or accepted quotations retain their lifecycle history. Only drafts can move to Recycle Bin."/>}</RowActionMenu>
    </div>
   </DialogContent>
  </Dialog>;
 }
 export function Quotations(){
+ const recoveryContext=useRecoveryContext();
  const isMobile=useMediaQuery('(max-width: 767px)');
  const {language}=useUiCopy();
  const ql=(label:string)=>quotationLabel(language,label);
@@ -214,7 +218,8 @@ export function Quotations(){
  const edit=(q:Quotation)=>{setDetailId(null);setEditing(q);setEditorOpen(true);};
  const duplicate=(q:Quotation)=>{try{const copy=duplicateQuote(q.id);setDetailId(copy.id);toast.success(ql('Quotation duplicated as draft'));}catch(e){toast.error(String(e));}};
  const transition=(q:Quotation,to:QuoteStatus)=>{try{changeQuoteStatus(q.id,to);toast.success(ql('Quotation marked')+' '+ql(to)+' · '+ql('UI preview only'));}catch(e){toast.error(e instanceof Error?e.message:String(e));}};
- const remove=()=>{if(!deleteTarget)return;try{deleteDraftQuote(deleteTarget.id);setDetailId(null);toast.success(ql('Draft deleted'));}catch(e){toast.error(String(e));}setDeleteTarget(null);};
+ const [deleteError,setDeleteError]=useState('');
+ const remove=()=>{if(!deleteTarget)return;try{deleteDraftQuote(deleteTarget.id,recoveryContext,JSON.stringify(deleteTarget));setDetailId(null);toast.success(ql('Moved to Recycle Bin · 30-day session recovery'));setDeleteTarget(null);}catch(e){setDeleteError(String(e));}};
  const totalValue=quotes.reduce((sum,q)=>sum+quoteTotal(q),0);
  const openCount=quotes.filter(q=>['Draft','Sent'].includes(quoteDisplayStatus(q))).length;
  const quotationSummary=[
@@ -270,8 +275,8 @@ export function Quotations(){
   <QuotationDetail quote={detail} onClose={()=>setDetailId(null)} onEdit={edit} onDuplicate={duplicate} onTransition={transition} onDelete={setDeleteTarget} onCreateOrder={q=>navigate('/app/online-sales?quote='+encodeURIComponent(q.id))}/>
   <Dialog open={Boolean(deleteTarget)} onOpenChange={value=>!value&&setDeleteTarget(null)}>
    <DialogContent role="dialog" aria-label={ql("Confirm delete quotation")} className="sales-mobile-dialog sm:max-w-md">
-    <DialogHeader><DialogTitle>{ql("Delete draft quotation?")}</DialogTitle><DialogDescription>{deleteTarget?.number} {ql("will be deleted from the in-memory preview. This action cannot be undone.")}</DialogDescription></DialogHeader>
-    <DialogFooter><Button variant="outline" onClick={()=>setDeleteTarget(null)}>{ql("Cancel")}</Button>
+    <DialogHeader><DialogTitle>{ql("Delete draft quotation?")}</DialogTitle><DialogDescription>{deleteTarget?.number} {ql("will move to Recycle Bin for 30-day recovery in this session. Reloading resets preview stores.")}</DialogDescription></DialogHeader>
+    {deleteError&&<p role="alert">{deleteError}</p>}<DialogFooter><Button variant="outline" onClick={()=>setDeleteTarget(null)}>{ql("Cancel")}</Button>
      <Button onClick={remove}>{ql("Delete draft")}</Button></DialogFooter>
    </DialogContent>
   </Dialog>

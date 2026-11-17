@@ -1,3 +1,6 @@
+import {recoveryRestriction} from '../../recovery/copy';
+import {useRecoveryDelete} from '../../recovery/useRecoveryDelete';
+import {partyDeleteReason} from '../../recovery/adapters';
 import { usePartyContentTabs } from './usePartyContentTabs';
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import { FloatingPanel } from '../layout/FloatingPanel';
@@ -81,6 +84,7 @@ export function PartyDetail({
   vendorProfile,onOpenVendorWork
 }: PartyDetailProps) {
   const {text}=useUiCopy();
+ const recoveryDelete=useRecoveryDelete();
   const [tab, setTab] = useState<Tab>('ledger');
   const [vendorSide,setVendorSide]=useState<VendorSide>('payable');
   const [note, setNote] = useState('');
@@ -201,7 +205,7 @@ export function PartyDetail({
             <ActionMenuItem role="menuitem" icon={BookOpen} onClick={()=>{close();onOpenVendorWork?.('ledger');}}>
               {text('Opening balance','শুরুর জের')}
             </ActionMenuItem>
-          </ActionMenuList>}
+          <ActionMenuDivider/><ActionMenuItem icon={Trash2} tone="destructive" disabled={!!recoveryRestriction(partyDeleteReason(party.id),text)} onClick={()=>{close();recoveryDelete.request({kind:'party',id:party.id,label:party.name,revision:JSON.stringify(party)});}}>{text('Delete party','পার্টি মুছুন')}</ActionMenuItem>{recoveryRestriction(partyDeleteReason(party.id),text)&&<p className="px-3 py-2 text-xs text-helper">{recoveryRestriction(partyDeleteReason(party.id),text)}</p>}</ActionMenuList>}
         </FloatingPanel>
        </div>:<>
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
@@ -244,7 +248,7 @@ export function PartyDetail({
             <ActionMenuItem role="menuitem" icon={Send} disabled title={text('SMS service is not connected to the UI preview','এই প্রিভিউতে SMS চালু নেই')}>
               {text('Send statement','হিসাব পাঠান')}
             </ActionMenuItem>
-          </ActionMenuList>}
+          <ActionMenuDivider/><ActionMenuItem icon={Trash2} tone="destructive" disabled={!!recoveryRestriction(partyDeleteReason(party.id),text)} onClick={()=>{close();recoveryDelete.request({kind:'party',id:party.id,label:party.name,revision:JSON.stringify(party)});}}>{text('Delete party','পার্টি মুছুন')}</ActionMenuItem>{recoveryRestriction(partyDeleteReason(party.id),text)&&<p className="px-3 py-2 text-xs text-helper">{recoveryRestriction(partyDeleteReason(party.id),text)}</p>}</ActionMenuList>}
         </FloatingPanel>
       </div>
        </>}
@@ -402,6 +406,7 @@ export function PartyDetail({
       {vendorProfile && vendorSettlementMode && <VendorQuickSettlementDialog
         open partyId={party.id} partyName={party.name} mode={vendorSettlementMode}
         onClose={()=>setVendorSettlementMode(null)}/>}
+      {recoveryDelete.dialog}
       <PartyStatementDialog open={statementOpen} onClose={onCloseStatement} party={party} statement={shownStatement}/>
       {(relationship==='Customer'||relationship==='Supplier')&&<>
         <PartyPaymentDialog open={paymentOpen} party={party} relationship={relationship} sources={sources}

@@ -1,3 +1,4 @@
+import {sourceDeleteErrorCopy} from '../../deletion/errorCopy';
 import {financeLabel} from '../../i18n/financeCopy';
 import {usePartyDialogError} from './usePartyDialogError';
 import { useEffect, useState } from 'react';
@@ -44,7 +45,7 @@ export function PartyTransactionDialog({row,source,mode,onClose,onEdit,onReverse
   if(!reason.trim()){setError(text('An audit reason is required.','কেন সংশোধন করছেন তা লিখুন।'),'reason');return;}
   if(mode==='reverse'){
    if(!review){setReview(true);return;}
-   try{onReverse(source.id,reason.trim());onClose();}catch(e){setError(e instanceof Error?partyFinancialErrorText(language,e.message):text('Cannot reverse source.','লেনদেন উল্টো করা যায়নি।'));setReview(false);}
+   try{onReverse(source.id,reason.trim());onClose();}catch(e){setError(sourceDeleteErrorCopy(e,text,message=>partyFinancialErrorText(language,message)));setReview(false);}
    return;
   }
   const money=Number(amount);

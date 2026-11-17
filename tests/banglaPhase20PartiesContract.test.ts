@@ -30,7 +30,7 @@ test('Party presentation changes do not change relationship isolation, ledger da
   "dispatchPartyPreview({type:'record-finance',payload})",
   "dispatchPartyPreview({type:'set-opening',payload})",
   "dispatchPartyPreview({type:'edit-source-payment',sourceId,payload,reason})",
-  "dispatchPartyPreview({type:'reverse-source',sourceId,reason})",
+  "dispatchPartyPreview({type:'reverse-source',sourceId,reason,actorId:audit.actorId})",
   "partySourceRoute(row)",
   "vendorWorkLink(party.id,tab,sourceId)",
   "setRole(value)","resetLedger()"

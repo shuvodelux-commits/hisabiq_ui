@@ -10,7 +10,7 @@ test('sidebar destinations match the complete module tab sequence',()=>{
  assert.deepEqual(paths('purchases'),['/app/purchases','/app/purchases?tab=return','/app/purchases?tab=return-history']);
  assert.deepEqual(paths('products'),['/app/products','/app/products?view=lots','/app/products?view=history','/app/products?view=settings']);
  assert.deepEqual(paths('finance'),['/app/finance','/app/finance?tab=transactions','/app/finance?tab=cheques','/app/finance?tab=cash']);
- assert.deepEqual(paths('accounts'),['/app/accounts','/app/accounts?tab=money-accounts','/app/accounts?tab=vouchers','/app/accounts?tab=ledger','/app/accounts?tab=trial','/app/accounts?tab=statements','/app/accounts?tab=chart','/app/reconciliation','/app/audit-ledger']);
+ assert.deepEqual(paths('accounts'),['/app/accounts','/app/accounts?tab=money-accounts','/app/accounts?tab=bank-entry','/app/accounts?tab=vouchers','/app/accounts?tab=ledger','/app/accounts?tab=trial','/app/accounts?tab=statements','/app/accounts?tab=chart','/app/reconciliation','/app/audit-ledger']);
  assert.equal(erpNavigation.find(g=>g.id==='daybook')?.landingPath,'/app/daybook');
  assert.equal(erpNavigation.find(g=>g.id==='daybook')?.children?.length??0,0);
  assert.deepEqual(paths('settings').filter(p=>p.startsWith('/app/settings/')),Object.keys(sectionNames).map(id=>`/app/settings/${id}`));
@@ -46,10 +46,10 @@ test('contextual destinations retain existing real routes and only canonical pat
  assert.deepEqual(resolveNavLocation('/app/finance?tab=cash',erpNavigation),{groupId:'finance',childId:'cash-sessions'});
  assert.equal(erpNavigation.find(g=>g.id==='finance')?.children?.some(c=>c.path==='/app/finance?tab=accounts'),false);
  assert.deepEqual(resolveNavLocation('/app/accounts?tab=money-accounts',erpNavigation),{groupId:'accounts',childId:'money-accounts'});
- assert.deepEqual(resolveNavLocation('/app/accounts?tab=bank-entry&accountId=acc-bank-dbbl',erpNavigation),{groupId:'accounts',childId:'money-accounts'});
+ assert.deepEqual(resolveNavLocation('/app/accounts?tab=bank-entry&accountId=acc-bank-dbbl',erpNavigation),{groupId:'accounts',childId:'bank-entry'});
  assert.deepEqual(resolveNavLocation('/app/accounts?tab=ledger',erpNavigation),{groupId:'accounts',childId:'accounts-ledger'});
  assert.deepEqual(resolveNavLocation('/app/accounts',erpNavigation),{groupId:'accounts',childId:'accounts-overview'});
- assert.deepEqual(resolveNavLocation('/app/accounts?tab=bank-entry',erpNavigation),{groupId:'accounts',childId:'money-accounts'});
+ assert.deepEqual(resolveNavLocation('/app/accounts?tab=bank-entry',erpNavigation),{groupId:'accounts',childId:'bank-entry'});
  assert.deepEqual(resolveNavLocation('/app/daybook',erpNavigation),{groupId:'daybook'});
  assert.deepEqual(resolveNavLocation('/app/reconciliation?account=Main%20Cash%20Counter',erpNavigation),{groupId:'accounts',childId:'reconciliation'});
  assert.deepEqual(resolveNavLocation('/app/audit-ledger',erpNavigation),{groupId:'accounts',childId:'audit'});

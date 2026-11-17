@@ -1,0 +1,15 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const studio = fs.readFileSync('src/settings/magic/invoice/InvoiceStudio.tsx', 'utf8');
+const workspace = fs.readFileSync('src/integration/ConnectedSettingsWorkspace.tsx', 'utf8');
+assert.match(studio, /VITE_CONNECTED_INVOICE_LOGO_WRITES === 'true'/, 'only literal true opts in; unset defaults OFF');
+assert.match(studio, /canEditLogo=\{connectedLogoWritesEnabled && verified.canWrite\}/);
+assert.match(studio, /const canWrite = canRead[\s\S]*?permissions.includes\('settings.setting.edit'\)/);
+assert.match(studio, /const allowEdits = false/);
+assert.match(studio, /const save = async \(\) => \{\s*if \(!canEditPreferences\) return;/);
+assert.match(studio, /current.userId === snapshot.userId/);
+assert.match(studio, /current.permissions.includes\('sale.invoice.view'\)[\s\S]*?current.permissions.includes\('settings.setting.edit'\)/);
+assert.match(workspace, /section === 'invoices' \? \(\s*<InvoiceStudio[\s\S]*?\) : \(\s*<fieldset disabled/);
+assert.match(workspace, /GeneralSettingsSection[\s\S]*?canEdit=\{false\}/);
+assert.match(workspace, /TeamSettings[\s\S]*?canEdit=\{false\}/);
+console.log('PASS: default-OFF logo-only source gate; both grants, current user, disabled preferences/Business/Team');

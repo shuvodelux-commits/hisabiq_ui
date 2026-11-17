@@ -9,7 +9,7 @@ const all:NavigationContext={availablePaths:erpRoutePaths,enabledFeatures:erpFea
 
 test('tenant settings follows the Settings directory, then related standalone pages',()=>{
  const entries=getSettingsHubItems(all);
- assert.deepEqual(entries.map(e=>e.path),[...Object.keys(sectionNames).map(id=>`/app/settings/${id}`),'/app/notifications','/app/subscription']);
+ assert.deepEqual(entries.map(e=>e.path),[...Object.keys(sectionNames).map(id=>`/app/settings/${id}`),'/app/recycle-bin','/app/notifications','/app/subscription']);
  assert.ok(entries.every(e=>e.description.length>15));
 });
 test('Settings removes unready destinations instead of showing broken tiles',()=>{
