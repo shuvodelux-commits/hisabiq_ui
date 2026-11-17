@@ -1672,7 +1672,7 @@ export function TenantSettingsPage() {
               onDirtyChange={setTeamMagicDirty}
             />
           ) : activeId === 'data' ? (
-            <MagicDataSettings canEdit={canManage(state, actorId, 'export') || canManage(state, actorId, 'import')} />
+            <MagicDataSettings />
           ) : activeId === 'sessions' ? (
             <MagicSessionsPage canManage={canManage(state, actorId, 'team')} />
           ) : activeId === 'activity' ? (

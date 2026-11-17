@@ -292,7 +292,9 @@ export function DataSettings() {
                   return setError(result.error || "Restore failed");
                 setBackup(null);
                 setNotice(
-                  "Business settings restored. Existing records were preserved.",
+                  result.persisted === false
+                    ? "Applied in memory only. Download a settings backup before leaving."
+                    : "Business settings restored. Existing records were preserved.",
                 );
               }}
             >
