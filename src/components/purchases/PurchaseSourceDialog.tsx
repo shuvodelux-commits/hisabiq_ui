@@ -31,7 +31,7 @@ export function PurchaseSourceDialog({purchase,mode,onClose,onSaved}:{purchase:P
  if(mode==='return')try{quote=purchaseReturnQuote(purchase,requested,history);}catch(e){quoteError=e instanceof Error?e.message:text('Invalid return.','পণ্য ফেরতের তথ্য ঠিক নেই।');}
  const paymentTotal=payments.reduce((sum,row)=>sum+(Number(row.amount)||0),0);
  const total=mode==='payment'?position.due:settlement==='cash'?quote?.excess??0:0;
- const totals=calculatePurchaseCheckout(total,'','amount','No rounding',payments);
+ const totals=calculatePurchaseCheckout(total,'','amount','No rounding',payments,true);
  const splits:PaymentSplit[]=payments.filter(row=>row.amount.trim()).map(row=>({...row,amount:Number(row.amount)}));
  const update=(id:string,patch:Partial<PurchaseCartLine>)=>{setReview(false);setLines(current=>current.map(line=>line.id===id?{...line,...patch}:line));};
  const title=mode==='correction'?text('Correct purchase','ক্রয় সংশোধন'):mode==='payment'?text('Pay purchase due','ক্রয়ের বাকি পরিশোধ'):text('Return purchase products','কেনা পণ্য ফেরত দিন');
