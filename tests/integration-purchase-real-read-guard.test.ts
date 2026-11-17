@@ -244,3 +244,34 @@ test('R09PUR-24 cancellation verification retains source-scoped GET and fail-clo
     }
   }
 });
+
+
+test('R09PUR-25 real signed connected Purchases supports keyboard-only return/history navigation', () => {
+  const script = source(runner);
+  assert.match(script, /async function exercisePurchaseAccessibleNavigation\(/);
+  assert.match(script, /getByRole\('tablist', \{ name: 'Purchase sections' \}\)/);
+  assert.match(script, /name: 'Review returnable quantities ' \+ row\.number/);
+  assert.match(script, /await review\.focus\(\)/);
+  assert.match(script, /await review\.press\('Enter'\)/);
+  assert.match(script, /await historyTab\.focus\(\)/);
+  assert.match(script, /await historyTab\.press\('Enter'\)/);
+  assert.match(script, /getAttribute\('aria-selected'\)/);
+  assert.match(script, /data-purchase-returnable-table/);
+  assert.match(script, /data-purchase-return-history-table/);
+  assert.match(script, /assert\.deepEqual\(violations, \[\]\)/);
+  for (const width of [1280, 768, 390]) {
+    assert.ok(script.includes("exercisePurchaseAccessibleNavigation(browser, " + width +
+      ", preflightRecords, 'keyboard')"));
+  }
+});
+test('R09PUR-26 real phone touch hit targets navigate connected source/history without writes', () => {
+  const script = source(runner);
+  assert.match(script, /hasTouch: input === 'touch'/);
+  assert.match(script, /isMobile: input === 'touch'/);
+  assert.match(script, /const size = await review\.boundingBox\(\)/);
+  assert.match(script, /size\.width >= 24 && size\.height >= 24/);
+  assert.match(script, /await review\.tap\(\)/);
+  assert.match(script, /await historyTab\.tap\(\)/);
+  assert.ok(script.includes("exercisePurchaseAccessibleNavigation(browser, 390, preflightRecords, 'touch')"));
+  assert.match(script, /entry\.method !== 'GET' && entry\.path !== '\/api\/v1\/auth\/login'/);
+});
