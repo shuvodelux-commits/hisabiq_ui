@@ -3,6 +3,7 @@ import { TenantSupport, TenantSubscription } from '../saas/TenantPortal';
 import { SettingsNav } from './magic/SettingsNav';
 import { SettingsHome } from './magic/SettingsHome';
 import { GeneralSettingsSection as MagicGeneralSettingsSection } from './magic/GeneralSettingsSection';
+import { LiveSettingsSection, type LiveSection } from './magic/LiveSettingsSection';
 import { KhataPreview as MagicKhataPreview } from './magic/KhataPreview';
 import { InvoiceStudio as MagicInvoiceStudio } from './magic/invoice/InvoiceStudio';
 import { InterfaceSettings as MagicInterfaceSettings } from './magic/interface/InterfaceSettings';
@@ -1554,6 +1555,7 @@ export function TenantSettingsPage() {
   const [interfaceMagicDirty, setInterfaceMagicDirty] = useState(false);
   const [teamMagicDirty, setTeamMagicDirty] = useState(false);
   const [invoiceNumberDirty, setInvoiceNumberDirty] = useState(false);
+  const [showDocumentControls, setShowDocumentControls] = useState(false);
   const [pendingMagicUrl, setPendingMagicUrl] = useState<string | null>(null);
   const activeId: SettingsSectionId | null =
     section === 'financialTerminology' ? 'names' :
@@ -1605,6 +1607,11 @@ export function TenantSettingsPage() {
         <div className="min-w-0">
           {isHome ? (
             <SettingsHome urlFor={urlFor} />
+          ) : (activeId === 'business' || activeId === 'names' || activeId === 'personal' || activeId === 'security') ? (
+            <SettingsPageContent key={section} sectionOverride={activeId === 'names' ? 'financialTerminology' : activeId} embedded hideHeader />
+          ) : (activeId === 'sales' || activeId === 'products' || activeId === 'purchases' || activeId === 'finance' || activeId === 'notifications') ? (
+            <LiveSettingsSection key={activeId} section={(activeId === 'finance' ? 'money' : activeId) as LiveSection}
+              onDirtyChange={setMagicDirty} />
           ) : sourceForm ? (
             <MagicGeneralSettingsSection
               key={sourceForm.id}
@@ -1616,10 +1623,20 @@ export function TenantSettingsPage() {
                 : undefined}
             />
           ) : activeId === 'interface' ? (
-            <MagicInterfaceSettings
-              onDirtyChange={setInterfaceMagicDirty}
-              canBusiness={canManage(state, actorId, 'interface')}
-            />
+            <div className="space-y-4" data-settings-live-interface>
+              <MagicInterfaceSettings
+                onDirtyChange={setInterfaceMagicDirty}
+                canBusiness={canManage(state, actorId, 'interface')}
+              />
+              <section className="space-y-2 border-t border-border pt-4">
+                <h2 className="text-[13px] font-semibold text-ink">
+                  Working Sales & Products column visibility
+                  <span lang="bn" className="ml-2 font-bn text-[11px] font-normal text-ink-500">কলাম দেখান বা লুকান</span>
+                </h2>
+                <p className="text-xs text-ink-500">Unlike the feature demonstration above, these inherited column preferences are connected to HisabIQ's current tables. Personal changes save on this browser; business defaults require Save changes. Required columns cannot be hidden.</p>
+                <SettingsPageContent key="interface-live" sectionOverride="interface" embedded hideHeader />
+              </section>
+            </div>
           ) : activeId === 'invoices' ? (
             <div className="space-y-6" data-settings-magic-invoices-page>
               <MagicInvoiceStudio
@@ -1631,11 +1648,22 @@ export function TenantSettingsPage() {
                   Document numbering
                   <span className="ml-2 font-bn text-[11px] font-normal text-ink-400">নম্বর</span>
                 </h2>
-                <MagicGeneralSettingsSection
-                  section={settingsSections.find(item => item.id === 'invoices')!}
-                  canEdit={canManage(state, actorId, 'invoices')}
-                  onDirtyChange={setInvoiceNumberDirty}
-                />
+                <LiveSettingsSection section="invoices" onDirtyChange={setInvoiceNumberDirty} />
+                <section className="rounded-xl border border-border bg-card p-3">
+                  <button type="button" aria-expanded={showDocumentControls}
+                    onClick={() => setShowDocumentControls(value => !value)}
+                    className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left text-[13px] font-semibold text-ink hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
+                    <span>Document numbering, ledger & report designs
+                      <span lang="bn" className="ml-2 font-bn text-[11px] font-normal text-ink-500">নম্বর, খাতা ও রিপোর্ট</span>
+                    </span>
+                    <span className="shrink-0 text-xs font-medium text-teal-700">{showDocumentControls ? 'Hide' : 'Edit'}</span>
+                  </button>
+                  {showDocumentControls && (
+                    <div className="border-t border-border pt-3" data-settings-live-document-controls>
+                      <SettingsPageContent sectionOverride="invoices" embedded hideHeader />
+                    </div>
+                  )}
+                </section>
               </div>
             </div>
           ) : activeId === 'team' ? (

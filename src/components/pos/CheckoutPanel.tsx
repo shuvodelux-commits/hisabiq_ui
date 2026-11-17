@@ -20,6 +20,7 @@ import type { Party } from '../../types/erp';
 import { formatNumber, taka } from '../../utils/currency';
 import { AmountInWordsDisplay } from '../AmountInWordsDisplay';
 import { useUiCopy } from '../../i18n/useUiCopy';
+import { useTenantSettings } from '../../settings/TenantSettingsProvider';
 import { InstallmentTermsPanel, type InstallmentTerms } from './InstallmentTermsPanel';
 
 type Totals = {
@@ -76,6 +77,16 @@ function Row({ label, value, muted = false }: { label: React.ReactNode; value: R
 export function CheckoutPanel(props: CheckoutPanelProps) {
   const { totals, customer, customerDetails, discountMode, payments } = props;
   const { language, text, word, showHelper } = useUiCopy();
+  const { state: businessSettings } = useTenantSettings();
+  const salesFields = businessSettings.sections.sales;
+  // A new credit customer still needs a phone for the existing due-sale checks.
+  const showCustomerPhone = salesFields.customerPhone || (totals.due > 0 && !customer);
+  const showGuardian = salesFields.guardian;
+  const showAddress = salesFields.address;
+  const visibleCustomerFields = [text('Name', 'নাম'),
+    ...(showCustomerPhone ? [text('Phone', 'ফোন')] : []),
+    ...(showGuardian ? [text('Guardian', 'অভিভাবক')] : []),
+    ...(showAddress ? [text('Address', 'ঠিকানা')] : [])].join(' · ');
   const hasCreditCustomer = Boolean(customer || (customerDetails.name.trim() && customerDetails.phone.trim()));
   const dueWithoutCustomer = totals.due > 0 && !hasCreditCustomer && totals.total > 0;
   const quick = [500, 1000, 2000, 5000].filter((n) => n >= totals.total * 0.2);
@@ -166,9 +177,9 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 {showHelper && <span className="font-bn font-normal text-ink-500"> · ক্রেতার তথ্য</span>}
               </span>
               {!customerDetailsOpen && <span className="mt-0.5 block truncate text-[11px] text-ink-500">
-                {customerDetails.name.trim() || customerDetails.phone.trim()
-                  ? [customerDetails.name.trim(),customerDetails.phone.trim()].filter(Boolean).join(' · ')
-                  : text('Name · Phone · Guardian · Address','নাম · ফোন · অভিভাবক · ঠিকানা')}
+                {customerDetails.name.trim() || (showCustomerPhone && customerDetails.phone.trim())
+                  ? [customerDetails.name.trim(), showCustomerPhone ? customerDetails.phone.trim() : ''].filter(Boolean).join(' · ')
+                  : visibleCustomerFields}
               </span>}
             </span>
             <ChevronDown aria-hidden="true" className={'size-4 shrink-0 text-ink-500 transition-transform duration-200 '+
@@ -183,6 +194,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 aria-label={word("customerName")}
                 className="h-9"
               />
+              {showCustomerPhone && (
               <Input
                 value={customerDetails.phone}
                 onChange={(event) => updateDetails({ phone: event.target.value })}
@@ -190,6 +202,8 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 aria-label={word("customerPhone")}
                 className="h-9"
               />
+              )}
+              {showGuardian && (
               <Input
                 value={customerDetails.guardianName}
                 onChange={(event) => updateDetails({ guardianName: event.target.value })}
@@ -197,6 +211,8 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 aria-label={word("guardianName")}
                 className="h-9"
               />
+              )}
+              {showAddress && (
               <Input
                 value={customerDetails.address}
                 onChange={(event) => updateDetails({ address: event.target.value })}
@@ -204,6 +220,7 @@ export function CheckoutPanel(props: CheckoutPanelProps) {
                 aria-label={word("customerAddress")}
                 className="h-9"
               />
+              )}
             </div>
             <p className="mt-2 text-[10.5px] text-ink-500">{word("customerOptional")}</p>
           </div>
