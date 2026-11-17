@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   COUNTER_PENDING_PREFIX, pendingCounterKey,
   readPendingCounterOperation, reservePendingCounterOperation,
@@ -110,4 +111,28 @@ test('invalid identities, operation IDs and clocks cannot create a storage key/r
   assert.throws(()=>reservePendingCounterOperation(store,scope,op,'CUSTOMER_RECEIPT',-1));
   assert.throws(()=>reservePendingCounterOperation(store,scope,op,'CASH' as never,100));
   assert.equal(store.values.size,0);
+});
+
+test('connected H2 form reserves before source POST, clears only on source proof and never auto retries',()=>{
+  const file=readFileSync(new URL('../src/components/finance/ConnectedCounterSinglePayment.tsx',import.meta.url),'utf8');
+  const reserve=file.indexOf('reservePendingCounterOperation(');
+  const post=file.indexOf('await recordConnectedCounterSettlement(');
+  const confirmed=file.indexOf('clearVerifiedCounterOperation(');
+  assert.ok(reserve>=0 && reserve<post,'write-ahead reservation precedes signed payment');
+  assert.ok(confirmed>post,'source proof precedes clearing marker');
+  assert.match(file,/reserved = true;/);
+  assert.match(file,/onPendingChange\(\)/);
+  assert.match(file,/phase === 'unknown'/);
+  assert.doesNotMatch(file,/localStorage\.clear\(|sessionStorage|window\.location\.reload\(/);
+});
+test('connected H1 reads a signed-scope pending lock and does not expose a manual clear action',()=>{
+  const file=readFileSync(new URL('../src/components/finance/ConnectedCounterReadWorkspace.tsx',import.meta.url),'utf8');
+  assert.match(file,/readPendingCounterOperation\(/);
+  assert.match(file,/pendingStatus\.state !== 'clear'/);
+  assert.match(file,/data-h3-original-operation/);
+  assert.match(file,/window\.addEventListener\('storage'/);
+  assert.match(file,/onPendingChange=/);
+  assert.doesNotMatch(file,/clearVerifiedCounterOperation\(/);
+  const gate=readFileSync(new URL('../src/integration/ConnectedWorkspaceGate.tsx',import.meta.url),'utf8');
+  assert.match(gate,/workspace=pending/);
 });
