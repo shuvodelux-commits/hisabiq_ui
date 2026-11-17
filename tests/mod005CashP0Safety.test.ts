@@ -25,7 +25,11 @@ test('same-identity verified bearer refresh must not reset the outstanding econo
   assert.match(context, /if \(identityChanged\)/);
   assert.match(context, /pendingOperation\.current = null/);
   assert.match(context, /pendingOperation\.current\?\.id \?\? generateOperationId\(\)/);
-  assert.match(context, /pendingOperation\.current = \{ identity, fingerprint, id: operationId \}/);
+  assert.match(context, /pendingOperation\.current = \{ identity, fingerprint, id: operationId, send \}/);
+  assert.match(context, /return runMutation\(pending\.fingerprint, pending\.send\)/);
+  assert.match(context, /const confirmPendingOperation = async/);
+  assert.match(dialog, /hasPendingOperation/);
+  assert.match(dialog, /Confirm previous cash operation/);
   assert.doesNotMatch(context, /useEffect\(\(\) => \{[\s\S]{0,200}pendingOperation\.current = null;[\s\S]{0,500}\}, \[identity, refresh\]\)/);
 });
 

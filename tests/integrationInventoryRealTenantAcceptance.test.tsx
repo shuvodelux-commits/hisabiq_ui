@@ -11,6 +11,9 @@ import {
   readInventoryOverview, readInventoryLots, readInventoryAdjustments,
 } from '../src/integration/inventory.ts';
 import { projectInventoryPresentation } from '../src/integration/inventory-projection.ts';
+import { ConnectedInventoryReadPanel } from '../src/components/products/ConnectedInventoryReadPanel.tsx';
+import type { UiLanguage } from '../src/i18n/uiCopy.ts';
+import '../src/index.css';
 
 type ReadState =
   | { state: 'unloaded' | 'loading'; data?: never }
@@ -24,6 +27,7 @@ function InventoryProbe() {
   const [authMessage, setAuthMessage] = useState('idle');
   const [read, setRead] = useState<ReadState>({ state: 'unloaded' });
   const [foreignId, setForeignId] = useState('');
+  const [language, setLanguage] = useState<UiLanguage>('English');
   const [foreignResult, setForeignResult] = useState('idle');
 
   useEffect(() => {
@@ -83,6 +87,14 @@ function InventoryProbe() {
     : visibleData !== null ? 'loaded'
     : read.state === 'failed' ? 'failed' : 'loading';
 
+  // A failed LOT_VIEW read is an explicit permission refusal, not an
+  // empty inventory; never display any previously authorized table on it.
+  const panelState = snapshot.status !== 'authenticated' || visibleStatus === 'loading' ||
+    visibleStatus === 'unloaded' ? 'loading'
+    : visibleStatus === 'failed' ? read.state === 'failed' && read.error === 'HTTP_403'
+      ? 'permission-denied' : 'error'
+      : 'ready';
+
   function login(): void {
     setAuthMessage('loading');
     void store.loginWithPassword(identifier, password)
@@ -122,10 +134,25 @@ function InventoryProbe() {
         data-status={visibleStatus}
         data-tenant={visibleData?.scope.split('/')[0] ?? ''}>
         {visibleData !== null
-          ? <pre id="p2b0-projection">{JSON.stringify(visibleData)}</pre>
+          ? <pre id="p2b0-projection" className="block max-w-full overflow-x-auto">{JSON.stringify(visibleData)}</pre>
           : <p id="p2b0-read-status">{read.state === 'failed' && visibleStatus === 'failed'
             ? read.error : visibleStatus}</p>}
       </section>
+      <label htmlFor="p2b2-language">Test-only panel language</label>
+      <select id="p2b2-language" value={language}
+        onChange={event => setLanguage(event.target.value as UiLanguage)}>
+        <option value="English">English</option>
+        <option value="Bangla">Bangla</option>
+        <option value="English + Bangla">English + Bangla</option>
+      </select>
+      <div id="p2b2-real-panel">
+        <ConnectedInventoryReadPanel
+          presentation={visibleData}
+          expectedScope={currentScope}
+          state={panelState}
+          language={language}
+        />
+      </div>
       <label htmlFor="p2b0-foreign">Foreign product ID (negative test)</label>
       <input id="p2b0-foreign" value={foreignId} onChange={e => setForeignId(e.target.value)} />
       <button type="button" id="p2b0-foreign-check"

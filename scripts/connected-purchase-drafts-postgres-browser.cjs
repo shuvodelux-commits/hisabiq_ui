@@ -18,40 +18,59 @@ const { spawnSync } = require('node:child_process');
 const { chromium } = require('playwright');
 let lastSafeStage = 'initializing';
 
-const ORIGIN = 'http://127.0.0.1:4220';
-const API = process.env.HISABIQ_P5C_API_ORIGIN;
+const P5D = process.env.HISABIQ_P5D_MODE === 'populated';
+const PREFIX = P5D ? 'HISABIQ_P5D_' : 'HISABIQ_P5C_';
+const ORIGIN = P5D ? 'http://127.0.0.1:4230' : 'http://127.0.0.1:4220';
+const API = process.env[PREFIX + 'API_ORIGIN'];
 const ULID = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 const required = [
-  'HISABIQ_P5C_TENANT_A','HISABIQ_P5C_TENANT_B',
-  'HISABIQ_P5C_USER_A','HISABIQ_P5C_USER_B',
-  'HISABIQ_P5C_JWT_A','HISABIQ_P5C_JWT_B',
+  PREFIX+'TENANT_A', PREFIX+'TENANT_B',
+  PREFIX+'USER_A', PREFIX+'USER_B',
+  PREFIX+'JWT_A', PREFIX+'JWT_B',
 ];
 const permissions = [
   'purchase.bill.create', 'inventory.cost.view',
   'party.supplier.view', 'catalog.product.view',
 ];
 function settings() {
-  assert.equal(API, 'http://127.0.0.1:3220', 'API must use dedicated local-only P5C port');
-  assert.equal(process.env.HISABIQ_P5C_DISPOSABLE_ACK, 'isolated-pg16-only',
+  assert.equal(API, P5D ? 'http://127.0.0.1:3230' : 'http://127.0.0.1:3220',
+    'API must use its dedicated loopback QA port');
+  assert.equal(process.env[PREFIX + 'DISPOSABLE_ACK'], 'isolated-pg16-only',
     'Explicit disposable-only acknowledgement required');
-  assert.equal(process.env.HISABIQ_P5C_PG_CONTAINER, 'hisabiq-mod008-p5c-pg16',
-    'Dedicated P5C PostgreSQL container identity required');
+  assert.equal(process.env[PREFIX + 'PG_CONTAINER'],
+    P5D ? 'hisabiq-mod008-p5d-pg16' : 'hisabiq-mod008-p5c-pg16',
+    'Dedicated test PostgreSQL container identity required');
   for (const key of required) assert.ok(process.env[key], 'Missing QA-only variable ' + key);
   for (const key of required.filter(key => key.includes('TENANT_') || key.includes('USER_'))) {
     assert.match(process.env[key], ULID, 'Invalid seeded ULID in ' + key);
   }
-  assert.notEqual(process.env.HISABIQ_P5C_TENANT_A, process.env.HISABIQ_P5C_TENANT_B);
-  assert.notEqual(process.env.HISABIQ_P5C_USER_A, process.env.HISABIQ_P5C_USER_B);
+  assert.notEqual(process.env[PREFIX+'TENANT_A'], process.env[PREFIX+'TENANT_B']);
+  assert.notEqual(process.env[PREFIX+'USER_A'], process.env[PREFIX+'USER_B']);
   const inspect = spawnSync('podman', ['inspect', '--format', '{{.State.Running}}',
-    process.env.HISABIQ_P5C_PG_CONTAINER], { encoding:'utf8' });
+    process.env[PREFIX+'PG_CONTAINER']], { encoding:'utf8' });
   assert.equal(inspect.status, 0, 'Dedicated isolated Podman PG16 must exist');
   assert.equal(inspect.stdout.trim(), 'true', 'Dedicated test DB must be running');
+  if (P5D) {
+    assert.ok(process.env.HISABIQ_P5D_REDACTED_JWT_A,
+      'Real signed no-cost-permission test identity is mandatory');
+    const label = spawnSync('podman', ['inspect', '--format',
+      '{{index .Config.Labels "hisabiq.qa"}}', process.env[PREFIX+'PG_CONTAINER']],
+      { encoding:'utf8' });
+    assert.equal(label.status, 0, 'P5D must verify its disposable DB owner label');
+    assert.equal(label.stdout.trim(), 'mod008-p5d-501',
+      'P5D cannot run against a shared or unlabeled PostgreSQL container');
+    for (const key of ['SUPPLIER_A','PRODUCT_A','SUPPLIER_B','PRODUCT_B',
+      'WRONG_ROLE_A','INACTIVE_PRODUCT_A']) {
+      assert.match(process.env['HISABIQ_P5D_'+key] || '', ULID,
+        'Missing real Nest-provisioned negative-source identity: '+key);
+    }
+  }
 }
 const user = who => ({
-  tenantId: process.env['HISABIQ_P5C_TENANT_' + who.toUpperCase()],
-  userId: process.env['HISABIQ_P5C_USER_' + who.toUpperCase()],
-  token: process.env['HISABIQ_P5C_JWT_' + who.toUpperCase()],
-  business: 'P5C isolated shop ' + who.toUpperCase(),
+  tenantId: process.env[PREFIX+'TENANT_'+who.toUpperCase()],
+  userId: process.env[PREFIX+'USER_'+who.toUpperCase()],
+  token: process.env[PREFIX+'JWT_'+who.toUpperCase()],
+  business: (P5D ? 'P5D' : 'P5C') + ' isolated shop ' + who.toUpperCase(),
 });
 async function preflight() {
   for (const who of ['a','b']) {
@@ -76,6 +95,16 @@ async function tap(page, button, wanted) {
   lastSafeStage = button; // Never log values, JWTs, headers or request bodies.
   await page.locator('[data-test-' + button + ']').click();
   await waitResult(page, wanted);
+}
+function populatedFixtureUrl() {
+  if (!P5D) return ORIGIN + '/tests/fixtures/connected-purchase-drafts-postgres.html';
+  const query = new URLSearchParams({
+    source:'p5d', wrongRole:process.env.HISABIQ_P5D_WRONG_ROLE_A,
+    inactiveProduct:process.env.HISABIQ_P5D_INACTIVE_PRODUCT_A,
+    foreignProduct:process.env.HISABIQ_P5D_PRODUCT_B,
+    foreignSupplier:process.env.HISABIQ_P5D_SUPPLIER_B,
+  });
+  return ORIGIN + '/tests/fixtures/connected-purchase-drafts-postgres.html?' + query.toString();
 }
 const textOf = async (page, selector) =>
   (await page.locator('[data-test-' + selector + ']').textContent() || '').trim();
@@ -313,6 +342,299 @@ async function exerciseReadOnly(browser, draftId) {
   }
 }
 
+
+/** P5D tests only; P5C's existing fixture, browser path and assertions remain unchanged. */
+async function sourcePage(browser, width, readOnly, injectLostResponse = false) {
+  const context = await browser.newContext({
+    viewport: { width, height: 844 }, reducedMotion: 'reduce',
+  });
+  const page = await context.newPage();
+  const requests = [];
+  const errors = [];
+  const postCommit = { pending:injectLostResponse, id:'', error:'' };
+  page.on('pageerror', () => errors.push('React page error'));
+  await page.route('**/api/v1/**', async route => {
+    // Never propagate Playwright exceptions: they can print authorization.
+    try {
+      const req = route.request();
+      const method = req.method();
+      const path = new URL(req.url()).pathname;
+      assert.equal(new URL(req.url()).origin, ORIGIN);
+      if (path === '/api/v1/auth/login' && method === 'POST') {
+        const data = req.postDataJSON();
+        assert.equal(data.password, 'test-only-password');
+        const who = data.identifier === 'p5c-a' ? 'a'
+          : data.identifier === 'p5c-b' ? 'b' : null;
+        assert.ok(who, 'Only signed disposable auth fixtures are permitted');
+        const u = user(who);
+        return send(route, { data: { accessToken: u.token,
+          refreshToken: 'p5d-local-refresh-' + who,
+          user: { id: u.userId, username: data.identifier } } });
+      }
+      if (path === '/api/v1/me' && method === 'GET') {
+        const token = (req.headers().authorization || '').replace(/^Bearer /, '');
+        const who = ['a','b'].find(k => token === user(k).token);
+        assert.ok(who, 'Only signed test token may reach connected /me');
+        const u = user(who);
+        return send(route, { data: { tenantId: u.tenantId,
+          timezone: 'Asia/Dhaka',
+          user: { id: u.userId, username: 'p5c-' + who,
+            displayName: 'QA Owner', roleName: 'Owner' },
+          businessName: u.business, permissions, features: [] } });
+      }
+      if (path === '/api/v1/auth/logout' && method === 'POST') {
+        return route.fulfill({ status: 204, body: '' });
+      }
+      const allowedSource = method === 'GET' &&
+        (/^\/api\/v1\/products(?:\/|\?|$)/.test(path) ||
+          /^\/api\/v1\/parties(?:\/|\?|$)/.test(path));
+      const allowedDraft = path.startsWith('/api/v1/purchases/drafts') &&
+        (method === 'GET' || (!readOnly && ['POST','PUT','DELETE'].includes(method)));
+      assert.ok(allowedSource || allowedDraft, 'P5D may use source reads and nonposting drafts only');
+      requests.push({ method, path });
+      if (postCommit.pending && method === 'POST' &&
+          path === '/api/v1/purchases/drafts') {
+        postCommit.pending = false;
+        // Simulate the API committing, followed by loss of its response.
+        // Never emit errors or headers; Playwright may embed the test bearer.
+        try {
+          const committed = await route.fetch({ timeout:90_000 });
+          if (committed.status() !== 201) {
+            postCommit.error = 'Nest did not commit expected test draft';
+          } else {
+            const saved = await committed.json();
+            if (ULID.test(saved?.data?.id || '')) postCommit.id = saved.data.id;
+            else postCommit.error = 'Nest returned no committed draft ID';
+          }
+        } catch {
+          postCommit.error = 'Disposable API post-commit probe failed';
+        }
+        return route.abort('failed').catch(() => {});
+      }
+      return route.continue();
+    } catch {
+      return route.abort('failed').catch(() => {});
+    }
+  });
+  return { context, page, requests, errors, postCommit };
+}
+const parsedOutput = async (page, key) => JSON.parse(await textOf(page, key));
+function assertSnapshot(editor, supplierId, productId, unitFactor) {
+  assert.equal(editor.supplierId, supplierId);
+  assert.equal(editor.supplierName.startsWith('P5D'), true);
+  assert.equal(editor.lines.length, 1);
+  const line = editor.lines[0];
+  assert.equal(line.product.id, productId);
+  assert.equal(line.unitQuantities.Box, '1');
+  assert.equal(line.unitQuantities.Pcs, '3');
+  assert.equal(line.cost, '37.125');
+  assert.equal(line.product.unitPurchasePrices.Box, 37.125);
+  assert.equal(line.product.unitPurchasePrices.Pcs, 1.875);
+  assert.equal(line.lotSellPrice, '2.9999');
+  assert.equal(line.serialText, 'QA-SERIAL-01\\nQA-SERIAL-02');
+  assert.equal(line.batchNumber, 'P5D-LOT-01');
+  assert.equal(line.manufactureDate, '2026-09-01');
+  assert.equal(line.expiryDate, '2027-09-01');
+  assert.equal(unitFactor, 20_000, 'Nest-confirmed first conversion is one Box to 20 Pcs');
+  assert.deepEqual(editor.payments.map(x => x.amount), ['23.45','100']);
+  assert.equal(editor.total, 123.45);
+  assert.equal(editor.discount, '10.5');
+  assert.equal(editor.discountMode, 'percent');
+}
+async function expectApi(status, who, endpoint, tokenOverride) {
+  const token = tokenOverride || user(who).token;
+  const response = await fetch(API + endpoint, {
+    headers: { Authorization: 'Bearer ' + token },
+  });
+  assert.equal(response.status, status, 'Real Nest GET source access verification');
+  return await response.json();
+}
+async function negativeSourceProbes(knownSupplier, knownProduct) {
+  const wrongRole = process.env.HISABIQ_P5D_WRONG_ROLE_A;
+  const inactiveProduct = process.env.HISABIQ_P5D_INACTIVE_PRODUCT_A;
+  const otherProduct = process.env.HISABIQ_P5D_PRODUCT_B;
+  const otherSupplier = process.env.HISABIQ_P5D_SUPPLIER_B;
+  const redactedToken = process.env.HISABIQ_P5D_REDACTED_JWT_A;
+  for (const value of [wrongRole, inactiveProduct, otherProduct, otherSupplier]) {
+    assert.match(value || '', ULID, 'P5D source negative test requires real seeded IDs');
+  }
+  const wrong = await expectApi(200, 'a', '/api/v1/parties/' + wrongRole);
+  assert.equal(wrong.data.roles.includes('SUPPLIER'), false,
+    'real wrong-role party cannot be a purchasing supplier');
+  const inactive = await expectApi(200, 'a', '/api/v1/products/' + inactiveProduct);
+  assert.equal(inactive.data.status, 'INACTIVE',
+    'real inactive product must not be selected');
+  await expectApi(404, 'a', '/api/v1/products/' + otherProduct);
+  await expectApi(404, 'a', '/api/v1/parties/' + otherSupplier);
+  assert.ok(redactedToken, 'P5D real no-cost source probe cannot be skipped');
+  const redacted = await expectApi(200, 'a',
+    '/api/v1/products/' + knownProduct, redactedToken);
+  assert.equal(Object.hasOwn(redacted.data, 'purchasePriceMinor'), false,
+    'real backend must omit cost without cost permission');
+  const ownProduct = await expectApi(200, 'a', '/api/v1/products/' + knownProduct);
+  const ownSupplier = await expectApi(200, 'a', '/api/v1/parties/' + knownSupplier);
+  assert.equal(ownProduct.data.status, 'ACTIVE');
+  assert.equal(ownSupplier.data.roles.includes('SUPPLIER'), true);
+}
+async function exercisePopulated(browser) {
+  const { context, page, requests, errors, postCommit } =
+    await sourcePage(browser, 320, false, true);
+  try {
+    await page.goto(populatedFixtureUrl());
+    await tap(page, 'login-a', 'login-a:ok');
+    await tap(page, 'select-sources', 'select-sources:ok');
+    const supplierId = await textOf(page, 'source-supplier');
+    const productId = await textOf(page, 'source-product');
+    const factor = Number(await textOf(page, 'source-factor'));
+    assert.match(supplierId, ULID); assert.match(productId, ULID);
+    assert.equal(supplierId, process.env.HISABIQ_P5D_SUPPLIER_A);
+    assert.equal(productId, process.env.HISABIQ_P5D_PRODUCT_A);
+    assert.equal(factor, 20_000);
+    const before = requests.filter(x => x.method !== 'GET').length;
+    const cases = [
+      ['missing-source','probe-missing-source',/^(http|protocol)$/],
+      ['wrong-role','probe-wrong-role',/^(http|protocol)$/],
+      ['inactive-product','probe-inactive-product',/^protocol$/],
+      ['foreign-product','probe-foreign-product',/^(http|protocol)$/],
+      ['foreign-supplier','probe-foreign-supplier',/^(http|protocol)$/],
+    ];
+    for (const [label, button, allowed] of cases) {
+      await tap(page, button, button+':error');
+      const problem = await textOf(page, 'error');
+      const kind = problem.slice(button.length + 1);
+      assert.match(kind, allowed, label+' must fail from a real source read');
+      assert.equal(requests.filter(x => x.method !== 'GET').length, before,
+        label+' must not issue any financial/draft writes');
+    }
+    await negativeSourceProbes(supplierId, productId);
+    await tap(page, 'prepare', 'prepare:ok');
+    const operationBeforeFailure = await textOf(page, 'operation-id');
+    await tap(page, 'create', 'create:error');
+    assert.equal(postCommit.error, '', 'Nest commit must precede lost network reply');
+    assert.match(postCommit.id, ULID);
+    assert.match(await textOf(page, 'error'), /create:(http|network|The network|Network)/i);
+    assert.equal(await textOf(page, 'operation-id'), operationBeforeFailure,
+      'Lost response must not invent a new creation operation ID');
+    await tap(page, 'create', 'create:ok');
+    const draftId = await textOf(page, 'draft-id');
+    assert.equal(draftId, postCommit.id,
+      'Explicit retry after lost response must return the same server document');
+    const intent = await textOf(page, 'operation-id');
+    assert.match(draftId, ULID); assert.match(intent, ULID);
+    assert.equal(await textOf(page, 'version'), '1');
+    const originalLines = await parsedOutput(page, 'line-json');
+    const originalPayments = await parsedOutput(page, 'payment-json');
+    assertSnapshot({ supplierId, supplierName: 'P5D', lines: originalLines,
+      payments: originalPayments, total:123.45, discount:'10.5',
+      discountMode:'percent' }, supplierId, productId, factor);
+    await tap(page, 'create', 'create:ok');
+    assert.equal(await textOf(page, 'draft-id'), draftId,
+      'P5D explicitly repeats its exact immutable create operation');
+    assert.equal(await textOf(page, 'version'), '1');
+    await tap(page, 'load', 'load:ok');
+    assert.deepEqual(await parsedOutput(page, 'line-json'), originalLines);
+    await tap(page, 'update', 'update:ok');
+    assert.equal(await textOf(page, 'version'), '2');
+    await tap(page, 'stale', 'stale:error');
+    assert.equal(await textOf(page, 'version'), '2');
+    await tap(page, 'recycle', 'recycle:ok');
+    assert.equal(await textOf(page, 'version'), '3');
+    await tap(page, 'list-active', 'list-active:ok');
+    assert.equal(await textOf(page, 'list-count'), '0');
+    await tap(page, 'list-deleted', 'list-deleted:ok');
+    assert.equal(await textOf(page, 'list-count'), '1');
+    await tap(page, 'restore', 'restore:ok');
+    assert.equal(await textOf(page, 'version'), '4');
+    assert.deepEqual(await parsedOutput(page, 'line-json'), originalLines);
+    assert.deepEqual(await parsedOutput(page, 'payment-json'), originalPayments);
+    const live = await expectApi(200, 'a', '/api/v1/purchases/drafts/' + draftId);
+    assert.equal(live.data.version, 4);
+    assert.equal(live.data.itemCount, 1);
+    assert.equal(live.data.grandTotalMinor, 12345);
+    assert.equal(live.data.supplierName, 'P5D Supplier A');
+    assert.equal(live.data.cart.editor.supplierId, supplierId);
+    assert.equal(live.data.cart.editor.date, '2026-11-13');
+    assert.equal(live.data.cart.editor.discount, '10.5');
+    assert.equal(live.data.cart.editor.discountMode, 'percent');
+    assert.equal(live.data.cart.editor.referenceNo, 'P5D-REAL-SOURCES');
+    assert.deepEqual(live.data.cart.editor.lines, originalLines);
+    assert.deepEqual(live.data.cart.editor.payments, originalPayments);
+    // A same-tenant reauthentication must invalidate prior selection/intent.
+    await tap(page, 'login-a', 'login-a:ok');
+    assert.equal(await textOf(page, 'source-supplier'), '');
+    const beforeReauthPosts = requests.filter(x => x.method === 'POST' &&
+      x.path === '/api/v1/purchases/drafts').length;
+    await tap(page, 'create', 'create:error');
+    assert.equal(requests.filter(x => x.method === 'POST' &&
+      x.path === '/api/v1/purchases/drafts').length, beforeReauthPosts,
+      'Old create intent cannot cross the reauthenticated session epoch');
+    await tap(page, 'select-sources', 'select-sources:ok');
+    await tap(page, 'list-active', 'list-active:ok');
+    assert.equal(await textOf(page, 'list-count'), '1');
+    assert.equal(await textOf(page, 'draft-id'), draftId);
+    await tap(page, 'load', 'load:ok');
+    assert.deepEqual(await parsedOutput(page, 'line-json'), originalLines);
+    await tap(page, 'login-b', 'login-b:ok');
+    assert.equal(await textOf(page, 'source-supplier'), '',
+      'Switching business must clear previously verified supplier identity');
+    assert.equal(await textOf(page, 'line-json'), '',
+      'Switching business must clear previous tenant purchase lines');
+    const after = requests.filter(x => x.method === 'POST' &&
+      x.path === '/api/v1/purchases/drafts').length;
+    await tap(page, 'create', 'create:error');
+    assert.equal(requests.filter(x => x.method === 'POST' &&
+      x.path === '/api/v1/purchases/drafts').length, after,
+      'Old create intent must never POST under another tenant');
+    await tap(page, 'select-sources', 'select-sources:ok');
+    assert.notEqual(await textOf(page, 'source-supplier'), supplierId);
+    await tap(page, 'list-active', 'list-active:ok');
+    assert.equal(await textOf(page, 'list-count'), '0');
+    await expectApi(404, 'b', '/api/v1/purchases/drafts/' + draftId);
+    assert.deepEqual(errors, [], 'React P5D test fixture has no page errors');
+    const sizes = await page.evaluate(() => ({
+      content: document.documentElement.scrollWidth,
+      width: document.documentElement.clientWidth,
+    }));
+    assert.ok(sizes.content <= sizes.width + 2, '320px must not scroll horizontally');
+    console.log('MOD-008 P5D PASS: real supplier/product, lossless nested draft and tenant isolation at 320px');
+    return draftId;
+  } finally { await context.close(); }
+}
+async function exercisePopulatedReadOnly(browser, draftId) {
+  const { context, page, requests, errors } = await sourcePage(browser, 390, true);
+  try {
+    await page.goto(populatedFixtureUrl());
+    await tap(page, 'login-a', 'login-a:ok');
+    await tap(page, 'select-sources', 'select-sources:ok');
+    await tap(page, 'list-active', 'list-active:ok');
+    assert.equal(await textOf(page, 'list-count'), '1');
+    assert.equal(await textOf(page, 'draft-id'), draftId);
+    await tap(page, 'load', 'load:ok');
+    assert.equal(await textOf(page, 'version'), '4');
+    assert.equal(await textOf(page, 'notes'), 'Versioned edit after replay');
+    const lines = await parsedOutput(page, 'line-json');
+    const payments = await parsedOutput(page, 'payment-json');
+    assertSnapshot({ supplierId:await textOf(page, 'source-supplier'),
+      supplierName:'P5D', lines, payments, total:123.45, discount:'10.5',
+      discountMode:'percent' }, await textOf(page, 'source-supplier'),
+      await textOf(page, 'source-product'), Number(await textOf(page, 'source-factor')));
+    await tap(page, 'login-b', 'login-b:ok');
+    assert.equal(await textOf(page, 'line-json'), '');
+    await tap(page, 'select-sources', 'select-sources:ok');
+    await tap(page, 'list-active', 'list-active:ok');
+    assert.equal(await textOf(page, 'list-count'), '0');
+    assert.ok(requests.every(x => x.method === 'GET'),
+      '390px read-only source fixture cannot issue mutations');
+    assert.deepEqual(errors, []);
+    const sizes = await page.evaluate(() => ({
+      content: document.documentElement.scrollWidth,
+      width: document.documentElement.clientWidth,
+    }));
+    assert.ok(sizes.content <= sizes.width + 2, '390px must not scroll horizontally');
+    console.log('MOD-008 P5D PASS: independent source-backed React read-only resume at 390px');
+  } finally { await context.close(); }
+}
+
 function verifyNoPosting() {
   const sql = [
     'SELECT (SELECT count(*) FROM purchases) AS purchases,',
@@ -321,7 +643,7 @@ function verifyNoPosting() {
     '(SELECT count(*) FROM cash_movements) AS cash,',
     '(SELECT count(*) FROM supplier_payments) AS supplier_payments',
   ].join(' ');
-  const check = spawnSync('podman', ['exec', process.env.HISABIQ_P5C_PG_CONTAINER,
+  const check = spawnSync('podman', ['exec', process.env[PREFIX+'PG_CONTAINER'],
     'psql','-U','postgres','-d','sher_test','-t','-A','-F',',','-c',sql],
     { encoding:'utf8' });
   assert.equal(check.status, 0, 'PostgreSQL source-side nonposting assertion must execute');
@@ -334,8 +656,8 @@ async function main() {
   process.env.VITE_HISABIQ_INTEGRATION_MODE = 'connected';
   const { createServer } = await import('vite');
   const server = await createServer({
-    cacheDir: '.superpowers/mod008-p5c-browser-cache',
-    server: { host:'127.0.0.1', port:4220, strictPort:true,
+    cacheDir: P5D ? '.superpowers/mod008-p5d-browser-cache' : '.superpowers/mod008-p5c-browser-cache',
+    server: { host:'127.0.0.1', port:P5D ? 4230 : 4220, strictPort:true,
       proxy:{ '/api/v1':{ target:API, changeOrigin:false },
         '/api':{ target:API, changeOrigin:false } } },
   });
@@ -346,11 +668,18 @@ async function main() {
       executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined,
       args:['--no-sandbox'],
     });
-    const committedId = await exercise(browser, 320, 0);
-    lastSafeStage = '390px-readonly';
-    await exerciseReadOnly(browser, committedId);
+    if (P5D) {
+      const sourceDraftId = await exercisePopulated(browser);
+      lastSafeStage = '390px-source-read';
+      await exercisePopulatedReadOnly(browser, sourceDraftId);
+    } else {
+      const committedId = await exercise(browser, 320, 0);
+      lastSafeStage = '390px-readonly';
+      await exerciseReadOnly(browser, committedId);
+    }
     verifyNoPosting();
-    console.log('MOD-008 P5C PASS: zero purchase/journal/stock/cash/supplier-payment rows');
+    console.log('MOD-008 ' + (P5D ? 'P5D' : 'P5C') +
+      ' PASS: zero purchase/journal/stock/cash/supplier-payment rows');
   } finally {
     await browser?.close();
     await server.close();
@@ -359,6 +688,7 @@ async function main() {
 main().catch(() => {
   // A Playwright error can contain request headers (even test JWTs). Never
   // print raw errors, stacks or request metadata from this authenticated run.
-  console.error('P5C acceptance FAILED at '+lastSafeStage+' (details suppressed to protect QA credentials)');
+  console.error((P5D ? 'P5D' : 'P5C') + ' acceptance FAILED at '+lastSafeStage+
+    ' (details suppressed to protect QA credentials)');
   process.exitCode = 1;
 });

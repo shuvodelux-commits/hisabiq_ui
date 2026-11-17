@@ -14,7 +14,7 @@ import { useUiCopy } from '../../i18n/useUiCopy';
 
 export function CashSessionDialog() {
   const { text, showHelper } = useUiCopy();
-  const { open, setOpen, sessionOpen, startSession, saveCount, openingCash, expectedCash:expected, sampleMovements, lastCount, revision, businessDate, sessionDate, previousClosing, drawerBalance, canView, canStart, canClose, enabled, startBlocked, mode, busy, error, dayStatus, accounts: serverAccounts, accountsAccess, historyAccess, reopenSession, refresh } = useCashSession();
+  const { open, setOpen, sessionOpen, startSession, saveCount, openingCash, expectedCash:expected, sampleMovements, lastCount, revision, businessDate, sessionDate, previousClosing, drawerBalance, canView, canStart, canClose, enabled, startBlocked, mode, busy, error, dayStatus, accounts: serverAccounts, accountsAccess, historyAccess, reopenSession, hasPendingOperation, confirmPendingOperation, refresh } = useCashSession();
   const [counts, setCounts] = useState<Record<number, string>>({});
   const [countMode,setCountMode]=useState<'total'|'notes'>('total');
   const [total,setTotal]=useState('');
@@ -55,6 +55,20 @@ export function CashSessionDialog() {
     });
   };
 
+  const recoveryAction = mode === 'connected' && hasPendingOperation ? (
+    <div className="flex flex-col gap-2 rounded-md border border-border bg-warning-bg p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p role="status" className="text-warning">
+        {text('A previous cash request may already be posted. Confirm its original request before another action.','আগের ক্যাশ লেনদেনটি জমা হয়ে থাকতে পারে। নতুন কাজের আগে আগের অনুরোধটি নিশ্চিত করুন।')}
+      </p>
+      <Button type="button" variant="outline" disabled={busy} onClick={() => {
+        void confirmPendingOperation().then(
+          () => { setFailure(''); toast.success(text('Previous cash operation verified','আগের ক্যাশ লেনদেন নিশ্চিত হয়েছে')); },
+          caught => setFailure(caught instanceof Error ? caught.message : String(caught)),
+        );
+      }}>{text('Confirm previous cash operation','আগের ক্যাশ লেনদেন নিশ্চিত করুন')}</Button>
+    </div>
+  ) : null;
+
   if(!canView)return <Dialog open={open} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>{text('Cash session unavailable','ক্যাশ সেশন ব্যবহার করা যাবে না')}</DialogTitle><DialogDescription>{mode==='loading'?text('Loading verified cash records…','যাচাই করা ক্যাশের হিসাব লোড হচ্ছে…'):mode==='error'?text('Could not load real cash records. No preview balance will be substituted.','আসল ক্যাশের হিসাব লোড হয়নি। নমুনা জের দেখানো হবে না।'):mode==='locked'?text('Sign in to access the cash drawer.','ক্যাশ ড্রয়ার দেখতে লগইন করুন।'):text('Enable cash sessions and request cash view permission.','ক্যাশ সেশন চালু করুন এবং দেখার অনুমতি নিন।')}</DialogDescription></DialogHeader>{error&&<p role="alert" className="text-sm text-danger">{error}</p>}<DialogFooter><Button onClick={()=>setOpen(false)}>{text('Close','বন্ধ করুন')}</Button>{mode==='error'&&<Button variant="outline" onClick={()=>void refresh().catch(()=>undefined)}>{text('Retry','আবার চেষ্টা করুন')}</Button>}</DialogFooter></DialogContent></Dialog> ;
   if (!sessionOpen) {
     return <Dialog open={open} onOpenChange={setOpen}>
@@ -65,6 +79,7 @@ export function CashSessionDialog() {
               {text('Cash history is currently unavailable; live day status remains authoritative.','পূর্বের ক্যাশ হিসাব এখন দেখা যাচ্ছে না; আজকের সার্ভার অবস্থা সঠিক।')}
             </p>}
           <DialogDescription>{mode==='connected'?text('Actual drawer count will be posted to the ERP ledger when confirmed.','নিশ্চিত হলে ড্রয়ারের গোনা টাকা মূল খাতায় লেখা হবে।'):text('UI preview only · resets on reload. No backend posting.','শুধু নমুনা · রিলোড করলে মুছে যাবে। সার্ভারে লেনদেন জমা হবে না।')}</DialogDescription></DialogHeader>
+        {recoveryAction}
         <p className="text-xs text-ink-500">{text('Business date','ব্যবসার তারিখ')}: {businessDate}</p>
         <p className="rounded-lg bg-ink-50 p-3 text-sm">{mode==='connected'?text('Current drawer ledger balance: ','ড্রয়ারের বর্তমান খাতার জের: ')+taka(drawerBalance):previousClosing===null?text('No previous cash session. Initial drawer balance is ৳0.','আগের ক্যাশ সেশন নেই। ড্রয়ারের প্রাথমিক জের ৳০।'):text('Previous actual counted close: ','আগের গুনে পাওয়া শেষ জের: ')+taka(previousClosing)}</p>
         {(!enabled||!canView||!canStart||startBlocked)&&<p role="status" className="text-sm text-warning">{!enabled?text('Cash sessions are disabled in Settings.','সেটিংসে ক্যাশ সেশন বন্ধ রয়েছে।'):startBlocked?(mode==='connected'?text('Close the earlier day or reopen today if permitted.','আগের দিন বন্ধ করুন অথবা অনুমতি থাকলে আজকের দিন পুনরায় খুলুন।'):text('This business date is closed. Reopening is unavailable in preview.','এই ব্যবসার দিন বন্ধ হয়েছে। নমুনায় আবার খোলা যাবে না।')):text('You do not have permission to start a cash session.','ক্যাশ সেশন শুরুর অনুমতি নেই।')}</p>}
@@ -99,6 +114,7 @@ export function CashSessionDialog() {
           </DialogTitle>
           <DialogDescription>{mode==='connected'?text('Confirmed drawer values come from the ERP. Count or close only after server acknowledgement.','ক্যাশের জের সার্ভার থেকে আসে। নিশ্চিত না হওয়া পর্যন্ত গণনা/বন্ধ করা সম্পন্ন হবে না।'):text('UI preview only · counts stay until reload; sales and payments are not connected.','শুধু নমুনা · রিলোড করলে গণনার তথ্য মুছে যাবে; বিক্রি ও পেমেন্টের সাথে যুক্ত নয়।')}</DialogDescription>
         </DialogHeader>
+        {recoveryAction}
 
         {sessionDate!==businessDate&&<p role="status" className="text-sm text-warning">{text('Earlier cash session is still open. Count and close it before starting a new day.','আগের দিনের ক্যাশ সেশন চালু। নতুন দিন শুরুর আগে গুনে বন্ধ করুন।')} {sessionDate}</p>}
         {!canClose&&<p role="status">{text('Cash count / close permission is required.','ক্যাশ গোনা / বন্ধ করার অনুমতি প্রয়োজন।')}</p>}

@@ -1,16 +1,14 @@
 import { ApiError } from './errors.ts';
-import { requestJson } from './http.ts';
+import { requestJson, type ApiRequest } from './http.ts';
+import {
+  decodeTradingPartyList, decodeTradingPartyDetail, type TradingParty,
+} from './party-reads.ts';
 
 /**
- * MOD-008 DRAFT-P4A: purchase-owned read-only supplier source transport.
- *
- * Exact Nest authority:
- *   packages/core-contracts/src/parties.ts (partyResponseSchema,
- *     partyListResponseSchema, partyQuerySchema)
- *   apps/api/src/parties/parties.controller.ts
- *
- * Do not weaken role=SUPPLIER, synthesize fixture IDs, treat a role-scoped
- * financial balance as a writable form field, or cache across tenants.
+ * MOD-008 P-SEC-S01: read-only, role-required Nest Party V2 Supplier transport.
+ * The verified V2 wire must be decoded before projecting only Purchase fields.
+ * Never return private profile/history, expose other role memberships or
+ * invent balances from unrelated Customer postings.
  */
 export type PurchaseSupplierRole = 'SUPPLIER';
 export type PurchaseSupplierStatus = 'ACTIVE' | 'INACTIVE';
@@ -23,21 +21,12 @@ export interface PurchaseSupplierBalance {
 export interface ServerPurchaseSupplier {
   id: string;
   name: string;
-  roles: ('CUSTOMER' | 'SUPPLIER' | 'VENDOR')[];
+  roles: ['SUPPLIER'];
   phone: string | null;
-  address: string | null;
-  guardianName: string | null;
-  nid: string | null;
-  email: string | null;
-  notes: string | null;
-  customerGroupId: string | null;
-  customerGroupName: string | null;
-  creditLimitMinor: number | null;
   status: PurchaseSupplierStatus;
   isSystemReserved: boolean;
   version: number;
   balance: PurchaseSupplierBalance;
-  hasLedgerEntries: boolean;
 }
 export interface PurchaseSupplierQuery {
   search?: string;
@@ -52,7 +41,7 @@ export interface PurchaseSupplierList {
     total: number;
     active: number;
     inactive: number;
-    ungrouped: number;
+    ungrouped: null;
     totalOutstandingMinor: number;
     totalAdvanceMinor: number;
     overCreditLimit: number;
@@ -61,19 +50,8 @@ export interface PurchaseSupplierList {
 export interface PurchaseSupplierEnvelope { data: ServerPurchaseSupplier }
 
 const ULID = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
-const FIELDS = [
-  'id','name','roles','phone','address','guardianName','nid','email',
-  'notes','customerGroupId','customerGroupName','creditLimitMinor',
-  'status','isSystemReserved','version','balance','hasLedgerEntries',
-] as const;
-const NULL_TEXT = ['phone','address','guardianName','nid','email','notes','customerGroupName'] as const;
 const BALANCE_FIELDS = ['netMinor','direction','outstandingMinor','advanceMinor'] as const;
-const SUMMARY_FIELDS = [
-  'total','active','inactive','ungrouped','totalOutstandingMinor',
-  'totalAdvanceMinor','overCreditLimit',
-] as const;
 const QUERY_FIELDS = ['search','status','cursor','limit'] as const;
-const ROLES = ['CUSTOMER','SUPPLIER','VENDOR'] as const;
 
 function invalid(): never {
   throw new ApiError('protocol', 'Authenticated supplier source could not be verified');
@@ -94,9 +72,6 @@ function integer(value: unknown): value is number {
 function nonnegative(value: unknown): value is number {
   return integer(value) && value >= 0;
 }
-function nullableText(value: unknown): boolean {
-  return value === null || typeof value === 'string';
-}
 function balance(value: unknown): value is PurchaseSupplierBalance {
   if (!record(value) || !exact(value, BALANCE_FIELDS) ||
       !integer(value.netMinor) ||
@@ -112,44 +87,51 @@ function balance(value: unknown): value is PurchaseSupplierBalance {
   return value.direction === 'SETTLED' && value.netMinor === 0 &&
     value.outstandingMinor === 0 && value.advanceMinor === 0;
 }
-function supplier(value: unknown): value is ServerPurchaseSupplier {
-  return record(value) && exact(value, FIELDS) &&
-    validId(value.id) && typeof value.name === 'string' &&
-    value.name.trim().length > 0 && value.name === value.name.trim() &&
-    Array.isArray(value.roles) && value.roles.length > 0 &&
-    value.roles.length <= 3 &&
-    value.roles.every(role => ROLES.includes(role)) &&
-    new Set(value.roles).size === value.roles.length &&
-    NULL_TEXT.every(key => nullableText(value[key])) &&
-    (value.customerGroupId === null || validId(value.customerGroupId)) &&
-    (value.creditLimitMinor === null || nonnegative(value.creditLimitMinor)) &&
-    (value.status === 'ACTIVE' || value.status === 'INACTIVE') &&
-    typeof value.isSystemReserved === 'boolean' &&
-    integer(value.version) && value.version >= 0 &&
-    balance(value.balance) && typeof value.hasLedgerEntries === 'boolean';
-}
-function summary(value: unknown): boolean {
-  return record(value) && exact(value, SUMMARY_FIELDS) &&
-    SUMMARY_FIELDS.every(key => nonnegative(value[key]));
+/** The V2 verifier validates source shape; projection prevents echoing PII. */
+function projectSupplier(value: TradingParty): ServerPurchaseSupplier {
+  // Preserve the original Supplier accounting direction and poisha invariants.
+  if (value.name !== value.name.trim() || !balance(value.balance)) return invalid();
+  return {
+    id: value.id,
+    name: value.name,
+    roles: ['SUPPLIER'],
+    phone: value.phone,
+    status: value.status,
+    isSystemReserved: value.isSystemReserved,
+    version: value.version,
+    balance: {
+      netMinor: value.balance.netMinor,
+      direction: value.balance.direction,
+      outstandingMinor: value.balance.outstandingMinor,
+      advanceMinor: value.balance.advanceMinor,
+    },
+  };
 }
 export function decodePurchaseSupplier(raw: unknown): PurchaseSupplierEnvelope {
-  if (!record(raw) || !exact(raw, ['data']) || !supplier(raw.data)) return invalid();
-  return raw as unknown as PurchaseSupplierEnvelope;
+  const checked = decodeTradingPartyDetail(raw, 'SUPPLIER');
+  return { data: projectSupplier(checked.data) };
 }
 export function decodePurchaseSupplierList(raw: unknown): PurchaseSupplierList {
-  if (!record(raw) || !exact(raw, ['data','page','summary']) ||
-      !Array.isArray(raw.data) || raw.data.length > 200 ||
-      !raw.data.every(supplier) || !record(raw.page) ||
-      !exact(raw.page, ['nextCursor','hasMore']) ||
-      (raw.page.nextCursor !== null && !validId(raw.page.nextCursor)) ||
-      typeof raw.page.hasMore !== 'boolean' ||
-      (raw.page.hasMore !== (raw.page.nextCursor !== null)) ||
-      !summary(raw.summary) ||
-      new Set(raw.data.map((entry: ServerPurchaseSupplier) => entry.id)).size !== raw.data.length) return invalid();
-  return raw as unknown as PurchaseSupplierList;
+  const checked = decodeTradingPartyList(raw, 'SUPPLIER');
+  if (checked.summary.ungrouped !== null) return invalid();
+  return {
+    data: checked.data.map(projectSupplier),
+    page: {
+      nextCursor: checked.page.nextCursor, hasMore: checked.page.hasMore,
+    },
+    summary: {
+      total: checked.summary.total,
+      active: checked.summary.active,
+      inactive: checked.summary.inactive,
+      ungrouped: null,
+      totalOutstandingMinor: checked.summary.totalOutstandingMinor,
+      totalAdvanceMinor: checked.summary.totalAdvanceMinor,
+      overCreditLimit: checked.summary.overCreditLimit,
+    },
+  };
 }
 
-function queryPath(query: PurchaseSupplierQuery): `/api/v1/${string}` {
+function queryPath(query: PurchaseSupplierQuery): ApiRequest['path'] {
   if (!record(query) || Object.keys(query).some(key => !QUERY_FIELDS.includes(key as typeof QUERY_FIELDS[number]))) return invalid();
   const params = new URLSearchParams();
   params.set('role', 'SUPPLIER');
@@ -170,11 +152,11 @@ function queryPath(query: PurchaseSupplierQuery): `/api/v1/${string}` {
       params.set(key, String(value));
     }
   }
-  return `/api/v1/parties?${params.toString()}`;
+  return `/api/v2/parties?${params.toString()}`;
 }
 async function read<T>(
   accessToken: string,
-  path: `/api/v1/${string}`,
+  path: ApiRequest['path'],
   decode: (raw: unknown) => T,
   signal?: AbortSignal,
   timeoutMs = 12_000,
@@ -216,6 +198,6 @@ export function readPurchaseSupplier(
 ): Promise<PurchaseSupplierEnvelope> {
   if (!validId(supplierId)) return Promise.reject(new ApiError('protocol', 'Invalid supplier ID'));
   return read(accessToken,
-    `/api/v1/parties/${supplierId}?role=SUPPLIER`,
+    `/api/v2/parties/${supplierId}?role=SUPPLIER`,
     decodePurchaseSupplier, signal, timeoutMs);
 }

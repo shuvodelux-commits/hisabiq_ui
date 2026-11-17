@@ -6,7 +6,6 @@ import {
   decodePurchaseSupplierList,
   readPurchaseSupplier,
   readPurchaseSuppliers,
-  type ServerPurchaseSupplier,
 } from '../src/integration/purchase-suppliers.ts';
 import {
   purchaseSourceIdentity,
@@ -14,6 +13,7 @@ import {
   resolvePurchaseEditorSources,
 } from '../src/integration/purchase-editor-sources.ts';
 import type { ServerProduct } from '../src/integration/products.ts';
+import type { TradingParty } from '../src/integration/party-reads.ts';
 import type { SessionSnapshot } from '../src/integration/session.ts';
 import { encodePurchaseEditorDraft } from '../src/integration/purchase-draft-editor.ts';
 import type { PurchaseDraftInput } from '../src/data/purchaseDraftsPreviewStore.ts';
@@ -36,14 +36,16 @@ function session(other: Record<string, unknown> = {}): SessionSnapshot {
     ...other,
   } as SessionSnapshot;
 }
-function party(overrides: Partial<ServerPurchaseSupplier> = {}): ServerPurchaseSupplier {
+function party(overrides: Partial<TradingParty> = {}): TradingParty {
   return {
-    id: supplierId, name:'Rahman Traders',
-    roles:['CUSTOMER','SUPPLIER'], phone:null, address:null,
-    guardianName:null,nid:null,email:null,notes:null,
-    customerGroupId:null,customerGroupName:null,creditLimitMinor:null,
-    status:'ACTIVE',isSystemReserved:false,version:1,hasLedgerEntries:false,
-    balance:{netMinor:0,direction:'SETTLED',outstandingMinor:0,advanceMinor:0},
+    id: supplierId, name: 'Rahman Traders',
+    roles: ['CUSTOMER','SUPPLIER'], readRole: 'SUPPLIER',
+    phone: null, customerGroupId: null, customerGroupName: null,
+    creditLimitMinor: null, status: 'ACTIVE', isSystemReserved: false,
+    version: 1, balance: {
+      netMinor: 0, direction: 'SETTLED', outstandingMinor: 0, advanceMinor: 0,
+    },
+    profile: { state: 'WITHHELD' }, globalHistory: { state: 'WITHHELD' },
     ...overrides,
   };
 }
@@ -66,10 +68,10 @@ function product(overrides: Partial<ServerProduct> = {}): ServerProduct {
   };
 }
 const supplierSummary = {
-  total:1,active:1,inactive:0,ungrouped:0,
+  total:1,active:1,inactive:0,ungrouped:null,
   totalOutstandingMinor:0,totalAdvanceMinor:0,overCreditLimit:0,
 };
-function listSuppliers(rows: ServerPurchaseSupplier[] = [party()],hasMore=false) {
+function listSuppliers(rows: TradingParty[] = [party()],hasMore=false) {
   return {data:rows,page:{nextCursor:hasMore?supplierId:null,hasMore},summary:supplierSummary};
 }
 function listProducts(rows: ServerProduct[] = [product()],hasMore=false) {
@@ -111,9 +113,9 @@ function fakeServer(override?: (url:URL,init?:RequestInit)=>Response) {
     assert.equal(init?.credentials,'omit');
     assert.equal(init?.body,undefined);
     if (override) return override(url,init);
-    if (url.pathname==='/api/v1/parties') return response(listSuppliers());
+    if (url.pathname==='/api/v2/parties') return response(listSuppliers());
     if (url.pathname==='/api/v1/products') return response(listProducts());
-    if (url.pathname==='/api/v1/parties/'+supplierId)
+    if (url.pathname==='/api/v2/parties/'+supplierId)
       return response({data:party()});
     if (url.pathname==='/api/v1/products/'+productId)
       return response({data:product()});
@@ -138,6 +140,80 @@ test('strict Nest party response retains supplier role and role-scoped balance w
     ...listSuppliers(),data:[party(),party()],
   }),isProtocol);
   assert.throws(()=>decodePurchaseSupplier({data:{...party(),unexpectedTenantId:tenant}}),isProtocol);
+});
+
+
+test('V2 Supplier projection discards private data, global history and other roles even when VISIBLE', () => {
+  const visible = party({
+    balance: { netMinor: -315_000, direction: 'PAYABLE',
+      outstandingMinor: 0, advanceMinor: 315_000 },
+    profile: { state: 'VISIBLE', data: {
+      address: 'Private House', guardianName: 'Secret Parent',
+      nid: 'NID-SUPPLIER-PRIVATE', email: 'supplier-secret@example.test',
+      notes: 'Never visible to purchase editor',
+    } },
+    globalHistory: { state: 'VISIBLE', hasLedgerEntries: true },
+  });
+  const out = decodePurchaseSupplier({ data: visible }).data;
+  assert.deepEqual(out.roles, ['SUPPLIER']);
+  assert.equal(out.name, 'Rahman Traders');
+  assert.equal(out.balance.netMinor, -315_000);
+  assert.equal(out.balance.advanceMinor, 315_000);
+  for (const key of ['nid', 'address', 'guardianName', 'email', 'notes',
+    'profile', 'globalHistory', 'hasLedgerEntries', 'customerGroupId',
+    'customerGroupName', 'creditLimitMinor', 'readRole']) {
+    assert.equal(Object.hasOwn(out, key), false, key);
+  }
+  assert.equal(JSON.stringify(out).includes('NID-SUPPLIER-PRIVATE'), false);
+  const list = decodePurchaseSupplierList({
+    ...listSuppliers(), data: [visible],
+  });
+  assert.equal(list.summary.ungrouped, null);
+  assert.deepEqual(list.data[0]?.roles, ['SUPPLIER']);
+});
+
+test('V2 Supplier rejects raw V1 privacy, wrong selected-role, fake group and broken direction', () => {
+  for (const invalidParty of [
+    { ...party(), nid: 'PRIVATE-LEGACY' },
+    { ...party(), hasLedgerEntries: false },
+    { ...party(), readRole: 'CUSTOMER' },
+    { ...party(), roles: ['VENDOR'] },
+    { ...party(), customerGroupName: 'Leaked group' },
+    { ...party(), profile: { state: 'WITHHELD', nid: 'private' } },
+    { ...party(), globalHistory: { state: 'VISIBLE', hasLedgerEntries: 'yes' } },
+    { ...party(), balance: {
+      netMinor: -100, direction: 'RECEIVABLE',
+      outstandingMinor: 0, advanceMinor: 100,
+    } },
+  ]) assert.throws(() => decodePurchaseSupplier({ data: invalidParty }), isProtocol);
+  assert.throws(() => decodePurchaseSupplierList({
+    ...listSuppliers(), summary: { ...supplierSummary, ungrouped: 0 },
+  }), isProtocol);
+});
+
+test('V2 Supplier denied requests never try legacy V1 or another relationship', async () => {
+  for (const status of [401, 403, 404, 503]) {
+    const seen: string[] = [];
+    await mockedFetch(async (request, init) => {
+      seen.push(String(request));
+      assert.equal(init?.method, 'GET');
+      assert.equal(init?.body, undefined);
+      return response({ error: {
+        code: status === 403 ? 'PERMISSION_DENIED' : 'NOT_FOUND',
+        message: 'Supplier source unavailable', details: {}, traceId: 't-1',
+      } }, status);
+    }, async () => {
+      for (const action of [
+        () => readPurchaseSuppliers('signed-user-token'),
+        () => readPurchaseSupplier('signed-user-token', supplierId),
+      ]) await assert.rejects(action(), (error: unknown) =>
+        error instanceof ApiError && error.kind === 'http' && error.status === status);
+    });
+    assert.deepEqual(seen, [
+      ORIGIN + '/api/v2/parties?role=SUPPLIER',
+      ORIGIN + '/api/v2/parties/' + supplierId + '?role=SUPPLIER',
+    ]);
+  }
 });
 
 test('purchase supplier list and detail use only authenticated SUPPLIER role endpoints',async()=>{
@@ -185,7 +261,7 @@ test('client cannot pass fixture ids, arbitrary query keys, invalid tokens or un
 
 test('two independent paginated source lists remain explicit about incomplete catalogs',async()=>{
   const {fake,calls}=fakeServer((url)=>{
-    if(url.pathname==='/api/v1/parties')return response(listSuppliers([party()],true));
+    if(url.pathname==='/api/v2/parties')return response(listSuppliers([party()],true));
     if(url.pathname==='/api/v1/products')return response(listProducts([product()],true));
     throw Error('Unexpected source read');
   });
@@ -201,7 +277,7 @@ test('two independent paginated source lists remain explicit about incomplete ca
   });
   assert.equal(calls.length,2);
   assert.ok(calls.some(url=>url.startsWith('/api/v1/products?')));
-  assert.ok(calls.some(url=>url.startsWith('/api/v1/parties?')));
+  assert.ok(calls.some(url=>url.startsWith('/api/v2/parties?')));
   for (const item of calls) {
     const q=new URL(item,ORIGIN).searchParams;
     assert.equal(q.get('status'),'ACTIVE');
@@ -213,7 +289,7 @@ test('two independent paginated source lists remain explicit about incomplete ca
 test('source list rejects inactive, role-only vendor, redacted costs or inconsistent cursor',async()=>{
   for(const target of ['supplier-role','supplier-inactive','product-inactive','redacted','cursor']) {
     const {fake}=fakeServer(url=>{
-      if(url.pathname==='/api/v1/parties') {
+      if(url.pathname==='/api/v2/parties') {
         if(target==='supplier-role')return response(listSuppliers([party({roles:['VENDOR']})]));
         if(target==='supplier-inactive')return response(listSuppliers([party({status:'INACTIVE'})]));
         return response(listSuppliers());
@@ -284,7 +360,7 @@ test('empty unfinished draft resolves without pretending that suppliers or produ
 test('missing, inactive, role-wrong, mismatched and redacted detail source fail closed',async()=>{
   for (const variation of ['missing','inactive','wrong-role','wrong-id','redacted']) {
     const {fake}=fakeServer(url=>{
-      if(url.pathname==='/api/v1/parties/'+supplierId) {
+      if(url.pathname==='/api/v2/parties/'+supplierId) {
         if (variation==='wrong-role') return response({data:party({roles:['VENDOR']})});
         return response({data:party()});
       }

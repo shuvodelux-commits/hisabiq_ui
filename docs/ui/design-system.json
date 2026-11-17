@@ -2247,6 +2247,14 @@
       "reexports": []
     },
     {
+      "file": "src/components/finance/ConnectedCounterReadWorkspace.tsx",
+      "kind": "component",
+      "exports": [
+        "ConnectedCounterReadWorkspace"
+      ],
+      "reexports": []
+    },
+    {
       "file": "src/components/finance/CounterWorkspace.tsx",
       "kind": "component",
       "exports": [
@@ -3479,6 +3487,14 @@
       "file": "src/index.tsx",
       "kind": "authored-ui",
       "exports": [],
+      "reexports": []
+    },
+    {
+      "file": "src/integration/ConnectedSettingsWorkspace.tsx",
+      "kind": "authored-ui",
+      "exports": [
+        "ConnectedSettingsWorkspace"
+      ],
       "reexports": []
     },
     {

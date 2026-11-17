@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ApiError } from '../../../integration/errors.ts';
 import { removeServerInvoiceLogo, uploadServerInvoiceLogo, type InvoiceLogoMime } from '../../../integration/invoice-logo.ts';
 import type { ServerInvoiceSettings } from '../../../integration/invoice-settings.ts';
@@ -6,7 +6,8 @@ import { Button } from './Ui';
 
 const maxBytes = 250 * 1024;
 const formats: Record<string, InvoiceLogoMime> = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', webp:'image/webp', gif:'image/gif' };
-type Context = { identityKey:string; accessToken:string; canEdit:boolean; blocked:boolean };
+type Context = { identityKey:string; accessToken:string; canEdit:boolean; blocked:boolean; uncertaintyKey?:string; confirmCurrent?:()=>Promise<boolean> };
+const uncertainWrites = new Set<string>();
 type State = { selectedName:string|null; busy:boolean; unknown:boolean; denied:boolean; confirmDelete:boolean; message:string };
 const initial:State = {selectedName:null,busy:false,unknown:false,denied:false,confirmDelete:false,message:''};
 function signature(mime:InvoiceLogoMime, b:Uint8Array) {
@@ -31,16 +32,41 @@ export function createConnectedInvoiceLogoActionsController(emit:(state:State)=>
  let state={...initial};
  let file:File|null=null;
  let operation:AbortController|null=null;
+ let requestDispatched=false;
  let generation=0;
  let disposed=false;
- const update=(patch:Partial<State>)=>{state={...state,...patch};if(!disposed)emit(state);};
+ const update=(patch:Partial<State>)=>{state={...state,...patch};if(state.unknown&&context?.uncertaintyKey)uncertainWrites.add(context.uncertaintyKey);if(!disposed)emit(state);};
+ const fresh=async(c:Context)=>{try{return c.confirmCurrent ? await c.confirmCurrent() : false;}catch{return false;}};
+ const current=(c:Context,request:number)=>!disposed&&context?.identityKey===c.identityKey&&context.accessToken===c.accessToken&&request===generation;
+ const stale=()=>update({unknown:true,selectedName:null,confirmDelete:false,message:"Access changed. Refresh from server before retrying. · আবার লোড করুন।"});
  const allowed=()=>!!context?.identityKey&&!!context.accessToken&&context.canEdit&&!context.blocked&&!state.busy&&!state.unknown&&!state.denied;
- const reset=()=>{operation?.abort();operation=null;generation++;file=null;update({...initial});};
+ const reset=()=>{operation?.abort();operation=null;requestDispatched=false;generation++;file=null;update({...initial});};
  return {
   configure(next:Context){
    if(disposed)return;
-   if(context && (context.identityKey!==next.identityKey||context.accessToken!==next.accessToken))reset();
+   if(context && (context.identityKey!==next.identityKey||context.accessToken!==next.accessToken)){
+    if(requestDispatched && context.uncertaintyKey)uncertainWrites.add(context.uncertaintyKey);
+    reset();
+   }else if(context && (
+    (context.canEdit && !next.canEdit) ||
+    (!context.blocked && next.blocked && !state.unknown)
+   )){
+    // Permission may change while the selected file is being read or a write
+    // is in flight. Abort and invalidate both stages. Dispatched writes have
+    // an unknown server outcome until a separate authenticated refresh.
+    const uncertain=operation!==null && requestDispatched;
+    operation?.abort();
+    operation=null;requestDispatched=false;generation++;file=null;
+    update({
+     selectedName:null,busy:false,confirmDelete:false,
+     unknown:state.unknown||uncertain,
+     message:state.denied||state.unknown?state.message
+      : uncertain?'Access changed during a logo write. Refresh from server before retrying. · আবার লোড করুন।'
+      :'Access changed; selected file cleared. · অনুমতি বদলেছে।',
+    });
+   }
    context=next;
+   if(next.uncertaintyKey&&uncertainWrites.has(next.uncertaintyKey))update({unknown:true});
   },
   select(next:File|null){
    if(!allowed())return;
@@ -50,12 +76,13 @@ export function createConnectedInvoiceLogoActionsController(emit:(state:State)=>
   cancel(){if(state.busy)return;file=null;update({selectedName:null,confirmDelete:false,message:'Selection cleared. · নির্বাচন বাতিল।'});},
   requestDelete(){if(!allowed()||file)return;update({confirmDelete:true,message:'Confirm removal of this business logo. · লোগো মুছতে নিশ্চিত করুন।'});},
   cancelDelete(){update({confirmDelete:false,message:'Removal canceled. · মুছে ফেলা বাতিল।'});},
-  serverRefreshed(){if(state.busy)return;update({unknown:false,message:'Server state refreshed. Review before another action. · সার্ভার তথ্য যাচাই হয়েছে।'});},
+  async serverRefreshed(){if(state.busy||!context?.canEdit||state.denied)return;const c=context,request=generation;if(!await fresh(c)||!current(c,request))return;if(c.uncertaintyKey)uncertainWrites.delete(c.uncertaintyKey);update({unknown:false,message:'Server state refreshed. Review before another action. · সার্ভার তথ্য যাচাই হয়েছে।'});},
   async upload(){
    if(!allowed()||!file)return;
+   const c=context!;
    const chosen=file,mime=mimeFor(chosen);
    if(!mime||!Number.isSafeInteger(chosen.size)||chosen.size<1||chosen.size>maxBytes){update({message:'Choose a nonempty PNG, JPEG, WebP or GIF up to 250 KiB. · ২৫০ KiB পর্যন্ত ছবি বাছুন।'});return;}
-   const request=++generation,ctl=new AbortController();operation=ctl;update({busy:true,message:'Checking selected file… · ছবি যাচাই হচ্ছে…'});
+   const request=++generation,ctl=new AbortController();operation=ctl;requestDispatched=false;update({busy:true,message:'Checking selected file… · ছবি যাচাই হচ্ছে…'});
    let sent=false;
    try{
     const raw=await chosen.arrayBuffer();
@@ -65,10 +92,16 @@ export function createConnectedInvoiceLogoActionsController(emit:(state:State)=>
     if(!signature(mime,bytes))throw new Error('File type does not match image bytes');
     const data=encode(bytes);
     if(ctl.signal.aborted||request!==generation)return;
-    sent=true;
+    const permitted=await fresh(c);
+    if(ctl.signal.aborted||!current(c,request))return;
+    if(!permitted){stale();return;}
+    sent=true;requestDispatched=true;
     update({message:'Uploading… · আপলোড হচ্ছে…'});
-    const result=await uploadServerInvoiceLogo(context!.accessToken,mime,data,ctl.signal);
+    const result=await uploadServerInvoiceLogo(c.accessToken,mime,data,ctl.signal);
     if(ctl.signal.aborted||request!==generation)return;
+    const authorized=await fresh(c);
+    if(ctl.signal.aborted||!current(c,request))return;
+    if(!authorized){stale();return;}
     file=null;update({selectedName:null,confirmDelete:false,message:'Logo saved to this business. · লোগো সংরক্ষিত হয়েছে।'});
     confirmed(result.data);
    }catch(error:unknown){
@@ -76,22 +109,30 @@ export function createConnectedInvoiceLogoActionsController(emit:(state:State)=>
     if(error instanceof ApiError&&(error.status===401||error.status===403))update({denied:true,message:'Permission denied. Sign in again. · অনুমতি নেই।'});
     else if(sent)update({unknown:true,message:'Upload outcome unknown. Refresh from server before another action. · সার্ভার থেকে পুনরায় লোড করুন।'});
     else update({message:'Invalid or unreadable image. Check type, bytes and 250 KiB limit. · ছবিটি যাচাই করুন।'});
-   }finally{if(operation===ctl)operation=null;if(request===generation)update({busy:false});}
+   }finally{if(operation===ctl){operation=null;requestDispatched=false;}if(request===generation)update({busy:false});}
   },
   async remove(){
    if(!allowed()||!state.confirmDelete||file)return;
-   const request=++generation,ctl=new AbortController();operation=ctl;update({busy:true,confirmDelete:false,message:'Removing… · মুছে ফেলা হচ্ছে…'});
+   const c=context!;
+   const request=++generation,ctl=new AbortController();operation=ctl;requestDispatched=false;update({busy:true,confirmDelete:false,message:'Removing… · মুছে ফেলা হচ্ছে…'});
    try{
-    const result=await removeServerInvoiceLogo(context!.accessToken,ctl.signal);
+    const permitted=await fresh(c);
+    if(ctl.signal.aborted||!current(c,request))return;
+    if(!permitted){stale();return;}
+    requestDispatched=true;
+    const result=await removeServerInvoiceLogo(c.accessToken,ctl.signal);
     if(ctl.signal.aborted||request!==generation)return;
+    const authorized=await fresh(c);
+    if(ctl.signal.aborted||!current(c,request))return;
+    if(!authorized){stale();return;}
     update({message:'Logo removed from this business. · লোগো মুছে ফেলা হয়েছে।'});confirmed(result.data);
    }catch(error:unknown){
     if(ctl.signal.aborted||request!==generation)return;
     if(error instanceof ApiError&&(error.status===401||error.status===403))update({denied:true,message:'Permission denied. Sign in again. · অনুমতি নেই।'});
     else update({unknown:true,message:'Removal outcome unknown. Refresh from server before another action. · সার্ভার থেকে পুনরায় লোড করুন।'});
-   }finally{if(operation===ctl)operation=null;if(request===generation)update({busy:false});}
+   }finally{if(operation===ctl){operation=null;requestDispatched=false;}if(request===generation)update({busy:false});}
   },
-  dispose(){disposed=true;reset();},
+  dispose(){if(requestDispatched&&context?.uncertaintyKey)uncertainWrites.add(context.uncertaintyKey);disposed=true;reset();},
  };
 }
 
@@ -103,8 +144,14 @@ export function ConnectedInvoiceLogoActions(props:Props){
  if(!controller.current)controller.current=createConnectedInvoiceLogoActionsController(next=>{
   setState(next);callbacks.current.onSelectedChange(next.selectedName!==null);callbacks.current.onBusyChange(next.busy);callbacks.current.onUnknownChange(next.unknown);if(next.denied)callbacks.current.onDenied();
  },data=>callbacks.current.onConfirmed(data));
- controller.current.configure({identityKey:props.identityKey,accessToken:props.accessToken,canEdit:props.canEdit,blocked:props.blocked});
- useEffect(()=>{controller.current?.serverRefreshed();},[props.refreshKey]);
+ // Do not synchronously emit parent setState callbacks during this component's
+ // render. Commit the access/identity change before paint and abort any pending
+ // operation through the controller's existing generation/unknown-outcome rules.
+ useLayoutEffect(()=>{
+  controller.current?.configure({identityKey:props.identityKey,accessToken:props.accessToken,canEdit:props.canEdit,blocked:props.blocked,uncertaintyKey:props.uncertaintyKey,confirmCurrent:props.confirmCurrent??(async()=>false)});
+ },[props.identityKey,props.accessToken,props.canEdit,props.blocked,props.uncertaintyKey]);
+ const lastRefresh=useRef(props.refreshKey);
+ useEffect(()=>{if(lastRefresh.current!==props.refreshKey){lastRefresh.current=props.refreshKey;void controller.current?.serverRefreshed();}},[props.refreshKey]);
  useEffect(()=>()=>{controller.current?.dispose();callbacks.current.onSelectedChange(false);callbacks.current.onBusyChange(false);},[]);
  const disabled=!props.canEdit||props.blocked||state.busy||state.unknown||state.denied;
  return <div className="mt-3 space-y-2 rounded-md border border-border bg-card px-3 py-2 text-[12px] text-ink-600" data-connected-invoice-logo-actions>

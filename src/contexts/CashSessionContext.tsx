@@ -28,7 +28,8 @@ type ServerSnapshot = {
   historyAccess: ReadAccess;
   accountsAccess: ReadAccess;
 };
-type PendingOperation = { identity: string; fingerprint: string; id: string };
+type CashSender = (operationId: string, token: string, signal: AbortSignal) => Promise<CashDaySession>;
+type PendingOperation = { identity: string; fingerprint: string; id: string; send: CashSender };
 type CashSessionContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -58,6 +59,8 @@ type CashSessionContextValue = {
   accountsAccess: ReadAccess;
   historyAccess: ReadAccess;
   reopenSession: (reason: string) => Promise<void>;
+  hasPendingOperation: boolean;
+  confirmPendingOperation: () => Promise<void>;
   refresh: () => Promise<void>;
 };
 const CashSessionContext = createContext<CashSessionContextValue | null>(null);
@@ -266,7 +269,7 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
 
   const runMutation = async (
     fingerprint: string,
-    send: (operationId: string, token: string, signal: AbortSignal) => Promise<CashDaySession>,
+    send: CashSender,
   ): Promise<void> => {
     if (!identity || !accessToken || mode !== 'connected') {
       throw new Error('Verified cash-session access is required');
@@ -277,7 +280,7 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       throw new Error('A previous cash operation has an unknown outcome. Confirm its result before changing the cash intent.');
     }
     const operationId = pendingOperation.current?.id ?? generateOperationId();
-    pendingOperation.current = { identity, fingerprint, id: operationId };
+    pendingOperation.current = { identity, fingerprint, id: operationId, send };
     const controller = new AbortController();
     mutationAbort.current = controller;
     mutationBusy.current = true;
@@ -332,6 +335,21 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       }
     }
   };
+
+  // A server status refresh cannot prove WHICH operation changed the day.
+  // Confirm the original intent explicitly using the original idempotency
+  // key, rather than silently clearing uncertainty or creating a second ID.
+  const confirmPendingOperation = async (): Promise<void> => {
+    const pending = pendingOperation.current;
+    if (!pending || pending.identity !== identity) {
+      throw new Error('There is no cash operation awaiting confirmation.');
+    }
+    if (!day?.enabled || !canView) {
+      throw new Error('Verified cash-day access is required to confirm the previous operation.');
+    }
+    return runMutation(pending.fingerprint, pending.send);
+  };
+  const hasPendingOperation = identity !== null && pendingOperation.current?.identity === identity;
 
   const startSession: CashSessionContextValue['startSession'] =
     (amount, counterpart, note, revision, operationId) => {
@@ -414,7 +432,7 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       dayStatus: day, accounts: current?.accounts ?? [],
       accountsAccess: current?.accountsAccess ?? 'unavailable',
       historyAccess: current?.historyAccess ?? 'unavailable',
-      reopenSession, refresh: async () => refresh(),
+      reopenSession, hasPendingOperation, confirmPendingOperation, refresh: async () => refresh(),
     }}>
       {children}
     </CashSessionContext.Provider>

@@ -95,7 +95,7 @@ async function main() {
       headless: true, args: ['--no-sandbox'],
     });
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    page.setDefaultTimeout(20000);
+    page.setDefaultTimeout(seedFixtures ? 45000 : 20000);
     const requests = [];
     const errors = [];
     const blockedMutations = [];
@@ -131,7 +131,10 @@ async function main() {
         '<script type="module" src="/tests/mod005LiveCashRuntimeHarness.tsx"></script>' +
         '</body></html>',
     }));
-    await page.goto('http://127.0.0.1:5187/__mod005_live');
+    await page.goto('http://127.0.0.1:5187/__mod005_live', {
+      waitUntil: 'domcontentloaded', timeout: seedFixtures ? 90000 : 30000,
+    });
+    await page.locator('#identifier').waitFor({ timeout: seedFixtures ? 90000 : 30000 });
     if (anonymous) {
       assert.notEqual(await page.locator('#auth').getAttribute('data-status'), 'authenticated');
       const statuses = await page.evaluate(async () => ({
@@ -219,7 +222,13 @@ async function main() {
           document.querySelector('#auth')?.getAttribute('data-tenant') === expected,
         second.tenantId);
         assert.notEqual(firstTenant, second.tenantId);
-        assert.equal(await page.locator('#cash').getAttribute('data-mode'), 'connected');
+        // Tenant B's authenticated identity commits before the cash context
+        // finishes its separately scoped /money/day request. A synchronous
+        // mode check is a React scheduling race, not evidence of failed reads.
+        await page.waitForFunction(() =>
+          document.querySelector('#cash')?.getAttribute('data-mode') === 'connected');
+        assert.equal(await page.locator('#cash').getAttribute('data-today'), '',
+          'A new tenant must not inherit the prior tenant cash-session state');
         console.log('Two independent real Nest test tenants, React session switching PASS');
       }
       assert.deepEqual(errors, [], 'no React runtime errors');

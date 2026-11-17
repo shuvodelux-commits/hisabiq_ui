@@ -125,6 +125,7 @@ export class SessionStore {
   private lastActivity = 0;
   private idleTimer: number | null = null;
   private flight: { epoch: number; promise: Promise<void> } | null = null;
+  private validation: { epoch: number; token: string; promise: Promise<void> } | null = null;
   private restoring: Promise<void> | null = null;
 
   constructor(options: SessionStoreOptions = {}) {
@@ -178,6 +179,7 @@ export class SessionStore {
     for (const controller of this.controllers) controller.abort();
     this.controllers.clear();
     this.flight = null;
+    this.validation = null;
     this.restoring = null;
     this.clearIdle();
     return this.epoch;
@@ -378,6 +380,82 @@ export class SessionStore {
     } finally {
       this.releaseController(controller);
     }
+  }
+
+  /**
+   * Recheck this live bearer against server-owned /me without rotating refresh
+   * credentials. A changed authorization epoch immediately invalidates mounted
+   * Settings/Team reads; a refusal or unverified response fails closed.
+   * Lifecycle scheduling belongs to the connected workspace, not this store.
+   */
+  revalidateAccess(): Promise<void> {
+    this.assertConnected();
+    const original = this.snapshot;
+    if (original.status !== 'authenticated') return Promise.resolve();
+    if (this.flight?.epoch === this.epoch) return this.flight.promise;
+    const existing = this.validation;
+    if (existing?.epoch === this.epoch && existing.token === original.accessToken) return existing.promise;
+
+    const epoch = this.epoch;
+    const controller = this.requestController();
+    let deadline: number | null = null;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      deadline = this.clock.setTimeout(() => {
+        controller.abort();
+        reject(new ApiError('network', 'Authorization verification timed out'));
+      }, 5_000);
+    });
+    const promise = (async () => {
+      try {
+        const access = await Promise.race([
+          Promise.resolve().then(() => this.api.readMyAccess(original.accessToken, controller.signal)),
+          timeout,
+        ]);
+        if (!this.current(epoch) || this.snapshot.status !== 'authenticated' ||
+            this.snapshot.accessToken !== original.accessToken || controller.signal.aborted) return;
+        if (!access?.data || !Array.isArray(access.data.permissions) ||
+            !Array.isArray(access.data.features)) throw protocolError();
+        const nextIdentity = identity(access);
+        if (nextIdentity.tenantId !== original.tenantId ||
+            nextIdentity.userId !== original.userId) throw protocolError();
+        const changed = Object.entries(nextIdentity).some(([name, value]) =>
+          original[name as keyof typeof nextIdentity] !== value) ||
+          JSON.stringify(access.data.permissions) !== JSON.stringify(original.permissions) ||
+          JSON.stringify(access.data.features) !== JSON.stringify(original.features);
+        if (!changed) return;
+        const nextEpoch = this.invalidatePending();
+        this.verified = nextIdentity;
+        this.publish({
+          ...nextIdentity, status: 'authenticated', epoch: nextEpoch,
+          accessToken: original.accessToken, permissions: [...access.data.permissions],
+          features: [...access.data.features], persistence: this.persistence,
+        });
+        this.scheduleIdle();
+      } catch (error) {
+        if (!this.current(epoch) || this.snapshot.status !== 'authenticated' ||
+            this.snapshot.accessToken !== original.accessToken) return;
+        const nextEpoch = this.invalidatePending();
+        const denied = error instanceof ApiError && (error.kind === 'protocol' ||
+          (error.kind === 'http' && [401, 403, 404].includes(error.status ?? 0)));
+        if (denied) this.signOut(nextEpoch);
+        else {
+          const verified = this.verified;
+          this.publish(verified
+            ? { ...verified, status: 'locked', epoch: nextEpoch, reason: 'offline', persistence: this.persistence }
+            : { status: 'locked', epoch: nextEpoch, reason: 'offline', persistence: this.persistence });
+        }
+        throw error;
+      } finally {
+        if (deadline !== null) this.clock.clearTimeout(deadline);
+        this.releaseController(controller);
+      }
+    })();
+    this.validation = { epoch, token: original.accessToken, promise };
+    void promise.then(
+      () => { if (this.validation?.promise === promise) this.validation = null; },
+      () => { if (this.validation?.promise === promise) this.validation = null; },
+    );
+    return promise;
   }
 
   refresh(): Promise<void> {

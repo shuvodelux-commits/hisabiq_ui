@@ -12,8 +12,8 @@ import type { ApiRequest } from './http.ts';
  *
  * Monetary fields are integer poisha from persisted source transactions.
  * Quantities are positive integer base-unit amounts at scale 3.
- * refundMinor + creditMinor need not equal returnValueMinor: some value may
- * have been applied to the original customer's outstanding due.
+ * refundMinor + creditMinor exactly equals returnValueMinor. Credit may first
+ * settle the original invoice's outstanding due before becoming an advance.
  */
 export interface ServerSalesReturnLine {
   id: string;
@@ -125,7 +125,7 @@ function decodeEntry(value: unknown): value is ServerSalesReturn {
       !nullableText(value.note) ||
       !amount(value.returnValueMinor) || !amount(value.refundMinor) ||
       value.refundMinor > value.returnValueMinor ||
-      !amount(value.creditMinor) || value.creditMinor > value.returnValueMinor ||
+      !amount(value.creditMinor) || value.creditMinor !== value.returnValueMinor - value.refundMinor ||
       !nullableText(value.refundAccountCode) ||
       !nullableText(value.refundAccountName) ||
       !nullableText(value.approvedByName) ||
@@ -145,7 +145,8 @@ export function decodeSalesReturnHistory(raw: unknown): ServerSalesReturnHistory
   if (!exact(raw, ['returns', 'nextCursor', 'totalValueMinor', 'totalRefundMinor']) ||
       !Array.isArray(raw.returns) ||
       !(raw.nextCursor === null || cursor(raw.nextCursor)) ||
-      !amount(raw.totalValueMinor) || !amount(raw.totalRefundMinor)) return invalid();
+      !amount(raw.totalValueMinor) || !amount(raw.totalRefundMinor) ||
+      raw.totalRefundMinor > raw.totalValueMinor) return invalid();
   const returnIds = new Set<string>();
   for (const item of raw.returns) {
     if (!decodeEntry(item) || returnIds.has(item.id)) return invalid();

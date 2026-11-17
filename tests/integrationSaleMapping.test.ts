@@ -4,6 +4,7 @@ import { ApiError } from '../src/integration/errors.ts';
 import {
   decodeCustomerDirectory,
   decodeCustomerStanding,
+  decodeSaleDrafts,
   decodePosProducts,
   decodePosProductsForMode,
   isCanonicalPosCursor,
@@ -12,6 +13,7 @@ import {
   readPosProducts,
   readPosCustomers,
   readPosCustomerStanding,
+  readSaleDrafts,
 } from '../src/integration/sales.ts';
 
 const origin = 'https://hisabiq-m7.test';
@@ -49,12 +51,8 @@ const party = {
   id: customerId,
   name: 'Karim Traders',
   roles: ['CUSTOMER', 'SUPPLIER'],
+  readRole: 'CUSTOMER',
   phone: null,
-  address: null,
-  guardianName: null,
-  nid: null,
-  email: null,
-  notes: null,
   customerGroupId: null,
   customerGroupName: null,
   creditLimitMinor: null,
@@ -67,7 +65,8 @@ const party = {
     outstandingMinor: 2000,
     advanceMinor: 0,
   },
-  hasLedgerEntries: true,
+  profile: { state: 'WITHHELD' },
+  globalHistory: { state: 'WITHHELD' },
 };
 const directory = {
   data: [party],
@@ -304,7 +303,7 @@ test('customer directory forces role=CUSTOMER and active status, reads real iden
   await withFetch((async (url, init) => {
     calls++;
     const parsed = new URL(String(url));
-    assert.equal(parsed.pathname, '/api/v1/parties');
+    assert.equal(parsed.pathname, '/api/v2/parties');
     assert.equal(parsed.searchParams.get('role'), 'CUSTOMER');
     assert.equal(parsed.searchParams.get('status'), 'ACTIVE');
     assert.equal(parsed.searchParams.get('search'), 'Karim');
@@ -318,7 +317,11 @@ test('customer directory forces role=CUSTOMER and active status, reads real iden
       search: ' Karim ', cursor: customerId, limit: 50,
     });
     assert.equal(result.data[0]?.id, customerId);
-    assert.equal(result.data[0]?.roles.includes('SUPPLIER'), true);
+    assert.deepEqual(result.data[0]?.roles, ['CUSTOMER']);
+    for (const key of ['address', 'guardianName', 'nid', 'email', 'notes',
+      'hasLedgerEntries', 'profile', 'globalHistory', 'readRole']) {
+      assert.equal(Object.hasOwn(result.data[0]!, key), false);
+    }
     assert.equal(result.data[0]?.phone, null);
     assert.equal(result.data[0]?.balance.netMinor, 2000);
     assert.equal(result.summary.totalAdvanceMinor, 0);
@@ -337,6 +340,82 @@ test('customer directory rejects vendor-only, malformed roles, nested balances a
     { ...directory, page: { nextCursor: '../wrong', hasMore: true } },
     { ...directory, summary: { ...directory.summary, totalAdvanceMinor: -1 } },
   ]) assert.throws(() => decodeCustomerDirectory(bad), ApiError);
+});
+
+test('POS V2 Customer adapter also omits private profile and global history when server grants VISIBLE', () => {
+  const visible = {
+    ...party,
+    profile: { state: 'VISIBLE', data: {
+      address: 'Internal home', guardianName: 'Guardian', nid: 'NID-SECRET-123',
+      email: 'secret@example.test', notes: 'Do not show on POS',
+    } },
+    globalHistory: { state: 'VISIBLE', hasLedgerEntries: true },
+  };
+  const projected = decodeCustomerDirectory({ ...directory, data: [visible] });
+  assert.deepEqual(projected.data[0]?.roles, ['CUSTOMER']);
+  assert.equal(projected.data[0]?.name, 'Karim Traders');
+  assert.equal(projected.data[0]?.balance.netMinor, 2000);
+  assert.equal(JSON.stringify(projected).includes('NID-SECRET-123'), false);
+  assert.equal(JSON.stringify(projected).includes('Internal home'), false);
+  assert.equal(Object.hasOwn(projected.data[0]!, 'globalHistory'), false);
+  assert.equal(Object.hasOwn(projected.data[0]!, 'profile'), false);
+});
+
+test('POS V2 Customer directory handles zero/missing records and preserves server paging', () => {
+  const empty = decodeCustomerDirectory({
+    data: [], page: { nextCursor: null, hasMore: false },
+    summary: { ...directory.summary, total: 0, active: 0, ungrouped: 0,
+      totalOutstandingMinor: 0 },
+  });
+  assert.deepEqual(empty.data, []);
+  assert.equal(empty.summary.total, 0);
+  const paged = decodeCustomerDirectory({
+    ...directory,
+    page: { nextCursor: customerId, hasMore: true },
+  });
+  assert.equal(paged.page.nextCursor, customerId);
+  assert.equal(paged.page.hasMore, true);
+  assert.equal(paged.data[0]?.creditLimitMinor, null);
+  assert.throws(() => decodeCustomerDirectory({
+    ...directory, summary: { ...directory.summary, ungrouped: null },
+  }), ApiError);
+});
+
+test('POS V2 Customer directory rejects role mismatch, raw V1 leaks and injected fields', () => {
+  for (const bad of [
+    { ...party, readRole: 'SUPPLIER' },
+    { ...party, roles: ['SUPPLIER'] },
+    { ...party, address: 'unprojected V1 private field' },
+    { ...party, hasLedgerEntries: true },
+    { ...party, profile: { state: 'WITHHELD', nid: 'wrong' } },
+    { ...party, globalHistory: { state: 'VISIBLE', hasLedgerEntries: 'yes' } },
+    { ...party, balance: { ...party.balance, netMinor: -2000 } },
+  ]) assert.throws(() => decodeCustomerDirectory({
+    ...directory, data: [bad],
+  }), ApiError);
+});
+
+test('POS V2 Customer denial never retries V1 or exposes a fallback list', async () => {
+  for (const status of [401, 403, 404, 503]) {
+    const seen: string[] = [];
+    await withFetch((async (url, init) => {
+      seen.push(String(url));
+      assert.equal(init?.method, 'GET');
+      assert.equal(init?.body, undefined);
+      assert.equal(new Headers(init?.headers).get('authorization'), 'Bearer verified-A');
+      return json({ error: {
+        code: status === 403 ? 'PERMISSION_DENIED' : 'NOT_FOUND',
+        message: 'Customer list unavailable', details: {},
+        traceId: '01ARZ3NDEKTSV4RRFFQ69G5FAX',
+      } }, status);
+    }) as typeof fetch, async () => {
+      await assert.rejects(readPosCustomers('verified-A'),
+        (error: unknown) => error instanceof ApiError &&
+          error.kind === 'http' && error.status === status);
+    });
+    assert.deepEqual(seen,
+      [origin + '/api/v2/parties?role=CUSTOMER&status=ACTIVE']);
+  }
 });
 
 test('customer standing is journal-derived server truth, not invoice recomputation or cash', async () => {
@@ -453,4 +532,179 @@ test('offline error, external abort, bounded timeout and zero retries', async ()
         e instanceof ApiError && e.kind === 'network');
     });
   }
+});
+
+
+/** M7-02A: unmounted, GET-only sale draft reads; cart is opaque, never posted. */
+const opaqueSaleDraftCart = {
+  customerId,
+  customerDetails: { name: 'করিম ট্রেডার্স', guardianName: 'মতিন', phone: '01711111111' },
+  discountMode: 'percent',
+  discount: '7.125',
+  payments: [{ method: 'bKash', amount: '100', account: 'merchant-1' }],
+  lines: [{
+    productId, qty: '1', unit: 'Carton',
+    unitQuantities: { Carton: '1', Box: '2', Pcs: '3' },
+    unitSnapshot: { revision: 4, prices: [{ unit: 'Box', value: '200.1250' }] },
+    serials: ['SN-001'], stockSource: 'VENDOR',
+    bundleRevision: 3, bundleSources: [{ productId: otherProductId, qty: '2' }],
+  }],
+  installment: { count: 6, firstDueDate: '2026-12-13' },
+  futureServerField: { preserved: [null, true, 12.125, 'বাংলা'] },
+};
+const saleDraftRow = {
+  id: productId,
+  label: 'Draft #27',
+  customerName: 'করিম ট্রেডার্স',
+  itemCount: 1,
+  grandTotalMinor: 40125,
+  businessDate: '2026-11-13',
+  savedAt: '2026-11-13T09:24:10.321Z',
+  cart: opaqueSaleDraftCart,
+};
+
+test('sale draft decoder preserves opaque nested cart and server-owned minor amounts without projection', () => {
+  const raw = { data: [saleDraftRow, {
+    ...saleDraftRow, id: otherProductId, customerName: null,
+    itemCount: 0, grandTotalMinor: 0, cart: {},
+  }] };
+  const decoded = decodeSaleDrafts(raw);
+  assert.strictEqual(decoded, raw);
+  assert.strictEqual(decoded.data[0]?.cart, opaqueSaleDraftCart);
+  assert.deepEqual(decoded.data[0]?.cart, opaqueSaleDraftCart);
+  assert.equal(decoded.data[0]?.grandTotalMinor, 40125);
+  assert.equal(decoded.data[1]?.grandTotalMinor, 0);
+  assert.equal(Object.hasOwn(decoded.data[0], 'posted'), false);
+  assert.deepEqual(decodeSaleDrafts({ data: [] }), { data: [] });
+});
+
+test('sale draft decoder rejects malformed envelope, IDs, dates, minor values and metadata', () => {
+  for (const bad of [
+    [], {}, { data: [] , nextCursor: null }, { data: {} },
+    { data: [{ ...saleDraftRow, id: 'draft-1' }] },
+    { data: [{ ...saleDraftRow, label: 42 }] },
+    { data: [{ ...saleDraftRow, customerName: 123 }] },
+    { data: [{ ...saleDraftRow, itemCount: -1 }] },
+    { data: [{ ...saleDraftRow, itemCount: 0.3 }] },
+    { data: [{ ...saleDraftRow, itemCount: 501 }] },
+    { data: [{ ...saleDraftRow, itemCount: Number.MAX_SAFE_INTEGER + 1 }] },
+    { data: [{ ...saleDraftRow, grandTotalMinor: -1 }] },
+    { data: [{ ...saleDraftRow, grandTotalMinor: 1.5 }] },
+    { data: [{ ...saleDraftRow, grandTotalMinor: Number.MAX_SAFE_INTEGER + 1 }] },
+    { data: [{ ...saleDraftRow, businessDate: '2026-02-30' }] },
+    { data: [{ ...saleDraftRow, businessDate: '2026-11-31' }] },
+    { data: [{ ...saleDraftRow, savedAt: 'Today' }] },
+    { data: [{ ...saleDraftRow, savedAt: '2026-02-30T09:24:10.321Z' }] },
+    { data: [{ ...saleDraftRow, savedAt: '2026-11-13T25:24:10.321Z' }] },
+    { data: [{ ...saleDraftRow, savedAt: '2026-11-13T09:61:10.321Z' }] },
+    { data: [{ ...saleDraftRow, unexpectedPermission: 'SALE_ADMIN' }] },
+  ]) {
+    assert.throws(() => decodeSaleDrafts(bad),
+      (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+  }
+});
+
+test('sale draft decoder rejects invalid or non-JSON cart without transforming it', () => {
+  const circular: Record<string, unknown> = {};
+  circular.self = circular;
+  const sparseArray = [1];
+  sparseArray.length = 3;
+  for (const cart of [
+    [], null, 'cart', 1, new Date('2026-11-13T00:00:00.000Z'),
+    { x: undefined }, { x: Infinity }, { x: NaN }, { x: () => 123 },
+    { x: [1, undefined] }, { x: sparseArray }, circular,
+  ]) {
+    assert.throws(() => decodeSaleDrafts({ data: [{ ...saleDraftRow, cart }] }), ApiError);
+  }
+});
+
+test('sale draft GET uses exact authenticated endpoint and never writes or projects preview records', async () => {
+  let calls = 0;
+  await withFetch((async (url, init) => {
+    calls++;
+    const parsed = new URL(String(url));
+    assert.equal(parsed.origin, origin);
+    assert.equal(parsed.pathname, '/api/v1/sales/drafts');
+    assert.equal(parsed.search, '');
+    assert.equal(init?.method, 'GET');
+    assert.equal(init?.body, undefined);
+    assert.equal(init?.redirect, 'error');
+    assert.equal(init?.credentials, 'omit');
+    assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer cashier-A');
+    assert.equal(new Headers(init?.headers).get('Idempotency-Key'), null);
+    return json({ data: [saleDraftRow] });
+  }) as typeof fetch, async () => {
+    const res = await readSaleDrafts('cashier-A');
+    assert.equal(res.data.length, 1);
+    assert.deepEqual(res.data[0]?.cart, opaqueSaleDraftCart);
+    assert.equal(res.data[0]?.savedAt, '2026-11-13T09:24:10.321Z');
+    assert.equal(Object.hasOwn(res.data[0], 'unitPrices'), false);
+  });
+  assert.equal(calls, 1);
+});
+
+test('sale draft GET is stateless per bearer, rejects invalid token before network and never retries', async () => {
+  let calls = 0;
+  await withFetch((async (_url, init) => {
+    calls++;
+    const bearer = new Headers(init?.headers).get('Authorization');
+    return json({ data: bearer === 'Bearer tenant-A' ? [saleDraftRow] : [] });
+  }) as typeof fetch, async () => {
+    const a = await readSaleDrafts('tenant-A');
+    const b = await readSaleDrafts('tenant-B');
+    assert.equal(a.data.length, 1);
+    assert.deepEqual(b.data, []);
+    for (const badToken of ['', 'bad token']) {
+      await assert.rejects(readSaleDrafts(badToken),
+        (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+    }
+  });
+  assert.equal(calls, 2);
+});
+
+for (const status of [401, 403, 404, 503]) {
+  test('sale draft HTTP ' + status + ' refuses without fallback/retry', async () => {
+    let calls = 0;
+    await withFetch((async () => {
+      calls++;
+      return json({ error: { code: 'DENIED', message: 'Denied',
+        details: {}, traceId: 'trace-draft' } }, status);
+    }) as typeof fetch, async () => {
+      await assert.rejects(readSaleDrafts('cashier-A'),
+        (e: unknown) => e instanceof ApiError && e.kind === 'http' && e.status === status);
+    });
+    assert.equal(calls, 1);
+  });
+}
+
+test('sale draft GET fails closed on corrupt payload, abort, timeout and offline network', async () => {
+  await withFetch((async () => json({ data: [{ ...saleDraftRow, cart: [] }] })) as typeof fetch,
+    async () => {
+      await assert.rejects(readSaleDrafts('cashier-A'),
+        (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+    });
+  let calls = 0;
+  await withFetch((async (_url, init) => {
+    calls++;
+    return new Promise<Response>((_resolve, reject) => {
+      if (init?.signal?.aborted) reject(new DOMException('Aborted', 'AbortError'));
+      else init?.signal?.addEventListener('abort',
+        () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+    });
+  }) as typeof fetch, async () => {
+    const abort = new AbortController();
+    const pending = readSaleDrafts('cashier-A', abort.signal, 1000);
+    abort.abort();
+    await assert.rejects(pending, (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    await assert.rejects(readSaleDrafts('cashier-A', undefined, 5),
+      (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    await assert.rejects(readSaleDrafts('cashier-A', undefined, 0),
+      (e: unknown) => e instanceof ApiError && e.kind === 'protocol');
+  });
+  assert.equal(calls, 2);
+  await withFetch((async () => { throw new TypeError('offline'); }) as typeof fetch,
+    async () => {
+      await assert.rejects(readSaleDrafts('cashier-A'),
+        (e: unknown) => e instanceof ApiError && e.kind === 'network');
+    });
 });

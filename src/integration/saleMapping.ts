@@ -1,3 +1,4 @@
+import { decodeTradingPartyList } from './party-reads.ts';
 import { ApiError } from './errors.ts';
 
 /**
@@ -51,16 +52,16 @@ export interface ServerCustomerBalance {
   advanceMinor: number;
 }
 
+/**
+ * POS needs a Customer selection, not a Party profile or a view of all
+ * relationships. Its selected Customer balance remains the server's
+ * signed integer-poisha net; never convert it to gross due/advance here.
+ */
 export interface ServerCustomerDirectoryEntry {
   id: string;
   name: string;
-  roles: ServerTradingRole[];
+  roles: ['CUSTOMER'];
   phone: string | null;
-  address: string | null;
-  guardianName: string | null;
-  nid: string | null;
-  email: string | null;
-  notes: string | null;
   customerGroupId: string | null;
   customerGroupName: string | null;
   creditLimitMinor: number | null;
@@ -68,7 +69,6 @@ export interface ServerCustomerDirectoryEntry {
   isSystemReserved: boolean;
   version: number;
   balance: ServerCustomerBalance;
-  hasLedgerEntries: boolean;
 }
 
 export interface ServerCustomerDirectory {
@@ -114,9 +114,6 @@ const RANKED_POS_CURSOR = /^v2\.([0-9]{1,4})\.([0-7][0-9A-HJKMNP-TV-Z]{25})\.([a
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const stockStatuses: readonly string[] = ['IN_STOCK', 'LOW_STOCK', 'ZERO_STOCK', 'NEGATIVE_STOCK'];
 const negativePolicies: readonly string[] = ['BLOCK', 'WARN', 'ALLOW'];
-const partyRoles: readonly string[] = ['CUSTOMER', 'SUPPLIER', 'VENDOR'];
-const directions: readonly string[] = ['RECEIVABLE', 'PAYABLE', 'SETTLED'];
-const partyStatuses: readonly string[] = ['ACTIVE', 'INACTIVE'];
 
 function invalid(): never {
   throw new ApiError('protocol', 'POS read request or response could not be verified');
@@ -203,47 +200,42 @@ export function decodePosProductsForMode(
   return products;
 }
 
-const balanceKeys = ['netMinor', 'direction', 'outstandingMinor', 'advanceMinor'];
-function balance(x: unknown): x is ServerCustomerBalance {
-  return record(x) && exact(x, balanceKeys) &&
-    int(x.netMinor) && directions.includes(String(x.direction)) &&
-    nonnegative(x.outstandingMinor) && nonnegative(x.advanceMinor);
-}
-const partyKeys = [
-  'id', 'name', 'roles', 'phone', 'address', 'guardianName', 'nid', 'email',
-  'notes', 'customerGroupId', 'customerGroupName', 'creditLimitMinor',
-  'status', 'isSystemReserved', 'version', 'balance', 'hasLedgerEntries',
-];
-function customer(x: unknown): x is ServerCustomerDirectoryEntry {
-  return record(x) && exact(x, partyKeys) &&
-    id(x.id) && typeof x.name === 'string' &&
-    Array.isArray(x.roles) && x.roles.includes('CUSTOMER') &&
-    x.roles.every(role => partyRoles.includes(String(role))) &&
-    nullableText(x.phone) && nullableText(x.address) &&
-    nullableText(x.guardianName) && nullableText(x.nid) &&
-    nullableText(x.email) && nullableText(x.notes) &&
-    nullableId(x.customerGroupId) && nullableText(x.customerGroupName) &&
-    (x.creditLimitMinor === null || int(x.creditLimitMinor)) &&
-    partyStatuses.includes(String(x.status)) &&
-    typeof x.isSystemReserved === 'boolean' &&
-    int(x.version) && x.version >= 0 && balance(x.balance) &&
-    typeof x.hasLedgerEntries === 'boolean';
-}
-const summaryKeys = [
-  'total', 'active', 'inactive', 'ungrouped', 'totalOutstandingMinor',
-  'totalAdvanceMinor', 'overCreditLimit',
-];
-function summary(x: unknown): boolean {
-  return record(x) && exact(x, summaryKeys) &&
-    summaryKeys.every(key => nonnegative(x[key]));
-}
+/**
+ * Validate the exact Nest V2 wire shape with the shared selected-role decoder,
+ * then deliberately discard other-role badges and privileged profile/history.
+ * Even an operator with VISIBLE PII does not forward it to the POS selector.
+ */
 export function decodeCustomerDirectory(raw: unknown): ServerCustomerDirectory {
-  if (!record(raw) || !exact(raw, ['data', 'page', 'summary']) ||
-      !Array.isArray(raw.data) || !raw.data.every(customer) ||
-      !record(raw.page) || !exact(raw.page, ['nextCursor', 'hasMore']) ||
-      !nullableId(raw.page.nextCursor) || typeof raw.page.hasMore !== 'boolean' ||
-      !summary(raw.summary)) return invalid();
-  return raw as unknown as ServerCustomerDirectory;
+  const checked = decodeTradingPartyList(raw, 'CUSTOMER');
+  if (checked.summary.ungrouped === null) return invalid();
+  return {
+    data: checked.data.map(row => ({
+      id: row.id,
+      name: row.name,
+      roles: ['CUSTOMER'] as ['CUSTOMER'],
+      phone: row.phone,
+      customerGroupId: row.customerGroupId,
+      customerGroupName: row.customerGroupName,
+      creditLimitMinor: row.creditLimitMinor,
+      status: row.status,
+      isSystemReserved: row.isSystemReserved,
+      version: row.version,
+      balance: {
+        netMinor: row.balance.netMinor,
+        direction: row.balance.direction,
+        outstandingMinor: row.balance.outstandingMinor,
+        advanceMinor: row.balance.advanceMinor,
+      },
+    })),
+    page: { nextCursor: checked.page.nextCursor, hasMore: checked.page.hasMore },
+    summary: {
+      total: checked.summary.total, active: checked.summary.active,
+      inactive: checked.summary.inactive, ungrouped: checked.summary.ungrouped,
+      totalOutstandingMinor: checked.summary.totalOutstandingMinor,
+      totalAdvanceMinor: checked.summary.totalAdvanceMinor,
+      overCreditLimit: checked.summary.overCreditLimit,
+    },
+  };
 }
 
 const openInvoiceKeys = [
@@ -272,4 +264,91 @@ export function decodeCustomerStanding(raw: unknown): ServerCustomerStandingEnve
 
 export function isCanonicalPosPartyId(value: unknown): value is string {
   return id(value);
+}
+
+
+/** Non-posting Nest sale drafts: metadata is server-owned; cart stays opaque JSON. */
+export interface ServerSaleDraft {
+  id: string;
+  label: string;
+  customerName: string | null;
+  itemCount: number;
+  grandTotalMinor: number;
+  businessDate: string;
+  savedAt: string;
+  cart: Record<string, unknown>;
+}
+export interface ServerSaleDraftsEnvelope {
+  data: ServerSaleDraft[];
+}
+
+const saleDraftKeys = [
+  'id', 'label', 'customerName', 'itemCount', 'grandTotalMinor',
+  'businessDate', 'savedAt', 'cart',
+];
+
+/** The service serializes Date.toISOString(), including three-digit UTC milliseconds. */
+function draftTimestamp(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/.exec(value);
+  return match !== null && day(match[1]) &&
+    Number(match[2]) < 24 && Number(match[3]) < 60 && Number(match[4]) < 60 &&
+    Number.isFinite(Date.parse(value));
+}
+
+/**
+ * Assert JSON-compatible shape without parsing/pricing/rewriting opaque cart fields.
+ * In production requestJson has already JSON-parsed the response; the check also
+ * rejects non-JSON fixtures, prototypes, sparse arrays and cycles in direct calls.
+ */
+function draftJsonCart(value: unknown): value is Record<string, unknown> {
+  if (!record(value) ||
+      (Object.getPrototypeOf(value) !== Object.prototype &&
+       Object.getPrototypeOf(value) !== null)) return false;
+  const remaining: unknown[] = [value];
+  const seen = new WeakSet<object>();
+  while (remaining.length > 0) {
+    const next = remaining.pop();
+    if (next === null || typeof next === 'string' || typeof next === 'boolean') continue;
+    if (typeof next === 'number') {
+      if (!Number.isFinite(next)) return false;
+      continue;
+    }
+    if (typeof next !== 'object' || seen.has(next)) return false;
+    seen.add(next);
+    if (Object.getOwnPropertySymbols(next).length !== 0) return false;
+    if (Array.isArray(next)) {
+      if (Object.keys(next).length !== next.length) return false;
+      for (let i = 0; i < next.length; i++) {
+        const part = Object.getOwnPropertyDescriptor(next, String(i));
+        if (!part || !('value' in part)) return false;
+        remaining.push(part.value);
+      }
+    } else if (record(next) &&
+      (Object.getPrototypeOf(next) === Object.prototype ||
+       Object.getPrototypeOf(next) === null)) {
+      for (const key of Object.keys(next)) {
+        const part = Object.getOwnPropertyDescriptor(next, key);
+        if (!part || !('value' in part)) return false;
+        remaining.push(part.value);
+      }
+    } else return false;
+  }
+  return true;
+}
+
+/** Strict GET /api/v1/sales/drafts envelope, never a POS cart or invoice. */
+export function decodeSaleDrafts(raw: unknown): ServerSaleDraftsEnvelope {
+  if (!record(raw) || !exact(raw, ['data']) || !Array.isArray(raw.data) ||
+      !raw.data.every(row =>
+        record(row) && exact(row, saleDraftKeys) &&
+        id(row.id) && typeof row.label === 'string' &&
+        row.label.trim().length > 0 && row.label.length <= 80 &&
+        nullableText(row.customerName) &&
+        (row.customerName === null || row.customerName.length <= 120) &&
+        nonnegative(row.itemCount) && row.itemCount <= 500 &&
+        nonnegative(row.grandTotalMinor) &&
+        day(row.businessDate) && draftTimestamp(row.savedAt) &&
+        draftJsonCart(row.cart))) return invalid();
+  return raw as unknown as ServerSaleDraftsEnvelope;
 }

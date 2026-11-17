@@ -385,3 +385,114 @@ test('returning activity after a background-tab timer delay locks before resetti
   assert.equal('permissions' in snapshot, false);
   store.dispose();
 });
+
+test('revalidation adopts server-revoked role permissions with a new epoch, not a refresh rotation', async () => {
+  let meReads = 0;
+  const revoked = { data: { ...who().data, user: { ...who().data.user, roleName: 'Sales' },
+    permissions: ['settings.setting.view'], features: [] } };
+  const { api, calls } = auth({ readMyAccess: async () => ++meReads === 1 ? who() : revoked });
+  const store = make(api);
+  await store.loginWithPassword('phone', 'password');
+  const prior = store.getSnapshot();
+  await store.revalidateAccess();
+  const current = store.getSnapshot();
+  assert.equal(current.status, 'authenticated');
+  if (current.status === 'authenticated' && prior.status === 'authenticated') {
+    assert.equal(current.epoch, prior.epoch + 1);
+    assert.equal(current.accessToken, prior.accessToken);
+    assert.deepEqual(current.permissions, ['settings.setting.view']);
+    assert.deepEqual(current.features, []);
+    assert.equal(current.roleName, 'Sales');
+  }
+  assert.equal(calls.refresh, 0);
+  assert.equal(meReads, 2);
+  store.dispose();
+});
+
+test('unchanged revalidation is single-flight, retains its epoch and does not rotate credentials', async () => {
+  const gate = deferred<ReturnType<typeof who>>();
+  let reads = 0;
+  const { api, calls } = auth({ readMyAccess: () => ++reads === 1 ? Promise.resolve(who()) : gate.promise });
+  const store = make(api);
+  await store.loginWithPassword('phone', 'password');
+  const prior = store.getSnapshot();
+  const a = store.revalidateAccess();
+  const b = store.revalidateAccess();
+  assert.equal(a, b);
+  gate.resolve(who());
+  await Promise.all([a, b]);
+  assert.equal(store.getSnapshot(), prior);
+  assert.equal(calls.refresh, 0);
+  assert.equal(reads, 2);
+  store.dispose();
+});
+
+test('remote disabled user or revoked bearer fails closed on revalidation', async () => {
+  for (const status of [401, 403, 404]) {
+    let checks = 0;
+    const { api } = auth({ readMyAccess: async () => {
+      if (++checks === 1) return who();
+      throw new ApiError('http', 'Unauthorized', { status });
+    } });
+    const storage = memoryStorage();
+    const store = make(api, storage);
+    await store.loginWithPassword('phone', 'password');
+    await assert.rejects(store.revalidateAccess());
+    assert.equal(store.getSnapshot().status, 'signed-out');
+    assert.equal(storage.getItem(SESSION_STORAGE_KEY), null);
+    store.dispose();
+  }
+});
+
+test('failed live /me validation redacts access while keeping the private refresh for recovery', async () => {
+  let reads = 0;
+  const { api, calls } = auth({ readMyAccess: async () => {
+    if (++reads === 1) return who();
+    throw new ApiError('network', 'offline');
+  } });
+  const storage = memoryStorage();
+  const store = make(api, storage);
+  await store.loginWithPassword('phone', 'password');
+  await assert.rejects(store.revalidateAccess());
+  assert.equal(store.getSnapshot().status, 'locked');
+  assert.equal('accessToken' in store.getSnapshot(), false);
+  assert.equal('permissions' in store.getSnapshot(), false);
+  assert.ok(storage.getItem(SESSION_STORAGE_KEY)?.includes(token().data.refreshToken));
+  assert.equal(calls.refresh, 0);
+  store.dispose();
+});
+
+test('late real /me for old tenant cannot resurrect after a newer login', async () => {
+  const gate = deferred<ReturnType<typeof who>>();
+  let aReads = 0;
+  const { api } = auth({
+    loginPassword: async (id: string) => id === 'B' ? token(B) : token(A),
+    readMyAccess: async (access: string) => access.includes(B) ? who(B)
+      : ++aReads === 1 ? who(A) : gate.promise,
+  });
+  const store = make(api);
+  await store.loginWithPassword('A', 'password');
+  const old = store.revalidateAccess();
+  await store.loginWithPassword('B', 'password');
+  gate.resolve(who(A));
+  await old;
+  const current = store.getSnapshot();
+  assert.equal(current.status, 'authenticated');
+  if (current.status === 'authenticated') assert.equal(current.tenantId, TB);
+  store.dispose();
+});
+
+test('stalled live /me has a bounded timeout and hides previously verified permissions', async () => {
+  const { clock, advance } = fakeClock();
+  let reads = 0;
+  const { api } = auth({ readMyAccess: () => ++reads === 1 ? Promise.resolve(who())
+    : new Promise<ReturnType<typeof who>>(() => undefined) });
+  const store = make(api, memoryStorage(), clock);
+  await store.loginWithPassword('phone', 'password');
+  const pending = store.revalidateAccess();
+  advance(5_000);
+  await assert.rejects(pending);
+  assert.equal(store.getSnapshot().status, 'locked');
+  assert.equal('permissions' in store.getSnapshot(), false);
+  store.dispose();
+});
