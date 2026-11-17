@@ -247,7 +247,7 @@ function intercept(page, log, violations, blocked, faults = null) {
           Array.isArray(response.data?.returns) &&
           response.data.returns.some(item => item.purchaseId === people.a.purchaseId)) {
         const sourceReturn = response.data.returns.find(item => item.purchaseId === people.a.purchaseId);
-        assert.equal(sourceReturn.purchaseId, people.a.purchaseId);
+        assert.ok(sourceReturn.purchaseId === people.a.purchaseId);
         faults.injected += 1;
         return route.fulfill({ status: 200, contentType: 'application/json',
           body: JSON.stringify({ ...response.data,
