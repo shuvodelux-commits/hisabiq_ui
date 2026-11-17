@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../Button';
 import { Input } from '../Input';
+import {
+  browserPendingCounterStorage, COUNTER_PENDING_PREFIX,
+  readPendingCounterOperation,
+} from '../../integration/connected-counter-pending.ts';
 import { ConnectedCounterSinglePayment } from './ConnectedCounterSinglePayment';
 import type { ConnectedCounterPostedAndRefreshed } from '../../integration/connected-counter-settlement.ts';
 import { useUiCopy } from '../../i18n/useUiCopy';
@@ -59,6 +63,7 @@ export function ConnectedCounterReadWorkspace() {
   const { text } = useUiCopy();
   const [role, setRole] = useState<CounterRole>('CUSTOMER');
   const [search, setSearch] = useState('');
+  const [, setPendingRevision] = useState(0);
   const [reload, setReload] = useState(0);
   const [choice, setChoice] = useState<Choice | null>(null);
   const [accountChoice, setAccountChoice] = useState<{ scope: symbol; id: string } | null>(null);
@@ -72,6 +77,18 @@ export function ConnectedCounterReadWorkspace() {
 
   // A changed signed snapshot/epoch/token/permissions or explicit refresh
   // invalidates all displayed records during render, before effect cleanup.
+  useEffect(() => {
+    const changed = (event: StorageEvent) => {
+      // Other same-origin tabs can create a pending marker while this Counter
+      // is open. Re-read on every relevant storage change; never auto-clear.
+      if (event.key === null || event.key.startsWith(COUNTER_PENDING_PREFIX)) {
+        setPendingRevision(value => value + 1);
+      }
+    };
+    window.addEventListener('storage', changed);
+    return () => window.removeEventListener('storage', changed);
+  }, []);
+
   const scope = useMemo(() =>
     mode === 'connected' && snapshot.status === 'authenticated'
       ? Symbol('connected-counter-server-scope') : null,
@@ -135,7 +152,13 @@ export function ConnectedCounterReadWorkspace() {
     ? dayLabel(cashPage.data) : null;
   const identity = snapshot.status === 'authenticated'
     ? [snapshot.tenantId, snapshot.userId, snapshot.epoch, snapshot.accessToken].join('|') : null;
-  const locked = !!identity && unresolved?.identity === identity;
+  const pendingStatus = snapshot.status === 'authenticated'
+    ? readPendingCounterOperation(browserPendingCounterStorage(), {
+        tenantId: snapshot.tenantId, userId: snapshot.userId,
+      })
+    : null;
+  const locked = (pendingStatus !== null && pendingStatus.state !== 'clear') ||
+    (!!identity && unresolved?.identity === identity);
   const cashReady = cashPage?.status === 'ready' && !!cashPage.data &&
     (cashPage.data.enabled === false ||
       (dayLabel(cashPage.data) === 'OPEN' && !!selectedAccount &&
@@ -321,10 +344,23 @@ export function ConnectedCounterReadWorkspace() {
     {' · '}{text('Party', 'পার্টি')}: {minorText(posted.partyBalance)}
   </output>}
   {locked && <p role="alert" data-h2-global-lock=""
+    data-h3-pending-state={pendingStatus?.state ?? 'signed-out'}
+    data-h3-original-operation={pendingStatus?.state === 'pending'
+      ? pendingStatus.record.operationId : ''}
     className="mx-3 mb-3 rounded-md border border-border p-3 text-sm text-danger sm:mx-4">
-    {text('Another payment result is uncertain. Reconcile the original operation ID before any new payment.',
-      'আগের পেমেন্ট নিশ্চিত নয়। নতুন পেমেন্টের আগে মূল অপারেশন আইডি মিলিয়ে নিন।')}
-    {' '}{unresolved?.message}
+    {pendingStatus?.state === 'pending'
+      ? text('A payment may have posted. Its original operation is preserved after reload. Reconcile with an authorized source before another payment.',
+          'পেমেন্ট লেখা হয়ে থাকতে পারে। রিলোডের পরও মূল অপারেশন সংরক্ষিত আছে। নতুন পেমেন্টের আগে অনুমোদিত সার্ভার তথ্যের সঙ্গে মিলিয়ে নিন।')
+      : pendingStatus?.state === 'blocked'
+        ? text('Local pending-operation storage is inaccessible or invalid. Payments are blocked; never retry without source verification.',
+            'অপেক্ষমাণ পেমেন্টের সুরক্ষা তথ্য পড়া যাচ্ছে না বা অবৈধ। সার্ভারে যাচাই ছাড়া আবার পেমেন্ট পাঠাবেন না।')
+        : text('Another payment result is uncertain. Reconcile source history before any new payment.',
+            'আগের পেমেন্ট নিশ্চিত নয়। নতুন পেমেন্টের আগে সার্ভারের হিসাব মিলিয়ে নিন।')}
+    {pendingStatus?.state === 'pending' && <>
+      {' '}{text('Original operation ID', 'মূল অপারেশন আইডি')}:
+      {' '}<strong className="break-all font-semibold">{pendingStatus.record.operationId}</strong>
+    </>}
+    {' '}{unresolved?.identity === identity ? unresolved.message : ''}
   </p>}
   {selected && selectedAccount && <ConnectedCounterSinglePayment
     key={role + ':' + selected.id + ':' + selectedAccount.id + ':' + String(scope)}
@@ -332,6 +368,7 @@ export function ConnectedCounterReadWorkspace() {
     businessDate={cashPage?.status === 'ready' ? cashPage.data?.businessDate ?? null : null}
     cashReady={cashReady} locked={locked}
     onPosted={afterPosted}
+    onPendingChange={() => setPendingRevision(value => value + 1)}
     onUnresolved={message => {
       if (identity) setUnresolved({ identity, message });
     }}
