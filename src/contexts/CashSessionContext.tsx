@@ -10,6 +10,7 @@ import type { CashSessionRecord } from '../data/financeAccounts';
 import { businessToday } from '../utils/dateRange';
 import { useSession } from '../integration/SessionProvider.tsx';
 import { ApiError } from '../integration/errors.ts';
+import { shouldClearPendingCashAfterFailure } from './cashPendingFailure.ts';
 import { generateOperationId } from '../integration/operation.ts';
 import {
   cashToMinor, closeCashDay, fetchCashAccounts, fetchCashDay, fetchCashHistory,
@@ -29,7 +30,7 @@ type ServerSnapshot = {
   accountsAccess: ReadAccess;
 };
 type CashSender = (operationId: string, token: string, signal: AbortSignal) => Promise<CashDaySession>;
-type PendingOperation = { identity: string; fingerprint: string; id: string; send: CashSender };
+type PendingOperation = { identity: string; fingerprint: string; id: string; send: CashSender; uncertain: boolean };
 type CashSessionContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -279,15 +280,20 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
       pendingOperation.current.fingerprint !== fingerprint)) {
       throw new Error('A previous cash operation has an unknown outcome. Confirm its result before changing the cash intent.');
     }
-    const operationId = pendingOperation.current?.id ?? generateOperationId();
-    pendingOperation.current = { identity, fingerprint, id: operationId, send };
+    const prior = pendingOperation.current;
+    const operationId = prior?.id ?? generateOperationId();
+    // Freeze the original body/sender; repeated confirmation is not a new intent.
+    const originalSend = prior?.send ?? send;
+    if (!prior) pendingOperation.current = {
+      identity, fingerprint, id: operationId, send, uncertain: false,
+    };
     const controller = new AbortController();
     mutationAbort.current = controller;
     mutationBusy.current = true;
     setBusy(true);
     setError(null);
     try {
-      const posted = await send(operationId, accessToken, controller.signal);
+      const posted = await originalSend(operationId, accessToken, controller.signal);
       if (activeIdentity.current !== identity || controller.signal.aborted) {
         throw new Error('The authenticated cash session changed during the operation');
       }
@@ -316,11 +322,20 @@ export function CashSessionProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (caught) {
-      // Explicit client errors mean the server refused this intent; uncertain
-      // network/server outcomes MUST retain the same idempotency identity.
-      if (caught instanceof ApiError && caught.kind === 'http' &&
-        [400, 401, 403, 404, 409, 422].includes(caught.status ?? 0) &&
-        activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) pendingOperation.current = null;
+      // A definite first refusal may clear only a never-ambiguous intent.
+      // A denied replay CANNOT prove that its earlier lost-ACK commit did not post.
+      const pending = pendingOperation.current;
+      if (pending?.identity === identity && pending.id === operationId &&
+        activeIdentity.current === identity) {
+        if (activeVerifiedSnapshot.current === auth &&
+          shouldClearPendingCashAfterFailure(caught, pending.uncertain)) {
+          pendingOperation.current = null;
+        } else {
+          // Network/5xx, a denied replay, or a changed access snapshot is
+          // uncertain until an original-key server acknowledgement arrives.
+          pending.uncertain = true;
+        }
+      }
       if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) {
         if (caught instanceof ApiError && caught.kind === 'http' &&
           [401, 403].includes(caught.status ?? 0)) setServer(null);

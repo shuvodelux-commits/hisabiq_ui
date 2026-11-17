@@ -24,8 +24,10 @@ test('same-identity verified bearer refresh must not reset the outstanding econo
   assert.match(context, /lifecycleIdentity/);
   assert.match(context, /if \(identityChanged\)/);
   assert.match(context, /pendingOperation\.current = null/);
-  assert.match(context, /pendingOperation\.current\?\.id \?\? generateOperationId\(\)/);
-  assert.match(context, /pendingOperation\.current = \{ identity, fingerprint, id: operationId, send \}/);
+  assert.match(context, /prior\?\.id \?\? generateOperationId\(\)/);
+  assert.match(context, /if \(!prior\) pendingOperation\.current =/);
+  assert.match(context, /originalSend\(operationId, accessToken, controller\.signal\)/);
+  assert.match(context, /shouldClearPendingCashAfterFailure\(caught, pending\.uncertain\)/);
   assert.match(context, /return runMutation\(pending\.fingerprint, pending\.send\)/);
   assert.match(context, /const confirmPendingOperation = async/);
   assert.match(dialog, /hasPendingOperation/);
