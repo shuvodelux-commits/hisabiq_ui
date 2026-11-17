@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../Button';
 import { Input } from '../Input';
+import { ConnectedCounterSinglePayment } from './ConnectedCounterSinglePayment';
+import type { ConnectedCounterPostedAndRefreshed } from '../../integration/connected-counter-settlement.ts';
 import { useUiCopy } from '../../i18n/useUiCopy';
 import { useSession } from '../../integration/SessionProvider.tsx';
 import { ApiError } from '../../integration/errors.ts';
@@ -63,6 +65,10 @@ export function ConnectedCounterReadWorkspace() {
   const [partiesState, setPartiesState] = useState<State<TradingPartyList> | null>(null);
   const [accountsState, setAccountsState] = useState<State<ServerMoneyAccountList> | null>(null);
   const [dayState, setDayState] = useState<State<CashDayStatus> | null>(null);
+  const [posted, setPosted] = useState<{
+    identity: string; paymentNumber: string; sourceBalance: number; partyBalance: number;
+  } | null>(null);
+  const [unresolved, setUnresolved] = useState<{ identity: string; message: string } | null>(null);
 
   // A changed signed snapshot/epoch/token/permissions or explicit refresh
   // invalidates all displayed records during render, before effect cleanup.
@@ -127,6 +133,29 @@ export function ConnectedCounterReadWorkspace() {
     ? accounts.find(a => a.id === accountChoice.id) : undefined;
   const currentCash = cashPage?.status === 'ready' && cashPage.data
     ? dayLabel(cashPage.data) : null;
+  const identity = snapshot.status === 'authenticated'
+    ? [snapshot.tenantId, snapshot.userId, snapshot.epoch, snapshot.accessToken].join('|') : null;
+  const locked = !!identity && unresolved?.identity === identity;
+  const cashReady = cashPage?.status === 'ready' && !!cashPage.data &&
+    (cashPage.data.enabled === false ||
+      (dayLabel(cashPage.data) === 'OPEN' && !!selectedAccount &&
+       cashPage.data.drawerAccountId === selectedAccount.id) ||
+      (!!selectedAccount && !selectedAccount.isDrawer));
+  const afterPosted = (source: ConnectedCounterPostedAndRefreshed) => {
+    if (!identity || source.scope.tenantId !== snapshot.tenantId ||
+        source.scope.userId !== snapshot.userId || source.scope.epoch !== snapshot.epoch) {
+      if (identity) setUnresolved({ identity, message: 'Session changed after source posting' });
+      return;
+    }
+    setPosted({
+      identity, paymentNumber: source.payment.data.number,
+      sourceBalance: source.account.balanceMinor,
+      partyBalance: source.party.balance.netMinor,
+    });
+    setChoice(null);
+    setAccountChoice(null);
+    setReload(value => value + 1); // real GETs, no optimistic preview balance
+  };
   const actions = [
     { id: 'CUSTOMER', label: text('Customer Receive', 'ক্রেতার টাকা নিন'), enabled: true },
     { id: 'SUPPLIER', label: text('Supplier Pay', 'সরবরাহকারীকে টাকা দিন'), enabled: true },
@@ -135,13 +164,13 @@ export function ConnectedCounterReadWorkspace() {
     { id: 'BANK_ENTRY', label: text('Bank Entry', 'ব্যাংক এন্ট্রি'), enabled: false },
   ] as const;
 
-  return <section data-connected-counter="" data-read-only="true"
+  return <><section data-connected-counter="" data-read-only="true"
     className="space-y-3 p-3 sm:space-y-4 sm:p-4">
     <header className="flex flex-wrap items-center justify-between gap-2">
       <div>
         <h1 className="text-lg font-semibold text-ink">{text('Counter', 'কাউন্টার')}</h1>
         <p className="text-xs text-ink-500">
-          {text('Verified server records · read-only', 'সার্ভারের যাচাই করা হিসাব · শুধু দেখার জন্য')}
+          {text('Verified server records · single-source review below', 'সার্ভারের যাচাই করা হিসাব · নিচে এক মাধ্যমের পেমেন্ট যাচাই')}
         </p>
       </div>
       <Button variant="outline" size="sm" onClick={() => {
@@ -276,13 +305,36 @@ export function ConnectedCounterReadWorkspace() {
         <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
           <h2 className="text-sm font-semibold">{text('Payment review', 'পেমেন্ট যাচাই')}</h2>
           <p className="mt-2 text-xs text-ink-500">
-            {text('Posting, split tenders, invoice allocation and discounts are not connected yet. Existing preview forms remain available in preview mode.', 'সার্ভারের পেমেন্ট, একাধিক মাধ্যম, বিলের সমন্বয় ও ছাড় এখনো যুক্ত হয়নি। নমুনার ফর্ম প্রিভিউ মোডে আগের মতো আছে।')}
+            {text('Only the reviewed single-source payment is staged below. Split tenders, invoice allocation, discounts, expenses and transfers remain unavailable. Preview forms are unchanged.', 'নিচে শুধু যাচাই করা এক মাধ্যমের পেমেন্ট প্রস্তুত। একাধিক মাধ্যম, বিল সমন্বয়, ছাড়, খরচ ও স্থানান্তর এখনো চালু নয়। প্রিভিউ ফর্ম অপরিবর্তিত।')}
           </p>
           <Button disabled className="mt-3 w-full" data-counter-submit-disabled="">
-            {text('Review and record — unavailable', 'যাচাই ও লেখা — এখনো চালু নয়')}
+            {text('Split / invoice / discount — unavailable', 'একাধিক মাধ্যম / বিল / ছাড় — এখনো চালু নয়')}
           </Button>
         </div>
       </aside>
     </div>
-  </section>;
+  </section>
+  {posted?.identity === identity && <output data-h2-posted-result="" role="status"
+    className="mx-3 mb-3 block rounded-md border border-border bg-card p-3 text-sm sm:mx-4">
+    {text('Server confirmed document', 'সার্ভারে নিশ্চিত করা দলিল')}: {posted.paymentNumber}
+    {' · '}{text('Account', 'হিসাব')}: {minorText(posted.sourceBalance)}
+    {' · '}{text('Party', 'পার্টি')}: {minorText(posted.partyBalance)}
+  </output>}
+  {locked && <p role="alert" data-h2-global-lock=""
+    className="mx-3 mb-3 rounded-md border border-border p-3 text-sm text-danger sm:mx-4">
+    {text('Another payment result is uncertain. Reconcile the original operation ID before any new payment.',
+      'আগের পেমেন্ট নিশ্চিত নয়। নতুন পেমেন্টের আগে মূল অপারেশন আইডি মিলিয়ে নিন।')}
+    {' '}{unresolved?.message}
+  </p>}
+  {selected && selectedAccount && <ConnectedCounterSinglePayment
+    key={role + ':' + selected.id + ':' + selectedAccount.id + ':' + String(scope)}
+    role={role} party={selected} account={selectedAccount}
+    businessDate={cashPage?.status === 'ready' ? cashPage.data?.businessDate ?? null : null}
+    cashReady={cashReady} locked={locked}
+    onPosted={afterPosted}
+    onUnresolved={message => {
+      if (identity) setUnresolved({ identity, message });
+    }}
+  />}
+  </>;
 }
