@@ -5715,7 +5715,6 @@
       "src/magic-saas/components/saas/ops/TicketThread.tsx",
       "src/magic-saas/components/saas/tenant/SettingsTab.tsx",
       "src/magic-saas/components/saas/tenant/SupportTab.tsx",
-
       "src/settings/magic/GeneralSettingsSection.tsx",
       "src/settings/magic/LiveSettingsSection.tsx",
       "src/settings/magic/TeamSettings.tsx",

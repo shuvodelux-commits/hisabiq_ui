@@ -379,7 +379,10 @@ async function main() {
     await go('data');
     await dataUI.getByRole('heading', {name:/Encrypted SQL backup & recovery/}).waitFor();
     await dataUI.getByRole('heading', {name:/Recycle Bin/}).waitFor();
-    await dataUI.getByText(/current session.*draft store/i).waitFor();
+    // The canonical Recycle Bin describes session-only deleted entries and expiry.
+    await dataUI.getByText(/Deleted records in this session:/i).waitFor();
+    await dataUI.getByText(/30-day preview recovery; resets on reload/i).waitFor();
+    await dataUI.getByRole('link', {name:'Open Recycle Bin'}).waitFor();
     await dataUI.getByRole('tab', {name:'Record exports & import preview'}).click();
     await dataUI.getByLabel('Product CSV preview').setInputFiles({
       name:'products-preview.csv', mimeType:'text/csv',
