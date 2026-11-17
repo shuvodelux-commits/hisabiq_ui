@@ -6,19 +6,19 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { chromium } = require('playwright');
-const API = 'http://127.0.0.1:56121';
-const DB = 'hisabiq_mod006_h2_payment_20261116';
-const CONTAINER = 'hisabiq-mod006-h2-payment-pg-20261116';
-const ACK = 'MOD006_H2_SIGNED_PAYMENT_DISPOSABLE_20261116';
+const API = 'http://127.0.0.1:56131';
+const DB = 'hisabiq_mod006_h3a_pending_20261117';
+const CONTAINER = 'hisabiq-mod006-h3a-pending-pg-20261117';
+const ACK = 'MOD006_H3A_PENDING_DISPOSABLE_20261117';
 const letters = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const id = () => '0' + [...crypto.randomBytes(25)].map(x => letters[x % 32]).join('');
 const isId = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 function fail(message) { throw Error('H2 FINANCIAL TEST SAFETY: ' + message); }
 function guard() {
-  if (process.env.MOD006_H2_ACK !== ACK ||
-      process.env.MOD006_H2_ORIGIN !== API ||
-      process.env.MOD006_H2_DB !== DB ||
-      process.env.MOD006_H2_CONTAINER !== CONTAINER) {
+  if (process.env.MOD006_H3A_ACK !== ACK ||
+      process.env.MOD006_H3A_ORIGIN !== API ||
+      process.env.MOD006_H3A_DB !== DB ||
+      process.env.MOD006_H3A_CONTAINER !== CONTAINER) {
     fail('explicit disposable database identity not acknowledged');
   }
   const result = spawnSync('podman', ['inspect', '--format', '{{json .}}', CONTAINER], {
