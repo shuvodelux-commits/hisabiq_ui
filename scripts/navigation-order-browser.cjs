@@ -15,7 +15,7 @@ async function main(){
   ['/app/purchases',['Purchases','Purchase return','Return history']],
   ['/app/products',['Product list','Stock lots','Stock history','Product settings']],
   ['/app/finance',['Overview','Loans & Owners','Cheques','Cash Sessions']],
-  ['/app/accounts',['Overview','Money Accounts','Vouchers','Ledger','Trial Balance','Statements','Chart of Accounts']]
+  ['/app/accounts',['Overview','Money Accounts','Bank Entry','Vouchers','Ledger','Trial Balance','Statements','Chart of Accounts']]
  ];
  try{
   for(const width of [1440,768,390]){
@@ -46,12 +46,19 @@ async function main(){
     await page.waitForFunction(expected=>location.hash==='#'+expected,destinations[1]);
     assert.ok(page.url().endsWith(destinations[1]),`${route}: tab updates sidebar destination`);
    }
-   // The Accounts card keeps Bank Entry contextual, with a reversible way back.
+   // Money Accounts card still opens Bank Entry with the selected account; the visible tabs provide navigation.
    await page.goto(base+'/app/accounts?tab=money-accounts',{waitUntil:'domcontentloaded',timeout:15000});
    await page.locator('p').filter({hasText:/^Dutch-Bangla Bank · 4582$/}).first().waitFor();
    await page.getByRole('button',{name:'Bank Entry'}).first().click();
    await page.waitForURL(url => url.hash.startsWith('#/app/accounts?tab=bank-entry&accountId='));
-   await page.getByRole('button',{name:'Back to Money Accounts'}).click();
+   // The URL and React commit are separate asynchronous steps. Await the exact
+   // selected UI state rather than sampling aria-selected before its render.
+   const selectedBankEntry = page.getByRole('tab',{name:'Bank Entry',exact:true});
+   await selectedBankEntry.and(page.locator('[aria-selected="true"]')).waitFor();
+   assert.equal(await selectedBankEntry.getAttribute('aria-selected'),'true','Bank Entry tab is selected from Money Accounts card');
+   assert.equal(await page.getByRole('button',{name:'Back to Money Accounts'}).count(),0,'redundant Back to Money Accounts button removed');
+   assert.equal(await page.getByText('UI Preview · Read only',{exact:true}).count(),0,'large preview banner removed from Accounts Bank Entry');
+   await page.getByRole('tab',{name:'Money Accounts',exact:true}).click();
    await page.waitForURL('**/#/app/accounts?tab=money-accounts');
    // Legacy bookmarks navigate to the new canonical module instead of disappearing.
    await page.goto(base+'/app/finance?tab=accounts',{waitUntil:'domcontentloaded',timeout:15000});

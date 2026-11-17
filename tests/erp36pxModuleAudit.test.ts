@@ -62,7 +62,7 @@ test('Audit, vouchers, reconciliation and topbar use 36px for ordinary controls'
  assert.match(vouchers,/size-9 items-center justify-center/);
  assert.match(audit,/size-9 items-center justify-center/);
  assert.match(recon,/className="h-9 w-full"/);
- assert.match(top,/className="hidden h-9 items-center gap-2/);
+ assert.match(top,/className="flex h-9 items-center gap-2/);
 });
 test('Vendor workspace retains money work handlers but removes 44px buttons',()=>{
  const vendor=read('src/components/vendor/VendorTabs.tsx');

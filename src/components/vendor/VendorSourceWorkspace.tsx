@@ -1,3 +1,5 @@
+import {RowActionMenu} from '../layout/RowActionMenu';
+import {SourceDeleteAction} from '../../deletion/SourceDeleteAction';
 import React,{useEffect,useId,useMemo,useState} from 'react';
 import {CheckCircle2,ListFilter} from 'lucide-react';
 import {Button} from '../Button';
@@ -15,7 +17,7 @@ import type {VendorSource,VendorPreviewState} from '../../vendor/vendorTypes';
 
 type Props={
   mode:'taken'|'given';sources:VendorSource[];snapshot:VendorPreviewState;
-  sourceId:string|null;onCorrect:(sourceId:string)=>void;
+  sourceId:string|null;onCorrect:(sourceId:string,mode?:'correct'|'reverse')=>void;
 };
 const money=(paisa:number)=>taka(paisa/100);
 const memoKey=(source:VendorSource)=>source.memoId||source.sourceInvoiceId||source.reference||source.id;
@@ -137,7 +139,7 @@ export function VendorSourceWorkspace({mode,sources,snapshot,sourceId,onCorrect}
               </h4>
               <p className="mt-0.5 text-xs text-ink-500">{selected.reference??selected.id} · {selected.date}</p>
             </div>
-            <Button type="button" variant="ghost" size="sm" onClick={()=>onCorrect(selected.id)}>Correct</Button>
+            <div className="flex items-center gap-2"><Button type="button" variant="ghost" size="sm" onClick={()=>onCorrect(selected.id)}>Correct</Button><RowActionMenu label={'Actions for '+selected.reference}>{close=><SourceDeleteAction module="purchases" onReview={()=>{close();onCorrect(selected.id,'reverse');}}/>}</RowActionMenu></div>
           </div>
           {currentGroup&&currentGroup.lines.length>1&&<div className="flex flex-wrap gap-1.5">
             {currentGroup.lines.map(s=><button type="button" key={s.id} aria-pressed={selected.id===s.id}

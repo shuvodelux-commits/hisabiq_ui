@@ -1,0 +1,222 @@
+# MOD-003 #643: disposable nonowner post-migration durable import role QA.
+# Test-only, no backend/source/schema/production or UI changes.
+name: MOD-003 durable import least-privilege PG16
+on:
+  pull_request:
+    paths:
+      - .github/workflows/mod003-durable-import-runtime-role-pg16.yml
+      - scripts/mod003-durable-import-runtime-role-acceptance.cjs
+permissions:
+  contents: read
+jobs:
+  role-import:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'shuvodelux-commits/hisabiq_ui' && startsWith(github.event.pull_request.head.ref, 'test/mod003-650-') }}
+    name: Prior-existing sher_app / only SELECT INSERT UPDATE import_operations
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: mod003_643_disposable_only
+          POSTGRES_DB: sher_mod003_p3_643_20261116
+        ports:
+          - 55761:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sher_mod003_p3_643_20261116"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "55761"
+      PGUSER: postgres
+      PGPASSWORD: mod003_643_disposable_only
+      PGDATABASE: sher_mod003_p3_643_20261116
+      ADMIN_DATABASE_URL: postgres://postgres:mod003_643_disposable_only@127.0.0.1:55761/sher_mod003_p3_643_20261116
+      DATABASE_URL: postgres://sher_app:sher_app_test@127.0.0.1:55761/sher_mod003_p3_643_20261116
+      MOD003_643_TEST_ONLY: MOD003_643_DISPOSABLE_PG16_ONLY_20261116
+      MOD003_643_DB_URL: postgres://sher_app:sher_app_test@127.0.0.1:55761/sher_mod003_p3_643_20261116
+      MOD003_643_API_A: http://127.0.0.1:55762
+      MOD003_643_API_B: http://127.0.0.1:55763
+      MOD003_643_BACKEND_DIR: /home/runner/work/hisabiq_ui/hisabiq_ui/backend
+      JWT_SECRET: mod003-643-isolated-long-jwt-secret-only
+      ENTITLEMENT_SOURCE: subscription
+      SINGLE_TENANT_MODE: "false"
+      IDENTITY_VERIFIER: dev
+      BILLING_ENABLED: "true"
+      NODE_ENV: test
+    steps:
+      - name: Checkout exact source-pinned HisabIQ QA
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/hisabiq_ui
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          path: frontend
+          persist-credentials: false
+      - name: Checkout immutable Nest adoption
+        uses: actions/checkout@v4
+        with:
+          repository: shuvodelux-commits/nestshererp
+          ref: aa5885fe824f7f077a827ce2fbad06f1bf012dc8
+          path: backend
+          persist-credentials: false
+      - name: Reject wrong source pair, origin or workdir before DB use
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C frontend rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "$(git -C backend rev-parse HEAD)" = aa5885fe824f7f077a827ce2fbad06f1bf012dc8
+          test "$(git -C frontend merge-base HEAD ada8fffc06a0ca1a0095a65e1e5b85f17485ff92)" = ada8fffc06a0ca1a0095a65e1e5b85f17485ff92
+          test "$(git -C frontend remote get-url origin)" = https://github.com/shuvodelux-commits/hisabiq_ui
+          test "$(git -C backend remote get-url origin)" = https://github.com/shuvodelux-commits/nestshererp
+          test "$PWD/backend" = "$MOD003_643_BACKEND_DIR"
+          test -f frontend/scripts/mod003-durable-import-runtime-role-acceptance.cjs
+          test -f backend/migrations/0056_durable_import_operations.sql
+          echo "MOD003_643_SOURCE_PIN_PASS"
+
+      - name: Node20 pnpm9 Nest toolchain
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - name: Build immutable Nest source on Node20
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          test "$(node -v | cut -d. -f1)" = v20
+          pnpm install --frozen-lockfile
+          pnpm --filter "@sher/api..." build
+
+      - name: Assert disposable PG16 before creating pre-migration runtime role
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$PGHOST" = 127.0.0.1
+          test "$PGPORT" = 55761
+          test "$PGDATABASE" = sher_mod003_p3_643_20261116
+          psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_database()' | grep -Fx sher_mod003_p3_643_20261116
+          psql -v ON_ERROR_STOP=1 -Atqc 'SHOW server_version_num' | grep -E '^16[0-9]{4}$'
+          psql -v ON_ERROR_STOP=1 -c "CREATE ROLE sher_app LOGIN PASSWORD 'sher_app_test' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS"
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT count(*)::int FROM information_schema.tables WHERE table_schema='public' AND table_name='import_operations'" | grep -Fx 0
+          echo "Preexisting least-privilege runtime role ready BEFORE migration."
+
+      - name: Apply adopted migrations only to disposable owner-controlled DB
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          test "$ADMIN_DATABASE_URL" = postgres://postgres:mod003_643_disposable_only@127.0.0.1:55761/sher_mod003_p3_643_20261116
+          DATABASE_URL="$ADMIN_DATABASE_URL" node apps/api/dist/migrate.js
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT count(*)::int FROM information_schema.tables WHERE table_schema='public' AND table_name='import_operations'" | grep -Fx 1
+
+      - name: Provision only explicit runtime DML and forbid durable import deletion
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          GRANT CONNECT ON DATABASE sher_mod003_p3_643_20261116 TO sher_app;
+          GRANT USAGE ON SCHEMA public TO sher_app;
+          DO $grant$
+          DECLARE item record;
+          BEGIN
+            FOR item IN
+              SELECT c.relname AS name FROM pg_class c
+              JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname='public' AND c.relkind='r'
+            LOOP
+              IF item.name = 'import_operations' THEN
+                EXECUTE 'GRANT SELECT, INSERT, UPDATE ON TABLE public.import_operations TO sher_app';
+              ELSE
+                EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.%I TO sher_app',item.name);
+              END IF;
+            END LOOP;
+          END $grant$;
+          SQL
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT has_table_privilege('sher_app','public.import_operations','SELECT') || '|' || has_table_privilege('sher_app','public.import_operations','INSERT') || '|' || has_table_privilege('sher_app','public.import_operations','UPDATE') || '|' || has_table_privilege('sher_app','public.import_operations','DELETE') || '|' || has_table_privilege('sher_app','public.import_operations','TRUNCATE')" | grep -Fx 'true|true|true|false|false'
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND has_table_privilege('sher_app',c.oid,'TRUNCATE')" | grep -Fx 0
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT pg_get_userbyid(datdba) <> 'sher_app' FROM pg_database WHERE datname=current_database()" | grep -Fx t
+          PGPASSWORD=sher_app_test PGUSER=sher_app psql -v ON_ERROR_STOP=1 -Atqc 'SELECT current_user' | grep -Fx sher_app
+          echo "MOD003_643_INSTALL_ROLE_PASS: import_operations SELECT/INSERT/UPDATE only; no DELETE/TRUNCATE."
+
+      - name: Launch two independent real Nest OS processes and verify anonymous 401
+        working-directory: backend
+        env:
+          WEB_ORIGIN: http://127.0.0.1:55762
+        run: |
+          set -euo pipefail
+          PORT=55762 nohup node apps/api/dist/main.js > "$RUNNER_TEMP/mod003-643-a.log" 2>&1 < /dev/null &
+          echo $! > "$RUNNER_TEMP/mod003-643-a.pid"
+          PORT=55763 nohup node apps/api/dist/main.js > "$RUNNER_TEMP/mod003-643-b.log" 2>&1 < /dev/null &
+          echo $! > "$RUNNER_TEMP/mod003-643-b.pid"
+          test "$(cat "$RUNNER_TEMP/mod003-643-a.pid")" -ne "$(cat "$RUNNER_TEMP/mod003-643-b.pid")"
+          for port in 55762 55763; do
+            ready=0
+            for i in $(seq 1 50); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$port/api/v1/me" || true)
+              if [ "$code" = 401 ]; then ready=1; break; fi
+              sleep 2
+            done
+            if [ "$ready" -ne 1 ]; then
+              echo "Nest $port did not return anonymous 401"
+              exit 1
+            fi
+          done
+          echo "MOD003_643_PID_A=$(cat "$RUNNER_TEMP/mod003-643-a.pid")" >> "$GITHUB_ENV"
+          echo "MOD003_643_PID_B=$(cat "$RUNNER_TEMP/mod003-643-b.pid")" >> "$GITHUB_ENV"
+          echo "MOD003_643_NEST_READY processes=2 auth401=true"
+
+      - name: Node24 runtime for strict isolated test runner
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Real RED guards — unsafe environment must be rejected before DB or HTTP
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          reject() {
+            expected="$1"; shift
+            if output=$("$@" 2>&1); then echo "Unsafe target accepted"; exit 1; fi
+            if ! grep -Fq "$expected" <<< "$output"; then echo "$output"; exit 1; fi
+          }
+          reject 'Explicit disposable-only marker required' env -u MOD003_643_TEST_ONLY node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          reject 'literal loopback' env MOD003_643_API_A=http://localhost:55762 node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          reject 'dedicated port' env MOD003_643_API_B=http://127.0.0.1:3000 node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          reject 'Exact disposable database required' env MOD003_643_DB_URL=postgres://sher_app:test@127.0.0.1:55761/postgres node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          reject 'Nonowner runtime principal required' env MOD003_643_DB_URL=postgres://postgres:test@127.0.0.1:55761/sher_mod003_p3_643_20261116 node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          reject 'Dedicated PostgreSQL port only' env MOD003_643_DB_URL=postgres://sher_app:test@127.0.0.1:5432/sher_mod003_p3_643_20261116 node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          reject 'Absolute isolated backend checkout required' env -u MOD003_643_BACKEND_DIR node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          node scripts/mod003-durable-import-runtime-role-acceptance.cjs --guard-only
+          echo "MOD003_643_NEGATIVE_GUARDS_PASS seven=7"
+
+      - name: Real signed two-tenant two-Nest import with least-privilege and durable replay
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          node scripts/mod003-durable-import-runtime-role-acceptance.cjs
+
+      - name: Show only synthetic API diagnostics on failure
+        if: failure()
+        shell: bash
+        run: |
+          for name in a b; do
+            if test -f "$RUNNER_TEMP/mod003-643-$name.log"; then
+              tail -70 "$RUNNER_TEMP/mod003-643-$name.log" | sed -E 's/(Bearer )[A-Za-z0-9._-]+/\1[redacted]/g'
+            fi
+          done
+      - name: Stop only this GitHub job's Nest processes
+        if: always()
+        shell: bash
+        run: |
+          for name in a b; do
+            f="$RUNNER_TEMP/mod003-643-$name.pid"
+            if test -f "$f"; then kill "$(cat "$f")" 2>/dev/null || true; fi
+          done
+          # Ephemeral PG16 service is destroyed with GitHub job.

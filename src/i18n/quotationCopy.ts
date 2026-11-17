@@ -80,6 +80,8 @@ const bangla: Record<string,string> = {
   'No revenue posted':'বিক্রি হিসাবে যোগ হয়নি',
   'Confirm delete quotation':'কোটেশন মোছা নিশ্চিত করুন',
   'Delete draft quotation?':'খসড়া কোটেশন মুছবেন?',
+  'Moved to Recycle Bin · 30-day session recovery':'রিসাইকেল বিনে সরানো হয়েছে · সেশনে ৩০ দিনের উদ্ধার',
+  'will move to Recycle Bin for 30-day recovery in this session. Reloading resets preview stores.':'এই সেশনে ৩০ দিন পর্যন্ত উদ্ধারের জন্য রিসাইকেল বিনে যাবে। রিলোডে প্রিভিউ রিসেট হয়।',
   'will be deleted from the in-memory preview. This action cannot be undone.':'নমুনা থেকে মুছে যাবে। আর ফেরানো যাবে না।',
   'Quotation created':'কোটেশন তৈরি হয়েছে',
   'Quotation revised':'কোটেশন সংশোধিত হয়েছে',

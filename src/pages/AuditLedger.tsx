@@ -1,3 +1,6 @@
+import {sourceDeleteErrorCopy} from '../deletion/errorCopy';
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../deletion/authority';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import React, { useMemo, useState } from 'react';
 import { ArrowDownToLine, Eye, MoreHorizontal, Pencil, Printer, ShieldCheck, Trash2 } from 'lucide-react';
@@ -73,6 +76,7 @@ function sourceRoute(source: AuditSourceRecord) {
 }
 
 export function AuditLedger() {
+  const {currentAuthority}=useTenantSettings();
   const {text,language,showHelper}=useUiCopy();
   const navigate = useNavigate();
   const location = useLocation();
@@ -178,18 +182,19 @@ export function AuditLedger() {
     if (!deleteSource) return;
     if (!deleteReason.trim()) return toast.error(text('Enter a reason for deleting this transaction','লেনদেন মুছতে কারণ লিখুন।'));
     try {
+      const audit=sourceDeleteAuthority(currentAuthority(),['sale','sale-return','customer-payment'].includes(deleteSource.source)?'sales':['purchase','purchase-return','supplier-payment'].includes(deleteSource.source)?'purchases':'money',deleteSource.id,deleteReason);
       const next = applyDelete({
         sourceId: deleteSource.id,
         reason: deleteReason,
-        user: 'Shuvo',
-        at: new Date().toISOString()
+        user: audit.actorId,
+        at: audit.at
       }, state);
       setState(next);
       setDeleteId(null);
       setDeleteReason('');
       toast.success(text('Sample posting reversed','নমুনা লেনদেন উল্টো করা হয়েছে'), { description: text('Audit history is retained in this preview; live sources are not connected.','প্রিভিউতে পরিবর্তনের ইতিহাস রাখা হয়েছে। আসল হিসাব সংযুক্ত নয়।') });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : text('Could not delete transaction','লেনদেন মুছতে পারেনি'));
+      toast.error(sourceDeleteErrorCopy(error,text));
     }
   };
 

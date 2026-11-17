@@ -1,3 +1,7 @@
+import {useUiCopy} from '../../i18n/useUiCopy';
+import {sourceDeleteErrorCopy} from '../../deletion/errorCopy';
+import {useTenantSettings} from '../../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../../deletion/authority';
 import {useEffect,useMemo,useState} from 'react';
 import {AlertTriangle,ArrowLeft,CheckCircle2,History,RotateCcw} from 'lucide-react';
 import {Button} from '../Button';
@@ -13,6 +17,7 @@ import type {VendorLedgerEvent,VendorPreviewState,VendorSource} from '../../vend
 
 type Mode='correct'|'reverse';
 type Props={
+ initialMode?:Mode;
  source:VendorSource|null;
  event:VendorLedgerEvent|null;
  state:VendorPreviewState;
@@ -20,7 +25,6 @@ type Props={
  onReviewEvent:(event:VendorLedgerEvent)=>void;
  onBackToSource:()=>void;
 };
-const actor='Demo UI operator';
 const moneyToPaisa=(value:string):number|null=>{
  if(!value.trim())return null;
  const n=Number(value);
@@ -29,8 +33,10 @@ const moneyToPaisa=(value:string):number|null=>{
  return Math.round(n*100);
 };
 export function VendorCorrectionDialog({
- source,event,state,onClose,onReviewEvent,onBackToSource
+ source,event,state,onClose,onReviewEvent,onBackToSource,initialMode='correct'
 }:Props){
+ const {text}=useUiCopy();
+ const {currentAuthority}=useTenantSettings();
  const [mode,setMode]=useState<Mode>('correct');
  const [reason,setReason]=useState('');
  const [productId,setProductId]=useState('');
@@ -44,11 +50,11 @@ export function VendorCorrectionDialog({
  const selected=event??null;
  const focusEvent=selected!==null;
  useEffect(()=>{
-  setMode('correct');setReason('');setError('');
+  setMode(initialMode);setReason('');setError('');
   setProductId(source?.productId??'');
   setQuantity(source?String(source.baseQty):'');
   setCost(source?.unitCostBasePaisa===null||source===null?'':String(source.unitCostBasePaisa/100));
- },[source?.id,selected?.id]);
+ },[source?.id,selected?.id,initialMode]);
  const product=products.find(p=>p.id===activeSource?.productId);
  const targetEvent=selected??state.events.find(e=>e.sourceId===activeSource?.id
   &&(e.kind==='sourcing'||e.kind==='issue')&&e.vendorPartyId===activeSource?.vendorPartyId
@@ -75,6 +81,7 @@ export function VendorCorrectionDialog({
   setError('');
   try{
    if(!reason.trim()||reason.trim().length<5)throw new Error('Write a correction reason of at least 5 characters.');
+   const actor=sourceDeleteAuthority(currentAuthority(),'purchases',selected?.id??activeSource?.id??'',reason).actorId;
    const operationId='vendor-audit-'+state.revision+'-'+(selected?.id??activeSource?.id??'source');
    if(focusEvent||mode==='reverse'){
     if(!targetEvent)throw new Error('No original ledger event is selected.');
@@ -94,7 +101,7 @@ export function VendorCorrectionDialog({
       memoId:activeSource.memoId}});
    }
    onClose();
-  }catch(e){setError(e instanceof Error?e.message:'Cannot apply Vendor correction.');}
+  }catch(e){setError(sourceDeleteErrorCopy(e,text));}
  };
  const show=Boolean(activeSource||selected);
  return <Dialog open={show} onOpenChange={v=>!v&&onClose()}>

@@ -36,12 +36,16 @@ async function main(){
     await page.waitForFunction(label=>document.activeElement?.getAttribute('aria-label')===label,
       `Open details for ${recentRef}`,{timeout:5000});
     const tabs=page.getByRole('tablist',{name:/Account sections|হিসাবের বিভাগ/}).getByRole('tab');
-    assert.equal(await tabs.count(),7,'all seven visible Accounts tabs retained (Bank Entry is contextual)');
+    assert.equal(await tabs.count(),8,'all eight Accounts tabs remain visible, including Bank Entry');
     const voucherTab=page.getByRole('tab',{name:'Vouchers',exact:true});
     await page.getByRole('tab',{name:'Overview',exact:true}).focus();
     await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() => document.activeElement?.getAttribute('data-accounts-tab') === 'money-accounts' && location.hash.includes('tab=money-accounts'),null,{timeout:6000});
     assert.equal(await page.getByRole('tab',{name:'Money Accounts'}).getAttribute('aria-selected'),'true','first ArrowRight selects the actual next tab');
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => document.activeElement?.getAttribute('data-accounts-tab') === 'bank-entry' && location.hash.includes('tab=bank-entry'),null,{timeout:6000});
+    assert.equal(await page.getByRole('tab',{name:'Bank Entry',exact:true}).getAttribute('aria-selected'),'true','Bank Entry gets its own selected tab');
+    await page.locator('[aria-label="Bank Entry workspace"]').waitFor({state:'visible'});
     await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() => document.activeElement?.getAttribute('data-accounts-tab') === 'vouchers' && location.hash.includes('tab=vouchers'),null,{timeout:6000});
     assert.ok(await voucherTab.evaluate(el=>el===document.activeElement),'ArrowRight keeps focus after tab route update');

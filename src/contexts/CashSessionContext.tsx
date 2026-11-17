@@ -1,29 +1,446 @@
-import {createContext,useContext,useState,type ReactNode} from 'react';
+import {
+  createContext, useCallback, useContext, useEffect, useRef, useState,
+  type ReactNode,
+} from 'react';
+import { CashSessionStore, type CashAuthority } from '../finance/cashSession';
+import { useTenantSettings } from '../settings/TenantSettingsProvider';
+import { effectivePermissions } from '../settings/rbac';
+import { getFinancePreviewSnapshot } from '../data/financePreviewStore';
+import type { CashSessionRecord } from '../data/financeAccounts';
+import { businessToday } from '../utils/dateRange';
+import { useSession } from '../integration/SessionProvider.tsx';
+import { ApiError } from '../integration/errors.ts';
+import { generateOperationId } from '../integration/operation.ts';
+import {
+  cashToMinor, closeCashDay, fetchCashAccounts, fetchCashDay, fetchCashHistory,
+  reopenCashDay, startCashDay,
+  type CashDaySession, type CashDayStatus, type DailyCashRow, type MoneyAccount,
+} from '../services/cashSessionApi.ts';
 
-type CashCount={counted:number;expected:number;note:string;savedAt:string;closed:boolean};
-type CashSessionContextValue={
- open:boolean;setOpen:(open:boolean)=>void;sessionOpen:boolean;
- openingCash:number;expectedCash:number;sampleMovements:boolean;
- startSession:(opening:number)=>void;saveCount:(counted:number,note:string,close:boolean)=>void;
- lastCount:CashCount|null;
+type CashCount = { counted: number; expected: number; note: string; savedAt: string; closed: boolean };
+type CashMode = 'preview' | 'loading' | 'connected' | 'error' | 'locked';
+type ReadAccess = 'available' | 'permission-denied' | 'unavailable';
+type ServerSnapshot = {
+  identity: string;
+  day: CashDayStatus;
+  history: DailyCashRow[];
+  accounts: MoneyAccount[];
+  historyAccess: ReadAccess;
+  accountsAccess: ReadAccess;
 };
-const CashSessionContext=createContext<CashSessionContextValue|null>(null);
-export function CashSessionProvider({children}:{children:ReactNode}){
- const [open,setOpen]=useState(false);
- const [sessionOpen,setSessionOpen]=useState(true);
- const [openingCash,setOpeningCash]=useState(5000);
- const [sampleMovements,setSampleMovements]=useState(true);
- const [lastCount,setLastCount]=useState<CashCount|null>(null);
- const expectedCash=openingCash+(sampleMovements?38610+7820-3180:0);
- const startSession=(opening:number)=>{
-  if(!Number.isFinite(opening)||opening<0)return;
-  setOpeningCash(opening);setSampleMovements(false);setLastCount(null);setSessionOpen(true);
- };
- const saveCount=(counted:number,note:string,close:boolean)=>{
-  if(!Number.isFinite(counted)||counted<0||!sessionOpen||(close&&counted!==expectedCash&&!note.trim()))return;
-  setLastCount({counted,expected:expectedCash,note:note.trim(),savedAt:new Date().toISOString(),closed:close});
-  if(close)setSessionOpen(false);
- };
- return <CashSessionContext.Provider value={{open,setOpen,sessionOpen,openingCash,expectedCash,sampleMovements,startSession,saveCount,lastCount}}>{children}</CashSessionContext.Provider>;
+type CashSender = (operationId: string, token: string, signal: AbortSignal) => Promise<CashDaySession>;
+type PendingOperation = { identity: string; fingerprint: string; id: string; send: CashSender };
+type CashSessionContextValue = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  sessionOpen: boolean;
+  openingCash: number;
+  expectedCash: number;
+  sampleMovements: boolean;
+  startSession: (opening: string, counterpart: string, note: string, revision: number, operationId: string) => void | Promise<void>;
+  saveCount: (counted: number, note: string, close: boolean, revision: number, operationId: string) => void | Promise<void>;
+  lastCount: CashCount | null;
+  revision: number;
+  businessDate: string;
+  sessionDate: string | null;
+  previousClosing: number | null;
+  drawerBalance: number;
+  history: CashSessionRecord[];
+  canView: boolean;
+  canStart: boolean;
+  canClose: boolean;
+  enabled: boolean;
+  startBlocked: boolean;
+  mode: CashMode;
+  busy: boolean;
+  error: string | null;
+  dayStatus: CashDayStatus | null;
+  accounts: MoneyAccount[];
+  accountsAccess: ReadAccess;
+  historyAccess: ReadAccess;
+  reopenSession: (reason: string) => Promise<void>;
+  hasPendingOperation: boolean;
+  confirmPendingOperation: () => Promise<void>;
+  refresh: () => Promise<void>;
+};
+const CashSessionContext = createContext<CashSessionContextValue | null>(null);
+const message = (error: unknown): string =>
+  error instanceof Error ? error.message : 'Could not contact the cash service';
+
+function toHistoryRecord(row: DailyCashRow): CashSessionRecord {
+  return {
+    id: row.sessionId,
+    date: row.businessDate,
+    openedAt: row.businessDate,
+    openingCash: row.openingAmountMinor / 100,
+    expectedCash: (row.expectedClosingMinor ?? 0) / 100,
+    countedCash: row.countedClosingMinor === null ? undefined : row.countedClosingMinor / 100,
+    variance: row.differenceMinor === null ? undefined : row.differenceMinor / 100,
+    status: row.status === 'OPEN' ? 'Open' : 'Closed',
+    note: row.differenceReason ?? undefined,
+  };
 }
-export function useCashSession(){const ctx=useContext(CashSessionContext);if(!ctx)throw new Error('useCashSession must be used inside CashSessionProvider');return ctx;}
+
+/**
+ * One provider serves unchanged local preview UI and server-owned connected UI.
+ * A trusted SessionSnapshot (not an unverified browser credential or preview tenant) owns every
+ * connected request. Connected failures never run the preview CashSessionStore.
+ */
+export function CashSessionProvider({ children }: { children: ReactNode }) {
+  const { state, actorId, currentAuthority } = useTenantSettings();
+  const { mode: integrationMode, snapshot: auth } = useSession();
+  const [open, setOpen] = useState(false);
+  const storeRef = useRef<{ tenantId: string; store: CashSessionStore }>();
+  if (storeRef.current?.tenantId !== state.tenantId) {
+    storeRef.current = { tenantId: state.tenantId, store: new CashSessionStore(state.tenantId) };
+  }
+  const store = storeRef.current.store;
+  const [, render] = useState(0);
+  const preview = store.snapshot();
+  const previewEnabled = state.sections.money.cashSession;
+  const previewPermissions = effectivePermissions(state.sections.team, actorId);
+  const previewCanView = previewEnabled && previewPermissions.includes('cash.daily.view');
+  const previewActive = preview.sessions.find(item => item.status === 'Open');
+  const previewLast = preview.sessions.at(-1);
+  const previewClosing = previewActive?.previousClosingMinor ??
+    (previewLast?.status === 'Closed' ? previewLast.countedMinor ?? null : null);
+  const previewHistory: CashSessionRecord[] = previewCanView ? preview.sessions.map(item => ({
+    id: item.id, date: item.businessDate, openedAt: item.openedAt, closedAt: item.closedAt,
+    openingCash: item.openingMinor / 100, expectedCash: item.expectedMinor / 100,
+    countedCash: item.countedMinor === undefined ? undefined : item.countedMinor / 100,
+    variance: item.countedMinor === undefined ? undefined : (item.countedMinor - item.expectedMinor) / 100,
+    status: item.status, note: item.countNote, openingDifference: item.openingDifferenceMinor / 100,
+    openingSource: item.counterpartName ?? undefined, openingSourceId: item.counterpart ?? undefined,
+    openingNote: item.openingNote, preview: true,
+  })) : [];
+  const previewLastCount: CashCount | null =
+    previewCanView && previewLast?.countedMinor !== undefined ? {
+      counted: previewLast.countedMinor / 100,
+      expected: previewLast.expectedMinor / 100,
+      note: previewLast.countNote ?? '',
+      savedAt: previewLast.countSavedAt ?? '',
+      closed: previewLast.status === 'Closed',
+    } : null;
+
+  const identity = integrationMode === 'connected' && auth.status === 'authenticated'
+    ? `${auth.tenantId}:${auth.userId}:${auth.epoch}` : null;
+  const accessToken = integrationMode === 'connected' && auth.status === 'authenticated'
+    ? auth.accessToken : null;
+  const activeIdentity = useRef<string | null>(identity);
+  activeIdentity.current = identity;
+  const [server, setServer] = useState<ServerSnapshot | null>(null);
+  const current = server?.identity === identity && identity !== null ? server : null;
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const readGeneration = useRef(0);
+  const [busy, setBusy] = useState(false);
+  const [deviceCount, setDeviceCount] = useState<CashCount | null>(null);
+  const mutationBusy = useRef(false);
+  const mutationAbort = useRef<AbortController | null>(null);
+  const pendingOperation = useRef<PendingOperation | null>(null);
+  const lifecycleIdentity = useRef<string | null>(identity);
+  // Refers to SessionStore's already-verified snapshot, not a copied credential.
+  const activeVerifiedSnapshot = useRef(auth);
+  activeVerifiedSnapshot.current = auth;
+
+  const refresh = useCallback(async (signal?: AbortSignal): Promise<void> => {
+    if (!identity || !accessToken) throw new Error('Sign in to read real cash sessions');
+    const generation = ++readGeneration.current;
+    setLoading(true);
+    try {
+      // Daily status is the authoritative independent permissioned read.
+      // Account visibility is optional; a cashier can have cash.daily.view
+      // without cash.account.view or bank.account.view.
+      const day = await fetchCashDay(accessToken, signal);
+      const [historyResult, accountsResult] = await Promise.allSettled([
+        fetchCashHistory(accessToken, signal),
+        fetchCashAccounts(accessToken, signal),
+      ]);
+      const failure = (result: PromiseSettledResult<unknown>): unknown =>
+        result.status === 'rejected' ? result.reason : null;
+      const isUnauthorized = (caught: unknown): boolean =>
+        caught instanceof ApiError && caught.kind === 'http' && caught.status === 401;
+      if (isUnauthorized(failure(historyResult)) || isUnauthorized(failure(accountsResult))) {
+        throw failure(historyResult) instanceof ApiError && isUnauthorized(failure(historyResult))
+          ? failure(historyResult) : failure(accountsResult);
+      }
+      if (activeIdentity.current !== identity || activeVerifiedSnapshot.current !== auth ||
+        signal?.aborted || readGeneration.current !== generation) return;
+      const access = (result: PromiseSettledResult<unknown>): ReadAccess => {
+        if (result.status === 'fulfilled') return 'available';
+        if (result.reason instanceof ApiError && result.reason.kind === 'http' &&
+          result.reason.status === 403) return 'permission-denied';
+        return 'unavailable';
+      };
+      setServer({
+        identity, day,
+        history: historyResult.status === 'fulfilled' ? historyResult.value.rows : [],
+        accounts: accountsResult.status === 'fulfilled' ? accountsResult.value : [],
+        historyAccess: access(historyResult),
+        accountsAccess: access(accountsResult),
+      });
+      setError(null);
+    } catch (caught) {
+      if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth &&
+        !signal?.aborted && readGeneration.current === generation) {
+        // A missing optional account/history permission never reaches this
+        // branch; genuine day/auth failures do not switch to preview.
+        if (caught instanceof ApiError && caught.kind === 'http' &&
+          [401, 403].includes(caught.status ?? 0)) setServer(null);
+        setError(message(caught));
+      }
+      throw caught;
+    } finally {
+      if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth &&
+        readGeneration.current === generation) setLoading(false);
+    }
+  }, [identity, accessToken, auth]);
+
+  useEffect(() => {
+    // Do not erase/abort a possibly POSTED operation on routine bearer-token
+    // refresh: SessionStore publishes a fresh verified snapshot in the SAME
+    // tenant/user/epoch. Only a real identity change may discard that intent.
+    const identityChanged = lifecycleIdentity.current !== identity;
+    lifecycleIdentity.current = identity;
+    readGeneration.current += 1;
+    setServer(null);
+    setError(null);
+    if (identityChanged) {
+      setDeviceCount(null);
+      mutationAbort.current?.abort();
+      mutationAbort.current = null;
+      pendingOperation.current = null;
+      mutationBusy.current = false;
+      setBusy(false);
+    }
+    if (!identity) {
+      setLoading(false);
+      return;
+    }
+    const abort = new AbortController();
+    void refresh(abort.signal).catch(() => undefined);
+    return () => abort.abort();
+  }, [identity, refresh]);
+
+  const mode: CashMode = integrationMode === 'preview' ? 'preview'
+    : !identity ? 'locked'
+      : current ? 'connected' : error ? 'error' : 'loading';
+  const day = current?.day ?? null;
+  const active = day?.blockedSession ?? day?.todaySession ?? null;
+  const enabled = integrationMode === 'preview' ? previewEnabled : Boolean(day?.enabled);
+  const allowed = integrationMode === 'connected' && auth.status === 'authenticated'
+    ? auth.permissions : previewPermissions;
+  const canView = mode === 'preview' ? previewCanView
+    : mode === 'connected' && allowed.includes('cash.daily.view');
+  const canStart = canView && enabled && allowed.includes('cash.session.start');
+  const canClose = canView && enabled && allowed.includes('cash.session.close');
+  const sessionOpen = mode === 'preview' ? Boolean(previewActive)
+    : enabled && active?.status === 'OPEN';
+  const businessDate = mode === 'preview' ? businessToday()
+    : day?.businessDate ?? (auth.status === 'authenticated' ? '' : '');
+  const sessionDate = mode === 'preview' ? previewActive?.businessDate ?? null
+    : active?.status === 'OPEN' ? active.businessDate : null;
+  const previousClosing = mode === 'preview'
+    ? previewClosing === null ? null : previewClosing / 100
+    : day?.previousClosingMinor === undefined || day.previousClosingMinor === null
+      ? null : day.previousClosingMinor / 100;
+  const drawerBalance = mode === 'preview'
+    ? (previewClosing ?? 0) / 100 : (day?.drawerBalanceMinor ?? 0) / 100;
+  const openingCash = mode === 'preview'
+    ? (previewActive?.openingMinor ?? 0) / 100
+    : (active?.openingAmountMinor ?? 0) / 100;
+  const expectedCash = mode === 'preview'
+    ? (previewActive?.expectedMinor ?? 0) / 100
+    : (active?.expectedClosingMinor ?? 0) / 100;
+  const history = mode === 'preview' ? previewHistory
+    : canView ? (current?.history ?? []).map(toHistoryRecord) : [];
+  const startBlocked = mode === 'preview'
+    ? Boolean(previewLast && previewLast.businessDate === businessDate && previewLast.status === 'Closed')
+    : Boolean(day?.blockedByDate || day?.todaySession);
+
+  const authority = (): CashAuthority => {
+    const owner = currentAuthority();
+    return {
+      tenantId: owner.state.tenantId, actorId: owner.actorId,
+      enabled: owner.state.sections.money.cashSession,
+      permissions: effectivePermissions(owner.state.sections.team, owner.actorId),
+    };
+  };
+
+  const runMutation = async (
+    fingerprint: string,
+    send: CashSender,
+  ): Promise<void> => {
+    if (!identity || !accessToken || mode !== 'connected') {
+      throw new Error('Verified cash-session access is required');
+    }
+    if (mutationBusy.current) throw new Error('A cash operation is already in progress');
+    if (pendingOperation.current && (pendingOperation.current.identity !== identity ||
+      pendingOperation.current.fingerprint !== fingerprint)) {
+      throw new Error('A previous cash operation has an unknown outcome. Confirm its result before changing the cash intent.');
+    }
+    const operationId = pendingOperation.current?.id ?? generateOperationId();
+    pendingOperation.current = { identity, fingerprint, id: operationId, send };
+    const controller = new AbortController();
+    mutationAbort.current = controller;
+    mutationBusy.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      const posted = await send(operationId, accessToken, controller.signal);
+      if (activeIdentity.current !== identity || controller.signal.aborted) {
+        throw new Error('The authenticated cash session changed during the operation');
+      }
+      // Server acknowledged the mutation. Discard operation ID only after this.
+      pendingOperation.current = null;
+      setDeviceCount(null);
+      if (activeVerifiedSnapshot.current === auth) setServer(before => before?.identity === identity ? {
+        ...before,
+        day: {
+          ...before.day,
+          todaySession: posted.businessDate === before.day.businessDate
+            ? posted : before.day.todaySession,
+          blockedSession: posted.businessDate !== before.day.businessDate && posted.status === 'OPEN'
+            ? posted : null,
+          blockedByDate: posted.businessDate !== before.day.businessDate && posted.status === 'OPEN'
+            ? posted.businessDate : null,
+        },
+      } : before);
+      if (activeVerifiedSnapshot.current === auth) {
+        try {
+          await refresh();
+        } catch {
+          if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) {
+            setError('Cash operation was confirmed, but refreshing its history failed. Use Retry.');
+          }
+        }
+      }
+    } catch (caught) {
+      // Explicit client errors mean the server refused this intent; uncertain
+      // network/server outcomes MUST retain the same idempotency identity.
+      if (caught instanceof ApiError && caught.kind === 'http' &&
+        [400, 401, 403, 404, 409, 422].includes(caught.status ?? 0) &&
+        activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) pendingOperation.current = null;
+      if (activeIdentity.current === identity && activeVerifiedSnapshot.current === auth) {
+        if (caught instanceof ApiError && caught.kind === 'http' &&
+          [401, 403].includes(caught.status ?? 0)) setServer(null);
+        setError(message(caught));
+      }
+      throw caught;
+    } finally {
+      if (mutationAbort.current === controller) {
+        mutationBusy.current = false;
+        mutationAbort.current = null;
+        if (activeIdentity.current === identity) setBusy(false);
+      }
+    }
+  };
+
+  // A server status refresh cannot prove WHICH operation changed the day.
+  // Confirm the original intent explicitly using the original idempotency
+  // key, rather than silently clearing uncertainty or creating a second ID.
+  const confirmPendingOperation = async (): Promise<void> => {
+    const pending = pendingOperation.current;
+    if (!pending || pending.identity !== identity) {
+      throw new Error('There is no cash operation awaiting confirmation.');
+    }
+    if (!day?.enabled || !canView) {
+      throw new Error('Verified cash-day access is required to confirm the previous operation.');
+    }
+    return runMutation(pending.fingerprint, pending.send);
+  };
+  const hasPendingOperation = identity !== null && pendingOperation.current?.identity === identity;
+
+  const startSession: CashSessionContextValue['startSession'] =
+    (amount, counterpart, note, revision, operationId) => {
+      if (mode === 'preview') {
+        store.start(authority(), {
+          amount, counterpart, note, revision, operationId, businessDate,
+          accounts: getFinancePreviewSnapshot().accounts.map(item => ({
+            id: item.id, name: item.name, active: item.status === 'Active',
+            drawer: item.id === 'acc-cash',
+          })),
+        });
+        render(value => value + 1);
+        return;
+      }
+      if (!day || !canStart || !businessDate || revision !== (active?.version ?? 0)) {
+        throw new Error('Cash day is unavailable or changed. Review and retry.');
+      }
+      const amountMinor = cashToMinor(amount);
+      if (amountMinor !== day.drawerBalanceMinor && !counterpart) {
+        throw new Error('Select the source/destination of the cash difference.');
+      }
+      const input = {
+        businessDate: day.businessDate, openingAmountMinor: amountMinor,
+        counterpartAccountCode: amountMinor === day.drawerBalanceMinor ? null : counterpart,
+        note: note.trim() || null,
+      };
+      return runMutation(`start:${JSON.stringify(input)}`,
+        (id, token, signal) => startCashDay(token, { ...input, operationId: id }, signal));
+    };
+
+  const saveCount: CashSessionContextValue['saveCount'] =
+    (counted, note, close, revision, operationId) => {
+      if (mode === 'preview') {
+        store.count(authority(), {
+          counted: String(counted), note, close, revision, operationId,
+        });
+        render(value => value + 1);
+        return;
+      }
+      if (!day || !active || !sessionOpen || revision !== active.version || !canClose) {
+        throw new Error('Open cash session changed or permission was revoked.');
+      }
+      const countedClosingMinor = cashToMinor(String(counted));
+      if (!close) {
+        setDeviceCount({
+          counted, expected: expectedCash, note: note.trim(),
+          savedAt: new Date().toISOString(), closed: false,
+        });
+        return;
+      }
+      if (countedClosingMinor !== active.expectedClosingMinor && !note.trim()) {
+        throw new Error('Explain the shortage or surplus before closing.');
+      }
+      const input = { countedClosingMinor, reason: note.trim() || null };
+      return runMutation(`close:${active.id}:${JSON.stringify(input)}`,
+        (id, token, signal) => closeCashDay(token, active.id, { ...input, operationId: id }, signal));
+    };
+
+  const reopenSession = async (reason: string): Promise<void> => {
+    if (!day || !day.canReopenToday || !day.todaySession || mode !== 'connected') {
+      throw new Error('This business day cannot be reopened.');
+    }
+    if (!reason.trim()) throw new Error('A reopen reason is required');
+    const id = day.todaySession.id;
+    const input = { reason: reason.trim() };
+    return runMutation(`reopen:${id}:${JSON.stringify(input)}`,
+      (operationId, token, signal) =>
+        reopenCashDay(token, id, { ...input, operationId }, signal));
+  };
+
+  return (
+    <CashSessionContext.Provider value={{
+      open, setOpen, sessionOpen, openingCash, expectedCash,
+      sampleMovements: false, startSession, saveCount,
+      lastCount: mode === 'preview' ? previewLastCount : deviceCount,
+      revision: mode === 'preview' ? preview.revision : active?.version ?? 0,
+      businessDate, sessionDate, previousClosing, drawerBalance,
+      history, canView, canStart, canClose, enabled, startBlocked,
+      mode, busy: busy || loading, error,
+      dayStatus: day, accounts: current?.accounts ?? [],
+      accountsAccess: current?.accountsAccess ?? 'unavailable',
+      historyAccess: current?.historyAccess ?? 'unavailable',
+      reopenSession, hasPendingOperation, confirmPendingOperation, refresh: async () => refresh(),
+    }}>
+      {children}
+    </CashSessionContext.Provider>
+  );
+}
+
+export function useCashSession(): CashSessionContextValue {
+  const value = useContext(CashSessionContext);
+  if (!value) throw new Error('useCashSession must be used inside CashSessionProvider');
+  return value;
+}

@@ -1,0 +1,6 @@
+import {useState} from 'react';
+import {Button} from '../Button';
+import {RecycleBinList} from './RecycleBinList';
+import {createRecoveryStore} from '../../recovery/store';
+const context={tenantId:'library',actorId:'Sample owner',view:true,restore:true,purge:true,owner:true,modules:['sales']};
+export function RecoverySpecimen(){const [store]=useState(()=>{const store=createRecoveryStore();const records=new Map([['sample-draft',{id:'sample-draft',name:'Library draft'}]]);store.register({kind:'sales-draft',module:'sales',tenantId:'library',get:id=>records.get(id),label:p=>p.name,revision:JSON.stringify,checkRestore:p=>{if(records.has(p.id))throw Error('The sample identity already exists.');},remove:id=>{records.delete(id);},restore:p=>{records.set(p.id,p);}});return store;});return <div className="space-y-3"><p className="text-xs text-helper">Isolated library sample. Delete, details, restore, filters and owner purge use the same recovery service as the app.</p><Button variant="outline" onClick={()=>{try{store.delete('sales-draft','sample-draft',context);}catch{/* The sample is already deleted; restore it to repeat. */}}}>Delete sample draft</Button><RecycleBinList store={store} context={context}/></div>;}

@@ -267,10 +267,10 @@ export function Daybook() {
             <p className="text-[13px] font-medium text-danger">{deleteTarget?.type} · {deleteTarget?.reference}</p>
             <p className="mt-1 font-bn text-[11px] text-ink-500">দৈনিক খাতা থেকে আলাদা করে লেনদেন মুছবেন না। মূল লেনদেন ও তার প্রভাব যাচাই করুন।</p>
           </div>
-          <p className="text-sm text-ink-600">{text('Day Book is a transaction view. Open the source audit to review its full money, due and stock impact. This preview cannot reverse a source by deleting a display row.','দৈনিক খাতা শুধু লেনদেন দেখায়। টাকা, বাকি ও স্টকের প্রভাব দেখতে মূল অডিট খুলুন। এখান থেকে লাইন মুছলে আসল লেনদেন বাতিল হবে না।')}</p>
+          <p className="text-sm text-ink-600">{text('Day Book is a transaction view. No verified original source reversal is connected. A matching display reference in the sample Audit Ledger does not identify this source.','দৈনিক খাতা শুধু লেনদেন দেখায়। টাকা, বাকি ও স্টকের প্রভাব দেখতে মূল অডিট খুলুন। এখান থেকে লাইন মুছলে আসল লেনদেন বাতিল হবে না।')}</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>{text('Cancel','বাতিল')}</Button>
-            <Button onClick={()=>{if(deleteTarget){navigate(`/app/audit-ledger?openRef=${encodeURIComponent(deleteTarget.reference)}`);setDeleteTarget(null);}}}>{text('Review source audit','মূল অডিট দেখুন')}</Button>
+            <Button disabled title={text('No verified original source command is connected.','যাচাইকৃত মূল লেনদেনের নির্দেশ সংযুক্ত নয়।')}>{text('Source reversal unavailable','মূল লেনদেন উল্টো করা অনুপলব্ধ')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

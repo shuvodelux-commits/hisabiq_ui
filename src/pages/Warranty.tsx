@@ -1,3 +1,4 @@
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../utils/fuzzySearch';
 import { AppSelect } from '../components/AppSelect';
@@ -167,6 +168,7 @@ function WarrantyActions({
             <ActionMenuDivider />
             <ActionMenuItem icon={ShieldCheck} tone="destructive" onClick={() => { close(); onReject(item); }}>{wl("Reject warranty")}</ActionMenuItem>
           </>}
+          <SourceDeleteAction reason="Warranty has stock and service history. Source-safe deletion is not connected; retain case lifecycle actions."/>
         </ActionMenuList>
       )}
     </FloatingPanel>

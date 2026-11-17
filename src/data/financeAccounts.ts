@@ -83,6 +83,7 @@ export type FinanceTransaction = {
   reference?: string;
   note?: string;
   status: 'Active' | 'Reversed';
+  reversal?:{actorId:string;tenantId:string;at:string;reason:string};
   createdBy: string;
 };
 
@@ -97,9 +98,15 @@ export type AccountTransfer = {
   amount: number;
   reference?: string;
   status: 'Completed' | 'Reversed';
+  reversal?:{actorId:string;tenantId:string;at:string;reason:string};
 };
 
 export type CashSessionRecord = {
+  preview?: boolean;
+  openingDifference?: number;
+  openingSource?: string;
+  openingSourceId?: string;
+  openingNote?: string;
   id: string;
   date: string;
   openedAt: string;

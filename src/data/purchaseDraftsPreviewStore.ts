@@ -1,3 +1,7 @@
+import {getPartyPreviewSnapshot} from './partyPreviewStore.ts';
+import {recoveryStore} from '../recovery/store.ts';
+import type {RecoveryContext} from '../recovery/model.ts';
+import {getProductImportPreviewSnapshot} from './productImportPreviewStore.ts';
 import type { PurchaseCartLine } from '../utils/purchaseCart';
 import type { PurchaseDiscountMode } from '../utils/purchaseCheckout';
 import type { PurchasePaymentRow } from '../utils/purchasePaymentMethods';
@@ -56,7 +60,10 @@ export function savePurchaseDraft(input: PurchaseDraftInput, currentId?: string 
     : [draft, ...drafts]);
   return structuredClone(draft);
 }
-export function deletePurchaseDraft(id: string) {
+export function consumePurchaseDraft(id: string) {
   if (!drafts.some(item => item.id === id)) return;
   publish(drafts.filter(item => item.id !== id));
 }
+
+export function deletePurchaseDraft(id:string,ctx:RecoveryContext){return recoveryStore.delete('purchase-draft',id,ctx);}
+recoveryStore.register<PurchaseDraft>({kind:'purchase-draft',module:'purchases',tenantId:'t1',get:id=>drafts.find(d=>d.id===id),label:d=>d.referenceNo||d.supplierName,revision:JSON.stringify,checkDelete:d=>{if(d.tenantId!=='t1')throw Error('Draft belongs to another business.');},checkRestore:d=>{if(d.supplierId&&!getPartyPreviewSnapshot().parties.some(p=>p.id===d.supplierId))throw Error('The original supplier is unavailable.');if(d.lines.some(l=>!getProductImportPreviewSnapshot().products.some(p=>p.id===l.product.id)))throw Error('A source product is unavailable.');},remove:consumePurchaseDraft,restore:d=>publish([d,...drafts])});

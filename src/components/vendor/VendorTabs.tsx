@@ -1,3 +1,7 @@
+import {RowActionMenu} from '../layout/RowActionMenu';
+import {ActionMenuItem} from '../layout/ActionMenu';
+import {SourceDeleteAction} from '../../deletion/SourceDeleteAction';
+import {Eye} from 'lucide-react';
 import { MotionTabList, MotionTabIndicator } from '../../motion/MotionTabList';
 import {matchesSearch as fuzzyMatch} from '../../utils/fuzzySearch';
 import {useEffect,useId,useMemo,useState} from 'react';
@@ -60,6 +64,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
  const [statementOpen,setStatementOpen]=useState(false);
  const [mobileMoreOpen,setMobileMoreOpen]=useState(false);
 
+ const [correctionMode,setCorrectionMode]=useState<'correct'|'reverse'>('correct');
  const [correctSource,setCorrectSource]=useState<string|null>(null);
  const [correctEvent,setCorrectEvent]=useState<string|null>(null);
  const checkedRange=Boolean(range.from)===Boolean(range.to)?range:{from:'',to:''};
@@ -261,7 +266,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         <td className="p-2 text-right">{e.deltaPaisa>0?money(e.deltaPaisa):'—'}</td>
         <td className="p-2 text-right">{e.deltaPaisa<0?money(-e.deltaPaisa):'—'}</td>
         <td className="p-2 text-right font-semibold">{money(e.runningPaisa)}</td>
-        <td className="p-2 text-right"><Button size="sm" variant="ghost" onClick={()=>review(e)}>Review</Button></td>
+        <td className="p-2 text-right"><RowActionMenu label={'Actions for '+e.id}>{close=><><ActionMenuItem icon={Eye} onClick={()=>{close();review(e);}}>Review</ActionMenuItem><SourceDeleteAction module="purchases" kind="immutable" onReview={e.kind!=='reversal'?()=>{close();review(e);}:undefined}/></>}</RowActionMenu></td>
        </tr>)}
        {ledgerRows.length===0&&<tr><td colSpan={6} className="p-6 text-center text-ink-500">No transactions in this view.</td></tr>}
       </tbody></table></div>
@@ -299,7 +304,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
         onSaved={()=>{tab==='taken'?setEditingTaken(false):setEditingGiven(false);toast.success('Products saved · Preview only');}}/>
       </div>}
       <VendorSourceWorkspace key={tab+'-'+(sourceId??'')} mode={tab} sources={tab==='taken'?taken:given}
-        snapshot={snapshot} sourceId={sourceId} onCorrect={setCorrectSource}/>
+        snapshot={snapshot} sourceId={sourceId} onCorrect={(id,mode='correct')=>{setCorrectionMode(mode);setCorrectSource(id);}}/>
      </>}
      {(tab==='purchases'||purchaseOpened)&&<div className={tab==='purchases'?'space-y-4':'hidden'} aria-hidden={tab!=='purchases'}>
       <div onChangeCapture={()=>onDirtyChange(true)}>
@@ -331,7 +336,7 @@ export function VendorTabs({party,snapshot,purchases,tab,onTabChange,sourceId,on
    </div>
   </section>
 
-  <VendorCorrectionDialog source={snapshot.sources.find(s=>s.id===correctSource)??null}
+  <VendorCorrectionDialog initialMode={correctionMode} source={snapshot.sources.find(s=>s.id===correctSource)??null}
    event={snapshot.events.find(e=>e.id===correctEvent)??null} state={snapshot}
    onClose={()=>{setCorrectEvent(null);setCorrectSource(null);}}
    onReviewEvent={review} onBackToSource={()=>setCorrectEvent(null)}/>

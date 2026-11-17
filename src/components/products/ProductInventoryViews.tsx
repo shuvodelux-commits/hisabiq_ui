@@ -1,3 +1,5 @@
+import {RowActionMenu} from '../layout/RowActionMenu';
+import {SourceDeleteAction} from '../../deletion/SourceDeleteAction';
 import { AppSelect } from '../AppSelect';
 import { useMemo } from 'react';
 import { Search } from 'lucide-react';
@@ -206,7 +208,7 @@ export function StockHistoryView({
             <TableHead className="h-9 text-right text-xs">{pl("Quantity")}</TableHead>
             <TableHead className="h-9 text-right text-xs">{pl("Balance")}</TableHead>
             <TableHead className="h-9 text-xs">{pl("Reference")}</TableHead>
-            <TableHead className="h-9 text-xs">{pl("Note")}</TableHead>
+            <TableHead className="h-9 text-xs">{pl("Note")}</TableHead><TableHead>{pl("Actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -227,7 +229,7 @@ export function StockHistoryView({
                 </TableCell>
                 <TableCell className="py-2 text-right font-medium text-ink">{formatStock({ ...product, stock: movement.balance })}</TableCell>
                 <TableCell className="py-2 text-ink-600">{movement.reference ?? '—'}</TableCell>
-                <TableCell className="max-w-[260px] py-2 text-ink-500">{movement.note ?? '—'}</TableCell>
+                <TableCell className="max-w-[260px] py-2 text-ink-500">{movement.note ?? '—'}</TableCell><TableCell><RowActionMenu label={'Actions for '+movement.id}>{()=> <SourceDeleteAction kind="projection" reason="Stock movement is derived history. Original stock source reversal is not connected; never delete a movement row." reasonBn="স্টক চলাচল মূল তথ্য থেকে তৈরি ইতিহাস। মূল স্টক উল্টো করার নির্দেশ নেই; ইতিহাসের সারি মুছবেন না।"/>}</RowActionMenu></TableCell>
               </TableRow>
             );
           })}

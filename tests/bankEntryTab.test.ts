@@ -68,15 +68,20 @@ test('adjustment requires a reason and payload trims input', () => {
   });
 });
 
-test('bank entry stays contextual to Money Accounts without changing the voucher overview', () => {
+test('bank entry is a dedicated Accounts tab without changing the voucher overview', () => {
   const code = readFileSync('src/pages/Accounts.tsx', 'utf8');
   const tabsStart = code.indexOf('// Compact English-only tab labels');
   const tabsEnd = code.indexOf('  ];', tabsStart);
   const tabs = code.slice(tabsStart, tabsEnd);
   assert.match(tabs, /\['money-accounts', 'Money Accounts'\]/);
-  assert.doesNotMatch(tabs, /\['bank-entry'/);
-  assert.match(code, /tab === 'bank-entry' && <div>/);
+  assert.match(tabs, /\['bank-entry', 'Bank Entry'\]/);
+  assert.match(code, /tab === 'bank-entry' && \(\s*<BankEntryTab initialAccountId=/);
   assert.match(code, /<BankEntryTab initialAccountId=/);
+  assert.doesNotMatch(code, /Back to Money Accounts/);
+  const bankCode = readFileSync('src/components/accounts/BankEntryTab.tsx', 'utf8');
+  assert.match(bankCode, /\{!connected && inCounter && \(/);
+  assert.match(bankCode, /Preview only; no real bank entry can be posted/);
+  assert.match(bankCode, /disabled=\{!connected \|\| saving\}/);
   const overviewStart = code.indexOf("{tab === 'overview' && (");
   const overviewEnd = code.indexOf("{tab === 'vouchers' && (");
   assert.ok(overviewStart > 0 && overviewEnd > overviewStart);

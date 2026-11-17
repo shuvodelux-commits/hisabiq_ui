@@ -1,6 +1,10 @@
+import {useTenantSettings} from '../settings/TenantSettingsProvider';
+import {sourceDeleteAuthority} from '../deletion/authority';
+import {SourceDeleteAction} from '../deletion/SourceDeleteAction';
+import {isManualAccountingSource} from '../utils/moduleUiActions';
 import { MotionTabList, MotionTabIndicator } from '../motion/MotionTabList';
 import '../utils/accountingLabels'; // Keep existing module initialization.
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowDownToLine, BookOpen, FileText, Landmark, Plus, Scale, Settings2, WalletCards } from 'lucide-react';
 import { toast } from 'sonner';
@@ -77,14 +81,25 @@ function rowBalance(postings: Posting[], accountId: string) {
 }
 
 export function Accounts() {
+  const {currentAuthority}=useTenantSettings();
+  const [entryMode,setEntryMode]=useState<'view'|'delete'>('view');
   const {text}=useUiCopy();
   const navigate = useNavigate();
   const { terminologyMode, setTerminologyMode, entryDateView } = useUserPreferences();
   const [params,setParams] = useSearchParams();
   const requestedTab = params.get('tab');
-  const [tab, setTab] = useState<Tab>(() => validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview');
-   useEffect(() => { setTab(validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview'); }, [requestedTab]);
-  const chooseTab = (nextTab: Tab) => { setTab(nextTab); setParams(current => { const next = new URLSearchParams(current); if (nextTab === 'overview') next.delete('tab'); else next.set('tab',nextTab); if(nextTab!=='bank-entry')next.delete('accountId'); return next; }, {replace:true}); };
+  // Keep the route as the only source of tab selection. A second local state,
+  // synchronized in useEffect, can briefly show an old tab after the URL changes.
+  const tab: Tab = validTabs.includes(requestedTab as Tab) ? requestedTab as Tab : 'overview';
+  const chooseTab = (nextTab: Tab) => {
+    setParams(current => {
+      const next = new URLSearchParams(current);
+      if (nextTab === 'overview') next.delete('tab');
+      else next.set('tab', nextTab);
+      if (nextTab !== 'bank-entry') next.delete('accountId');
+      return next;
+    }, { replace: true });
+  };
   const [sources, setSources] = useState<AccountingSourceTransaction[]>(seedSources);
   const [voucherOpen, setVoucherOpen] = useState(false);
   const [voucherType, setVoucherType] = useState<VoucherType>('receipt');
@@ -132,6 +147,7 @@ export function Accounts() {
   const tabs: Array<[Tab, string]> = [
     ['overview', 'Overview'],
     ['money-accounts', 'Money Accounts'],
+    ['bank-entry', 'Bank Entry'],
     ['vouchers', 'Vouchers'],
     ['ledger', 'Ledger'],
     ['trial', 'Trial Balance'],
@@ -210,12 +226,12 @@ export function Accounts() {
               key={id}
               data-accounts-tab={id}
               role="tab"
-              aria-selected={tab === id || (tab === 'bank-entry' && id === 'money-accounts')}
-              tabIndex={tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 0 : -1}
+              aria-selected={tab === id}
+              tabIndex={tab === id ? 0 : -1}
               onClick={() => chooseTab(id)}
-              className={`flex shrink-0 items-center rounded-sm px-2.5 py-2.5 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 ${tab === id || (tab === 'bank-entry' && id === 'money-accounts') ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
+              className={`flex shrink-0 items-center rounded-sm px-2.5 py-2.5 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 ${tab === id ? 'text-ink' : 'text-ink-500 hover:text-ink'}`}>
               {label}
-              <MotionTabIndicator active={tab === id || (tab === 'bank-entry' && id === 'money-accounts')} />
+              <MotionTabIndicator active={tab === id} />
             </button>
           ))}
         </MotionTabList>
@@ -322,7 +338,8 @@ export function Accounts() {
                           label={`Actions for ${source.reference}`}
                           width={180}
                           trigger={({ toggle, open }) => <ActionMenuTrigger label={`Actions for ${source.reference}`} expanded={open} onClick={toggle} />}>
-                          {(close) => <ActionMenuList><ActionMenuItem icon={Eye} onClick={() => { close(); setEntryActionId(source.id); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem></ActionMenuList>}
+                          {(close) => <ActionMenuList><ActionMenuItem icon={Eye} onClick={() => { close(); setEntryMode('view');setEntryActionId(source.id); }}>{text('Open details','বিস্তারিত খুলুন')}</ActionMenuItem><SourceDeleteAction kind="projection" onReview={isManualAccountingSource(source.source)&&source.recordStatus!=='Deleted'?()=>{close();setEntryMode('delete');setEntryActionId(source.id);}:undefined}/></ActionMenuList>}
+
                         </FloatingPanel>
                       </TableCell>
                     </TableRow>
@@ -337,18 +354,14 @@ export function Accounts() {
         {tab === 'trial' && <TrialBalanceView postings={postings} terminologyMode={terminologyMode} />}
         {tab === 'statements' && <StatementsView postings={postings} />}
         {tab === 'chart' && <ChartOfAccountsView terminologyMode={terminologyMode} onOpeningBalance={() => setOpeningOpen(true)} />}
-        {tab === 'bank-entry' && <div>
-          <div className="border-b border-border px-3 py-2">
-            <Button variant="outline" size="sm" onClick={() => chooseTab('money-accounts')}>
-              {text('Back to Money Accounts','টাকার হিসাবে ফিরে যান')}
-            </Button>
-          </div>
+        {tab === 'bank-entry' && (
           <BankEntryTab initialAccountId={params.get('accountId') || undefined} />
-        </div>}
+        )}
       </div>
 
       <VoucherActionDialog
         source={entryAction}
+        initialMode={entryMode}
         posting={entryPosting}
         onClose={() => setEntryActionId(null)}
         onUpdate={(updated) => {
@@ -356,7 +369,11 @@ export function Accounts() {
           toast.success('Voucher corrected', { description: updated.reference });
         }}
         onDelete={(source, reason) => {
-          setSources((current) => current.map((item) => item.id === source.id ? { ...item, recordStatus: 'Deleted', deletedAt: '2026-10-07T16:25:00+06:00', deletedBy: 'Shuvo', deleteReason: reason } : item));
+          const audit=sourceDeleteAuthority(currentAuthority(),'money',source.id,reason);
+          if(!isManualAccountingSource(source.source)||source.recordStatus==='Deleted')throw Error('Only an active original manual voucher can be deleted here.');
+          const live=sources.find(s=>s.id===source.id);
+          if(!live||JSON.stringify(live)!==JSON.stringify(source))throw Error('Source changed. Reopen review.');
+          setSources((current) => current.map((item) => item.id === source.id ? { ...item, recordStatus: 'Deleted', deletedAt: audit.at, deletedBy: audit.actorId, deleteReason: audit.reason } : item));
           toast.success('Voucher deleted safely', { description: source.reference + ' remains in history' });
         }}
         onDuplicate={(source) => {

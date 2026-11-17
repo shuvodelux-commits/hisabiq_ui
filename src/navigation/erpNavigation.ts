@@ -54,6 +54,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
  {id:'accounts',label:'Accounts',bn:'হিসাব',icon:FileText,landingPath:'/app/accounts',children:[
   {id:'accounts-overview',label:'Overview',bn:'সারাংশ',path:'/app/accounts'},
   {id:'money-accounts',label:'Money Accounts',bn:'টাকার হিসাব',path:'/app/accounts?tab=money-accounts'},
+  {id:'bank-entry',label:'Bank Entry',bn:'ব্যাংক এন্ট্রি',path:'/app/accounts?tab=bank-entry'},
   {id:'accounts-vouchers',label:'Vouchers',bn:'ভাউচার',path:'/app/accounts?tab=vouchers'},
   {id:'accounts-ledger',label:'Ledger',bn:'খাতা',path:'/app/accounts?tab=ledger'},
   {id:'accounts-trial',label:'Trial Balance',bn:'হিসাবের মিল',path:'/app/accounts?tab=trial'},
@@ -72,6 +73,7 @@ export const erpNavigation:readonly ErpNavGroup[]=[
    label:item.label,bn:item.bn,path:`/app/settings/${section}`,
    permission:({team:'team',data:'export',money:'money'} as Record<string,string>)[section]
   })),
+  {id:'recycle-bin',label:'Recycle Bin',bn:'রিসাইকেল বিন',path:'/app/recycle-bin'},
   {id:'notifications',label:'Notifications & SMS',bn:'এসএমএস ও বার্তা',path:'/app/notifications',feature:'notifications',permission:'notifications'},
   {id:'subscription',label:'Subscription & Billing',bn:'সাবস্ক্রিপশন',path:'/app/subscription',permission:'owner'}
  ]}
@@ -84,6 +86,6 @@ export const erpRoutePaths=new Set([
  '/app/warranty','/app/reports','/app/settings/business','/app/settings/team',
  '/app/settings/data','/app/settings/personal','/app/settings/security','/app/notifications','/app/subscription',
  ...Object.keys(sectionNames).map(section=>`/app/settings/${section}`),
- '/app/support'
+ '/app/recycle-bin','/app/support'
 ]);
 export const erpFeatureIds=new Set(['quotations','online-sales','notifications']);

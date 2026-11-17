@@ -174,7 +174,7 @@ export function BankEntryTab({ variant = 'accounts', initialAccountId }: { varia
       </div>
       )}
 
-      {!connected && (
+      {!connected && inCounter && (
         <div role="status" className="rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-[12px] text-ink-700">
           <strong>{text('UI Preview · Read only','শুধু দেখার নমুনা')}</strong>
           <p className="mt-1">{text('Sample bank accounts are shown. Recording is disabled until the authenticated BanijjIQ bank API is connected.','ব্যাংক API সংযুক্ত না থাকলে আসল এন্ট্রি করা যাবে না।')}</p>

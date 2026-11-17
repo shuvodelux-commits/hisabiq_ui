@@ -164,6 +164,7 @@ const labels: Record<string,string> = {
   "CRM lead created in preview": "নমুনায় ক্রেতার যোগাযোগ যোগ হয়েছে",
   "Lead updated": "যোগাযোগের অবস্থা বদলানো হয়েছে",
   "Created": "তৈরি করা হয়েছে",
+  "Delete draft": "খসড়া মুছুন",
   "Draft revised": "খসড়া সংশোধন করা হয়েছে",
   "Courier assigned": "কুরিয়ার বাছা হয়েছে",
   "Courier collection reported": "কুরিয়ার টাকা নেওয়ার রিপোর্ট দিয়েছে",

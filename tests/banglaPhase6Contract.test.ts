@@ -28,8 +28,8 @@ test('Finance transaction and account mutations preserve IDs, direction, and rev
  assert.ok(finance.includes('direction: meta.direction'));
  assert.ok(finance.includes('paymentAccounts: opening ? undefined : paymentSplits'));
  assert.ok(finance.includes('!financePaymentSplitsAreValid(paymentRows, accounts, value)'));
- assert.ok(finance.includes('onReverse(transaction)'));
- assert.ok(finance.includes('onReverse(transfer)'));
+ assert.ok(finance.includes('onReverse(transaction,reverseReason)'));
+ assert.ok(finance.includes('onReverse(transfer,reverseReason)'));
  assert.ok(finance.includes('onManualEntry(account, manualDirection, value'));
  assert.ok(finance.includes('onToggleStatus(account)'));
  assert.ok(finance.includes("({value,label:financeLabel(language,value)})"));

@@ -4,7 +4,8 @@
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const erp = ['dashboard','search?q=LED','pos','sales','quotations','online-sales','notifications','warranty','reconciliation','finance','daybook','accounts','audit-ledger','products','parties','purchases','purchases/new','vendors','expenses','reports','settings/business','subscription','support'];
-const saas = ['overview','tenants','tenants/t1','plans','subscriptions','invoices','invoices/SAAS-1001','payments','payments/PAY-1001','sms','services','services/ORD-1001','support','support/TKT-1001','knowledge','team','announcements','reports','audit','settings'];
+// Real Control Center route tree and seed IDs from src/App.tsx and src/magic-saas/data/saasTenants.ts.
+const saas = ['home','tenants','tenants/T-1001','plans','addons','offers','subscriptions','invoices','payments','refunds','sms','services','support','tickets','data-requests','knowledge','team','announcements','reports','audit','settings'];
 async function main() {
   const { preview } = await import('vite');
   const server = await preview({ preview: { host:'127.0.0.1',port:4259,strictPort:true } });
@@ -33,10 +34,11 @@ async function main() {
         assert.equal(await page.getByRole('button',{name:'Reload page',exact:true}).count(),0,route+' must render without error fallback');
         assert.equal(await page.getAttribute('html','data-theme'),theme);
         if (route !== '/design-system') assert((await page.locator('main').innerText()).trim().length > 30,route+' must render page content');
+        if (route === '/saas/tenants/T-1001') assert.match(await page.locator('main').innerText(), /Nawabpur Hardware House/, 'seeded business route must load correct tenant');
       }
       assert.deepEqual(errors,[]);
       await context.close();
-      console.log('PASS '+theme+': 44 production deep links, page chunks and theme');
+      console.log('PASS '+theme+': '+(erp.length + saas.length + 1)+' production deep links, page chunks and theme');
       for (const width of [320,390,768,1024,1440]) {
         const c = await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
         await c.addInitScript(value => localStorage.setItem('hisabiq-theme',value),theme);
