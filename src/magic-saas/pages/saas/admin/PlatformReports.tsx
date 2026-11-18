@@ -58,10 +58,10 @@ export function PlatformReports() {
           <h2 className="border-b border-ink-100 px-4 py-2.5 text-sm font-semibold">Collections by type</h2>
           <table data-erp-table className="w-full text-[13px]">
             <thead><tr className="border-b border-ink-100"><th className={th}>Type</th><th className={`${th} text-right`}>Verified ৳</th></tr></thead>
-            <tbody>{byKind.map((r) => <tr key={r.kind} className="border-b border-ink-100 last:border-0"><td className={td}>{r.kind.charAt(0) + r.kind.slice(1).toLowerCase()}</td><td className={`${td} text-right tabular-nums`}>{formatNumber(r.total)}</td></tr>)}</tbody>
+            <tbody>{byKind.map((r) => <tr key={r.kind} className="border-b border-ink-100 last:border-0"><td className={td}>{r.kind.charAt(0) + r.kind.slice(1).toLowerCase()}</td><td className={`${td} text-right `}>{formatNumber(r.total)}</td></tr>)}</tbody>
           </table>
           <h2 className="border-y border-ink-100 px-4 py-2.5 text-sm font-semibold">Business health</h2>
-          <ul className="divide-y divide-ink-100 text-[13px]">{health.map((h) => <li key={h.level} className="flex justify-between px-4 py-2"><span>{h.level}</span><span className="tabular-nums">{h.n}</span></li>)}</ul>
+          <ul className="divide-y divide-ink-100 text-[13px]">{health.map((h) => <li key={h.level} className="flex justify-between px-4 py-2"><span>{h.level}</span><span className="">{h.n}</span></li>)}</ul>
         </Card>
       </div>
     </div>
