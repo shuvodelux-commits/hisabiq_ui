@@ -797,8 +797,7 @@
         "hex": "#116F35"
       },
       "color-chart-4": {
-        "rgb": [
-          151,
+        "rgb": [          151,
           68,
           7
         ],
@@ -1597,8 +1596,7 @@
       "SelectGroup",
       "SelectItem",
       "SelectLabel",
-      "SelectTrigger",
-      "SelectValue",
+      "SelectTrigger",      "SelectValue",
       "Separator",
       "Sheet",
       "SheetContent",
@@ -2397,8 +2395,7 @@
       ],
       "reexports": []
     },
-    {
-      "file": "src/components/layout/GlobalSearchBox.tsx",
+    {      "file": "src/components/layout/GlobalSearchBox.tsx",
       "kind": "component",
       "exports": [
         "GlobalSearchBox"
@@ -3197,8 +3194,7 @@
       "file": "src/components/reports/ReportEvidencePanel.tsx",
       "kind": "component",
       "exports": [
-        "ReportEvidencePanel"
-      ],
+        "ReportEvidencePanel"      ],
       "reexports": []
     },
     {
@@ -3997,8 +3993,7 @@
       ],
       "reexports": []
     },
-    {
-      "file": "src/magic-saas/pages/saas/ops/DataRequests.tsx",
+    {      "file": "src/magic-saas/pages/saas/ops/DataRequests.tsx",
       "kind": "page-or-feature",
       "exports": [
         "DataRequests"
@@ -4797,8 +4792,7 @@
       "kind": "authored-ui",
       "exports": [
         "KhataPreview"
-      ],
-      "reexports": []
+      ],      "reexports": []
     },
     {
       "file": "src/settings/magic/LiveSettingsSection.tsx",
@@ -5358,6 +5352,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
@@ -5375,6 +5370,7 @@
       "src/components/reports/ReportResults.tsx",
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/magic-saas/components/saas/tenant/OverviewTab.tsx",
       "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/magic-saas/pages/saas/customers/Businesses.tsx",
@@ -5595,8 +5591,7 @@
     ],
     "FlaskConical": [
       "src/components/reports/SalesProfitExperiment.tsx"
-    ],
-    "Gauge": [
+    ],    "Gauge": [
       "src/magic-saas/pages/saas/customers/Businesses.tsx"
     ],
     "Gift": [
@@ -5761,6 +5756,7 @@
     ],
     "Menu": [
       "src/components/layout/TopBar.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/saas/SaasShell.tsx"
     ],
     "MessageSquare": [
@@ -5836,6 +5832,12 @@
     ],
     "PanelLeft": [
       "src/components/layout/SidebarTrigger.tsx"
+    ],
+    "PanelLeftClose": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
+    ],
+    "PanelLeftOpen": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
     ],
     "Paperclip": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -6388,8 +6390,7 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/Dialog.tsx",
       "src/components/Input.tsx",
-      "src/components/brand/VoiceSection.tsx",
-      "src/components/layout/Calculator.tsx",
+      "src/components/brand/VoiceSection.tsx",      "src/components/layout/Calculator.tsx",
       "src/components/layout/GlobalSearchBox.tsx",
       "src/components/layout/TopBar.tsx",
       "src/components/parties/PartyActionSheet.tsx",
@@ -6401,6 +6402,7 @@
       "src/components/reports/ReportToolbar.tsx",
       "src/components/transactions/TransactionCartEditor.tsx",
       "src/components/vendor/VendorDirectory.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/magic-saas/components/saas/SaasBits.tsx",
       "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/magic-saas/prototype/Ui.tsx",
