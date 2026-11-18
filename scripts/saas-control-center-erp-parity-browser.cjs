@@ -42,6 +42,12 @@ async function main() {
           await page.getByRole('button', { name: 'Expand Control Center sidebar' }).click();
           await page.waitForTimeout(280);
           assert.equal(Math.round((await sidebar.boundingBox()).width), 256);
+          await page.keyboard.press('Control+b');
+          await page.waitForTimeout(280);
+          assert.equal(Math.round((await sidebar.boundingBox()).width), 64, 'Ctrl+B must collapse the sidebar');
+          await page.keyboard.press('Control+b');
+          await page.waitForTimeout(280);
+          assert.equal(Math.round((await sidebar.boundingBox()).width), 256, 'Ctrl+B must expand the sidebar');
         } else {
           const open = page.getByRole('button', { name: 'Open Control Center navigation' });
           await open.waitFor();
@@ -49,6 +55,14 @@ async function main() {
           const drawer = page.getByRole('dialog', { name: 'Control Center navigation' });
           await drawer.waitFor();
           assert.equal(await drawer.getByRole('link', { name: /Businesses/ }).count(), 1);
+          const focusables = drawer.locator('a[href],button:not([disabled])');
+          await focusables.first().focus();
+          await page.keyboard.press('Shift+Tab');
+          assert.equal(await focusables.last().evaluate(el => document.activeElement === el), true,
+            'Shift+Tab should wrap to the final drawer control');
+          await page.keyboard.press('Tab');
+          assert.equal(await focusables.first().evaluate(el => document.activeElement === el), true,
+            'Tab should wrap to the first drawer control');
           await page.keyboard.press('Escape');
           await drawer.waitFor({ state: 'hidden' });
           assert.equal(await open.evaluate(el => document.activeElement === el), true,
@@ -74,7 +88,17 @@ async function main() {
         await page.close();
       }
     }
-    console.log('PASS: SaaS shell ERP parity and route matrix');
+    const touchContext = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const touch = await touchContext.newPage();
+    await touch.goto('http://127.0.0.1:4197/#/saas/home');
+    await touch.getByRole('button', { name: 'Open Control Center navigation' }).tap();
+    const touchDrawer = touch.getByRole('dialog', { name: 'Control Center navigation' });
+    await touchDrawer.waitFor();
+    await touchDrawer.getByRole('link', { name: /Businesses/ }).tap();
+    await touchDrawer.waitFor({ state: 'hidden' });
+    assert.equal(new URL(touch.url()).hash, '#/saas/tenants');
+    await touchContext.close();
+    console.log('PASS: SaaS shell ERP parity, keyboard trap, touch drawer, and route matrix');
   } finally {
     await browser.close();
     await server.close();
