@@ -797,7 +797,8 @@
         "hex": "#116F35"
       },
       "color-chart-4": {
-        "rgb": [          151,
+        "rgb": [
+          151,
           68,
           7
         ],
@@ -1596,7 +1597,8 @@
       "SelectGroup",
       "SelectItem",
       "SelectLabel",
-      "SelectTrigger",      "SelectValue",
+      "SelectTrigger",
+      "SelectValue",
       "Separator",
       "Sheet",
       "SheetContent",
@@ -2395,7 +2397,8 @@
       ],
       "reexports": []
     },
-    {      "file": "src/components/layout/GlobalSearchBox.tsx",
+    {
+      "file": "src/components/layout/GlobalSearchBox.tsx",
       "kind": "component",
       "exports": [
         "GlobalSearchBox"
@@ -3194,7 +3197,8 @@
       "file": "src/components/reports/ReportEvidencePanel.tsx",
       "kind": "component",
       "exports": [
-        "ReportEvidencePanel"      ],
+        "ReportEvidencePanel"
+      ],
       "reexports": []
     },
     {
@@ -3993,7 +3997,8 @@
       ],
       "reexports": []
     },
-    {      "file": "src/magic-saas/pages/saas/ops/DataRequests.tsx",
+    {
+      "file": "src/magic-saas/pages/saas/ops/DataRequests.tsx",
       "kind": "page-or-feature",
       "exports": [
         "DataRequests"
@@ -4792,7 +4797,8 @@
       "kind": "authored-ui",
       "exports": [
         "KhataPreview"
-      ],      "reexports": []
+      ],
+      "reexports": []
     },
     {
       "file": "src/settings/magic/LiveSettingsSection.tsx",
@@ -5591,7 +5597,8 @@
     ],
     "FlaskConical": [
       "src/components/reports/SalesProfitExperiment.tsx"
-    ],    "Gauge": [
+    ],
+    "Gauge": [
       "src/magic-saas/pages/saas/customers/Businesses.tsx"
     ],
     "Gift": [
@@ -6390,7 +6397,8 @@
       "src/components/AppDateRangePicker.tsx",
       "src/components/Dialog.tsx",
       "src/components/Input.tsx",
-      "src/components/brand/VoiceSection.tsx",      "src/components/layout/Calculator.tsx",
+      "src/components/brand/VoiceSection.tsx",
+      "src/components/layout/Calculator.tsx",
       "src/components/layout/GlobalSearchBox.tsx",
       "src/components/layout/TopBar.tsx",
       "src/components/parties/PartyActionSheet.tsx",
