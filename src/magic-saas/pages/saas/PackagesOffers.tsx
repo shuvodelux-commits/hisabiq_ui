@@ -93,10 +93,10 @@ export function PackagesOffers({ view = 'plans' }: { view?: 'plans' | 'addons' |
                       <button type="button" onClick={() => setPkg(p)} className="font-medium text-ink hover:text-teal-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">{p.name}</button>
                       <span className="block text-[11px] text-ink-500">{kindLabel[p.kind]} · {p.version ? `v${p.version}` : 'unpublished'}{p.id.endsWith('~draft') ? ' · draft of live package' : ''} · {p.updatedBy}</span>
                     </td>
-                    <td className={`${td} whitespace-nowrap text-right tabular-nums`}>{taka(p.priceBdt)}<span className="block text-[11px] text-ink-500">{billingLabel(p)}</span></td>
+                    <td className={`${td} whitespace-nowrap text-right `}>{taka(p.priceBdt)}<span className="block text-[11px] text-ink-500">{billingLabel(p)}</span></td>
                     <td className={`${td} hidden text-xs text-ink-600 md:table-cell`}>{p.kind === 'SMS' ? `${formatNumber(p.smsCredits)} credits · ${p.smsExpiryDays}d` : p.kind === 'SERVICE' ? p.description : `${levelLabel[p.interfaceLevel]} · ${p.features.length} features · ${p.userLimit} users${p.smsCredits ? ` · ${p.smsCredits} SMS` : ''}`}</td>
                     <td className={`${td} hidden text-xs text-ink-600 lg:table-cell`}>{p.visibility === 'PUBLIC' ? 'Everyone' : p.visibility === 'INVITE' ? 'Invitation' : `${p.restrictedTenantIds.length} businesses`}<span className="block text-[11px] text-ink-500">{fmtDate(p.availableFrom)}{p.availableTo ? ` – ${fmtDate(p.availableTo)}` : ''}</span></td>
-                    <td className={`${td} hidden text-right tabular-nums lg:table-cell`}>{orders.filter((o) => o.packageId === p.id && o.state === 'COMPLETED').length}</td>
+                    <td className={`${td} hidden text-right  lg:table-cell`}>{orders.filter((o) => o.packageId === p.id && o.state === 'COMPLETED').length}</td>
                     <td className={td}><Badge tone={promoMeta[p.status].tone} dot>{promoMeta[p.status].label}</Badge></td>
                     <td className={tdAction}>
                       <RowActions
@@ -128,7 +128,7 @@ export function PackagesOffers({ view = 'plans' }: { view?: 'plans' | 'addons' |
                       <td className={`${td} whitespace-nowrap`}>{o.type === 'PERCENT' ? `${o.value}% off` : o.type === 'FIXED' ? `৳${o.value} off` : o.type === 'INTRO' ? `৳${o.value} intro` : o.type === 'TRIAL' ? `${o.value}-day trial` : o.type === 'BONUS_SMS' ? `+${o.value} SMS` : `Setup ৳${o.value}`}</td>
                       <td className={`${td} hidden text-xs md:table-cell`}>{o.code ? <span className="font-medium">{o.code}</span> : 'Automatic'}<span className="block text-[11px] text-ink-500">{o.audience === 'ALL' ? 'All' : o.audience === 'NEW' ? 'New customers' : o.audience === 'EXISTING' ? 'Existing customers' : `${o.tenantIds.length} businesses`}{o.stackable ? ' · combinable' : ''}</span></td>
                       <td className={`${td} hidden whitespace-nowrap text-xs text-ink-600 lg:table-cell`}>{fmtDate(o.startsAt)} – {fmtDate(o.endsAt)}</td>
-                      <td className={`${td} hidden text-right tabular-nums lg:table-cell`}>{used}{o.maxRedemptions ? ` / ${o.maxRedemptions}` : ''}</td>
+                      <td className={`${td} hidden text-right  lg:table-cell`}>{used}{o.maxRedemptions ? ` / ${o.maxRedemptions}` : ''}</td>
                       <td className={td}><Badge tone={promoMeta[o.status].tone} dot>{promoMeta[o.status].label}</Badge></td>
                       <td className={tdAction}>
                         <RowActions
@@ -156,13 +156,13 @@ export function PackagesOffers({ view = 'plans' }: { view?: 'plans' | 'addons' |
                   {perf.map((r) => (
                     <tr key={r.o.id} className="border-b border-ink-100 last:border-0">
                       <td className={td}>{r.o.name}<span className="block text-[11px] text-ink-500">{promoMeta[r.o.status].label}</span></td>
-                      <td className={`${td} text-right tabular-nums`}>{r.purchases}</td>
-                      <td className={`${td} text-right tabular-nums text-warning`}>{r.pending || '—'}</td>
-                      <td className={`${td} text-right font-medium tabular-nums text-success`}>{formatNumber(r.collected)}</td>
-                      <td className={`${td} hidden text-right tabular-nums md:table-cell`}>{formatNumber(r.discount)}</td>
-                      <td className={`${td} hidden text-right tabular-nums md:table-cell`}>{formatNumber(r.credits)}</td>
-                      <td className={`${td} hidden text-right tabular-nums lg:table-cell`}>{formatNumber(r.refunds)}</td>
-                      <td className={`${td} hidden text-right tabular-nums lg:table-cell`}>{r.renewals}</td>
+                      <td className={`${td} text-right `}>{r.purchases}</td>
+                      <td className={`${td} text-right  text-warning`}>{r.pending || '—'}</td>
+                      <td className={`${td} text-right font-medium  text-success`}>{formatNumber(r.collected)}</td>
+                      <td className={`${td} hidden text-right  md:table-cell`}>{formatNumber(r.discount)}</td>
+                      <td className={`${td} hidden text-right  md:table-cell`}>{formatNumber(r.credits)}</td>
+                      <td className={`${td} hidden text-right  lg:table-cell`}>{formatNumber(r.refunds)}</td>
+                      <td className={`${td} hidden text-right  lg:table-cell`}>{r.renewals}</td>
                     </tr>
                   ))}
                 </tbody>
