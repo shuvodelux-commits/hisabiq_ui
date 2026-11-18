@@ -187,9 +187,9 @@ export function PackageBuilder({ initial, onClose }: { initial: SaasPackage; onC
                       {[...saas.state.packages.filter((x) => x.kind === 'PLAN' && x.billing === 'MONTHLY' && x.status === 'ACTIVE'), p].map((x) => (
                         <tr key={x.id + (x === p ? '-new' : '')} className={`border-t border-ink-100 ${x === p ? 'font-medium text-teal-800' : ''}`}>
                           <td className="py-1">{x === p ? `${p.name || 'This package'} (new)` : x.name}</td>
-                          <td className="py-1 text-right tabular-nums">{taka(x.priceBdt)}</td>
-                          <td className="py-1 text-right tabular-nums">{x.userLimit}</td>
-                          <td className="py-1 text-right tabular-nums">{x.features.length}</td>
+                          <td className="py-1 text-right ">{taka(x.priceBdt)}</td>
+                          <td className="py-1 text-right ">{x.userLimit}</td>
+                          <td className="py-1 text-right ">{x.features.length}</td>
                         </tr>
                       ))}
                     </tbody>

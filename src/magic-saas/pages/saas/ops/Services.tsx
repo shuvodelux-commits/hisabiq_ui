@@ -39,7 +39,7 @@ export function Services() {
                   <tr key={s.id} onClick={() => setOpen(s.id)} className="cursor-pointer border-b border-ink-100 last:border-0 hover:bg-ink-50/60">
                     <td className={td}><button type="button" onClick={(e) => { e.stopPropagation(); setOpen(s.id); }} className="font-medium text-teal-700 hover:underline">{s.title}</button><span className="block text-[11px] text-ink-500">{s.id} · requested {fmtDateTime(s.requestedAt)}</span></td>
                     <td className={td}>{saas.state.tenants.find((t) => t.id === s.tenantId)?.name}</td>
-                    <td className={`${td} text-right tabular-nums`}>{formatNumber(s.quoteBdt)}</td>
+                    <td className={`${td} text-right `}>{formatNumber(s.quoteBdt)}</td>
                     <td className={`${td} hidden md:table-cell`}>{s.assignee || '—'}</td>
                     <td className={`${td} hidden whitespace-nowrap text-ink-600 md:table-cell`}>{s.scheduledAt ? fmtDateTime(s.scheduledAt) : '—'}</td>
                     <td className={td}><Badge tone={serviceMeta[s.state].tone} dot>{serviceMeta[s.state].label}</Badge></td>

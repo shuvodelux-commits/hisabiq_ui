@@ -27,7 +27,7 @@ export function BillingLedger({ orders, showBusiness = false, stateFilter = true
             <Select value={state} onChange={(v) => setState(v as 'ALL' | OrderState)} options={[{ value: 'ALL', label: 'All states' }, ...Object.entries(orderMeta).map(([k, m]) => ({ value: k, label: m.label }))]} />
           </div>
           <p className="text-[11px] text-ink-500">
-            Received <b className="font-medium tabular-nums text-success">৳{formatNumber(received)}</b> · Pending <b className="font-medium tabular-nums text-warning">৳{formatNumber(pending)}</b> · Refunded <b className="font-medium tabular-nums text-ink">৳{formatNumber(refunded)}</b>
+            Received <b className="font-medium  text-success">৳{formatNumber(received)}</b> · Pending <b className="font-medium  text-warning">৳{formatNumber(pending)}</b> · Refunded <b className="font-medium  text-ink">৳{formatNumber(refunded)}</b>
           </p>
         </div>
       )}
@@ -57,8 +57,8 @@ export function BillingLedger({ orders, showBusiness = false, stateFilter = true
                   </td>
                   {showBusiness && <td className={td}>{saas.state.tenants.find((t) => t.id === o.tenantId)?.name}</td>}
                   <td className={`${td} hidden text-ink-600 md:table-cell`}>{o.method}<span className="block text-[11px] text-ink-500">{o.reference || '—'}{o.evidence ? ' · screenshot' : ''}</span></td>
-                  <td className={`${td} text-right font-medium tabular-nums`}>{formatNumber(o.total)}{o.refund && <span className="block text-[11px] font-normal text-danger">− {formatNumber(o.refund.amount)}</span>}</td>
-                  <td className={`${td} hidden text-right tabular-nums text-ink-500 lg:table-cell`}>{o.discount ? formatNumber(o.discount) : '—'}</td>
+                  <td className={`${td} text-right font-medium `}>{formatNumber(o.total)}{o.refund && <span className="block text-[11px] font-normal text-danger">− {formatNumber(o.refund.amount)}</span>}</td>
+                  <td className={`${td} hidden text-right  text-ink-500 lg:table-cell`}>{o.discount ? formatNumber(o.discount) : '—'}</td>
                   <td className={td}><Badge tone={orderMeta[o.state].tone} dot>{orderMeta[o.state].label}</Badge></td>
                 </tr>
               ))

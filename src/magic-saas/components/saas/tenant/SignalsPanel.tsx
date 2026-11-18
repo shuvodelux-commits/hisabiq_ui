@@ -28,7 +28,7 @@ export function SignalsPanel({ tenant }: { tenant: Tenant }) {
       <SettingCard title="Health" titleBn="অবস্থা" bodyClassName="space-y-2 p-4">
         <div className="flex items-center gap-2">
           <Badge tone={healthTone[health.level]} dot>{health.level}</Badge>
-          <span className="text-xs tabular-nums text-ink-500">Score {health.score}/100</span>
+          <span className="text-xs  text-ink-500">Score {health.score}/100</span>
         </div>
         <ul className="space-y-1 text-[13px]">
           {health.signals.map((s, i) => (
@@ -71,7 +71,7 @@ export function SignalsPanel({ tenant }: { tenant: Tenant }) {
           {modules.map((m) => (
             <li key={m.key} className="flex items-center justify-between gap-3 px-4 py-1.5">
               <span className="text-ink-700">{m.label}</span>
-              <span className="flex items-center gap-2 text-xs tabular-nums text-ink-500">
+              <span className="flex items-center gap-2 text-xs  text-ink-500">
                 {m.allowed ? `${m.uses} uses` : m.locked ? `${m.locked} blocked tries` : ''}
                 <Badge tone={m.status === 'Using' ? 'success' : m.status === 'Locked — tried' ? 'warning' : m.status === 'Paid, unused' ? 'info' : 'neutral'}>{m.status}</Badge>
               </span>

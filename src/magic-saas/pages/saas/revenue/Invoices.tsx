@@ -83,8 +83,8 @@ export function Invoices() {
                       <td className={td}><button type="button" onClick={() => setParams({ order: o.id })} className="font-medium text-teal-700 hover:underline">{o.id}</button><span className="block text-[11px] text-ink-500">{o.terms.benefit}</span></td>
                       <td className={td}>{name(o.tenantId)}</td>
                       <td className={`${td} hidden text-ink-600 md:table-cell`}>{invoiceKind(o)}</td>
-                      <td className={`${td} text-right font-medium tabular-nums`}>{formatNumber(o.total)}</td>
-                      <td className={`${td} hidden text-right tabular-nums lg:table-cell`}>{balanceDue(o) ? formatNumber(balanceDue(o)) : '—'}</td>
+                      <td className={`${td} text-right font-medium `}>{formatNumber(o.total)}</td>
+                      <td className={`${td} hidden text-right  lg:table-cell`}>{balanceDue(o) ? formatNumber(balanceDue(o)) : '—'}</td>
                       <td className={`${td} hidden whitespace-nowrap text-ink-600 md:table-cell`}>{fmtDate(dueDate(o))}</td>
                       <td className={td}><Badge tone={invoiceTone[st]} dot>{st}</Badge></td>
                       <td className={tdAction}>

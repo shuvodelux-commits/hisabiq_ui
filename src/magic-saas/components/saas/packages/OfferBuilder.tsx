@@ -85,7 +85,7 @@ export function OfferBuilder({ initial, onClose }: { initial: Offer; onClose: ()
                       <Checkbox checked={o.packageIds.includes(p.id)} onCheckedChange={(v: boolean) => set('packageIds', v ? [...o.packageIds, p.id] : o.packageIds.filter((x) => x !== p.id))} disabled={!canEdit} />
                       {p.name} <span className="text-[11px] text-ink-500">{taka(p.priceBdt)} {billingLabel(p)}</span>
                     </label>
-                    {o.packageIds.includes(p.id) && <span className="text-xs tabular-nums text-ink-600">Pays <b className="font-medium text-ink">{taka(qq.total)}</b>{qq.bonusCredits ? ` + ${qq.bonusCredits} bonus SMS` : ''}</span>}
+                    {o.packageIds.includes(p.id) && <span className="text-xs  text-ink-600">Pays <b className="font-medium text-ink">{taka(qq.total)}</b>{qq.bonusCredits ? ` + ${qq.bonusCredits} bonus SMS` : ''}</span>}
                   </li>
                 );
               })}
@@ -146,10 +146,10 @@ export function OfferBuilder({ initial, onClose }: { initial: Offer; onClose: ()
               <label className="flex items-center gap-2 text-xs text-ink-600">If <input type="number" min={0} value={estimate} onChange={(e) => setEstimate(e.target.value)} aria-label="Estimated redemptions" className="ref-control w-20 rounded-lg border border-ink-200 px-2 text-right text-[13px]" /> businesses redeem:</label>
               {q && (
                 <dl className="mt-2 divide-y divide-ink-100 text-[13px]">
-                  <div className="flex justify-between py-1"><dt className="text-ink-600">Collections (first period)</dt><dd className="tabular-nums">{taka(q.total * n)}</dd></div>
-                  <div className="flex justify-between py-1"><dt className="text-ink-600">Discount given</dt><dd className="tabular-nums">{taka(q.discount * n)}</dd></div>
-                  {q.bonusCredits > 0 && <div className="flex justify-between py-1"><dt className="text-ink-600">Bonus SMS (est. cost)</dt><dd className="tabular-nums">{(q.bonusCredits * n).toLocaleString()} · ~৳{Math.round(q.bonusCredits * n * maxTariff).toLocaleString()}</dd></div>}
-                  {o.type === 'SETUP' && <div className="flex justify-between py-1"><dt className="text-ink-600">Setup work given</dt><dd className="tabular-nums">{taka(o.value * n)}</dd></div>}
+                  <div className="flex justify-between py-1"><dt className="text-ink-600">Collections (first period)</dt><dd className="">{taka(q.total * n)}</dd></div>
+                  <div className="flex justify-between py-1"><dt className="text-ink-600">Discount given</dt><dd className="">{taka(q.discount * n)}</dd></div>
+                  {q.bonusCredits > 0 && <div className="flex justify-between py-1"><dt className="text-ink-600">Bonus SMS (est. cost)</dt><dd className="">{(q.bonusCredits * n).toLocaleString()} · ~৳{Math.round(q.bonusCredits * n * maxTariff).toLocaleString()}</dd></div>}
+                  {o.type === 'SETUP' && <div className="flex justify-between py-1"><dt className="text-ink-600">Setup work given</dt><dd className="">{taka(o.value * n)}</dd></div>}
                 </dl>
               )}
               <p className="mt-2 text-[11px] text-ink-500">A planning estimate only. Real performance counts verified payments, not orders.</p>

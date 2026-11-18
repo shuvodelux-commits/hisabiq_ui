@@ -26,7 +26,7 @@ async function main() {
       await page.screenshot({path:path.join(dir,`search-${width}-${theme}.png`),fullPage:false});
       await page.keyboard.press('Escape');
       await page.locator('#cc-search-results').waitFor({state:'hidden'});
-      const staff=page.locator('header button[aria-expanded]').first();
+      const staff=page.getByRole('button',{name:'Signed-in staff'});
       await staff.click();
       await page.getByRole('listbox',{name:'View as staff member'}).waitFor();
       await page.waitForTimeout(250);

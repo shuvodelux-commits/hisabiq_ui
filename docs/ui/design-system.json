@@ -5358,6 +5358,7 @@
       "src/components/parties/PartyDetailResponsive.tsx",
       "src/components/purchases/PurchaseCart.tsx",
       "src/components/reports/ReportResults.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/saas/components.tsx",
       "src/settings/EmployeeDirectory.tsx",
@@ -5375,6 +5376,7 @@
       "src/components/reports/ReportResults.tsx",
       "src/components/reports/ReportsNav.tsx",
       "src/features/auth/LoginPreviewPage.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/magic-saas/components/saas/tenant/OverviewTab.tsx",
       "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/magic-saas/pages/saas/customers/Businesses.tsx",
@@ -5761,6 +5763,7 @@
     ],
     "Menu": [
       "src/components/layout/TopBar.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/saas/SaasShell.tsx"
     ],
     "MessageSquare": [
@@ -5836,6 +5839,12 @@
     ],
     "PanelLeft": [
       "src/components/layout/SidebarTrigger.tsx"
+    ],
+    "PanelLeftClose": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
+    ],
+    "PanelLeftOpen": [
+      "src/magic-saas/components/saas/ControlCenterShell.tsx"
     ],
     "Paperclip": [
       "src/components/brand/PrimitivesSection.tsx",
@@ -6401,6 +6410,7 @@
       "src/components/reports/ReportToolbar.tsx",
       "src/components/transactions/TransactionCartEditor.tsx",
       "src/components/vendor/VendorDirectory.tsx",
+      "src/magic-saas/components/saas/ControlCenterShell.tsx",
       "src/magic-saas/components/saas/SaasBits.tsx",
       "src/magic-saas/hisabiq-library/components/AppDateRangePicker.tsx",
       "src/magic-saas/prototype/Ui.tsx",

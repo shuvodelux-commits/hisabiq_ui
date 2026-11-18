@@ -121,7 +121,7 @@ export function PlanUsageTab({ tenant, onCheckout }: { tenant: Tenant; onCheckou
 function Meter({ label, value, pct, hideBar }: { label: string; value: string; pct: number; hideBar?: boolean }) {
   return (
     <div>
-      <div className="flex justify-between text-[13px]"><span className="text-ink-600">{label}</span><span className="font-medium tabular-nums">{value}</span></div>
+      <div className="flex justify-between text-[13px]"><span className="text-ink-600">{label}</span><span className="font-medium ">{value}</span></div>
       {!hideBar && (
         <div className="mt-1 h-1.5 rounded-full bg-ink-50" role="meter" aria-label={label} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
           <div className={`h-1.5 rounded-full ${pct >= 90 ? 'bg-danger' : pct >= 75 ? 'bg-warning' : 'bg-teal-600'}`} style={{ width: `${Math.min(100, pct)}%` }} />

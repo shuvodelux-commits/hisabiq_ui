@@ -34,7 +34,7 @@ export function SettingsTab({ tenant }: { tenant: Tenant }) {
   return (
     <div className="space-y-3">
       {!canEdit && (
-        <p className="flex items-center gap-2 rounded-lg border border-ink-100 bg-white px-3 py-2 text-xs text-ink-600">
+        <p className="flex items-center gap-2 rounded-lg border border-ink-100 bg-card px-3 py-2 text-xs text-ink-600">
           <Lock className="size-3.5" aria-hidden="true" /> View only. Your role ({saas.staff.label}) can’t change business settings.
         </p>
       )}

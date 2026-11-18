@@ -119,8 +119,8 @@ export function Businesses() {
                         <Badge tone={healthTone[health.level]} dot>{health.level}</Badge>
                         <span className="block max-w-[220px] truncate text-[11px] text-ink-500" title={health.signals[0]?.text}>{health.signals[0]?.text}</span>
                       </td>
-                      <td className={`${td} hidden text-right tabular-nums lg:table-cell ${setup.stuck ? 'text-warning' : ''}`}>{setup.pct}%</td>
-                      <td className={`${td} hidden text-right tabular-nums lg:table-cell`}>
+                      <td className={`${td} hidden text-right  lg:table-cell ${setup.stuck ? 'text-warning' : ''}`}>{setup.pct}%</td>
+                      <td className={`${td} hidden text-right  lg:table-cell`}>
                         {t.erp.productCount.toLocaleString('en-IN')}
                         <span className={`block text-[11px] ${prod.pct >= 80 ? 'text-warning' : 'text-ink-500'}`}>{prod.pct}% of {prod.limit.toLocaleString('en-IN')}</span>
                       </td>

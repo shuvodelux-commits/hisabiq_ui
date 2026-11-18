@@ -13,7 +13,7 @@ export function IdentityChip() {
       label="Signed-in staff"
       width={300}
       trigger={({ open, toggle }) => (
-        <button type="button" onClick={toggle} aria-expanded={open} className="flex items-center gap-2 rounded-lg px-2 py-1 text-left hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
+        <button type="button" onClick={toggle} aria-label="Signed-in staff" title="Signed-in staff" aria-haspopup="dialog" aria-expanded={open} className="flex items-center gap-2 rounded-lg px-2 py-1 text-left hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
           <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-50 text-[11px] font-semibold text-teal-800" aria-hidden="true">{initials(me.name)}</span>
           <span className="hidden min-w-0 leading-tight sm:block">
             <span className="block max-w-[180px] truncate text-xs font-medium text-ink">{me.name}</span>

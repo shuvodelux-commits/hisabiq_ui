@@ -30,7 +30,7 @@ export function BuilderShell({ title, subtitle, step, onStep, issues, canEdit, c
   const errors = issues.filter((i) => i.level === 'error').length;
   const idx = steps.findIndex((s) => s.id === step);
   return (
-    <section className="rounded-xl border border-ink-100 bg-white shadow-card">
+    <section className="rounded-xl border border-ink-100 bg-card shadow-card">
       <header className="flex flex-wrap items-start justify-between gap-2 px-4 pt-3">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
@@ -42,7 +42,7 @@ export function BuilderShell({ title, subtitle, step, onStep, issues, canEdit, c
       <fieldset disabled={!canEdit} className="min-w-0 space-y-4 p-4">
         {children}
       </fieldset>
-      <footer className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2 rounded-b-xl border-t border-ink-100 bg-white px-4 py-3">
+      <footer className="sticky bottom-0 flex flex-wrap items-center justify-between gap-2 rounded-b-xl border-t border-ink-100 bg-card px-4 py-3">
         <span className={`text-xs ${errors ? 'text-danger' : dirty ? 'font-medium text-warning' : 'text-ink-500'}`}>{errors ? `${errors} issue${errors > 1 ? 's' : ''} to fix before publishing` : dirty ? 'Unsaved changes' : 'No changes'}</span>
         <div className="flex flex-wrap gap-2">
           <Button onClick={onCancel}>{dirty ? 'Discard' : 'Close'}</Button>
