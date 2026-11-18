@@ -39,13 +39,13 @@ export function TenantWorkspace() {
   if (loading)
     return (
       <div className="space-y-3" aria-busy="true" aria-label="Loading business">
-        <div className="h-24 animate-pulse rounded-xl bg-white" />
-        <div className="h-64 animate-pulse rounded-xl bg-white" />
+        <div className="h-24 animate-pulse rounded-xl bg-card" />
+        <div className="h-64 animate-pulse rounded-xl bg-card" />
       </div>
     );
   if (!tenant)
     return (
-      <div role="alert" className="rounded-xl border border-ink-100 bg-white p-6 text-center shadow-card">
+      <div role="alert" className="rounded-xl border border-ink-100 bg-card p-6 text-center shadow-card">
         <p className="text-[13px] font-medium text-ink">Business {tenantId} not found</p>
         <Link to="/saas/tenants" className="mt-2 inline-block text-xs font-medium text-teal-700 hover:underline">Back to businesses</Link>
       </div>
@@ -65,7 +65,7 @@ export function TenantWorkspace() {
         <ArrowLeft className="size-3.5" /> Businesses
       </Link>
 
-      <section className="rounded-xl border border-ink-100 bg-white shadow-card">
+      <section className="rounded-xl border border-ink-100 bg-card shadow-card">
         <div className="flex flex-wrap items-start justify-between gap-3 px-4 pt-4">
           <div className="min-w-0">
             <h1 className="flex flex-wrap items-center gap-2 text-lg font-semibold tracking-tight text-ink">
@@ -123,7 +123,7 @@ function Fact({ label, value, tone }: { label: string; value: string; tone?: 'ne
   return (
     <div className="min-w-0 py-1">
       <dt className="text-[11px] text-ink-500">{label}</dt>
-      <dd title={value} className={`mt-0.5 truncate font-medium tabular-nums ${tone === 'danger' ? 'text-danger' : tone === 'warning' ? 'text-warning' : 'text-ink'}`}>{value}</dd>
+      <dd title={value} className={`mt-0.5 truncate font-medium  ${tone === 'danger' ? 'text-danger' : tone === 'warning' ? 'text-warning' : 'text-ink'}`}>{value}</dd>
     </div>
   );
 }
