@@ -70,7 +70,7 @@ export function ServiceDialog({ serviceId, onClose }: { serviceId: string; onClo
         )}
         <p className="rounded-lg bg-ink-50 px-3 py-2 text-ink-700">{sv.notes}</p>
         <dl className="grid grid-cols-2 gap-2 text-xs">
-          <div><dt className="text-ink-500">Quote</dt><dd className="font-medium tabular-nums">{taka(sv.quoteBdt)}</dd></div>
+          <div><dt className="text-ink-500">Quote</dt><dd className="font-medium ">{taka(sv.quoteBdt)}</dd></div>
           <div><dt className="text-ink-500">Requested</dt><dd>{fmtDateTime(sv.requestedAt)}</dd></div>
           <div><dt className="text-ink-500">Assignee</dt><dd>{sv.assignee || 'Unassigned'}</dd></div>
           <div><dt className="text-ink-500">Scheduled</dt><dd>{sv.scheduledAt ? fmtDateTime(sv.scheduledAt) : '—'}</dd></div>
