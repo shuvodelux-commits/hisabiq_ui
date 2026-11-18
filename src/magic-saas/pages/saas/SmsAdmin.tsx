@@ -50,7 +50,7 @@ export function SmsAdmin() {
           { label: 'Sender names pending', value: senders.filter((s) => s.status === 'Pending').length, tone: senders.some((s) => s.status === 'Pending') ? 'warning' : undefined },
         ]}
       />
-      <section className="rounded-xl border border-ink-100 bg-white shadow-card">
+      <section className="rounded-xl border border-ink-100 bg-card shadow-card">
         <Tabs label="SMS administration" value={tab} onChange={(v) => { setTab(v); setError(''); setParams(v === 'messages' ? {} : { tab: v }, { replace: true }); }} items={[{ id: 'messages', label: 'Messages', count: failed.length || undefined }, { id: 'templates', label: 'Owner templates', count: saas.state.templates.length }, { id: 'packages', label: 'Packages & margin' }, { id: 'tariffs', label: 'Supplier tariffs', count: tariffs.length }, { id: 'senders', label: 'Sender names', count: senders.filter((s) => s.status === 'Pending').length || undefined }, { id: 'providers', label: 'Provider health' }, { id: 'recon', label: 'Reconciliation' }]} />
         {error && <p role="alert" className="mx-4 mt-3 rounded-lg bg-danger-bg px-3 py-2 text-xs text-danger">{error}</p>}
 
@@ -65,7 +65,7 @@ export function SmsAdmin() {
                     <td className={td}><span className="block max-w-[340px] truncate font-bn" title={m.text}>{m.text}</span><span className="block text-[11px] text-ink-500">{m.to} · {fmtDateTime(m.at)}{m.retries ? ` · retried ${m.retries}×` : ''}</span></td>
                     <td className={`${td} hidden md:table-cell`}>{tenants.find((t) => t.id === m.tenantId)?.name}</td>
                     <td className={`${td} hidden text-ink-600 lg:table-cell`}>{m.provider}</td>
-                    <td className={`${td} text-right tabular-nums`}>{m.segments}<span className="block text-[11px] text-ink-500">{m.encoding}</span></td>
+                    <td className={`${td} text-right `}>{m.segments}<span className="block text-[11px] text-ink-500">{m.encoding}</span></td>
                     <td className={td}><Badge tone={m.status === 'Delivered' ? 'success' : m.status === 'Failed' ? 'danger' : 'info'} dot>{m.status}</Badge></td>
                     <td className={tdAction}>
                       <RowActions label={`Actions for message to ${m.to}`} items={[
@@ -107,10 +107,10 @@ export function SmsAdmin() {
                     return (
                       <tr key={p.id} className="border-b border-ink-100 last:border-0">
                         <td className={td}><span className="font-medium">{p.name}</span><span className="block text-[11px] text-ink-500">Valid {p.smsExpiryDays} days</span></td>
-                        <td className={`${td} text-right tabular-nums`}>{taka(p.priceBdt)}</td>
-                        <td className={`${td} text-right tabular-nums`}>{formatNumber(p.smsCredits)}</td>
-                        <td className={`${td} text-right tabular-nums`}>৳{per.toFixed(2)}</td>
-                        <td className={`${td} text-right tabular-nums ${margin < marginThreshold ? 'text-danger' : 'text-ink'}`}>{margin}%{margin < marginThreshold && <span className="block text-[11px]">Below {marginThreshold}%</span>}</td>
+                        <td className={`${td} text-right `}>{taka(p.priceBdt)}</td>
+                        <td className={`${td} text-right `}>{formatNumber(p.smsCredits)}</td>
+                        <td className={`${td} text-right `}>৳{per.toFixed(2)}</td>
+                        <td className={`${td} text-right  ${margin < marginThreshold ? 'text-danger' : 'text-ink'}`}>{margin}%{margin < marginThreshold && <span className="block text-[11px]">Below {marginThreshold}%</span>}</td>
                         <td className={td}><Badge tone={p.status === 'ACTIVE' ? 'success' : 'neutral'} dot>{p.status === 'ACTIVE' ? 'Active' : p.status.toLowerCase()}</Badge></td>
                       </tr>
                     );
@@ -136,7 +136,7 @@ export function SmsAdmin() {
                   <tr key={t.id} className="border-b border-ink-100 last:border-0">
                     <td className={td}>{providers.find((p) => p.id === t.providerId)?.name}</td>
                     <td className={td}>{t.route}</td>
-                    <td className={`${td} text-right tabular-nums`}>৳{t.costPerSegment.toFixed(2)}</td>
+                    <td className={`${td} text-right `}>৳{t.costPerSegment.toFixed(2)}</td>
                     <td className={td}><Badge tone={t.confirmed ? 'success' : 'warning'}>{t.confirmed ? 'Supplier-confirmed' : 'Sample — not confirmed'}</Badge></td>
                     <td className={`${td} text-ink-500`}>{fmtDate(t.effectiveFrom)}</td>
                     <td className={tdAction}>
@@ -179,8 +179,8 @@ export function SmsAdmin() {
             {providers.map((p) => (
               <li key={p.id} className="grid gap-2 px-4 py-3 text-[13px] sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-6">
                 <span><span className="font-medium">{p.name}</span><span className="block text-[11px] text-ink-500">{p.routes} · checked {fmtDateTime(p.lastCheck)}</span></span>
-                <span className="tabular-nums"><span className="text-[11px] text-ink-500">Delivered </span>{p.deliveryRate}%</span>
-                <span className="tabular-nums"><span className="text-[11px] text-ink-500">Latency </span>{p.latencySec}s</span>
+                <span className=""><span className="text-[11px] text-ink-500">Delivered </span>{p.deliveryRate}%</span>
+                <span className=""><span className="text-[11px] text-ink-500">Latency </span>{p.latencySec}s</span>
                 <Badge tone={p.status === 'Healthy' ? 'success' : p.status === 'Degraded' ? 'warning' : 'danger'} dot>{p.status}</Badge>
               </li>
             ))}
@@ -197,7 +197,7 @@ export function SmsAdmin() {
                 ['Failed messages to refund', String(smsMessages.filter((m) => m.status === 'Failed').length)],
                 ['Reserved, not yet sent', formatNumber(reserved)],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-3 px-3 py-2"><dt className="text-ink-600">{k}</dt><dd className="font-medium tabular-nums">{v}</dd></div>
+                <div key={k} className="flex justify-between gap-3 px-3 py-2"><dt className="text-ink-600">{k}</dt><dd className="font-medium ">{v}</dd></div>
               ))}
             </dl>
             <p className="text-xs text-warning">Difference: {formatNumber(Math.abs(sentSeg - providerSeg))} segments. Sample data doesn’t include every provider report — real matching needs the provider statement import.</p>
