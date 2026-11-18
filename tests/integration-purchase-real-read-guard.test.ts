@@ -275,3 +275,30 @@ test('R09PUR-26 real phone touch hit targets navigate connected source/history w
   assert.ok(script.includes("exercisePurchaseAccessibleNavigation(browser, 390, preflightRecords, 'touch')"));
   assert.match(script, /entry\.method !== 'GET' && entry\.path !== '\/api\/v1\/auth\/login'/);
 });
+
+
+test('R09PUR-27 duplicate purchase-source and return-history identifiers require actual signed A GET', () => {
+  const script = source(runner);
+  assert.match(script, /faults\.injectDuplicateReturnable/);
+  assert.match(script, /faults\.injectDuplicateHistory/);
+  assert.match(script, /response\.data\?\.data\?\.purchaseId === people\.a\.purchaseId/);
+  assert.ok(script.includes('lines: [...response.data.data.lines, { ...response.data.data.lines[0] }]'));
+  assert.ok(script.includes('returns: [...response.data.returns, sourceReturn]'));
+  assert.match(script, /sourceReturn\.purchaseId === people\.a\.purchaseId/);
+});
+test('R09PUR-28 genuine signed duplicate IDs fail closed in browser at all three viewports', () => {
+  const script = source(runner);
+  assert.match(script, /async function exerciseDuplicateReturnView\(/);
+  assert.ok(script.includes('Could not verify returnable quantities. No preview values were loaded.'));
+  assert.ok(script.includes('Could not verify supplier returns. No preview entries were loaded.'));
+  assert.ok(script.includes("page.locator('[data-purchase-returnable-table]').count()"));
+  assert.ok(script.includes("page.locator('[data-purchase-return-history-table]').count()"));
+  assert.match(script, /assert\.deepEqual\(violations, \[\]\)/);
+  assert.match(script, /assert\.deepEqual\(errors, \[\]\)/);
+  for (const width of [1280, 768, 390]) {
+    for (const kind of ['returnable', 'history']) {
+      assert.ok(script.includes("exerciseDuplicateReturnView(browser, " + width +
+        ", preflightRecords, '" + kind + "')"));
+    }
+  }
+});

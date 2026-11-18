@@ -234,6 +234,25 @@ function intercept(page, log, violations, blocked, faults = null) {
         return route.fulfill({ status: 200, contentType: 'application/json',
           body: JSON.stringify({ returns: { malformed: true } }) });
       }
+      if (faults && faults.injectDuplicateReturnable && who === 'a' && returnId &&
+          response.status === 200 && response.data?.data?.purchaseId === people.a.purchaseId &&
+          Array.isArray(response.data.data.lines) && response.data.data.lines.length > 0) {
+        faults.injected += 1;
+        return route.fulfill({ status: 200, contentType: 'application/json',
+          body: JSON.stringify({ data: { ...response.data.data,
+            lines: [...response.data.data.lines, { ...response.data.data.lines[0] }] } }) });
+      }
+      if (faults && faults.injectDuplicateHistory && who === 'a' &&
+          path === '/api/v1/purchase-returns' && response.status === 200 &&
+          Array.isArray(response.data?.returns) &&
+          response.data.returns.some(item => item.purchaseId === people.a.purchaseId)) {
+        const sourceReturn = response.data.returns.find(item => item.purchaseId === people.a.purchaseId);
+        assert.ok(sourceReturn.purchaseId === people.a.purchaseId);
+        faults.injected += 1;
+        return route.fulfill({ status: 200, contentType: 'application/json',
+          body: JSON.stringify({ ...response.data,
+            returns: [...response.data.returns, sourceReturn] }) });
+      }
       if (faults && who === 'a' && response.status === 200 &&
           ((faults.holdReturnable && returnId &&
             response.data?.data?.purchaseId === people.a.purchaseId &&
@@ -397,15 +416,17 @@ async function exerciseMalformedPurchaseList(browser, width, preflightRecords) {
     throw error;
   } finally { await context.close(); }
 }
-async function exerciseMalformedReturnView(browser, width, preflightRecords, kind) {
+async function exerciseMalformedReturnView(browser, width, preflightRecords, kind, duplicateIds = false) {
   assert.ok(kind === 'returnable' || kind === 'history');
   const context = await browser.newContext({ viewport: { width, height: 860 },
     reducedMotion: 'reduce' });
   const page = await context.newPage();
   page.setDefaultTimeout(25000);
   const log = [], violations = [], blocked = [], errors = [];
-  const faults = { injectMalformedReturnable: kind === 'returnable',
-    injectMalformedHistory: kind === 'history', injected: 0 };
+  const faults = { injectMalformedReturnable: kind === 'returnable' && !duplicateIds,
+    injectMalformedHistory: kind === 'history' && !duplicateIds,
+    injectDuplicateReturnable: kind === 'returnable' && duplicateIds,
+    injectDuplicateHistory: kind === 'history' && duplicateIds, injected: 0 };
   let stage = 'navigation';
   page.on('pageerror', e => errors.push(e.name));
   intercept(page, log, violations, blocked, faults);
@@ -446,6 +467,9 @@ async function exerciseMalformedReturnView(browser, width, preflightRecords, kin
     console.error('R09_PURCHASE_MALFORMED_RETURN_RED', width, kind, stage, category);
     throw error;
   } finally { await context.close(); }
+}
+async function exerciseDuplicateReturnView(browser, width, preflightRecords, kind) {
+  return exerciseMalformedReturnView(browser, width, preflightRecords, kind, true);
 }
 async function exerciseStaleReturnRead(browser, width, preflightRecords, kind) {
   assert.ok(kind === 'returnable' || kind === 'history');
@@ -636,6 +660,12 @@ async function main() {
     await exerciseMalformedReturnView(browser, 1280, preflightRecords, 'history');
     await exerciseMalformedReturnView(browser, 768, preflightRecords, 'history');
     await exerciseMalformedReturnView(browser, 390, preflightRecords, 'history');
+    await exerciseDuplicateReturnView(browser, 1280, preflightRecords, 'returnable');
+    await exerciseDuplicateReturnView(browser, 768, preflightRecords, 'returnable');
+    await exerciseDuplicateReturnView(browser, 390, preflightRecords, 'returnable');
+    await exerciseDuplicateReturnView(browser, 1280, preflightRecords, 'history');
+    await exerciseDuplicateReturnView(browser, 768, preflightRecords, 'history');
+    await exerciseDuplicateReturnView(browser, 390, preflightRecords, 'history');
     await exerciseStaleReturnRead(browser, 1280, preflightRecords, 'returnable');
     await exerciseStaleReturnRead(browser, 768, preflightRecords, 'returnable');
     await exerciseStaleReturnRead(browser, 390, preflightRecords, 'returnable');
