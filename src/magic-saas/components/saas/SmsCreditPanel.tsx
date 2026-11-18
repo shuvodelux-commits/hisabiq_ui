@@ -25,8 +25,8 @@ export function SmsCreditPanel({ tenant, onBuy }: { tenant: Tenant; onBuy: () =>
   return (
     <SettingCard title="SMS credits" titleBn="এসএমএস ক্রেডিট" bodyClassName="" actions={<button type="button" onClick={onBuy} className="text-xs font-medium text-teal-700 hover:underline">Buy credits</button>}>
       <dl className="grid grid-cols-3 gap-3 border-b border-ink-100 px-4 py-2.5 text-[13px]">
-        <div><dt className="text-[11px] text-ink-500">Available</dt><dd className="font-semibold tabular-nums">{formatNumber(tenant.smsAvailable)}</dd></div>
-        <div><dt className="text-[11px] text-ink-500">Reserved</dt><dd className="font-semibold tabular-nums">{formatNumber(tenant.smsReserved)}</dd><dd className="text-[11px] text-ink-500">Scheduled sends</dd></div>
+        <div><dt className="text-[11px] text-ink-500">Available</dt><dd className="font-semibold ">{formatNumber(tenant.smsAvailable)}</dd></div>
+        <div><dt className="text-[11px] text-ink-500">Reserved</dt><dd className="font-semibold ">{formatNumber(tenant.smsReserved)}</dd><dd className="text-[11px] text-ink-500">Scheduled sends</dd></div>
         <div><dt className="text-[11px] text-ink-500">Next expiry</dt><dd className="font-semibold">{nextExpiry ? fmtDate(nextExpiry) : '—'}</dd><dd className="text-[11px] text-ink-500">Oldest credits used first</dd></div>
       </dl>
 
@@ -42,8 +42,8 @@ export function SmsCreditPanel({ tenant, onBuy }: { tenant: Tenant; onBuy: () =>
                   <span className="font-medium">{moveLabel[m.kind]}</span> <span className="text-ink-500">· {m.ref}</span>
                   <span className="block text-[11px] text-ink-500">{m.note}{m.expiresAt ? ` · expires ${fmtDate(m.expiresAt)}` : ''}</span>
                 </td>
-                <td className={`${td} text-right font-medium tabular-nums ${m.credits > 0 ? 'text-success' : 'text-ink'}`}>{m.credits > 0 ? '+' : '−'}{formatNumber(Math.abs(m.credits))}</td>
-                <td className={`${td} text-right tabular-nums`}>{formatNumber(m.balance)}</td>
+                <td className={`${td} text-right font-medium  ${m.credits > 0 ? 'text-success' : 'text-ink'}`}>{m.credits > 0 ? '+' : '−'}{formatNumber(Math.abs(m.credits))}</td>
+                <td className={`${td} text-right `}>{formatNumber(m.balance)}</td>
               </tr>
             ))}
           </tbody>
@@ -60,7 +60,7 @@ export function SmsCreditPanel({ tenant, onBuy }: { tenant: Tenant; onBuy: () =>
             <label className="flex items-center gap-1.5">× <input type="number" min={0} value={recipients} onChange={(e) => setRecipients(e.target.value)} aria-label="Recipients" className="ref-control w-20 rounded-lg border border-ink-200 px-2 text-right text-[13px]" /> recipients</label>
           </div>
           <p className={`text-xs ${needed > tenant.smsAvailable ? 'text-danger' : 'text-ink-600'}`}>
-            Needs <b className="font-medium tabular-nums">{formatNumber(needed)}</b> credits — {needed > tenant.smsAvailable ? `${formatNumber(needed - tenant.smsAvailable)} short. Credits are reserved when scheduled.` : 'enough credits.'}
+            Needs <b className="font-medium ">{formatNumber(needed)}</b> credits — {needed > tenant.smsAvailable ? `${formatNumber(needed - tenant.smsAvailable)} short. Credits are reserved when scheduled.` : 'enough credits.'}
           </p>
         </div>
         <div>
