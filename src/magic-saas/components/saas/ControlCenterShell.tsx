@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'framer-motion';
+import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { MOTION_EASE, MOTION_MS } from '../../hisabiq-library/motion/tokens';
 import {
   ArrowLeft, BadgeCheck, BarChart3, BookOpen, Building2, ChevronLeft, ChevronRight,
@@ -329,15 +329,14 @@ export function ControlCenterShell() {
         </main>
       </div>
 
-      {createPortal(<AnimatePresence>
-        {drawerOpen && <motion.div key="saas-nav-overlay"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      {createPortal(drawerOpen ? <motion.div key="saas-nav-overlay"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           transition={{ duration: reduced ? 0 : 0.22 }}
           className="fixed inset-0 z-[100] bg-ink/50 lg:hidden"
           onMouseDown={event => { if (event.target === event.currentTarget) closeDrawer(); }}>
           <motion.div ref={drawerPanel} role="dialog" aria-modal="true" aria-label="Control Center navigation"
             id="saas-mobile-drawer" initial={reduced ? false : { x: -320 }}
-            animate={{ x: 0 }} exit={{ x: -320 }}
+            animate={{ x: 0 }}
             transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 40, mass: 0.9 }}
             className="flex h-full w-[min(320px,calc(100vw-40px))] flex-col overflow-hidden border-r border-sidebar-border bg-sidebar shadow-pop">
             <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-3">
@@ -356,8 +355,7 @@ export function ControlCenterShell() {
               <ArrowLeft aria-hidden="true" className="size-4" /> Back to ERP
             </Link>
           </motion.div>
-        </motion.div>}
-      </AnimatePresence>, document.body)}
+        </motion.div> : null, document.body)}
     </div>
   );
 }
