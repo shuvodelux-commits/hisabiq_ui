@@ -63,7 +63,7 @@ export function Team() {
               <li key={r.id} className="px-4 py-3">
                 <p className="text-[13px] font-medium text-ink">{r.label} <span className="font-normal text-ink-500">· {saas.state.staff.filter((s) => s.assignments.some((a) => a.roleId === r.id)).length} people</span></p>
                 <p className="text-xs text-ink-600">{r.summary}</p>
-                <p className="mt-1 flex flex-wrap gap-1">{r.permissions.map((p) => <span key={p} className="rounded bg-ink-50 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-600">{p}</span>)}</p>
+                <p className="mt-1 flex flex-wrap gap-1">{r.permissions.map((p) => <span key={p} className="rounded bg-ink-50 px-1.5 py-0.5 font-sans text-[10.5px] text-ink-600">{p}</span>)}</p>
               </li>
             ))}
           </ul>
@@ -123,7 +123,7 @@ function StaffDialog({ initial, canEdit, onClose }: { initial: StaffMember; canE
         <details className="rounded-lg border border-ink-100">
           <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-ink-700">Effective access · {roleLabel(m)} ({access.length} permissions)</summary>
           <ul className="max-h-[200px] divide-y divide-ink-100 overflow-y-auto text-xs">
-            {access.map((r) => <li key={r.permission} className="flex justify-between gap-2 px-3 py-1"><span className="font-mono text-ink-700">{r.permission}</span><span className="text-right text-ink-500">{r.all ? 'All businesses' : `${r.tenants.length} businesses`} · {r.via.join(', ')}</span></li>)}
+            {access.map((r) => <li key={r.permission} className="flex justify-between gap-2 px-3 py-1"><span className="font-sans text-ink-700">{r.permission}</span><span className="text-right text-ink-500">{r.all ? 'All businesses' : `${r.tenants.length} businesses`} · {r.via.join(', ')}</span></li>)}
           </ul>
         </details>
         <p className="text-[11px] text-ink-500">Team, catalog, announcements, reports and platform settings only apply from all-business roles.</p>
