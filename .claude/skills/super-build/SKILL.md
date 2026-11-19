@@ -24,7 +24,9 @@ existing Magic Patterns React components or financial behavior.
    stop rather than multiply checkouts when disk is below the agreed threshold.
 4. Use `.claude/super-board/configs/hisabiq-ui-mod001.json` (Project #2,
    frontend `main`, one worker, human merge). The source-pinned vendor
-   helper references in `.claude/bin` are required; do not fetch
+   helper references in `.claude/bin` are required. Initialize the pinned
+   vendor dependency with `git submodule update --init -- vendor/super-board`
+   before native readiness; do not fetch
    unreviewed remote scripts dynamically.
 5. Use **only** the verified NestSherERP native Codex single-card guard and
    build lane, not an older global standalone skill. It requires explicit

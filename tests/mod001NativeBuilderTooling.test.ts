@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readlinkSync, lstatSync, realpathSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -23,6 +23,7 @@ test('MOD-001 Codex builder has a local skill without a legacy Claude dispatcher
   assert.match(skill, /model_reasoning_effort=medium/);
   assert.match(skill, /--only 548/);
   assert.match(skill, /--backend-runtime-root/);
+  assert.match(skill, /git submodule update --init -- vendor\/super-board/);
   assert.match(skill, /Blocked/);
   assert.doesNotMatch(skill, /claude\s+-p/);
   assert.match(skill, /draft PR/i);
@@ -31,15 +32,27 @@ test('MOD-001 Codex builder has a local skill without a legacy Claude dispatcher
   assert.equal(realpathSync(alias), resolve(root, '.claude/skills/super-build'));
 });
 
-test('MOD-001 helpers resolve to the pinned vendor files instead of a copied toolkit', () => {
+test('MOD-001 helpers are pinned; absent submodule fails closed, initialized one resolves', () => {
+  const tree = execFileSync('git', ['ls-tree', 'HEAD', 'vendor/super-board'], { cwd: root, encoding: 'utf8' });
+  assert.match(tree, /^160000 commit d0b7d5a6850614ca809477c1af43d5d7da408726\s+vendor\/super-board/m);
+  const initialized = existsSync(resolve(root, 'vendor/super-board/scripts/super-board-github-read.py'));
   for (const name of allowedHelpers) {
     const path = resolve(root, '.claude/bin', name);
     assert.ok(lstatSync(path).isSymbolicLink(), name);
-    assert.equal(realpathSync(path), resolve(root, 'vendor/super-board/scripts', name), name);
-    assert.match(readlinkSync(path), /vendor\/super-board\/scripts/);
+    assert.equal(readlinkSync(path), `../../vendor/super-board/scripts/${name}`);
+    if (initialized) {
+      assert.equal(realpathSync(path), resolve(root, 'vendor/super-board/scripts', name), name);
+    } else {
+      assert.equal(existsSync(path), false, 'uninitialized helper must never appear ready');
+    }
   }
-  assert.equal(realpathSync(resolve(root, '.claude/skills/super-board')),
-    resolve(root, 'vendor/super-board/skills/super-board'));
+  const skillLink = resolve(root, '.claude/skills/super-board');
+  assert.equal(readlinkSync(skillLink), '../../vendor/super-board/skills/super-board');
+  if (initialized) {
+    assert.equal(realpathSync(skillLink), resolve(root, 'vendor/super-board/skills/super-board'));
+  } else {
+    assert.equal(existsSync(skillLink), false);
+  }
 });
 
 test('MOD-001 frontend board is single-worker and human-merge-only', () => {
@@ -63,9 +76,12 @@ test('MOD-001 frontend board is single-worker and human-merge-only', () => {
 
 test('MOD-001 accepts only reviewed read-only helper and large-evidence preflight', () => {
   const helper = resolve(root, '.claude/bin/super-board-github-read.py');
-  assert.ok(existsSync(helper));
   const result = spawnSync('python3', [helper, '--check'], { cwd: root, encoding: 'utf8' });
-  assert.equal(result.status, 0, result.stderr);
+  if (existsSync(helper)) {
+    assert.equal(result.status, 0, result.stderr);
+  } else {
+    assert.notEqual(result.status, 0, 'uninitialized helper cannot be invoked successfully');
+  }
   const preflight = source('.claude/bin/super-board-preflight.sh');
   assert.match(preflight, /--slurpfile mergedDocs/);
   assert.match(preflight, /--rawfile files/);
