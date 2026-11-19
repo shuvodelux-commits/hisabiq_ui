@@ -9,6 +9,10 @@ import {
   type CounterSingleSettlementDraft,
 } from '../../integration/counter-single-account.ts';
 import { ApiError } from '../../integration/errors.ts';
+import {
+  browserPendingCounterStorage, clearVerifiedCounterOperation,
+  reservePendingCounterOperation,
+} from '../../integration/connected-counter-pending.ts';
 import { generateOperationId } from '../../integration/operation.ts';
 import type { TradingParty } from '../../integration/party-reads.ts';
 import { useSession } from '../../integration/SessionProvider.tsx';
@@ -21,7 +25,7 @@ type Review = {
   draft: CounterSingleSettlementDraft;
   amountMinor: number;
 };
-type Phase = 'editing' | 'review' | 'posting' | 'rejected' | 'unknown' | 'done';
+type Phase = 'editing' | 'review' | 'posting' | 'rejected' | 'unknown' | 'blocked' | 'done';
 
 export interface ConnectedCounterSinglePaymentProps {
   role: Role;
@@ -33,6 +37,8 @@ export interface ConnectedCounterSinglePaymentProps {
   locked: boolean;
   onPosted: (value: ConnectedCounterPostedAndRefreshed) => void;
   onUnresolved: (message: string) => void;
+  /** Re-read the durable per-tenant/user marker before and after any source POST. */
+  onPendingChange: () => void;
 }
 
 function permission(role: Role): string {
@@ -63,7 +69,8 @@ function definitelyRejected(error: unknown): boolean {
 
 /** H2: source-owned one-tender review, never a preview-store payment. */
 export function ConnectedCounterSinglePayment({
-  role, party, account, businessDate, cashReady, locked, onPosted, onUnresolved,
+  role, party, account, businessDate, cashReady, locked,
+  onPosted, onUnresolved, onPendingChange,
 }: ConnectedCounterSinglePaymentProps) {
   const { mode, snapshot, store } = useSession();
   const { text } = useUiCopy();
@@ -118,26 +125,61 @@ export function ConnectedCounterSinglePayment({
   }
   async function confirm() {
     if (!reviewed || phase !== 'review' || inFlight.current || locked ||
+        snapshot.status !== 'authenticated' ||
         signedIdentity(store.getSnapshot()) !== reviewed.identity) return;
-    inFlight.current = true; // synchronous guard against double click/touch
+    inFlight.current = true; // synchronous duplicate-click guard
     setPhase('posting');
     setMessage('');
+    const storage = browserPendingCounterStorage();
+    const scope = { tenantId: snapshot.tenantId, userId: snapshot.userId };
+    let reserved = false;
+    let confirmed: ConnectedCounterPostedAndRefreshed | null = null;
     try {
+      // A write-ahead local record is mandatory BEFORE any authenticated money
+      // POST. Storage denied, corrupted or another unresolved operation stops.
+      reservePendingCounterOperation(
+        storage, scope, reviewed.draft.operationId, reviewed.draft.kind,
+      );
+      reserved = true;
+      onPendingChange();
+      if (signedIdentity(store.getSnapshot()) !== reviewed.identity) {
+        throw new ApiError('protocol', 'Signed identity changed before payment request');
+      }
       const source = await recordConnectedCounterSettlement(store, reviewed.draft);
       if (signedIdentity(store.getSnapshot()) !== reviewed.identity) {
         throw new ApiError('protocol', 'Payment may have posted after session change');
       }
+      // The signed coordinator already verified the financial response and
+      // independently re-read Party/account. Only its exact operation clears.
+      clearVerifiedCounterOperation(storage, scope, reviewed.draft.operationId);
+      onPendingChange();
       setPhase('done');
       setMessage(source.payment.data.number);
-      onPosted(source);
+      confirmed = source;
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'Unknown source response';
-      if (definitelyRejected(error)) {
-        setPhase('rejected');
+      if (!reserved) {
+        // Reservation failed before ANY source POST. No local-storage fallback.
+        setPhase('blocked');
         setMessage(reason);
+        onUnresolved(reason);
+      } else if (definitelyRejected(error)) {
+        // Nest's definite validation/permission/not-found/shortage rejection
+        // cannot commit the financial operation. Do not release any other key.
+        try {
+          clearVerifiedCounterOperation(storage, scope, reviewed.draft.operationId);
+          onPendingChange();
+          setPhase('rejected');
+          setMessage(reason);
+        } catch (clearError) {
+          const caution = clearError instanceof Error ? clearError.message : reason;
+          setPhase('unknown');
+          setMessage(caution);
+          onUnresolved(caution);
+        }
       } else {
-        // A timeout, lost HTTP response, 5xx, or failed post-read may have
-        // committed. Keep the original operation ID and forbid a fresh POST.
+        // POST may have committed even when its receipt/readback was lost.
+        // The original ULID stays in browser storage across reloads.
         setPhase('unknown');
         setMessage(reason);
         onUnresolved(reason);
@@ -145,6 +187,7 @@ export function ConnectedCounterSinglePayment({
     } finally {
       inFlight.current = false;
     }
+    if (confirmed) onPosted(confirmed);
   }
   if (mode !== 'connected' || snapshot.status !== 'authenticated') return null;
   return <section data-connected-single-payment="" data-h2-state={phase}
@@ -218,10 +261,17 @@ export function ConnectedCounterSinglePayment({
       {message}
       {' '}{text('No payment was accepted. Edit and review again.', 'পেমেন্ট গৃহীত হয়নি। সংশোধন করে আবার যাচাই করুন।')}
     </p>}
+    {phase === 'blocked' && <p role="alert" data-h3-storage-blocked=""
+      className="text-xs font-semibold text-danger">
+      {text('Payment was not submitted because the pending-operation lock could not be saved.',
+        'পেমেন্ট পাঠানো হয়নি, কারণ অপারেশন সুরক্ষা তথ্য সংরক্ষণ করা যায়নি।')}
+      {' '}{message}
+    </p>}
     {phase === 'unknown' && <p role="alert" className="text-xs font-semibold text-danger" data-h2-unknown="">
       {text('Payment may have posted. Keep the original operation ID and reconcile source history before any retry.',
         'পেমেন্ট লেখা হয়ে থাকতে পারে। মূল অপারেশন আইডি রেখে আবার পাঠানোর আগে সার্ভারের হিসাব মিলিয়ে নিন।')}
       {' '}{message}
+      {' '}{text('Original operation', 'মূল অপারেশন')}: {review?.draft.operationId}
     </p>}
     {phase === 'done' && <p role="status" className="text-sm font-medium">
       {text('Server confirmed payment', 'সার্ভারে পেমেন্ট নিশ্চিত হয়েছে')}: {message}

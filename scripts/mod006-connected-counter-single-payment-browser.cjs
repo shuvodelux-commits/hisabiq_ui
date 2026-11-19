@@ -6,19 +6,19 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { chromium } = require('playwright');
-const API = 'http://127.0.0.1:56121';
-const DB = 'hisabiq_mod006_h2_payment_20261116';
-const CONTAINER = 'hisabiq-mod006-h2-payment-pg-20261116';
-const ACK = 'MOD006_H2_SIGNED_PAYMENT_DISPOSABLE_20261116';
+const API = 'http://127.0.0.1:56131';
+const DB = 'hisabiq_mod006_h3a_pending_20261117';
+const CONTAINER = 'hisabiq-mod006-h3a-pending-pg-20261117';
+const ACK = 'MOD006_H3A_PENDING_DISPOSABLE_20261117';
 const letters = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const id = () => '0' + [...crypto.randomBytes(25)].map(x => letters[x % 32]).join('');
 const isId = /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/;
 function fail(message) { throw Error('H2 FINANCIAL TEST SAFETY: ' + message); }
 function guard() {
-  if (process.env.MOD006_H2_ACK !== ACK ||
-      process.env.MOD006_H2_ORIGIN !== API ||
-      process.env.MOD006_H2_DB !== DB ||
-      process.env.MOD006_H2_CONTAINER !== CONTAINER) {
+  if (process.env.MOD006_H3A_ACK !== ACK ||
+      process.env.MOD006_H3A_ORIGIN !== API ||
+      process.env.MOD006_H3A_DB !== DB ||
+      process.env.MOD006_H3A_CONTAINER !== CONTAINER) {
     fail('explicit disposable database identity not acknowledged');
   }
   const result = spawnSync('podman', ['inspect', '--format', '{{json .}}', CONTAINER], {
@@ -287,6 +287,10 @@ async function run() {
       await page.locator('[data-h2-review]').click();
       await page.locator('[data-h2-confirm]').waitFor();
       assert.equal(financial().length,count,'review cannot POST');
+      assert.equal(await page.evaluate(() =>
+        Object.keys(localStorage).filter(k =>
+          k.startsWith('hisabiq.connected.counter.pending.v1.')).length),0,
+        'Review alone must not reserve payment write-ahead marker');
       const responseWait=page.waitForResponse(r=>
         new URL(r.url()).pathname===expectedRoute && r.request().method()==='POST');
       await page.locator('[data-h2-confirm]').click();
@@ -298,6 +302,10 @@ async function run() {
       assert.equal(financial().length,count+1,'one user confirmation sends one payment');
       assert.match(financial().at(-1).key,isId,'cryptographic operation key');
       assert.equal(await page.locator('[data-h2-confirm]').count(),0,'confirm cannot double-submit');
+      assert.equal(await page.evaluate(() =>
+        Object.keys(localStorage).filter(k =>
+          k.startsWith('hisabiq.connected.counter.pending.v1.')).length),0,
+        'confirmed source/reread must clear only original pending marker');
       return result.data.id;
     }
     const bankB=await postReviewed('23.50','/api/v1/customer-payments');
@@ -338,6 +346,10 @@ async function run() {
     const rejectedResponse=await rejectedWait;
     assert.equal(rejectedResponse.status(),400,'source must reject insufficient CASH drawer');
     await page.locator('[data-h2-state="rejected"]').waitFor();
+    assert.equal(await page.evaluate(() =>
+      Object.keys(localStorage).filter(k =>
+        k.startsWith('hisabiq.connected.counter.pending.v1.')).length),0,
+      'definite insufficient-cash HTTP400 clears rejected write-ahead operation');
     assert.equal(financial().length,negativeBefore+1);
     assert.equal(ok(await api('/api/v1/money/accounts','GET',undefined,a.token),200,'post source balance').accounts.find(account=>account.id===a.cash)?.balanceMinor,32000);
     console.log('H2_CASH_SHORTAGE_ROLLBACK_PASS');
@@ -368,6 +380,60 @@ async function run() {
     assert.equal(financial().length,preUnknown+1,'no automatic replay on unknown commit');
     await page.unroute('**/api/v1/money/accounts');
     console.log('H2_UNKNOWN_POST_COMMIT_NO_DUPLICATE_LOCK_PASS');
+
+    // H3A durability: the actual POST committed in Nest/PG16, but the first
+    // post-read was deliberately lost. Same-browser reload must NOT reset the
+    // no-duplicate interlock. Browser storage contains no token or Party data.
+    const originalId=await page.locator('[data-h3-pending-state="pending"]')
+      .getAttribute('data-h3-original-operation');
+    assert.match(originalId,isId,'persisted unresolved original ULID');
+    const saved=await page.evaluate(() => {
+      const keys=Object.keys(localStorage).filter(k=>
+        k.startsWith('hisabiq.connected.counter.pending.v1.'));
+      return keys.map(key=>JSON.parse(localStorage.getItem(key)));
+    });
+    assert.equal(saved.length,1,'one pending write-ahead marker');
+    assert.equal(saved[0].operationId,originalId);
+    assert.deepEqual(Object.keys(saved[0]).sort(),[
+      'createdAt','kind','operationId','tenantId','userId','version',
+    ]);
+    assert.equal(saved[0].tenantId,a.tenant);
+    assert.equal(saved[0].kind,'CUSTOMER_RECEIPT');
+    const afterUnknown=financial().length;
+    await page.reload();
+    try {
+      await page.locator('#h1-session[data-status="authenticated"]').waitFor({timeout:10000});
+    } catch {
+      await signIn(a);
+    }
+    await page.locator('[data-h3-pending-state="pending"]').waitFor();
+    assert.equal(await page.locator('[data-h3-original-operation]')
+      .getAttribute('data-h3-original-operation'),originalId);
+    await choose('CUSTOMER',a.customer,a.bank);
+    assert.equal(await page.locator('[data-h2-review]').isDisabled(),true,
+      'same tenant/user must not re-post after reload');
+    assert.equal(financial().length,afterUnknown,'reload must cause zero auto replays');
+    console.log('H3A_RELOAD_RESTORES_UNCERTAIN_ORIGINAL_OPERATION_NO_POST_PASS');
+
+    await page.locator('#h1-logout').click();
+    await page.locator('#h1-session[data-status="signed-out"]').waitFor();
+    await signIn(b);
+    await choose('CUSTOMER',b.customer,b.bank);
+    assert.equal(await page.locator('[data-h2-global-lock]').count(),0,
+      'other tenant never inherits original user pending operation');
+    assert.equal(await page.locator('[data-h2-review]').isEnabled(),true,
+      'other tenant remains independently reviewable');
+    await page.locator('#h1-logout').click();
+    await page.locator('#h1-session[data-status="signed-out"]').waitFor();
+    await signIn(a);
+    await page.locator('[data-h3-pending-state="pending"]').waitFor();
+    assert.equal(await page.locator('[data-h3-original-operation]')
+      .getAttribute('data-h3-original-operation'),originalId);
+    await choose('CUSTOMER',a.customer,a.cash);
+    assert.equal(await page.locator('[data-h2-review]').isDisabled(),true,
+      'original tenant login still blocked until source verified');
+    assert.equal(financial().length,afterUnknown,'tenant switches cannot replay');
+    console.log('H3A_OTHER_TENANT_ISOLATED_ORIGINAL_TENANT_LOCK_PERSISTED_PASS');
 
     assert.deepEqual(errors,[],'React browser must not throw');
     assert.equal(queryPg('SELECT coalesce(sum(amount_minor),0) FROM journal_lines'),'0',
