@@ -196,7 +196,16 @@ export async function requestJson<T>(input: ApiRequest, decode: (raw: unknown) =
     throw new ApiError('network', 'Network request failed');
   }
 
-  if (response.status === 204 && response.ok) return undefined as T;
+  if (response.status === 204 && response.ok) {
+    // These V2 mutations promise a selected-role, versioned receipt, never
+    // void. An HTTP 204 cannot prove whether the write succeeded; don't let
+    // the caller treat undefined as a committed create/edit/status operation.
+    // Keep legacy V1 204 void endpoints (e.g., DELETE and logout) unchanged.
+    if (isPartyV2CreatePath(input.path) ||
+        isPartyV2EditPath(input.path) ||
+        isPartyV2StatusPath(input.path)) throw protocolError();
+    return undefined as T;
+  }
   const contentType = response.headers.get('content-type') ?? '';
   const isJson = /^application\/(?:[\w.-]+\+)?json(?:\s*;|\s*$)/i.test(contentType);
   if (!isJson) {

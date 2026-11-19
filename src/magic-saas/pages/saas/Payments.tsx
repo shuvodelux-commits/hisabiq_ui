@@ -59,7 +59,7 @@ export function Payments() {
                       <td className={td}><span className="font-medium">{o.id}</span><span className="block text-[11px] text-ink-500">{fmtDateTime(o.createdAt)}</span></td>
                       <td className={td}>{tenants.find((t) => t.id === o.tenantId)?.name}</td>
                       <td className={`${td} hidden md:table-cell`}>{o.method}<span className="block text-[11px] text-ink-500">{o.reference || '—'}</span></td>
-                      <td className={`${td} text-right font-medium tabular-nums`}>{formatNumber(o.total)}</td>
+                      <td className={`${td} text-right font-medium `}>{formatNumber(o.total)}</td>
                       <td className={td}>
                         {tab === 'failed' ? <span className="text-xs text-ink-600">{o.failureReason}</span> : tab === 'activate' ? <Badge tone="success">Verified by {o.verifiedBy}</Badge> : <Badge tone={err ? 'danger' : warn ? 'warning' : 'success'} dot>{err ? 'Problem' : warn ? 'Check' : 'Matches'}</Badge>}
                         {tab === 'verify' && (err || warn) && <span className="block max-w-[260px] truncate text-[11px] text-ink-500" title={(err ?? warn)!.text}>{(err ?? warn)!.text}</span>}
@@ -85,7 +85,7 @@ export function Payments() {
         <Card>
           <h2 className="border-b border-ink-100 px-4 py-2.5 text-sm font-semibold">Statement lines with no invoice</h2>
           <ul className="divide-y divide-ink-100 text-[13px]">
-            {unmatched.map((l) => <li key={l.id} className="flex flex-wrap justify-between gap-2 px-4 py-2"><span>{l.method} · TRX <b className="font-medium">{l.trx}</b> · from {l.sender}</span><span className="tabular-nums text-ink-600">৳{l.amount} · {fmtDateTime(l.at)}</span></li>)}
+            {unmatched.map((l) => <li key={l.id} className="flex flex-wrap justify-between gap-2 px-4 py-2"><span>{l.method} · TRX <b className="font-medium">{l.trx}</b> · from {l.sender}</span><span className=" text-ink-600">৳{l.amount} · {fmtDateTime(l.at)}</span></li>)}
           </ul>
         </Card>
       )}

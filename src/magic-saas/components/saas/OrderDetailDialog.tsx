@@ -68,7 +68,7 @@ export function OrderDetailDialog({ orderId, onClose }: { orderId: string; onClo
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-3 px-3 py-1.5">
               <dt className="text-ink-500">{k}</dt>
-              <dd className="text-right tabular-nums text-ink">{v}</dd>
+              <dd className="text-right  text-ink">{v}</dd>
             </div>
           ))}
         </dl>

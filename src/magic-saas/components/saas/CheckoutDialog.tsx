@@ -126,7 +126,7 @@ function Row({ label, value, helper, strong, tone }: { label: string; value: str
         {label}
         {helper && <span className="ml-1.5 text-[11px] text-ink-500">{helper}</span>}
       </dt>
-      <dd className={`tabular-nums ${strong ? 'text-[15px] font-semibold text-ink' : tone === 'success' ? 'text-success' : 'text-ink'}`}>{value}</dd>
+      <dd className={` ${strong ? 'text-[15px] font-semibold text-ink' : tone === 'success' ? 'text-success' : 'text-ink'}`}>{value}</dd>
     </div>
   );
 }

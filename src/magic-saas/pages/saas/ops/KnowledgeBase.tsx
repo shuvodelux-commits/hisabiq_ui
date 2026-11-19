@@ -34,7 +34,7 @@ export function KnowledgeBase() {
                   <td className={td}><span className="font-medium text-ink">{a.title}</span><span className="block font-bn text-[11px] text-ink-500">{a.titleBn}</span></td>
                   <td className={`${td} hidden md:table-cell`}>{a.category}</td>
                   <td className={td}><Badge tone={a.visibility === 'Public' ? 'teal' : 'ink'}>{a.visibility === 'Public' ? 'Owners' : 'Staff only'}</Badge></td>
-                  <td className={`${td} hidden text-right tabular-nums md:table-cell`}>{a.views.toLocaleString('en-IN')}</td>
+                  <td className={`${td} hidden text-right  md:table-cell`}>{a.views.toLocaleString('en-IN')}</td>
                   <td className={`${td} hidden text-ink-500 lg:table-cell`}>{fmtDate(a.updatedAt)} · {a.updatedBy}</td>
                   <td className={td}><Badge tone={a.status === 'Published' ? 'success' : 'neutral'} dot>{a.status}</Badge></td>
                 </tr>

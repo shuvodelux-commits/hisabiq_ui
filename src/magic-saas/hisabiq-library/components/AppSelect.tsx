@@ -127,7 +127,7 @@ export function AppSelect({
         }}
         className={'flex h-9 w-full min-w-0 items-center justify-between gap-2 border border-input bg-card px-3 text-left text-sm text-ink shadow-xs outline-none hover:bg-ink-50/40 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/20 disabled:opacity-50 ' +
           (rowsStyle
-            ? 'min-w-[88px] rounded-lg border-border bg-white dark:bg-card ' + (open ? 'border-teal-600 ring-2 ring-teal-500/15 ' : '')
+            ? 'min-w-[88px] rounded-lg border-border bg-card ' + (open ? 'border-teal-600 ring-2 ring-teal-500/15 ' : '')
             : 'rounded-md ' + (compact ? 'border-0 bg-transparent px-2 shadow-none ' : ''))}
       >
         <span className="truncate">{currentLabel ? optionLabel(currentLabel) : value || placeholder}</span>

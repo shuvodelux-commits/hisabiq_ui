@@ -40,7 +40,7 @@ export function MeterBar({ label, value, pct, helper }: { label: string; value: 
   const reduced = useReducedMotion();
   return (
     <div>
-      <div className="flex justify-between gap-2 text-[13px]"><span className="text-ink-600">{label}</span><span className="font-medium tabular-nums">{value}</span></div>
+      <div className="flex justify-between gap-2 text-[13px]"><span className="text-ink-600">{label}</span><span className="font-medium ">{value}</span></div>
       <div className="mt-1 h-1.5 rounded-full bg-ink-50" role="meter" aria-label={label} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
         <motion.div
           initial={reduced ? false : { width: 0 }}
@@ -138,7 +138,7 @@ export function SummaryStrip({ items }: { items: { label: string; value: React.R
           className="min-w-0 rounded-xl border border-ink-100 bg-card px-3 py-2.5 shadow-card"
         >
           <dt className="truncate text-[12px] text-ink-500">{i.label}</dt>
-          <dd className={`mt-0.5 truncate text-lg font-semibold tabular-nums ${i.tone === 'danger' ? 'text-danger' : i.tone === 'warning' ? 'text-warning' : i.tone === 'success' ? 'text-success' : 'text-ink'}`}>{i.value}</dd>
+          <dd className={`mt-0.5 truncate text-lg font-semibold  ${i.tone === 'danger' ? 'text-danger' : i.tone === 'warning' ? 'text-warning' : i.tone === 'success' ? 'text-success' : 'text-ink'}`}>{i.value}</dd>
           {i.helper && <dd className="truncate text-[11px] text-ink-500">{i.helper}</dd>}
         </motion.div>
       ))}

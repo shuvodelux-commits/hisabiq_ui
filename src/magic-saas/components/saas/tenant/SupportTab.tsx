@@ -59,7 +59,7 @@ export function SupportTab({ tenant }: { tenant: Tenant }) {
         {access.length === 0 ? <p className="px-4 py-6 text-center text-xs text-ink-500">No support access requests.</p> : access.map((a) => <AccessRequestCard key={a.id} a={a} />)}
       </SettingCard>
 
-      <section className="rounded-xl border border-ink-100 bg-white shadow-card">
+      <section className="rounded-xl border border-ink-100 bg-card shadow-card">
         <button
           type="button"
           aria-expanded={diagOpen}
