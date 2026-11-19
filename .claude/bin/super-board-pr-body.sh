@@ -1,0 +1,1 @@
+../../vendor/super-board/scripts/super-board-pr-body.sh
