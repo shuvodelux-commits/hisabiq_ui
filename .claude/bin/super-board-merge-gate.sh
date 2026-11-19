@@ -1,0 +1,1 @@
+../../vendor/super-board/scripts/super-board-merge-gate.sh
